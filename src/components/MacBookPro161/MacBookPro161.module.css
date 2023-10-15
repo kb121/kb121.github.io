@@ -1,0 +1,62 @@
+.root {
+  width: 1696.5658px;
+  height: 1000px;
+  max-height: 100%;
+  place-content: center;
+  align-items: flex-start;
+  gap: 93px;
+  padding: 0 156px;
+  border-radius: 4px;
+  background-color: #fff9f9;
+  overflow: hidden;
+}
+.frame1 {
+  width: 394px;
+  height: 588px;
+  flex-direction: column;
+  place-content: center;
+  align-items: center;
+  padding: 10px;
+  border-radius: 60px;
+  background-color: #ffe5e5;
+}
+.lifeIsFantastic {
+  color: #000;
+  font-size: 40px;
+  font-family: Ingrid Darling, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    'Liberation Sans', sans-serif;
+  width: 166px;
+  height: min-content;
+  text-align: center;
+  align-items: center;
+  flex-direction: column;
+}
+.frame2 {
+  position: relative;
+  width: 833px;
+  height: 34px;
+  place-content: center;
+  align-items: flex-end;
+}
+.copyright2023HongZhuangAllRigh {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 833px;
+  height: min-content;
+  text-align: center;
+  align-items: center;
+  flex-direction: column;
+}
+.textBlock {
+  color: #000;
+  font-size: 15px;
+  font-family: Imprima, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    'Liberation Sans', sans-serif;
+}
+.textBlock2 {
+  color: #000;
+  font-size: 15px;
+  font-family: Imprima, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    'Liberation Sans', sans-serif;
+}
