@@ -18,19 +18,33 @@ html,body{
 
 
 .component_nav {
+    border-style: solid;
+
+    opacity: 0.8;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: fixed;
     top: 0;
     left: 0;
-    width: calc(100% - 40px); /* Subtracting 20px from both left and right */
+    /*width: calc(100% - 40px); !* Subtracting 20px from both left and right *!*/
+    width: 100%;
     height: 41px;
     background-color: rgba(255, 224, 224, 0.98); /* 0.7 at the end indicates 70% opacity */
-    border-radius: 0px 0px 20px 20px;
+    /*border-radius: 0px 0px 20px 20px;*/
     z-index: 1000;  /* this will ensure the navbar stays above other content */
-    margin-left: 20px;
+    /*margin-left: 20px;*/
     margin-right: 20px;
+}
+
+。component_nav .union_title_name {
+    /*position: absolute;*/
+    /*width: 247px;*/
+    /*height: 39px;*/
+    /*top: 80px;*/
+    /*left: 900px;*/
+    border-style: solid;
+
 }
 
 .Linkedin_logo {
@@ -57,6 +71,17 @@ html,body{
     .component_main {
         /* 切换为竖向布局 */
         flex-direction: column;
+
+    }
+
+    .component_main .component_jump{
+        /*width: 450px;*/
+    }
+
+    .component_main .frame {
+        /*max-width: 794px;*/
+        /*width: 780px;*/
+        border-style: solid;
     }
 }
 
@@ -65,6 +90,9 @@ html,body{
 /****************/
 
 .component_jump {
+    border-style: solid;
+
+
     overflow: hidden;
     display: inline-flex;
     flex-wrap: wrap;
@@ -73,7 +101,7 @@ html,body{
     justify-content: center;
     gap: 10px 30px;
     position: relative;
-    border-radius: 100px;
+    border-radius: 40px;
     margin: 20px;
     object-fit: fill;
 }
