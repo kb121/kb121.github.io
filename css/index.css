@@ -97,7 +97,7 @@ html,body{
     .component_main .frame {
         /*max-width: 794px;*/
         /*width: 780px;*/
-        border-style: solid;
+        /* border-style: solid; */
     }
 }
 
@@ -106,7 +106,7 @@ html,body{
 /****************/
 
 .component_jump {
-    border-style: solid;
+    /* border-style: solid; */
 
 
     overflow: hidden;
