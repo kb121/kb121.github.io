@@ -1,0 +1,102 @@
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1140px;
+}
+
+.site-title {
+  font-size: 1.25rem;
+  line-height: 2.5rem;
+}
+
+.nav-link {
+  padding: 0;
+  font-size: 1rem;
+  line-height: 2.5rem;
+  color: inherit;
+  opacity: 0.8;
+}
+
+.header-social .nav-link {
+  font-size: 1.25rem;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  color: inherit;
+  opacity: 1;
+}
+
+.nav-item + .nav-item {
+  margin-left: 1rem;
+}
+
+.cover {
+  height: 500px;
+}
+
+.cover > img {
+  object-fit: cover;
+  width: auto;
+}
+
+.progress-bar {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.text-small {
+  font-size: 0.85rem;
+}
+
+.text-teal {
+  color: var(--bs-teal);
+}
+
+footer a:not(.nav-link) {
+  color: inherit;
+  border-bottom: 1px dashed;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+@media (min-width: 48em) {
+  .site-title {
+    float: left;
+  }
+  .site-nav {
+    float: right;
+  }
+}
+
+
+@media (max-width: 767px) {
+  /* disable animations on mobile */  
+  [data-aos] {
+    opacity: 1 !important;
+    transform: translate(0) scale(1) !important;
+  }
+
+  .p-5 {
+    padding: 2.5rem 2rem !important;
+  }
+
+  .portfolio-section .m-5 {
+    margin: 2rem 0 1rem !important;
+  }
+
+  .portfolio-reverse {
+    flex-direction: column-reverse;
+  }
+  .portfolio-reverse .text-end {
+    text-align: start !important;
+  }
+}

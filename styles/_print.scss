@@ -1,0 +1,54 @@
+@media print {
+  [data-aos] {
+    opacity: 1 !important;
+    transform: translate(0) scale(1) !important;
+  }
+
+  body.bg-light {
+    background-color: #fff!important;
+  }
+
+  .container {
+    width: auto;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .cover {
+    height: 360px;
+    margin-bottom: 1.5rem;
+  }
+
+  .cover > img {
+    display: none;
+  }
+
+  .shadow-1-strong {
+    box-shadow: none !important;
+  }
+
+  .resume-container > .my-5 {
+    margin: 0 !important;
+  }
+
+  .my-5.p-5 {
+    padding: 1.5rem 0!important;
+  }
+
+  .about-section {    
+    padding: 0 !important;
+  }
+  .skills-section,
+  .work-experience-section,
+  .education-section,
+  .portfolio-section,
+  .reference-section,
+  .contact-section {    
+    padding: 0 !important;
+  }
+
+  .page-break {
+    padding-top: 5rem;
+    page-break-before: always;
+  }
+}
