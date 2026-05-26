@@ -1,380 +1,549 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hong Zhuang — Machine Learning Engineer | TUM MSc</title>
-    <meta name="description" content="Hong Zhuang is an MSc Informatics student at the Technical University of Munich (TUM), focused on multimodal LLM training, distributed systems, and model acceleration. Previously at Huawei Ascend Model Platform and Moii.AI.">
-    <meta name="author" content="Hong Zhuang">
-    <meta name="keywords" content="Hong Zhuang, Machine Learning Engineer, Multimodal LLM, Distributed Training, Model Acceleration, TUM, Huawei Ascend, vLLM, TRL, VERL, DeepSpeed, AI Engineer">
-    <meta name="theme-color" content="#0288d1">
-    <link rel="canonical" href="https://www.hzhuang.org/">
-    <link rel="icon" href="favicon.ico">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hong Zhuang — Machine Learning Engineer · Multimodal LLM & Acceleration</title>
+    <meta
+      name="description"
+      content="Hong Zhuang — MSc Informatics @ TUM. Multimodal LLM training, distributed systems, and model acceleration. Ex-Huawei Ascend, ex-Moii.AI. Open to ML internships."
+    />
+    <meta name="author" content="Hong Zhuang" />
+    <meta
+      name="keywords"
+      content="Hong Zhuang, Machine Learning Engineer, Multimodal LLM, Distributed Training, Model Acceleration, TUM, Huawei Ascend, vLLM, TRL, VERL, DeepSpeed, AI Engineer"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="canonical" href="https://www.hzhuang.org/" />
+    <link rel="icon" href="favicon.ico" />
 
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Hong Zhuang">
-    <meta property="og:url" content="https://www.hzhuang.org/">
-    <meta property="og:title" content="Hong Zhuang — Machine Learning Engineer">
-    <meta property="og:description" content="MSc Informatics at TUM. Multimodal LLM training, distributed systems, and model acceleration.">
-    <meta property="og:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg">
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Hong Zhuang" />
+    <meta property="og:url" content="https://www.hzhuang.org/" />
+    <meta property="og:title" content="Hong Zhuang — Machine Learning Engineer" />
+    <meta
+      property="og:description"
+      content="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration. Open to ML internships."
+    />
+    <meta property="og:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg" />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Hong Zhuang — Machine Learning Engineer">
-    <meta name="twitter:description" content="MSc Informatics at TUM. Multimodal LLM training, distributed systems, and model acceleration.">
-    <meta name="twitter:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Hong Zhuang — Machine Learning Engineer" />
+    <meta
+      name="twitter:description"
+      content="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration."
+    />
+    <meta name="twitter:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg" />
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;family=Roboto:wght@300;400;500;700&amp;display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;family=Roboto:wght@300;400;500;700&amp;display=swap" media="print" onload="this.media='all'"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
     <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;family=Roboto:wght@300;400;500;700&amp;display=swap"/>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      />
     </noscript>
-    <link href="css/font-awesome/css/all.min.css?ver=1.3.0" rel="stylesheet">
-    <link href="css/mdb.min.css?ver=1.3.0" rel="stylesheet">
-    <link href="css/aos.css?ver=1.3.0" rel="stylesheet">
-    <link href="css/main.css?ver=1.3.0" rel="stylesheet">
-    <noscript>
-      <style type="text/css">
-        [data-aos] {
-            opacity: 1 !important;
-            transform: translate(0) scale(1) !important;
-        }
-      </style>
-    </noscript>
+
+    <link href="css/font-awesome/css/all.min.css?ver=2.0.0" rel="stylesheet" />
+    <link href="css/design.css?ver=2.0.0" rel="stylesheet" />
   </head>
-  <body class="bg-light" id="top">
-    <header class="d-print-none">
-      <div class="container text-center text-lg-left">
-        <div class="pt-4 clearfix">
-          <h1 class="site-title mb-0">Hong Zhuang</h1>
-          <div class="site-nav">
-            <nav role="navigation">
-              <ul class="nav justify-content-center">
-                <li class="nav-item"><a class="nav-link" href="#about" title="About"><span class="menu-title">About</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#skills" title="Skills"><span class="menu-title">Skills</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#experience" title="Experience"><span class="menu-title">Experience</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#education" title="Education"><span class="menu-title">Education</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#publications" title="Publications"><span class="menu-title">Publications</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#portfolio" title="Portfolio"><span class="menu-title">Portfolio</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#contact" title="Contact"><span class="menu-title">Contact</span></a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
+  <body id="top">
+    <a href="#about" class="skip">Skip to content</a>
+
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="#top" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="#about" data-section="about" data-num="01">About</a></li>
+          <li><a href="#skills" data-section="skills" data-num="02">Skills</a></li>
+          <li><a href="#experience" data-section="experience" data-num="03">Experience</a></li>
+          <li><a href="#education" data-section="education" data-num="04">Education</a></li>
+          <li><a href="#publications" data-section="publications" data-num="05">Papers</a></li>
+          <li><a href="#portfolio" data-section="portfolio" data-num="06">Work</a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+        <a href="#contact" class="nav-cta">Let&rsquo;s talk</a>
       </div>
     </header>
-    <div class="page-content">
-      <div class="container">
-<div class="resume-container">
-  <div class="shadow-1-strong bg-white my-5" id="intro">
-    <div class="bg-info text-white">
-      <div class="cover bg-image"><img src="images/me0way2eb.JPG" alt="" aria-hidden="true"/>
-        <div class="mask" style="background-color: rgba(0, 0, 0, 0.7);backdrop-filter: blur(2px);">
-          <div class="text-center p-5">
-            <div class="avatar p-1"><img class="img-thumbnail shadow-2-strong" src="images/HZhuang_shan.jpg" width="160" height="160" alt="Hong Zhuang portrait" loading="lazy" decoding="async"/></div>
-            <div class="header-bio mt-3">
-              <div data-aos="zoom-in" data-aos-delay="0">
-                <h2 class="h1">Hong Zhuang</h2>
-                <p>Machine Learning Engineer &middot; Multimodal LLM Training &amp; Acceleration</p>
+
+    <aside class="sidenav" aria-hidden="true">
+      <a href="#top" data-section="hero" class="active"><span class="dot"></span><span class="label">Home</span></a>
+      <a href="#about" data-section="about"><span class="dot"></span><span class="label">About</span></a>
+      <a href="#skills" data-section="skills"><span class="dot"></span><span class="label">Skills</span></a>
+      <a href="#experience" data-section="experience"><span class="dot"></span><span class="label">Experience</span></a>
+      <a href="#education" data-section="education"><span class="dot"></span><span class="label">Education</span></a>
+      <a href="#publications" data-section="publications"><span class="dot"></span><span class="label">Papers</span></a>
+      <a href="#portfolio" data-section="portfolio"><span class="dot"></span><span class="label">Work</span></a>
+      <a href="#contact" data-section="contact"><span class="dot"></span><span class="label">Contact</span></a>
+    </aside>
+
+    <main>
+      <!-- ============== Hero ============== -->
+      <section class="hero" id="hero">
+        <div class="hero-grid">
+          <div class="hero-text">
+            <span class="eyebrow"><span class="pulse"></span>Available for ML internships · Summer 2026</span>
+            <h1 data-split>Hong Zhuang.</h1>
+            <p class="kicker">
+              Machine Learning Engineer &middot;
+              <span class="grad">Multimodal LLM Training &amp; Acceleration</span>
+            </p>
+            <p class="lede">
+              MSc Informatics @ <strong>Technical University of Munich</strong> &middot; previously building long-sequence
+              parallel training at <strong>Huawei Ascend</strong> and real-time small-object detection at <strong>Moii.AI</strong>.
+            </p>
+            <div class="cta-row">
+              <a class="btn primary" href="#contact" data-magnetic="18">
+                Let&rsquo;s connect <span class="arrow">→</span>
+              </a>
+              <a class="btn ghost" href="#portfolio" data-magnetic="12">See my work</a>
+            </div>
+            <ul class="hero-stats" aria-label="Highlights">
+              <li>
+                <span class="num"><span data-count="75">0</span>%</span>
+                <span class="lbl">GPU saved (Wan2.1)</span>
+              </li>
+              <li>
+                <span class="num"><span data-count="50">0</span>%</span>
+                <span class="lbl">memory cut</span>
+              </li>
+              <li>
+                <span class="num">+<span data-count="30">0</span>%</span>
+                <span class="lbl">CV accuracy</span>
+              </li>
+              <li>
+                <span class="num">+<span data-count="200">0</span>%</span>
+                <span class="lbl">inference speed</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="hero-portrait">
+            <div data-parallax>
+              <div class="portrait-card" data-tilt>
+                <img
+                  src="images/HZhuang_shan.jpg"
+                  alt="Hong Zhuang portrait"
+                  loading="eager"
+                  decoding="async"
+                  width="320"
+                  height="400"
+                />
+                <span class="status-pill"><span class="dot"></span> Munich, Germany</span>
               </div>
-              <div class="header-social mb-3 d-print-none" data-aos="zoom-in" data-aos-delay="200">
-                <nav role="navigation">
-                  <ul class="nav justify-content-center">
-                    <li class="nav-item"><a class="nav-link" href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" title="LinkedIn"><i class="fab fa-linkedin"></i><span class="menu-title sr-only">LinkedIn</span></a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="mailto:hong.zhuang@tum.de" title="Email"><i class="fas fa-envelope"></i><span class="menu-title sr-only">Email</span></a>
-                    </li>
-                  </ul>
-                </nav>
+              <span class="float-tag t1">PyTorch · vLLM</span>
+              <span class="float-tag t2">TRL · VERL</span>
+              <span class="float-tag t3">DeepSpeed-Ulysses</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="marquee" aria-hidden="true">
+          <div class="marquee-track">
+            <span>PyTorch</span><span class="dot"></span>
+            <span>Multimodal LLM</span><span class="dot"></span>
+            <span>vLLM</span><span class="dot"></span>
+            <span>TRL</span><span class="dot"></span>
+            <span>VERL</span><span class="dot"></span>
+            <span>DeepSpeed-Ulysses</span><span class="dot"></span>
+            <span>LLaMA-Factory</span><span class="dot"></span>
+            <span>Ascend NPU</span><span class="dot"></span>
+            <span>YOLOv8</span><span class="dot"></span>
+            <span>SAHI</span><span class="dot"></span>
+            <span>FastAPI</span><span class="dot"></span>
+            <span>Google Cloud</span><span class="dot"></span>
+            <span>I3D</span><span class="dot"></span>
+            <span>WTAL</span><span class="dot"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== About ============== -->
+      <section id="about" class="reveal">
+        <div class="section-head">
+          <span class="num">/01</span>
+          <h2>About</h2>
+          <p class="sub">A quick snapshot of where I am, what I work on, and what I&rsquo;m looking for next.</p>
+        </div>
+
+        <div class="about-grid">
+          <article class="glass about-card">
+            <p class="lead">
+              Hi, I&rsquo;m <strong>Hong Zhuang</strong> — an MSc Informatics student at the <strong>Technical University of
+              Munich (TUM)</strong>. I work on training, scaling, and accelerating large <strong>multimodal and
+              reinforcement-learning models</strong>.
+            </p>
+            <p>
+              Most recently at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel
+              optimization for the Wan2.1 14B text-to-video model in a joint innovation with JD — cutting GPU usage by 75%
+              and memory by 50%. Earlier, I co-built a real-time firearm detection system at Moii.AI that won the
+              <strong>Amazon Sigma Award</strong>.
+            </p>
+            <p>
+              I&rsquo;m now open to internships in <strong>model engineering, algorithm deployment, and model
+              acceleration</strong>.
+            </p>
+          </article>
+
+          <aside class="glass about-meta">
+            <div class="meta-row">
+              <span class="icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>
+              <div>
+                <div class="k">Now</div>
+                <div class="v">MSc @ TUM, 2025&ndash;2027</div>
               </div>
-              <div class="d-print-none"><a class="btn btn-info btn-lg shadow-sm mt-1" href="#contact" data-aos="zoom-in" data-aos-delay="700">Contact Me</a></div>
             </div>
-          </div>
+            <div class="meta-row">
+              <span class="icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
+              <div>
+                <div class="k">Email</div>
+                <div class="v"><a href="mailto:hong.zhuang@tum.de">hong.zhuang@tum.de</a></div>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="icon"><i class="fab fa-linkedin" aria-hidden="true"></i></span>
+              <div>
+                <div class="k">LinkedIn</div>
+                <div class="v"><a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener">linkedin.com/in/h-zhuang</a></div>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
+              <div>
+                <div class="k">Based in</div>
+                <div class="v">Munich, Germany</div>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="icon"><i class="fas fa-language" aria-hidden="true"></i></span>
+              <div>
+                <div class="k">Languages</div>
+                <div class="v">Mandarin (native) &middot; English (fluent)</div>
+              </div>
+            </div>
+          </aside>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="about">
-    <div class="about-section">
-      <div class="row">
-        <div class="col-md-6">
-          <h2 class="h2 fw-light mb-4">About Me</h2>
-          <p>Hi, I&rsquo;m Hong Zhuang &mdash; an MSc Informatics student at the <strong>Technical University of Munich (TUM)</strong>. I work on training, scaling, and accelerating <strong>large multimodal and reinforcement-learning models</strong>.</p>
-          <p>Most recently at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel optimization for the Wan2.1 14B text-to-video model &mdash; a joint innovation with JD &mdash; cutting GPU usage by <strong>75%</strong> and memory by <strong>50%</strong>. Earlier, I co-built a real-time firearm detection system at <strong>Moii.AI</strong> that won the Amazon Sigma Award.</p>
-          <p>I&rsquo;m currently open to <strong>internships in model engineering, algorithm deployment, and model acceleration</strong>.</p>
-        </div>
-        <div class="col-md-5 offset-lg-1">
-          <div class="row mt-2">
-            <h2 class="h2 fw-light mb-4">Bio</h2>
-            <div class="col-sm-5">
-              <div class="pb-2 fw-bolder"><i class="fas fa-graduation-cap pe-2 text-muted" style="width:24px;opacity:0.85;"></i> Status</div>
-            </div>
-            <div class="col-sm-7">
-              <div class="pb-2">MSc @ TUM (2025&ndash;2027)</div>
-            </div>
-            <div class="col-sm-5">
-              <div class="pb-2 fw-bolder"><i class="far fa-envelope pe-2 text-muted" style="width:24px;opacity:0.85;"></i> Email</div>
-            </div>
-            <div class="col-sm-7">
-              <div class="pb-2"><a href="mailto:hong.zhuang@tum.de" class="text-reset text-decoration-none">hong.zhuang@tum.de</a></div>
-            </div>
-            <div class="col-sm-5">
-              <div class="pb-2 fw-bolder"><i class="fas fa-map-marker-alt pe-2 text-muted" style="width:24px;opacity:0.85;"></i> Location</div>
-            </div>
-            <div class="col-sm-7">
-              <div class="pb-2">Munich, Germany</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="skills">
-    <div class="skills-section">
-      <h2 class="h2 fw-light mb-4">Professional Skills</h2>
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3"><span class="fw-bolder">Python</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-info" role="progressbar" data-aos="zoom-in-right" data-aos-delay="100" data-aos-anchor=".skills-section" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">Master</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">PyTorch</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-info" role="progressbar" data-aos="zoom-in-right" data-aos-delay="200" data-aos-anchor=".skills-section" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">Master</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">Multimodal LLM &amp; RL Training (TRL / VERL / LLaMA-Factory)</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-info" role="progressbar" data-aos="zoom-in-right" data-aos-delay="300" data-aos-anchor=".skills-section" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">Expert</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">Distributed Training &amp; Inference Acceleration (DeepSpeed / vLLM)</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-info" role="progressbar" data-aos="zoom-in-right" data-aos-delay="400" data-aos-anchor=".skills-section" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">Expert</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="mb-3"><span class="fw-bolder">Computer Vision (YOLO / SAHI / OpenCV)</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-secondary" role="progressbar" data-aos="zoom-in-right" data-aos-delay="500" data-aos-anchor=".skills-section" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">Expert</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">FastAPI</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-secondary" role="progressbar" data-aos="zoom-in-right" data-aos-delay="600" data-aos-anchor=".skills-section" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">Advanced</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">Git</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-secondary" role="progressbar" data-aos="zoom-in-right" data-aos-delay="700" data-aos-anchor=".skills-section" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">Master</div>
-            </div>
-          </div>
-          <div class="mb-3"><span class="fw-bolder">Linux &amp; Cloud (Ubuntu / GCP / Ascend NPU)</span>
-            <div class="progress my-2 rounded" style="height: 20px">
-              <div class="progress-bar bg-secondary" role="progressbar" data-aos="zoom-in-right" data-aos-delay="800" data-aos-anchor=".skills-section" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">Expert</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="experience">
-    <div class="work-experience-section">
-      <h2 class="h2 fw-light mb-4">Work Experience</h2>
-      <div class="timeline">
-        <div class="timeline-card timeline-card-info" data-aos="fade-in" data-aos-delay="0">
-          <div class="timeline-head px-4 pt-3">
-            <div class="h5">Software Engineer (OD) &mdash; Ascend Model Platform <span class="text-muted h6">at Huawei Technologies</span></div>
-          </div>
-          <div class="timeline-body px-4 pb-4">
-            <div class="text-muted text-small mb-3">Aug 2024 &mdash; Sep 2025 &middot; Shenzhen, China</div>
-            <div>
-              <p>Focused on multimodal LLM training and inference acceleration &mdash; cross-chip adaptation (GPU &rarr; Ascend NPU), sequence parallelism, and full-parameter RL training on multi-NPU clusters.</p>
-              <ul class="mb-0">
-                <li>Designed and implemented a long-sequence parallel feature that cut training scale by <strong>75%</strong> and memory by <strong>50%</strong>, unlocking longer sequences on the same hardware.</li>
-                <li>Led GPU&rarr;Ascend NPU porting of GRPO RL stacks built on <em>TRL</em> and <em>verl</em>, owning end-to-end debugging across training, inference, tuning, and deployment.</li>
-                <li>Built and maintained efficient dev / test / deployment environments spanning NPU and GPU.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="timeline-card timeline-card-info" data-aos="fade-in" data-aos-delay="200">
-          <div class="timeline-head px-4 pt-3">
-            <div class="h5">Machine Learning Engineer Intern <span class="text-muted h6">at Moii.AI</span></div>
-          </div>
-          <div class="timeline-body px-4 pb-4">
-            <div class="text-muted text-small mb-3">Aug 2023 &mdash; Dec 2023</div>
-            <div>
-              <p>Designed and built ML inference APIs for real-time threat detection on images, videos, and live streams. Trained YOLOv8 and tuned SAHI&rsquo;s adaptive tile sizing for small-object detection &mdash; improving accuracy by <strong>30%</strong> and inference speed by <strong>200%</strong>. Collaborated with the team through regular code reviews on system architecture, performance, and cost.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="education">
-    <div class="education-section">
-      <h2 class="h2 fw-light mb-4">Education</h2>
-      <div class="timeline">
-        <div class="timeline-card timeline-card-success" data-aos="fade-in" data-aos-delay="0">
-          <div class="timeline-head px-4 pt-3">
-            <div class="h5">Master of Informatics <span class="text-muted h6">at Technical University of Munich (TUM)</span></div>
-          </div>
-          <div class="timeline-body px-4 pb-4">
-            <div class="text-muted text-small mb-3">2025 &mdash; 2027 (Expected) &middot; Munich, Germany</div>
-            <div>QS World University Rankings: Top 25 globally. Coursework and research focused on machine learning, distributed systems, and computer vision.</div>
-          </div>
-        </div>
-        <div class="timeline-card timeline-card-success" data-aos="fade-in" data-aos-delay="200">
-          <div class="timeline-head px-4 pt-3">
-            <div class="h5">Bachelor of Computer Science <span class="text-muted h6">at Michigan State University</span></div>
-          </div>
-          <div class="timeline-body px-4 pb-4">
-            <div class="text-muted text-small mb-3">2019 &mdash; 2023 &middot; East Lansing, MI, USA</div>
-            <div>GPA: 3.892 / 4.00 (Top 10%); Major GPA: 3.924 / 4.00. Minor in Business.</div>
-            <div>Dean&rsquo;s List &times; 6 (Fall 2019, Spring 2020, Fall 2020, Spring 2021, Fall 2021, Fall 2022).</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="publications">
-    <div class="publications-section">
-      <h2 class="h2 fw-light mb-4">Publications</h2>
-      <div class="timeline">
-        <div class="timeline-card timeline-card-primary" data-aos="fade-in" data-aos-delay="0">
-          <div class="timeline-head px-4 pt-3">
-            <div class="h5">Enhanced DeblurGAN: An advanced combinatorial model for motion blur removal in low-light photography</div>
-          </div>
-          <div class="timeline-body px-4 pb-4">
-            <div class="text-muted text-small mb-3">2024 &middot; First Author &middot; Applied and Computational Engineering, 20&ndash;25</div>
-            <div>
-              <p>Proposed an enhanced DeblurGAN architecture that combines low-light enhancement with motion-blur removal, improving deblurring quality in low-illumination photography compared with prior single-purpose GAN baselines.</p>
-              <p class="mb-0">
-                <a href="https://www.ewadirect.com/proceedings/ace/article/view/10834" target="_blank" rel="noopener"><i class="fas fa-external-link-alt pe-1"></i>Read paper</a>
-                &nbsp;&middot;&nbsp;
-                <a href="https://doi.org/10.54254/2755-2721/51/20241152" target="_blank" rel="noopener">DOI: 10.54254/2755-2721/51/20241152</a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5 d-print-none" id="portfolio">
-    <div class="portfolio-section">
-      <h2 class="h2 fw-light mb-4">Portfolio</h2>
+      </section>
 
-      <div class="row g-0">
-        <div class="col-md-6 d-flex align-items-center justify-content-center text-white" style="min-height: 320px; background: linear-gradient(135deg, #0d47a1 0%, #00838f 50%, #00bcd4 100%);">
-          <div class="p-4 text-center" data-aos="zoom-in" data-aos-delay="100">
-            <i class="fas fa-network-wired fa-4x mb-3" style="opacity: 0.85;"></i>
-            <h3 class="h4 fw-light mb-0">Wan2.1 14B<br/>Sequence-Parallel Training</h3>
-          </div>
+      <!-- ============== Skills ============== -->
+      <section id="skills" class="reveal">
+        <div class="section-head">
+          <span class="num">/02</span>
+          <h2>Skills</h2>
+          <p class="sub">A bento snapshot — favorite tools grouped by what they get me through the day.</p>
         </div>
-        <div class="col-md-6 d-flex align-items-center" data-aos="fade-left" data-aos-delay="100">
-          <div class="m-4 mt-md-2">
-            <p class="text-teal text-small">Distributed Training / DeepSpeed-Ulysses / Multimodal / Text-to-Video</p>
-            <h3>Wan2.1 14B Long-Sequence Parallel Optimization</h3>
-            <p class="text-muted">Joint innovation project with JD: adapted and optimized the Wan2.1 14B text-to-video model on Ascend NPU clusters. Through memory profiling, designed and implemented a <strong>DeepSpeed-Ulysses sequence-parallel strategy</strong> that enabled 32K-sequence training on <strong>8 NPUs instead of 32</strong> &mdash; cutting training nodes by 75% and memory usage by 50%, while unlocking longer sequences on the same hardware. Built on ModelScope&rsquo;s DiffSynth-Studio.</p>
-          </div>
-        </div>
-      </div>
 
-      <div class="row g-0 portfolio-reverse">
-        <div class="col-md-6 d-flex align-items-center" data-aos="fade-right" data-aos-delay="100">
-          <div class="m-4 mt-md-2 text-end">
-            <p class="text-teal text-small">Computer Vision / YOLOv8 / SAHI / FastAPI / Google Cloud</p>
-            <h3>Real-time Firearm Detection &amp; Early-Warning System</h3>
-            <p class="text-muted">Built a web system letting users plug in their camera live streams for real-time threat detection, focused on small objects like firearms. Trained YOLOv8 and tuned SAHI&rsquo;s adaptive tile sizing &mdash; <strong>accuracy +30%</strong>, <strong>inference +200%</strong>. Deployed model and APIs on Google Cloud Compute Engine; emergency email alerts trigger on threat detection. <em>Winner of the Amazon Sigma Award (1st of 30 teams).</em></p>
-            <p class="mb-0"><a href="http://www.capstone.cse.msu.edu/2023-08/projects/moii-ai/" target="_blank" rel="noopener"><i class="fas fa-external-link-alt pe-1"></i>Project page</a></p>
-          </div>
-        </div>
-        <div class="col-md-6"><a href="http://www.capstone.cse.msu.edu/2023-08/projects/moii-ai/" target="_blank" rel="noopener"><img class="img-fluid" src="images/project-1.jpeg" width="800" height="500" alt="Real-time firearm detection system screenshot" loading="lazy" decoding="async"/></a></div>
-      </div>
+        <div class="bento reveal-stagger">
+          <article class="bento-tile span-3 row-2" data-tilt>
+            <span class="tile-num">A1 / Core</span>
+            <h3>AI Frameworks &amp; Training</h3>
+            <p>Daily driver for everything from quick research prototypes to full-parameter multi-NPU RL fine-tuning.</p>
+            <ul class="chip-row">
+              <li>PyTorch</li><li>HuggingFace</li><li>LLaMA-Factory</li><li>DiffSynth-Studio</li><li>Pandas</li>
+            </ul>
+          </article>
 
-      <div class="row g-0">
-        <div class="col-md-6 d-flex align-items-center justify-content-center text-white" style="min-height: 320px; background: linear-gradient(135deg, #00695c 0%, #009688 50%, #4db6ac 100%);">
-          <div class="p-4 text-center" data-aos="zoom-in" data-aos-delay="100">
-            <i class="fas fa-microscope fa-4x mb-3" style="opacity: 0.85;"></i>
-            <h3 class="h4 fw-light mb-0">Weakly-Supervised<br/>Action Recognition</h3>
-          </div>
-        </div>
-        <div class="col-md-6 d-flex align-items-center" data-aos="fade-left" data-aos-delay="100">
-          <div class="m-4 mt-md-2">
-            <p class="text-teal text-small">Weakly-Supervised TAL / Multimodal / I3D / Research</p>
-            <h3>Multimodal Weakly-Supervised Action Recognition for Medical Exams</h3>
-            <p class="text-muted">Undergraduate research assistant project. Built a SOTA <strong>weakly-supervised temporal action localization (WTAL)</strong> multimodal model that leverages textual cues to boost recognition of medical students&rsquo; practical-exam actions. Extracted optical flow and RGB features from ~9,000 videos (&gt; 1.2&nbsp;TB) using I3D and trained on <strong>4&times; NVIDIA RTX A6000</strong> GPUs &mdash; reaching <strong>92.75% accuracy</strong> and <strong>94.88% ROC-AUC</strong>.</p>
-          </div>
-        </div>
-      </div>
+          <article class="bento-tile span-3" data-tilt>
+            <span class="tile-num">A2 / Acceleration</span>
+            <h3>Distributed &amp; Inference</h3>
+            <p>Long-sequence parallelism, paged attention, and the rest of the modern LLM serving stack.</p>
+            <ul class="chip-row">
+              <li>DeepSpeed-Ulysses</li><li>vLLM</li><li>Sequence Parallel</li>
+            </ul>
+          </article>
 
-    </div>
-  </div>
-  <div class="shadow-1-strong bg-white my-5 p-5" id="contact">
-    <div class="contact-section">
-      <h2 class="h2 fw-light text mb-4">Contact</h2>
-      <div class="row mb-4">
-        <div class="col-md-5" data-aos="fade-left" data-aos-delay="200">
-          <div class="mt-1">
-            <div class="h6"><i class="far fa-envelope pe-2 text-muted" style="width:24px;opacity:0.85;"></i> <a href="mailto:hong.zhuang@tum.de" class="text-reset text-decoration-none">hong.zhuang@tum.de</a></div>
-            <div class="h6"><i class="fab fa-linkedin pe-2 text-muted" style="width:24px;opacity:0.85;"></i> <a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" class="text-reset text-decoration-none">linkedin.com/in/h-zhuang</a></div>
-            <div class="h6"><i class="fas fa-map-marker-alt pe-2 text-muted" style="width:24px;opacity:0.85;"></i> Munich, Germany</div>
-          </div>
-          <div class="mt-5 d-print-none"> <form action="https://formspree.io/f/xyyrqzrj" method="POST">
-                                            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-5000px;" aria-hidden="true"/>
-                                            <div class="form-outline mb-4">
-                                              <input type="text" id="name" class="form-control" name="name" required/>
-                                              <label class="form-label" for="name">Name</label>
-                                            </div>
-                                            <div class="form-outline mb-4">
-                                              <input type="email" id="email" name="email" class="form-control"  required/>
-                                              <label class="form-label" for="email">Email address</label>
-                                            </div>
-                                            <div class="form-outline mb-4">
-                                              <textarea class="form-control" style="resize: none;" id="message" name="message" rows="4" required></textarea>
-                                              <label class="form-label" for="message">Message</label>
-                                            </div>
-                                            <button class="btn btn-info btn-block mb-4" type="submit">Send</button>
-                                          </form>
-          </div>
+          <article class="bento-tile span-3" data-tilt>
+            <span class="tile-num">A3 / RL</span>
+            <h3>RL Fine-tuning</h3>
+            <p>GRPO-style RL fine-tuning ported from GPU to Ascend NPU — end-to-end training, debugging, and deployment.</p>
+            <ul class="chip-row">
+              <li>TRL</li><li>VERL</li><li>GRPO</li>
+            </ul>
+          </article>
+
+          <article class="bento-tile span-2" data-tilt>
+            <span class="tile-num">B1 / Lang</span>
+            <h3>Languages</h3>
+            <ul class="chip-row">
+              <li>Python</li><li>C++</li><li>Java</li><li>Bash</li>
+            </ul>
+          </article>
+
+          <article class="bento-tile span-2" data-tilt>
+            <span class="tile-num">B2 / Vision</span>
+            <h3>Computer Vision</h3>
+            <ul class="chip-row">
+              <li>YOLOv8</li><li>SAHI</li><li>OpenCV</li><li>I3D</li>
+            </ul>
+          </article>
+
+          <article class="bento-tile span-2" data-tilt>
+            <span class="tile-num">B3 / Infra</span>
+            <h3>Infra &amp; Tooling</h3>
+            <ul class="chip-row">
+              <li>Ascend NPU</li><li>GCP</li><li>FastAPI</li><li>Git</li><li>Ubuntu</li><li>SQLite</li>
+            </ul>
+          </article>
         </div>
-        <div class="col-md-7 d-print-none" data-aos="zoom-in" data-aos-delay="100"><iframe src="https://maps.google.com/maps?q=Technical+University+of+Munich+Garching&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed" width="500" height="400" style="border:0;width:100%;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map showing Technical University of Munich, Garching campus"></iframe></div>
-      </div>
-    </div>
-  </div>
-</div></div>
-    </div>
-    <footer class="pt-4 pb-4 text-muted text-center d-print-none">
-      <div class="container">
-        <div class="my-3">
-          <div class="h4">Hong Zhuang</div>
-          <div class="footer-nav">
-            <nav role="navigation">
-              <ul class="nav justify-content-center">
-                <li class="nav-item"><a class="nav-link" href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" title="LinkedIn"><i class="fab fa-linkedin"></i><span class="menu-title sr-only">LinkedIn</span></a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="mailto:hong.zhuang@tum.de" title="Email"><i class="fas fa-envelope"></i><span class="menu-title sr-only">Email</span></a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-          <div class="text-small mt-2">&copy; <span id="footer-year">2026</span> Hong Zhuang &middot; Built with <a href="https://mdbootstrap.com/" target="_blank" rel="noopener">MDB</a> &amp; <a href="https://templateflip.com/" target="_blank" rel="noopener">TemplateFlip</a></div>
+      </section>
+
+      <!-- ============== Experience ============== -->
+      <section id="experience" class="reveal">
+        <div class="section-head">
+          <span class="num">/03</span>
+          <h2>Experience</h2>
+          <p class="sub">Two chapters so far — pushing big multimodal models at scale, and shipping detection systems on real cameras.</p>
         </div>
+
+        <ol class="timeline reveal-stagger">
+          <li class="timeline-item">
+            <article class="glass timeline-card">
+              <header>
+                <h3 class="title">Software Engineer (OD) &middot; Ascend Model Platform</h3>
+                <span class="company">Huawei Technologies</span>
+                <span class="date">Aug 2024 &mdash; Sep 2025</span>
+              </header>
+              <div class="body">
+                <p>
+                  Focused on <strong>multimodal LLM training and inference acceleration</strong> — cross-chip adaptation
+                  (GPU&nbsp;&rarr;&nbsp;Ascend NPU), sequence parallelism, and full-parameter RL training on multi-NPU clusters.
+                </p>
+                <ul>
+                  <li>Designed and implemented a long-sequence parallel feature that cut training scale by <strong>75%</strong> and memory by <strong>50%</strong>, unlocking longer sequences on the same hardware.</li>
+                  <li>Led GPU&nbsp;&rarr;&nbsp;Ascend NPU porting of GRPO RL stacks built on <em>TRL</em> and <em>verl</em>, owning end-to-end debugging across training, inference, tuning, and deployment.</li>
+                  <li>Built and maintained efficient dev / test / deployment environments spanning NPU and GPU.</li>
+                </ul>
+              </div>
+            </article>
+          </li>
+
+          <li class="timeline-item">
+            <article class="glass timeline-card">
+              <header>
+                <h3 class="title">Machine Learning Engineer Intern</h3>
+                <span class="company">Moii.AI</span>
+                <span class="date">Aug 2023 &mdash; Dec 2023</span>
+              </header>
+              <div class="body">
+                <p>
+                  Designed and built ML inference APIs for <strong>real-time threat detection</strong> on images, videos,
+                  and live streams. Trained YOLOv8 and tuned SAHI&rsquo;s adaptive tile sizing for small-object detection —
+                  <strong>accuracy +30%</strong>, <strong>inference +200%</strong>.
+                </p>
+                <p>
+                  Collaborated with the team through regular code reviews on system architecture, performance, and cost.
+                </p>
+              </div>
+            </article>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ============== Education ============== -->
+      <section id="education" class="reveal">
+        <div class="section-head">
+          <span class="num">/04</span>
+          <h2>Education</h2>
+          <p class="sub">Two campuses, two countries, one through-line.</p>
+        </div>
+
+        <div class="edu-grid reveal-stagger">
+          <article class="glass edu-card">
+            <div class="school">Technical University of Munich</div>
+            <h3 class="degree">M.Sc. Informatics</h3>
+            <div class="when">2025 &mdash; 2027 &middot; Munich, Germany</div>
+            <p>QS World University Rankings: <strong>Top 25</strong> globally. Coursework and research focused on machine learning, distributed systems, and computer vision.</p>
+          </article>
+          <article class="glass edu-card">
+            <div class="school">Michigan State University</div>
+            <h3 class="degree">B.Sc. Computer Science &middot; Minor: Business</h3>
+            <div class="when">2019 &mdash; 2023 &middot; East Lansing, MI, USA</div>
+            <p>GPA <strong>3.892</strong> / 4.00 (<strong>Top 10%</strong>) &middot; Major GPA <strong>3.924</strong>. Dean&rsquo;s List &times; 6.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============== Publications ============== -->
+      <section id="publications" class="reveal">
+        <div class="section-head">
+          <span class="num">/05</span>
+          <h2>Publications</h2>
+          <p class="sub">First-author work, with more in the pipeline.</p>
+        </div>
+
+        <article class="glass pub-card" data-tilt>
+          <div class="pub-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></div>
+          <div>
+            <div class="pub-meta">2024 &middot; First Author</div>
+            <h3 class="pub-title">Enhanced DeblurGAN: An advanced combinatorial model for motion blur removal in low-light photography</h3>
+            <p class="pub-venue">Applied and Computational Engineering, 20&ndash;25</p>
+            <div class="pub-links">
+              <a href="https://www.ewadirect.com/proceedings/ace/article/view/10834" target="_blank" rel="noopener">
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i> Read paper
+              </a>
+              <a href="https://doi.org/10.54254/2755-2721/51/20241152" target="_blank" rel="noopener">
+                <i class="fas fa-link" aria-hidden="true"></i> DOI&nbsp;10.54254/2755-2721/51/20241152
+              </a>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============== Portfolio ============== -->
+      <section id="portfolio" class="reveal">
+        <div class="section-head">
+          <span class="num">/06</span>
+          <h2>Selected work</h2>
+          <p class="sub">Three projects spanning model acceleration, applied CV, and multimodal research.</p>
+        </div>
+
+        <div class="project-row reveal-stagger">
+          <article class="project-card" data-tilt>
+            <div class="hero-vis v-blue"><i class="fas fa-network-wired" aria-hidden="true"></i></div>
+            <div class="ptag">Distributed &middot; Multimodal &middot; Text-to-Video</div>
+            <h3 class="ptitle">Wan2.1 14B Long-Sequence Parallel</h3>
+            <p class="pdesc">
+              Joint innovation with JD. Memory-profiled the Wan2.1 14B text-to-video model on Ascend clusters and
+              implemented a DeepSpeed-Ulysses sequence-parallel strategy &mdash; 32K-sequence training on 8 NPUs instead
+              of 32, cutting nodes by <strong>75%</strong> and memory by <strong>50%</strong>.
+            </p>
+            <ul class="pmeta">
+              <li>DeepSpeed-Ulysses</li><li>Ascend NPU</li><li>DiffSynth-Studio</li>
+            </ul>
+          </article>
+
+          <article class="project-card" data-tilt>
+            <a href="http://www.capstone.cse.msu.edu/2023-08/projects/moii-ai/" target="_blank" rel="noopener" aria-label="View Moii.AI capstone page">
+              <div class="hero-vis v-image">
+                <img src="images/project-1.jpeg" alt="Real-time firearm detection screenshot" loading="lazy" decoding="async" />
+              </div>
+            </a>
+            <div class="ptag">Computer Vision &middot; FastAPI &middot; GCP</div>
+            <h3 class="ptitle">Real-time Firearm Detection</h3>
+            <p class="pdesc">
+              Web system that plugs into live camera streams for real-time detection of small objects like firearms.
+              YOLOv8 + SAHI &mdash; accuracy <strong>+30%</strong>, inference <strong>+200%</strong>. Emergency emails on
+              threat detection. <em>Won the Amazon Sigma Award (1st of 30 teams).</em>
+            </p>
+            <ul class="pmeta">
+              <li>YOLOv8</li><li>SAHI</li><li>FastAPI</li><li>Google Cloud</li>
+            </ul>
+          </article>
+
+          <article class="project-card" data-tilt>
+            <div class="hero-vis v-green"><i class="fas fa-microscope" aria-hidden="true"></i></div>
+            <div class="ptag">Weakly-Supervised TAL &middot; Multimodal &middot; Research</div>
+            <h3 class="ptitle">Multimodal WTAL for Medical Exams</h3>
+            <p class="pdesc">
+              Undergraduate research. SOTA weakly-supervised temporal action localization with text cues to score medical
+              students&rsquo; practical exams. Extracted optical-flow + RGB features from ~9,000 videos (&gt; 1.2 TB) using
+              I3D, trained on 4&times; RTX A6000 &mdash; <strong>92.75%</strong> accuracy and <strong>94.88%</strong> ROC-AUC.
+            </p>
+            <ul class="pmeta">
+              <li>I3D</li><li>WTAL</li><li>4&times; A6000</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============== Contact ============== -->
+      <section id="contact" class="reveal">
+        <div class="section-head">
+          <span class="num">/07</span>
+          <h2>Get in touch</h2>
+          <p class="sub">Best for internship intros, research collaborations, or just to say hi.</p>
+        </div>
+
+        <div class="contact-grid">
+          <aside class="glass contact-info">
+            <h3 class="hello">Say <span class="grad">hi</span>.</h3>
+            <p>I read every message. Fastest channel is email — LinkedIn DMs work too.</p>
+            <div class="contact-channels">
+              <div class="meta-row">
+                <span class="icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
+                <div>
+                  <div class="k">Email</div>
+                  <div class="v"><a href="mailto:hong.zhuang@tum.de">hong.zhuang@tum.de</a></div>
+                </div>
+              </div>
+              <div class="meta-row">
+                <span class="icon"><i class="fab fa-linkedin" aria-hidden="true"></i></span>
+                <div>
+                  <div class="k">LinkedIn</div>
+                  <div class="v"><a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener">linkedin.com/in/h-zhuang</a></div>
+                </div>
+              </div>
+              <div class="meta-row">
+                <span class="icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
+                <div>
+                  <div class="k">Based in</div>
+                  <div class="v">Munich, Germany</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <article class="glass contact-card">
+            <form action="https://formspree.io/f/xyyrqzrj" method="POST">
+              <input type="text" name="_gotcha" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <div class="field">
+                <input type="text" id="name" name="name" placeholder=" " required />
+                <label for="name">Your name</label>
+              </div>
+              <div class="field">
+                <input type="email" id="email" name="email" placeholder=" " required />
+                <label for="email">Email</label>
+              </div>
+              <div class="field">
+                <textarea id="message" name="message" placeholder=" " required></textarea>
+                <label for="message">Message</label>
+              </div>
+              <button type="submit" class="btn primary" data-magnetic="14">
+                Send message <span class="arrow">→</span>
+              </button>
+            </form>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big">Hong&nbsp;Zhuang</div>
+      <ul>
+        <li><a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        <li><a href="mailto:hong.zhuang@tum.de" aria-label="Email"><i class="fas fa-envelope"></i></a></li>
+      </ul>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot; Hand-built with vanilla CSS/JS &middot;
+        <a href="#top">Back to top ↑</a>
       </div>
     </footer>
-    <script src="scripts/mdb.min.js?ver=1.3.0"></script>
-    <script src="scripts/aos.js?ver=1.3.0"></script>
-    <script src="scripts/main.js?ver=1.3.0"></script>
+
+    <script src="scripts/app.js?ver=2.0.0" defer></script>
   </body>
 </html>
