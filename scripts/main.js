@@ -4,4 +4,10 @@ AOS.init({
   duration: 1000
 });
 
-// Add your javascript here
+// Keep footer year fresh without manual updates.
+(function () {
+  var yearEl = document.getElementById('footer-year');
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
+})();
