@@ -2,35 +2,43 @@
 
 Personal website / online resume for **Hong Zhuang** — Machine Learning Engineer, focused on multimodal LLM training, distributed systems, and model acceleration. Live at [https://www.hzhuang.org](https://www.hzhuang.org).
 
-## Preview
-
-![Preview](images/Preview.png)
-
 ## Stack
 
-- Pure static HTML / CSS / JS — no build step required for the site itself.
-- [MDB (Material Design for Bootstrap)](https://mdbootstrap.com/) 5 for layout and components.
-- [AOS](https://michalsnik.github.io/aos/) for scroll-triggered animations.
-- [Font Awesome](https://fontawesome.com/) for icons.
+- 100% **vanilla HTML / CSS / JS** — no framework, no build step.
+- Dark / Aurora / Glassmorphism design with full light-mode swap.
+- All interactions hand-written: scroll-driven section spy, `IntersectionObserver` reveals, count-up, magnetic buttons, 3D tilt, portrait parallax, custom cursor, marquee.
+- Type: **Space Grotesk** (display) + **Inter** (body) + **IBM Plex Mono** (code) via Google Fonts.
+- Icons: [Font Awesome](https://fontawesome.com/) (self-hosted under `css/font-awesome/`).
+- Form: [Formspree](https://formspree.io/) (honeypot field included).
 - Hosted on **GitHub Pages** with a custom domain (`CNAME` → `www.hzhuang.org`).
 
 ## Local preview
 
-The site has no build step; just open `index.html` in a browser, or serve the folder locally:
+No build step. Just serve the folder:
 
 ```bash
 python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
-## Editing styles
+## Files
 
-`css/main.css` is compiled from `styles/*.scss`. To re-compile after editing the SCSS sources:
-
-```bash
-sass styles/main.scss css/main.css
 ```
+index.html          single-page site
+css/design.css      the entire design system (tokens, layout, components, animations, print)
+scripts/app.js      all interactions (theme toggle, spy, reveal, tilt, count-up, cursor, magnetic)
+css/font-awesome/   icon font, self-hosted
+images/             portraits + project visuals
+.github/workflows/  link-check CI
+```
+
+## Accessibility & motion
+
+- `prefers-reduced-motion: reduce` disables every non-essential animation (aurora, marquee, tilt, custom cursor, char-by-char reveal).
+- All `<img>` have `alt`; decorative elements are `aria-hidden`.
+- Color contrast tuned to AA in both themes.
+- Skip-to-content link at the top.
 
 ## Reference
 
-Original template: [TemplateFlip](https://templateflip.com)
+Original starter template (now fully replaced): [TemplateFlip](https://templateflip.com).
