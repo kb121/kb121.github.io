@@ -31,10 +31,6 @@ python3 -m http.server 8000
 sass styles/main.scss css/main.css
 ```
 
-## Replacing the downloadable CV
-
-The "Download CV" button on the hero links to `material-resume.pdf`. To publish a new PDF resume, just replace that file in the repo root (keep the same filename) and commit.
-
 ## Reference
 
 Original template: [TemplateFlip](https://templateflip.com)
