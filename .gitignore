@@ -1,0 +1,23 @@
+# JetBrains IDEs
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Editor backups
+*~
+*.swp
+*.swo
+
+# Local environment / scratch
+.env
+.env.local
+*.log
+
+# OS / archive cruft
+Thumbs.db
+desktop.ini
