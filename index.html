@@ -1,39 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hong Zhuang — Machine Learning Engineer · Multimodal LLM & Acceleration</title>
+
+    <script>
+      // Early language resolution (before body parses) — no FOUC on first paint.
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          // Hard default: Chinese. We intentionally do NOT sniff
+          // navigator.language — readers explicitly opt in to EN.
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="庄宏 — 机器学习工程师 · 多模态大模型与加速" data-en="Hong Zhuang — Machine Learning Engineer · Multimodal LLM & Acceleration">庄宏 — 机器学习工程师 · 多模态大模型与加速</title>
     <meta
       name="description"
-      content="Hong Zhuang — MSc Informatics @ TUM. Multimodal LLM training, distributed systems, and model acceleration. Ex-Huawei Ascend, ex-Moii.AI. Open to ML internships."
+      data-zh="庄宏 — 慕尼黑工业大学(TUM)信息学硕士在读。专注于多模态大模型训练、分布式系统与模型加速。前华为昇腾、前 Moii.AI。正在寻找机器学习实习。"
+      data-en="Hong Zhuang — MSc Informatics @ TUM. Multimodal LLM training, distributed systems, and model acceleration. Ex-Huawei Ascend, ex-Moii.AI. Open to ML internships."
+      content="庄宏 — 慕尼黑工业大学(TUM)信息学硕士在读。专注于多模态大模型训练、分布式系统与模型加速。前华为昇腾、前 Moii.AI。正在寻找机器学习实习。"
     />
-    <meta name="author" content="Hong Zhuang" />
+    <meta name="author" content="Hong Zhuang / 庄宏" />
     <meta
       name="keywords"
-      content="Hong Zhuang, Machine Learning Engineer, Multimodal LLM, Distributed Training, Model Acceleration, TUM, Huawei Ascend, vLLM, TRL, VERL, DeepSpeed, AI Engineer"
+      content="Hong Zhuang, 庄宏, Machine Learning Engineer, 机器学习, Multimodal LLM, 多模态, Distributed Training, 分布式训练, Model Acceleration, 模型加速, TUM, 慕尼黑工业大学, Huawei Ascend, 华为昇腾, vLLM, TRL, VERL, DeepSpeed"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="canonical" href="https://www.hzhuang.org/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.hzhuang.org/" />
+    <link rel="alternate" hreflang="en" href="https://www.hzhuang.org/?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://www.hzhuang.org/" />
     <link rel="icon" href="favicon.ico" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Hong Zhuang" />
+    <meta property="og:site_name" content="Hong Zhuang / 庄宏" />
     <meta property="og:url" content="https://www.hzhuang.org/" />
-    <meta property="og:title" content="Hong Zhuang — Machine Learning Engineer" />
-    <meta
-      property="og:description"
-      content="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration. Open to ML internships."
-    />
+    <meta property="og:title" data-zh="庄宏 — 机器学习工程师" data-en="Hong Zhuang — Machine Learning Engineer" content="庄宏 — 机器学习工程师" />
+    <meta property="og:description" data-zh="慕尼黑工业大学(TUM)信息学硕士在读。多模态大模型训练、分布式系统与模型加速。" data-en="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration." content="慕尼黑工业大学(TUM)信息学硕士在读。多模态大模型训练、分布式系统与模型加速。" />
     <meta property="og:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Hong Zhuang — Machine Learning Engineer" />
-    <meta
-      name="twitter:description"
-      content="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration."
-    />
+    <meta name="twitter:title" data-zh="庄宏 — 机器学习工程师" data-en="Hong Zhuang — Machine Learning Engineer" content="庄宏 — 机器学习工程师" />
+    <meta name="twitter:description" data-zh="慕尼黑工业大学(TUM)信息学硕士在读。多模态大模型训练、分布式系统与模型加速。" data-en="MSc @ TUM. Multimodal LLM training, distributed systems, and model acceleration." content="慕尼黑工业大学(TUM)信息学硕士在读。多模态大模型训练、分布式系统与模型加速。" />
     <meta name="twitter:image" content="https://www.hzhuang.org/images/HZhuang_shan.jpg" />
 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
@@ -55,11 +73,11 @@
       />
     </noscript>
 
-    <link href="css/font-awesome/css/all.min.css?ver=2.0.0" rel="stylesheet" />
-    <link href="css/design.css?ver=2.0.0" rel="stylesheet" />
+    <link href="css/font-awesome/css/all.min.css?ver=2.1.0" rel="stylesheet" />
+    <link href="css/design.css?ver=2.1.0" rel="stylesheet" />
   </head>
   <body id="top">
-    <a href="#about" class="skip">Skip to content</a>
+    <a href="#about" class="skip"><span lang="zh-CN" class="i18n-zh">跳到正文</span><span lang="en" class="i18n-en">Skip to content</span></a>
 
     <div class="aurora" aria-hidden="true">
       <div class="blob blob-1"></div>
@@ -75,31 +93,37 @@
       <a href="#top" class="brand">HZ.</a>
       <nav role="navigation" aria-label="Primary">
         <ul>
-          <li><a href="#about" data-section="about" data-num="01">About</a></li>
-          <li><a href="#skills" data-section="skills" data-num="02">Skills</a></li>
-          <li><a href="#experience" data-section="experience" data-num="03">Experience</a></li>
-          <li><a href="#education" data-section="education" data-num="04">Education</a></li>
-          <li><a href="#publications" data-section="publications" data-num="05">Papers</a></li>
-          <li><a href="#portfolio" data-section="portfolio" data-num="06">Work</a></li>
+          <li><a href="#about"        data-section="about"        data-num="01"><span lang="zh-CN" class="i18n-zh">关于</span><span lang="en" class="i18n-en">About</span></a></li>
+          <li><a href="#skills"       data-section="skills"       data-num="02"><span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">Skills</span></a></li>
+          <li><a href="#experience"   data-section="experience"   data-num="03"><span lang="zh-CN" class="i18n-zh">经历</span><span lang="en" class="i18n-en">Experience</span></a></li>
+          <li><a href="#education"    data-section="education"    data-num="04"><span lang="zh-CN" class="i18n-zh">教育</span><span lang="en" class="i18n-en">Education</span></a></li>
+          <li><a href="#publications" data-section="publications" data-num="05"><span lang="zh-CN" class="i18n-zh">论文</span><span lang="en" class="i18n-en">Papers</span></a></li>
+          <li><a href="#portfolio"    data-section="portfolio"    data-num="06"><span lang="zh-CN" class="i18n-zh">作品</span><span lang="en" class="i18n-en">Work</span></a></li>
         </ul>
       </nav>
       <div class="right">
-        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
           <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
-        <a href="#contact" class="nav-cta">Let&rsquo;s talk</a>
+        <a href="#contact" class="nav-cta"
+          ><span lang="zh-CN" class="i18n-zh">聊一聊</span><span lang="en" class="i18n-en">Let&rsquo;s talk</span></a
+        >
       </div>
     </header>
 
     <aside class="sidenav" aria-hidden="true">
-      <a href="#top" data-section="hero" class="active"><span class="dot"></span><span class="label">Home</span></a>
-      <a href="#about" data-section="about"><span class="dot"></span><span class="label">About</span></a>
-      <a href="#skills" data-section="skills"><span class="dot"></span><span class="label">Skills</span></a>
-      <a href="#experience" data-section="experience"><span class="dot"></span><span class="label">Experience</span></a>
-      <a href="#education" data-section="education"><span class="dot"></span><span class="label">Education</span></a>
-      <a href="#publications" data-section="publications"><span class="dot"></span><span class="label">Papers</span></a>
-      <a href="#portfolio" data-section="portfolio"><span class="dot"></span><span class="label">Work</span></a>
-      <a href="#contact" data-section="contact"><span class="dot"></span><span class="label">Contact</span></a>
+      <a href="#top" data-section="hero" class="active"><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></span></a>
+      <a href="#about"        data-section="about"       ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">关于</span><span lang="en" class="i18n-en">About</span></span></a>
+      <a href="#skills"       data-section="skills"      ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">Skills</span></span></a>
+      <a href="#experience"   data-section="experience"  ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">经历</span><span lang="en" class="i18n-en">Experience</span></span></a>
+      <a href="#education"    data-section="education"   ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">教育</span><span lang="en" class="i18n-en">Education</span></span></a>
+      <a href="#publications" data-section="publications"><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">论文</span><span lang="en" class="i18n-en">Papers</span></span></a>
+      <a href="#portfolio"    data-section="portfolio"   ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">作品</span><span lang="en" class="i18n-en">Work</span></span></a>
+      <a href="#contact"      data-section="contact"     ><span class="dot"></span><span class="label"><span lang="zh-CN" class="i18n-zh">联系</span><span lang="en" class="i18n-en">Contact</span></span></a>
     </aside>
 
     <main>
@@ -107,38 +131,41 @@
       <section class="hero" id="hero">
         <div class="hero-grid">
           <div class="hero-text">
-            <span class="eyebrow"><span class="pulse"></span>Available for ML internships · Summer 2026</span>
-            <h1 data-split>Hong Zhuang.</h1>
+            <span class="eyebrow"
+              ><span class="pulse"></span
+              ><span lang="zh-CN" class="i18n-zh">正在寻找机器学习实习 · 2026 暑期</span><span lang="en" class="i18n-en">Available for ML internships · Summer 2026</span></span
+            >
+            <h1 data-split><span lang="zh-CN" class="i18n-zh">庄宏。</span><span lang="en" class="i18n-en">Hong Zhuang.</span></h1>
             <p class="kicker">
-              Machine Learning Engineer &middot;
-              <span class="grad">Multimodal LLM Training &amp; Acceleration</span>
+              <span lang="zh-CN" class="i18n-zh">机器学习工程师 &middot; <span class="grad">多模态大模型训练与加速</span></span>
+              <span lang="en" class="i18n-en">Machine Learning Engineer &middot; <span class="grad">Multimodal LLM Training &amp; Acceleration</span></span>
             </p>
             <p class="lede">
-              MSc Informatics @ <strong>Technical University of Munich</strong> &middot; previously building long-sequence
-              parallel training at <strong>Huawei Ascend</strong> and real-time small-object detection at <strong>Moii.AI</strong>.
+              <span lang="zh-CN" class="i18n-zh">慕尼黑工业大学(<strong>TUM</strong>)信息学硕士在读 &middot; 此前在<strong>华为昇腾模型中台</strong>主导长序列并行训练优化,并在 <strong>Moii.AI</strong> 构建实时小物体检测系统。</span>
+              <span lang="en" class="i18n-en">MSc Informatics @ <strong>Technical University of Munich</strong> &middot; previously building long-sequence parallel training at <strong>Huawei Ascend</strong> and real-time small-object detection at <strong>Moii.AI</strong>.</span>
             </p>
             <div class="cta-row">
               <a class="btn primary" href="#contact" data-magnetic="18">
-                Let&rsquo;s connect <span class="arrow">→</span>
+                <span lang="zh-CN" class="i18n-zh">联系我</span><span lang="en" class="i18n-en">Let&rsquo;s connect</span> <span class="arrow">→</span>
               </a>
-              <a class="btn ghost" href="#portfolio" data-magnetic="12">See my work</a>
+              <a class="btn ghost" href="#portfolio" data-magnetic="12"><span lang="zh-CN" class="i18n-zh">看看作品</span><span lang="en" class="i18n-en">See my work</span></a>
             </div>
             <ul class="hero-stats" aria-label="Highlights">
               <li>
                 <span class="num"><span data-count="75">0</span>%</span>
-                <span class="lbl">GPU saved (Wan2.1)</span>
+                <span class="lbl"><span lang="zh-CN" class="i18n-zh">GPU 节省(Wan2.1)</span><span lang="en" class="i18n-en">GPU saved (Wan2.1)</span></span>
               </li>
               <li>
                 <span class="num"><span data-count="50">0</span>%</span>
-                <span class="lbl">memory cut</span>
+                <span class="lbl"><span lang="zh-CN" class="i18n-zh">显存下降</span><span lang="en" class="i18n-en">memory cut</span></span>
               </li>
               <li>
                 <span class="num">+<span data-count="30">0</span>%</span>
-                <span class="lbl">CV accuracy</span>
+                <span class="lbl"><span lang="zh-CN" class="i18n-zh">检测准确率</span><span lang="en" class="i18n-en">CV accuracy</span></span>
               </li>
               <li>
                 <span class="num">+<span data-count="200">0</span>%</span>
-                <span class="lbl">inference speed</span>
+                <span class="lbl"><span lang="zh-CN" class="i18n-zh">推理速度</span><span lang="en" class="i18n-en">inference speed</span></span>
               </li>
             </ul>
           </div>
@@ -148,13 +175,13 @@
               <div class="portrait-card" data-tilt>
                 <img
                   src="images/HZhuang_shan.jpg"
-                  alt="Hong Zhuang portrait"
+                  alt="Hong Zhuang portrait / 庄宏头像"
                   loading="eager"
                   decoding="async"
                   width="320"
                   height="400"
                 />
-                <span class="status-pill"><span class="dot"></span> Munich, Germany</span>
+                <span class="status-pill"><span class="dot"></span> <span lang="zh-CN" class="i18n-zh">德国 慕尼黑</span><span lang="en" class="i18n-en">Munich, Germany</span></span>
               </div>
               <span class="float-tag t1">PyTorch · vLLM</span>
               <span class="float-tag t2">TRL · VERL</span>
@@ -187,41 +214,48 @@
       <section id="about" class="reveal">
         <div class="section-head">
           <span class="num">/01</span>
-          <h2>About</h2>
-          <p class="sub">A quick snapshot of where I am, what I work on, and what I&rsquo;m looking for next.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">关于我</span><span lang="en" class="i18n-en">About</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">先快速了解一下:我现在在哪、在做什么、下一步在找什么。</span><span lang="en" class="i18n-en">A quick snapshot of where I am, what I work on, and what I&rsquo;m looking for next.</span></p>
         </div>
 
         <div class="about-grid">
           <article class="glass about-card">
-            <p class="lead">
-              Hi, I&rsquo;m <strong>Hong Zhuang</strong> — an MSc Informatics student at the <strong>Technical University of
-              Munich (TUM)</strong>. I work on training, scaling, and accelerating large <strong>multimodal and
-              reinforcement-learning models</strong>.
-            </p>
-            <p>
-              Most recently at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel
-              optimization for the Wan2.1 14B text-to-video model in a joint innovation with JD — cutting GPU usage by 75%
-              and memory by 50%. Earlier, I co-built a real-time firearm detection system at Moii.AI that won the
-              <strong>Amazon Sigma Award</strong>.
-            </p>
-            <p>
-              I&rsquo;m now open to internships in <strong>model engineering, algorithm deployment, and model
-              acceleration</strong>.
-            </p>
+            <div lang="zh-CN" class="i18n-zh">
+              <p class="lead">
+                你好,我是 <strong>庄宏</strong> &mdash; <strong>慕尼黑工业大学(TUM)</strong>信息学硕士在读。我专注于大规模 <strong>多模态与强化学习模型</strong> 的训练、扩展与加速。
+              </p>
+              <p>
+                此前在 <strong>华为昇腾模型中台</strong>,我主导了 Wan2.1 14B 文生视频模型的长序列并行优化(与京东联合创新项目)&mdash; GPU 用量降低 75%,显存下降 50%。更早在 Moii.AI 参与构建了实时枪支检测系统,获得 <strong>Amazon Sigma Award</strong>。
+              </p>
+              <p>
+                目前正在寻找 <strong>模型工程、算法落地、模型加速</strong> 方向的实习机会。
+              </p>
+            </div>
+            <div lang="en" class="i18n-en">
+              <p class="lead">
+                Hi, I&rsquo;m <strong>Hong Zhuang</strong> &mdash; an MSc Informatics student at the <strong>Technical University of Munich (TUM)</strong>. I work on training, scaling, and accelerating large <strong>multimodal and reinforcement-learning models</strong>.
+              </p>
+              <p>
+                Most recently at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel optimization for the Wan2.1 14B text-to-video model in a joint innovation with JD &mdash; cutting GPU usage by 75% and memory by 50%. Earlier, I co-built a real-time firearm detection system at Moii.AI that won the <strong>Amazon Sigma Award</strong>.
+              </p>
+              <p>
+                I&rsquo;m now open to internships in <strong>model engineering, algorithm deployment, and model acceleration</strong>.
+              </p>
+            </div>
           </article>
 
           <aside class="glass about-meta">
             <div class="meta-row">
               <span class="icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>
               <div>
-                <div class="k">Now</div>
-                <div class="v">MSc @ TUM, 2025&ndash;2027</div>
+                <div class="k"><span lang="zh-CN" class="i18n-zh">当前</span><span lang="en" class="i18n-en">Now</span></div>
+                <div class="v"><span lang="zh-CN" class="i18n-zh">TUM 硕士在读 · 2025&ndash;2027</span><span lang="en" class="i18n-en">MSc @ TUM, 2025&ndash;2027</span></div>
               </div>
             </div>
             <div class="meta-row">
               <span class="icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
               <div>
-                <div class="k">Email</div>
+                <div class="k"><span lang="zh-CN" class="i18n-zh">邮箱</span><span lang="en" class="i18n-en">Email</span></div>
                 <div class="v"><a href="mailto:hong.zhuang@tum.de">hong.zhuang@tum.de</a></div>
               </div>
             </div>
@@ -235,15 +269,15 @@
             <div class="meta-row">
               <span class="icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
               <div>
-                <div class="k">Based in</div>
-                <div class="v">Munich, Germany</div>
+                <div class="k"><span lang="zh-CN" class="i18n-zh">所在地</span><span lang="en" class="i18n-en">Based in</span></div>
+                <div class="v"><span lang="zh-CN" class="i18n-zh">德国 慕尼黑</span><span lang="en" class="i18n-en">Munich, Germany</span></div>
               </div>
             </div>
             <div class="meta-row">
               <span class="icon"><i class="fas fa-language" aria-hidden="true"></i></span>
               <div>
-                <div class="k">Languages</div>
-                <div class="v">Mandarin (native) &middot; English (fluent)</div>
+                <div class="k"><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Languages</span></div>
+                <div class="v"><span lang="zh-CN" class="i18n-zh">中文(母语) · 英语(流利)</span><span lang="en" class="i18n-en">Mandarin (native) &middot; English (fluent)</span></div>
               </div>
             </div>
           </aside>
@@ -254,15 +288,15 @@
       <section id="skills" class="reveal">
         <div class="section-head">
           <span class="num">/02</span>
-          <h2>Skills</h2>
-          <p class="sub">A bento snapshot — favorite tools grouped by what they get me through the day.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">专业技能</span><span lang="en" class="i18n-en">Skills</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">Bento 视角的技术栈速览 &mdash; 按日常用途分组。</span><span lang="en" class="i18n-en">A bento snapshot &mdash; favorite tools grouped by what they get me through the day.</span></p>
         </div>
 
         <div class="bento reveal-stagger">
           <article class="bento-tile span-3 row-2" data-tilt>
             <span class="tile-num">A1 / Core</span>
-            <h3>AI Frameworks &amp; Training</h3>
-            <p>Daily driver for everything from quick research prototypes to full-parameter multi-NPU RL fine-tuning.</p>
+            <h3><span lang="zh-CN" class="i18n-zh">AI 框架与训练</span><span lang="en" class="i18n-en">AI Frameworks &amp; Training</span></h3>
+            <p><span lang="zh-CN" class="i18n-zh">从研究原型到多 NPU 全参强化学习微调的日常主力。</span><span lang="en" class="i18n-en">Daily driver for everything from quick research prototypes to full-parameter multi-NPU RL fine-tuning.</span></p>
             <ul class="chip-row">
               <li>PyTorch</li><li>HuggingFace</li><li>LLaMA-Factory</li><li>DiffSynth-Studio</li><li>Pandas</li>
             </ul>
@@ -270,8 +304,8 @@
 
           <article class="bento-tile span-3" data-tilt>
             <span class="tile-num">A2 / Acceleration</span>
-            <h3>Distributed &amp; Inference</h3>
-            <p>Long-sequence parallelism, paged attention, and the rest of the modern LLM serving stack.</p>
+            <h3><span lang="zh-CN" class="i18n-zh">分布式与推理</span><span lang="en" class="i18n-en">Distributed &amp; Inference</span></h3>
+            <p><span lang="zh-CN" class="i18n-zh">长序列并行、PagedAttention,以及现代 LLM 推理服务栈。</span><span lang="en" class="i18n-en">Long-sequence parallelism, paged attention, and the rest of the modern LLM serving stack.</span></p>
             <ul class="chip-row">
               <li>DeepSpeed-Ulysses</li><li>vLLM</li><li>Sequence Parallel</li>
             </ul>
@@ -279,8 +313,8 @@
 
           <article class="bento-tile span-3" data-tilt>
             <span class="tile-num">A3 / RL</span>
-            <h3>RL Fine-tuning</h3>
-            <p>GRPO-style RL fine-tuning ported from GPU to Ascend NPU — end-to-end training, debugging, and deployment.</p>
+            <h3><span lang="zh-CN" class="i18n-zh">强化学习微调</span><span lang="en" class="i18n-en">RL Fine-tuning</span></h3>
+            <p><span lang="zh-CN" class="i18n-zh">GRPO 类强化学习微调从 GPU 迁移到昇腾 NPU &mdash; 训练、推理、调优、部署全链路。</span><span lang="en" class="i18n-en">GRPO-style RL fine-tuning ported from GPU to Ascend NPU &mdash; end-to-end training, debugging, and deployment.</span></p>
             <ul class="chip-row">
               <li>TRL</li><li>VERL</li><li>GRPO</li>
             </ul>
@@ -288,7 +322,7 @@
 
           <article class="bento-tile span-2" data-tilt>
             <span class="tile-num">B1 / Lang</span>
-            <h3>Languages</h3>
+            <h3><span lang="zh-CN" class="i18n-zh">编程语言</span><span lang="en" class="i18n-en">Languages</span></h3>
             <ul class="chip-row">
               <li>Python</li><li>C++</li><li>Java</li><li>Bash</li>
             </ul>
@@ -296,7 +330,7 @@
 
           <article class="bento-tile span-2" data-tilt>
             <span class="tile-num">B2 / Vision</span>
-            <h3>Computer Vision</h3>
+            <h3><span lang="zh-CN" class="i18n-zh">计算机视觉</span><span lang="en" class="i18n-en">Computer Vision</span></h3>
             <ul class="chip-row">
               <li>YOLOv8</li><li>SAHI</li><li>OpenCV</li><li>I3D</li>
             </ul>
@@ -304,7 +338,7 @@
 
           <article class="bento-tile span-2" data-tilt>
             <span class="tile-num">B3 / Infra</span>
-            <h3>Infra &amp; Tooling</h3>
+            <h3><span lang="zh-CN" class="i18n-zh">基础设施与工具</span><span lang="en" class="i18n-en">Infra &amp; Tooling</span></h3>
             <ul class="chip-row">
               <li>Ascend NPU</li><li>GCP</li><li>FastAPI</li><li>Git</li><li>Ubuntu</li><li>SQLite</li>
             </ul>
@@ -316,28 +350,39 @@
       <section id="experience" class="reveal">
         <div class="section-head">
           <span class="num">/03</span>
-          <h2>Experience</h2>
-          <p class="sub">Two chapters so far — pushing big multimodal models at scale, and shipping detection systems on real cameras.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">工作经历</span><span lang="en" class="i18n-en">Experience</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">两段经历 &mdash; 一段聚焦大模型规模化训练,一段把检测系统落地到真实摄像头上。</span><span lang="en" class="i18n-en">Two chapters so far &mdash; pushing big multimodal models at scale, and shipping detection systems on real cameras.</span></p>
         </div>
 
         <ol class="timeline reveal-stagger">
           <li class="timeline-item">
             <article class="glass timeline-card">
               <header>
-                <h3 class="title">Software Engineer (OD) &middot; Ascend Model Platform</h3>
-                <span class="company">Huawei Technologies</span>
-                <span class="date">Aug 2024 &mdash; Sep 2025</span>
+                <h3 class="title"><span lang="zh-CN" class="i18n-zh">软件工程师(OD) · 昇腾模型中台</span><span lang="en" class="i18n-en">Software Engineer (OD) &middot; Ascend Model Platform</span></h3>
+                <span class="company"><span lang="zh-CN" class="i18n-zh">华为技术有限公司</span><span lang="en" class="i18n-en">Huawei Technologies</span></span>
+                <span class="date"><span lang="zh-CN" class="i18n-zh">2024 年 8 月 &mdash; 2025 年 9 月</span><span lang="en" class="i18n-en">Aug 2024 &mdash; Sep 2025</span></span>
               </header>
               <div class="body">
-                <p>
-                  Focused on <strong>multimodal LLM training and inference acceleration</strong> — cross-chip adaptation
-                  (GPU&nbsp;&rarr;&nbsp;Ascend NPU), sequence parallelism, and full-parameter RL training on multi-NPU clusters.
-                </p>
-                <ul>
-                  <li>Designed and implemented a long-sequence parallel feature that cut training scale by <strong>75%</strong> and memory by <strong>50%</strong>, unlocking longer sequences on the same hardware.</li>
-                  <li>Led GPU&nbsp;&rarr;&nbsp;Ascend NPU porting of GRPO RL stacks built on <em>TRL</em> and <em>verl</em>, owning end-to-end debugging across training, inference, tuning, and deployment.</li>
-                  <li>Built and maintained efficient dev / test / deployment environments spanning NPU and GPU.</li>
-                </ul>
+                <div lang="zh-CN" class="i18n-zh">
+                  <p>
+                    主要负责 <strong>多模态大模型的训练与推理加速</strong> &mdash; 跨芯片适配(GPU&nbsp;&rarr;&nbsp;昇腾 NPU)、序列并行,以及多 NPU 集群上的全参强化学习训练。
+                  </p>
+                  <ul>
+                    <li>设计并实现长序列并行特性,使训练规模下降 <strong>75%</strong>、显存节省 <strong>50%</strong>,支持相同硬件下更长序列的训练。</li>
+                    <li>主导基于 <em>TRL</em> 和 <em>verl</em> 的 GRPO 强化学习栈从 GPU 到昇腾 NPU 的迁移,负责训练、推理、调优、部署全链路的技术排查与方案设计。</li>
+                    <li>搭建并维护高效的开发 / 测试 / 部署环境,覆盖 NPU 与 GPU。</li>
+                  </ul>
+                </div>
+                <div lang="en" class="i18n-en">
+                  <p>
+                    Focused on <strong>multimodal LLM training and inference acceleration</strong> &mdash; cross-chip adaptation (GPU&nbsp;&rarr;&nbsp;Ascend NPU), sequence parallelism, and full-parameter RL training on multi-NPU clusters.
+                  </p>
+                  <ul>
+                    <li>Designed and implemented a long-sequence parallel feature that cut training scale by <strong>75%</strong> and memory by <strong>50%</strong>, unlocking longer sequences on the same hardware.</li>
+                    <li>Led GPU&nbsp;&rarr;&nbsp;Ascend NPU porting of GRPO RL stacks built on <em>TRL</em> and <em>verl</em>, owning end-to-end debugging across training, inference, tuning, and deployment.</li>
+                    <li>Built and maintained efficient dev / test / deployment environments spanning NPU and GPU.</li>
+                  </ul>
+                </div>
               </div>
             </article>
           </li>
@@ -345,19 +390,27 @@
           <li class="timeline-item">
             <article class="glass timeline-card">
               <header>
-                <h3 class="title">Machine Learning Engineer Intern</h3>
+                <h3 class="title"><span lang="zh-CN" class="i18n-zh">机器学习工程师实习生</span><span lang="en" class="i18n-en">Machine Learning Engineer Intern</span></h3>
                 <span class="company">Moii.AI</span>
-                <span class="date">Aug 2023 &mdash; Dec 2023</span>
+                <span class="date"><span lang="zh-CN" class="i18n-zh">2023 年 8 月 &mdash; 2023 年 12 月</span><span lang="en" class="i18n-en">Aug 2023 &mdash; Dec 2023</span></span>
               </header>
               <div class="body">
-                <p>
-                  Designed and built ML inference APIs for <strong>real-time threat detection</strong> on images, videos,
-                  and live streams. Trained YOLOv8 and tuned SAHI&rsquo;s adaptive tile sizing for small-object detection —
-                  <strong>accuracy +30%</strong>, <strong>inference +200%</strong>.
-                </p>
-                <p>
-                  Collaborated with the team through regular code reviews on system architecture, performance, and cost.
-                </p>
+                <div lang="zh-CN" class="i18n-zh">
+                  <p>
+                    设计并开发用于 <strong>实时威胁检测</strong> 的机器学习推理 API,支持图片、视频和实时视频流。训练 YOLOv8,并优化 SAHI 的自适应切片大小算法,用于小物体检测 &mdash; <strong>准确率 +30%</strong>,<strong>推理速度 +200%</strong>。
+                  </p>
+                  <p>
+                    与开发团队定期 code review,确定系统架构、功能实现、性能与成本。
+                  </p>
+                </div>
+                <div lang="en" class="i18n-en">
+                  <p>
+                    Designed and built ML inference APIs for <strong>real-time threat detection</strong> on images, videos, and live streams. Trained YOLOv8 and tuned SAHI&rsquo;s adaptive tile sizing for small-object detection &mdash; <strong>accuracy +30%</strong>, <strong>inference +200%</strong>.
+                  </p>
+                  <p>
+                    Collaborated with the team through regular code reviews on system architecture, performance, and cost.
+                  </p>
+                </div>
               </div>
             </article>
           </li>
@@ -368,22 +421,28 @@
       <section id="education" class="reveal">
         <div class="section-head">
           <span class="num">/04</span>
-          <h2>Education</h2>
-          <p class="sub">Two campuses, two countries, one through-line.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">教育背景</span><span lang="en" class="i18n-en">Education</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">两个校园,两个国家,一条主线。</span><span lang="en" class="i18n-en">Two campuses, two countries, one through-line.</span></p>
         </div>
 
         <div class="edu-grid reveal-stagger">
           <article class="glass edu-card">
-            <div class="school">Technical University of Munich</div>
-            <h3 class="degree">M.Sc. Informatics</h3>
-            <div class="when">2025 &mdash; 2027 &middot; Munich, Germany</div>
-            <p>QS World University Rankings: <strong>Top 25</strong> globally. Coursework and research focused on machine learning, distributed systems, and computer vision.</p>
+            <div class="school"><span lang="zh-CN" class="i18n-zh">慕尼黑工业大学(TUM)</span><span lang="en" class="i18n-en">Technical University of Munich</span></div>
+            <h3 class="degree"><span lang="zh-CN" class="i18n-zh">信息学硕士(M.Sc. Informatics)</span><span lang="en" class="i18n-en">M.Sc. Informatics</span></h3>
+            <div class="when"><span lang="zh-CN" class="i18n-zh">2025 &mdash; 2027 · 德国 慕尼黑</span><span lang="en" class="i18n-en">2025 &mdash; 2027 &middot; Munich, Germany</span></div>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">QS 世界大学排名全球 <strong>前 25</strong>。研究方向:机器学习、分布式系统、计算机视觉。</span>
+              <span lang="en" class="i18n-en">QS World University Rankings: <strong>Top 25</strong> globally. Coursework and research focused on machine learning, distributed systems, and computer vision.</span>
+            </p>
           </article>
           <article class="glass edu-card">
-            <div class="school">Michigan State University</div>
-            <h3 class="degree">B.Sc. Computer Science &middot; Minor: Business</h3>
-            <div class="when">2019 &mdash; 2023 &middot; East Lansing, MI, USA</div>
-            <p>GPA <strong>3.892</strong> / 4.00 (<strong>Top 10%</strong>) &middot; Major GPA <strong>3.924</strong>. Dean&rsquo;s List &times; 6.</p>
+            <div class="school"><span lang="zh-CN" class="i18n-zh">密歇根州立大学</span><span lang="en" class="i18n-en">Michigan State University</span></div>
+            <h3 class="degree"><span lang="zh-CN" class="i18n-zh">计算机科学学士 · 辅修商务</span><span lang="en" class="i18n-en">B.Sc. Computer Science &middot; Minor: Business</span></h3>
+            <div class="when"><span lang="zh-CN" class="i18n-zh">2019 &mdash; 2023 · 美国密歇根州 东兰辛</span><span lang="en" class="i18n-en">2019 &mdash; 2023 &middot; East Lansing, MI, USA</span></div>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">GPA <strong>3.892</strong> / 4.00(<strong>前 10%</strong>)· 专业 GPA <strong>3.924</strong>。院长嘉许名单 &times; 6。</span>
+              <span lang="en" class="i18n-en">GPA <strong>3.892</strong> / 4.00 (<strong>Top 10%</strong>) &middot; Major GPA <strong>3.924</strong>. Dean&rsquo;s List &times; 6.</span>
+            </p>
           </article>
         </div>
       </section>
@@ -392,19 +451,19 @@
       <section id="publications" class="reveal">
         <div class="section-head">
           <span class="num">/05</span>
-          <h2>Publications</h2>
-          <p class="sub">First-author work, with more in the pipeline.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">论文发表</span><span lang="en" class="i18n-en">Publications</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">已发表第一作者论文,后续仍有筹备中作品。</span><span lang="en" class="i18n-en">First-author work, with more in the pipeline.</span></p>
         </div>
 
         <article class="glass pub-card" data-tilt>
           <div class="pub-icon"><i class="fas fa-file-alt" aria-hidden="true"></i></div>
           <div>
-            <div class="pub-meta">2024 &middot; First Author</div>
+            <div class="pub-meta">2024 &middot; <span lang="zh-CN" class="i18n-zh">第一作者</span><span lang="en" class="i18n-en">First Author</span></div>
             <h3 class="pub-title">Enhanced DeblurGAN: An advanced combinatorial model for motion blur removal in low-light photography</h3>
             <p class="pub-venue">Applied and Computational Engineering, 20&ndash;25</p>
             <div class="pub-links">
               <a href="https://www.ewadirect.com/proceedings/ace/article/view/10834" target="_blank" rel="noopener">
-                <i class="fas fa-external-link-alt" aria-hidden="true"></i> Read paper
+                <i class="fas fa-external-link-alt" aria-hidden="true"></i> <span lang="zh-CN" class="i18n-zh">查看论文</span><span lang="en" class="i18n-en">Read paper</span>
               </a>
               <a href="https://doi.org/10.54254/2755-2721/51/20241152" target="_blank" rel="noopener">
                 <i class="fas fa-link" aria-hidden="true"></i> DOI&nbsp;10.54254/2755-2721/51/20241152
@@ -418,19 +477,18 @@
       <section id="portfolio" class="reveal">
         <div class="section-head">
           <span class="num">/06</span>
-          <h2>Selected work</h2>
-          <p class="sub">Three projects spanning model acceleration, applied CV, and multimodal research.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">精选项目</span><span lang="en" class="i18n-en">Selected work</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">三个项目,覆盖模型加速、应用 CV、多模态研究三个方向。</span><span lang="en" class="i18n-en">Three projects spanning model acceleration, applied CV, and multimodal research.</span></p>
         </div>
 
         <div class="project-row reveal-stagger">
           <article class="project-card" data-tilt>
             <div class="hero-vis v-blue"><i class="fas fa-network-wired" aria-hidden="true"></i></div>
-            <div class="ptag">Distributed &middot; Multimodal &middot; Text-to-Video</div>
-            <h3 class="ptitle">Wan2.1 14B Long-Sequence Parallel</h3>
+            <div class="ptag"><span lang="zh-CN" class="i18n-zh">分布式 · 多模态 · 文生视频</span><span lang="en" class="i18n-en">Distributed &middot; Multimodal &middot; Text-to-Video</span></div>
+            <h3 class="ptitle"><span lang="zh-CN" class="i18n-zh">Wan2.1 14B 长序列并行训练</span><span lang="en" class="i18n-en">Wan2.1 14B Long-Sequence Parallel</span></h3>
             <p class="pdesc">
-              Joint innovation with JD. Memory-profiled the Wan2.1 14B text-to-video model on Ascend clusters and
-              implemented a DeepSpeed-Ulysses sequence-parallel strategy &mdash; 32K-sequence training on 8 NPUs instead
-              of 32, cutting nodes by <strong>75%</strong> and memory by <strong>50%</strong>.
+              <span lang="zh-CN" class="i18n-zh">京东联合创新项目。基于 ModelScope DiffSynth-Studio,在昇腾集群上完成 Wan2.1 14B 文生视频模型的适配与显存 profiling,实现 DeepSpeed-Ulysses 序列并行策略 &mdash; 32K 序列训练从 32 卡降到 8 卡,节点数 &minus; <strong>75%</strong>、显存 &minus; <strong>50%</strong>。</span>
+              <span lang="en" class="i18n-en">Joint innovation with JD. Memory-profiled the Wan2.1 14B text-to-video model on Ascend clusters and implemented a DeepSpeed-Ulysses sequence-parallel strategy &mdash; 32K-sequence training on 8 NPUs instead of 32, cutting nodes by <strong>75%</strong> and memory by <strong>50%</strong>.</span>
             </p>
             <ul class="pmeta">
               <li>DeepSpeed-Ulysses</li><li>Ascend NPU</li><li>DiffSynth-Studio</li>
@@ -440,15 +498,14 @@
           <article class="project-card" data-tilt>
             <a href="http://www.capstone.cse.msu.edu/2023-08/projects/moii-ai/" target="_blank" rel="noopener" aria-label="View Moii.AI capstone page">
               <div class="hero-vis v-image">
-                <img src="images/project-1.jpeg" alt="Real-time firearm detection screenshot" loading="lazy" decoding="async" />
+                <img src="images/project-1.jpeg" alt="Real-time firearm detection screenshot / 实时枪支检测系统截图" loading="lazy" decoding="async" />
               </div>
             </a>
-            <div class="ptag">Computer Vision &middot; FastAPI &middot; GCP</div>
-            <h3 class="ptitle">Real-time Firearm Detection</h3>
+            <div class="ptag"><span lang="zh-CN" class="i18n-zh">计算机视觉 · FastAPI · GCP</span><span lang="en" class="i18n-en">Computer Vision &middot; FastAPI &middot; GCP</span></div>
+            <h3 class="ptitle"><span lang="zh-CN" class="i18n-zh">实时枪支检测与预警系统</span><span lang="en" class="i18n-en">Real-time Firearm Detection</span></h3>
             <p class="pdesc">
-              Web system that plugs into live camera streams for real-time detection of small objects like firearms.
-              YOLOv8 + SAHI &mdash; accuracy <strong>+30%</strong>, inference <strong>+200%</strong>. Emergency emails on
-              threat detection. <em>Won the Amazon Sigma Award (1st of 30 teams).</em>
+              <span lang="zh-CN" class="i18n-zh">网站允许用户接入摄像头实时流,后端实时检测枪支等小目标。YOLOv8 + SAHI &mdash; 准确率 <strong>+30%</strong>,推理 <strong>+200%</strong>。检测到威胁立即邮件告警。<em>获得 Amazon Sigma Award(30 支团队第一)。</em></span>
+              <span lang="en" class="i18n-en">Web system that plugs into live camera streams for real-time detection of small objects like firearms. YOLOv8 + SAHI &mdash; accuracy <strong>+30%</strong>, inference <strong>+200%</strong>. Emergency emails on threat detection. <em>Won the Amazon Sigma Award (1st of 30 teams).</em></span>
             </p>
             <ul class="pmeta">
               <li>YOLOv8</li><li>SAHI</li><li>FastAPI</li><li>Google Cloud</li>
@@ -457,12 +514,11 @@
 
           <article class="project-card" data-tilt>
             <div class="hero-vis v-green"><i class="fas fa-microscope" aria-hidden="true"></i></div>
-            <div class="ptag">Weakly-Supervised TAL &middot; Multimodal &middot; Research</div>
-            <h3 class="ptitle">Multimodal WTAL for Medical Exams</h3>
+            <div class="ptag"><span lang="zh-CN" class="i18n-zh">弱监督时序动作定位 · 多模态 · 科研</span><span lang="en" class="i18n-en">Weakly-Supervised TAL &middot; Multimodal &middot; Research</span></div>
+            <h3 class="ptitle"><span lang="zh-CN" class="i18n-zh">面向医学考核的多模态动作识别</span><span lang="en" class="i18n-en">Multimodal WTAL for Medical Exams</span></h3>
             <p class="pdesc">
-              Undergraduate research. SOTA weakly-supervised temporal action localization with text cues to score medical
-              students&rsquo; practical exams. Extracted optical-flow + RGB features from ~9,000 videos (&gt; 1.2 TB) using
-              I3D, trained on 4&times; RTX A6000 &mdash; <strong>92.75%</strong> accuracy and <strong>94.88%</strong> ROC-AUC.
+              <span lang="zh-CN" class="i18n-zh">本科生科研项目。基于 SOTA 弱监督时序动作定位(WTAL)多模态模型,引入文本特征提升识别效果,自动为医学生实践考核打分。用 I3D 从约 9,000 个视频(&gt; 1.2 TB)提取光流和 RGB 特征,4&times; RTX A6000 训练 &mdash; <strong>92.75%</strong> 准确率、<strong>94.88%</strong> ROC-AUC。</span>
+              <span lang="en" class="i18n-en">Undergraduate research. SOTA weakly-supervised temporal action localization with text cues to score medical students&rsquo; practical exams. Extracted optical-flow + RGB features from ~9,000 videos (&gt; 1.2 TB) using I3D, trained on 4&times; RTX A6000 &mdash; <strong>92.75%</strong> accuracy and <strong>94.88%</strong> ROC-AUC.</span>
             </p>
             <ul class="pmeta">
               <li>I3D</li><li>WTAL</li><li>4&times; A6000</li>
@@ -475,19 +531,22 @@
       <section id="contact" class="reveal">
         <div class="section-head">
           <span class="num">/07</span>
-          <h2>Get in touch</h2>
-          <p class="sub">Best for internship intros, research collaborations, or just to say hi.</p>
+          <h2><span lang="zh-CN" class="i18n-zh">联系方式</span><span lang="en" class="i18n-en">Get in touch</span></h2>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">最适合的话题:实习机会、研究合作,或只是打个招呼。</span><span lang="en" class="i18n-en">Best for internship intros, research collaborations, or just to say hi.</span></p>
         </div>
 
         <div class="contact-grid">
           <aside class="glass contact-info">
-            <h3 class="hello">Say <span class="grad">hi</span>.</h3>
-            <p>I read every message. Fastest channel is email — LinkedIn DMs work too.</p>
+            <h3 class="hello">
+              <span lang="zh-CN" class="i18n-zh">打个 <span class="grad">招呼</span>。</span>
+              <span lang="en" class="i18n-en">Say <span class="grad">hi</span>.</span>
+            </h3>
+            <p><span lang="zh-CN" class="i18n-zh">我会读每一条消息。最快的方式是邮件,LinkedIn 私信也可以。</span><span lang="en" class="i18n-en">I read every message. Fastest channel is email — LinkedIn DMs work too.</span></p>
             <div class="contact-channels">
               <div class="meta-row">
                 <span class="icon"><i class="fas fa-envelope" aria-hidden="true"></i></span>
                 <div>
-                  <div class="k">Email</div>
+                  <div class="k"><span lang="zh-CN" class="i18n-zh">邮箱</span><span lang="en" class="i18n-en">Email</span></div>
                   <div class="v"><a href="mailto:hong.zhuang@tum.de">hong.zhuang@tum.de</a></div>
                 </div>
               </div>
@@ -501,8 +560,8 @@
               <div class="meta-row">
                 <span class="icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
                 <div>
-                  <div class="k">Based in</div>
-                  <div class="v">Munich, Germany</div>
+                  <div class="k"><span lang="zh-CN" class="i18n-zh">所在地</span><span lang="en" class="i18n-en">Based in</span></div>
+                  <div class="v"><span lang="zh-CN" class="i18n-zh">德国 慕尼黑</span><span lang="en" class="i18n-en">Munich, Germany</span></div>
                 </div>
               </div>
             </div>
@@ -512,19 +571,19 @@
             <form action="https://formspree.io/f/xyyrqzrj" method="POST">
               <input type="text" name="_gotcha" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div class="field">
-                <input type="text" id="name" name="name" placeholder=" " required />
-                <label for="name">Your name</label>
+                <input type="text" id="name" name="name" placeholder=" " required data-placeholder-zh=" " data-placeholder-en=" " />
+                <label for="name"><span lang="zh-CN" class="i18n-zh">姓名</span><span lang="en" class="i18n-en">Your name</span></label>
               </div>
               <div class="field">
                 <input type="email" id="email" name="email" placeholder=" " required />
-                <label for="email">Email</label>
+                <label for="email"><span lang="zh-CN" class="i18n-zh">邮箱</span><span lang="en" class="i18n-en">Email</span></label>
               </div>
               <div class="field">
                 <textarea id="message" name="message" placeholder=" " required></textarea>
-                <label for="message">Message</label>
+                <label for="message"><span lang="zh-CN" class="i18n-zh">留言</span><span lang="en" class="i18n-en">Message</span></label>
               </div>
               <button type="submit" class="btn primary" data-magnetic="14">
-                Send message <span class="arrow">→</span>
+                <span lang="zh-CN" class="i18n-zh">发送</span><span lang="en" class="i18n-en">Send message</span> <span class="arrow">→</span>
               </button>
             </form>
           </article>
@@ -533,17 +592,17 @@
     </main>
 
     <footer class="site-footer">
-      <div class="brand-big">Hong&nbsp;Zhuang</div>
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
       <ul>
         <li><a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
         <li><a href="mailto:hong.zhuang@tum.de" aria-label="Email"><i class="fas fa-envelope"></i></a></li>
       </ul>
       <div class="meta">
-        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot; Hand-built with vanilla CSS/JS &middot;
-        <a href="#top">Back to top ↑</a>
+        &copy; <span id="footer-year">2026</span> <span lang="zh-CN" class="i18n-zh">庄宏 · 纯手工 vanilla CSS/JS 打造</span><span lang="en" class="i18n-en">Hong Zhuang &middot; Hand-built with vanilla CSS/JS</span> &middot;
+        <a href="#top"><span lang="zh-CN" class="i18n-zh">回到顶部</span><span lang="en" class="i18n-en">Back to top</span> ↑</a>
       </div>
     </footer>
 
-    <script src="scripts/app.js?ver=2.0.0" defer></script>
+    <script src="scripts/app.js?ver=2.1.0" defer></script>
   </body>
 </html>

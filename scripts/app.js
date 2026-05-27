@@ -112,16 +112,23 @@
   }
 
   // ----- 7. Hero h1 character stagger -----
+  // Split each language span individually so the i18n wrapper structure
+  // is preserved (both ZH and EN spans need their own .char children
+  // because they're swapped by CSS based on <html lang>).
   const heroH1 = document.querySelector('.hero h1[data-split]');
   if (heroH1) {
-    const text = heroH1.textContent;
-    heroH1.textContent = '';
-    [...text].forEach((ch, i) => {
-      const span = document.createElement('span');
-      span.className = 'char';
-      span.style.transitionDelay = i * 40 + 'ms';
-      span.textContent = ch === ' ' ? '\u00A0' : ch;
-      heroH1.appendChild(span);
+    const langSpans = heroH1.querySelectorAll('.i18n-zh, .i18n-en');
+    const targets = langSpans.length ? langSpans : [heroH1];
+    targets.forEach((target) => {
+      const text = target.textContent;
+      target.textContent = '';
+      [...text].forEach((ch, i) => {
+        const c = document.createElement('span');
+        c.className = 'char';
+        c.style.transitionDelay = i * 40 + 'ms';
+        c.textContent = ch === ' ' ? '\u00A0' : ch;
+        target.appendChild(c);
+      });
     });
     rAF(() => rAF(() => heroH1.classList.add('is-in')));
   }
@@ -244,6 +251,72 @@
         }
       });
     }
+  }
+
+  // ----- 13b. i18n (zh / en) toggle, persistence, attribute swap -----
+  // The default lang is zh-CN, resolved by the early inline script in <head>
+  // from ?lang= -> localStorage.lang -> navigator.language. Here we wire up
+  // the toggle button, persist user choice, sync the URL, swap attribute-only
+  // strings (title, meta description/og/twitter), and re-trigger the hero
+  // character stagger animation so it plays in the newly-active language.
+
+  function currentLang() {
+    return document.documentElement.lang === 'en' ? 'en' : 'zh';
+  }
+
+  function syncAttrI18n(lang) {
+    // Elements that need attribute swaps (data-zh / data-en) — title, meta
+    // description, OG and Twitter tags. Pure CSS can't reach attributes.
+    document.querySelectorAll('[data-zh][data-en]').forEach((el) => {
+      const value = el.getAttribute('data-' + lang);
+      if (value == null) return;
+      if (el.tagName === 'TITLE') {
+        el.textContent = value;
+      } else if (el.tagName === 'META') {
+        el.setAttribute('content', value);
+      } else {
+        // Generic fallback: set textContent
+        el.textContent = value;
+      }
+    });
+  }
+
+  function retriggerHero() {
+    const h1 = document.querySelector('.hero h1[data-split]');
+    if (!h1) return;
+    h1.classList.remove('is-in');
+    // Force reflow so the transition restarts cleanly.
+    void h1.offsetWidth;
+    h1.classList.add('is-in');
+  }
+
+  function setLang(lang, opts) {
+    const next = lang === 'en' ? 'en' : 'zh';
+    const htmlLang = next === 'en' ? 'en' : 'zh-CN';
+    document.documentElement.lang = htmlLang;
+    try { localStorage.setItem('lang', next); } catch (_) {}
+    syncAttrI18n(next);
+    if (opts && opts.syncUrl) {
+      try {
+        const u = new URL(location.href);
+        if (next === 'zh') u.searchParams.delete('lang');
+        else u.searchParams.set('lang', 'en');
+        history.replaceState(null, '', u);
+      } catch (_) {}
+    }
+    if (opts && opts.retrigger) retriggerHero();
+  }
+
+  // Initial sync at load — make attribute-only strings match what the
+  // early <head> script decided. (CSS already handled the visible spans.)
+  syncAttrI18n(currentLang());
+
+  const langBtn = document.querySelector('[data-lang-toggle]');
+  if (langBtn) {
+    langBtn.addEventListener('click', () => {
+      const next = currentLang() === 'en' ? 'zh' : 'en';
+      setLang(next, { syncUrl: true, retrigger: true });
+    });
   }
 
   // ----- 14. Bind scroll listeners -----

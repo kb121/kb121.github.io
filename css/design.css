@@ -28,9 +28,9 @@
   --accent-grad-soft: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(168, 85, 247, 0.22), rgba(236, 72, 153, 0.22));
 
   /* Type */
-  --font-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  --font-display: "Space Grotesk", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", "Menlo", "PingFang SC", "Microsoft YaHei", monospace;
 
   /* Layout */
   --max: 1180px;
@@ -1250,7 +1250,7 @@ section {
 /* ---------- 20. Print ---------- */
 
 @media print {
-  .aurora, .cursor-dot, .cursor-ring, .scroll-progress, .topnav, .sidenav, .marquee, .theme-toggle, .nav-cta,
+  .aurora, .cursor-dot, .cursor-ring, .scroll-progress, .topnav, .sidenav, .marquee, .theme-toggle, .lang-toggle, .nav-cta,
   .contact-card, .float-tag, .status-pill {
     display: none !important;
   }
@@ -1278,4 +1278,62 @@ section {
     -webkit-text-fill-color: inherit !important;
   }
   .bento-tile, .timeline-card, .edu-card, .pub-card, .project-card { page-break-inside: avoid; }
+}
+
+/* ---------- 21. i18n (zh / en) ---------- */
+
+/* Inline dual-span pattern. Both languages are present in the DOM
+   (with their own `lang` attribute for screen-readers / SEO); CSS
+   hides whichever one isn't currently active. Default lang on
+   <html> is zh-CN, and an early inline script in <head> updates it
+   from URL ?lang=, localStorage, or navigator.language before paint. */
+html[lang^="zh"] .i18n-en { display: none; }
+html[lang="en"]  .i18n-zh { display: none; }
+
+/* CJK micro-typography tweaks (default lang is zh-CN, so this is the
+   read-by-default path). Slightly looser line-height and zero negative
+   tracking, since CJK glyphs don't benefit from tight tracking. */
+html[lang^="zh"] body          { line-height: 1.72; }
+html[lang^="zh"] h1,
+html[lang^="zh"] h2,
+html[lang^="zh"] h3,
+html[lang^="zh"] h4            { letter-spacing: 0; }
+html[lang^="zh"] .topnav ul a  { font-size: 0.94rem; }
+
+/* Language toggle button (two-state pill in the top nav) */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.lang-toggle:hover { background: var(--surface-strong); border-color: var(--border-strong); }
+
+.lang-toggle .opt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+html[lang^="zh"] .lang-toggle .opt-zh,
+html[lang="en"]  .lang-toggle .opt-en {
+  background: var(--accent-grad);
+  color: #fff;
+}
+
+@media (max-width: 880px) {
+  .topnav .nav-cta { display: none; }
 }
