@@ -22,6 +22,7 @@ Personal website for **Hong Zhuang** &mdash; Machine Learning Engineer focused o
 - **Accessible** &mdash; respects `prefers-reduced-motion`, AA contrast in both themes, skip-to-content link, every `<img>` carries `alt`, decorative elements are `aria-hidden`.
 - **Lean** &mdash; ~70 KB of critical CSS + JS + HTML combined, no framework, no build step.
 - **Print-friendly** &mdash; dedicated `@media print` stylesheet produces a clean black-and-white single-column PDF.
+- **Bilingual** &mdash; full **English / 中文** content with an in-place toggle in the top nav. Defaults to Chinese; the choice is persisted to `localStorage` and reflected in the URL (`?lang=en`) for shareable deep links.
 
 ## Stack
 
