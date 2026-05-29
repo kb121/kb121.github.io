@@ -274,6 +274,8 @@
         el.textContent = value;
       } else if (el.tagName === 'META') {
         el.setAttribute('content', value);
+      } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.setAttribute('placeholder', value);
       } else {
         // Generic fallback: set textContent
         el.textContent = value;

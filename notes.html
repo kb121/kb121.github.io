@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      // Early language resolution (before body parses) — no FOUC on first paint.
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="知识笔记 — 庄宏" data-en="Knowledge Notes — Hong Zhuang">知识笔记 — 庄宏</title>
+    <meta
+      name="description"
+      data-zh="庄宏的知识笔记 — 关于大模型训练、分布式系统、计算机视觉的学习与实践记录。"
+      data-en="Hong Zhuang's knowledge notes — learnings on LLM training, distributed systems, and computer vision."
+      content="庄宏的知识笔记 — 关于大模型训练、分布式系统、计算机视觉的学习与实践记录。"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="canonical" href="https://www.hzhuang.org/notes.html" />
+    <link rel="icon" href="favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      />
+    </noscript>
+
+    <link href="css/font-awesome/css/all.min.css?ver=2.2.0" rel="stylesheet" />
+    <link href="css/design.css?ver=2.2.0" rel="stylesheet" />
+    <link href="css/notes.css?ver=2.2.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="notes-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="index.html#about"><span lang="zh-CN" class="i18n-zh">关于</span><span lang="en" class="i18n-en">About</span></a></li>
+          <li><a href="index.html#experience"><span lang="zh-CN" class="i18n-zh">经历</span><span lang="en" class="i18n-en">Experience</span></a></li>
+          <li><a href="index.html#publications"><span lang="zh-CN" class="i18n-zh">论文</span><span lang="en" class="i18n-en">Papers</span></a></li>
+          <li><a href="index.html#portfolio"><span lang="zh-CN" class="i18n-zh">作品</span><span lang="en" class="i18n-en">Work</span></a></li>
+          <li><a href="notes.html" class="active"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+        <a href="index.html#contact" class="nav-cta"
+          ><span lang="zh-CN" class="i18n-zh">聊一聊</span><span lang="en" class="i18n-en">Let&rsquo;s talk</span></a
+        >
+      </div>
+    </header>
+
+    <main>
+      <div class="page-hero">
+        <span class="eyebrow"
+          ><span class="pulse"></span
+          ><span lang="zh-CN" class="i18n-zh">学习 · 实践 · 记录</span><span lang="en" class="i18n-en">Learn · Build · Document</span></span
+        >
+        <h1><span lang="zh-CN" class="i18n-zh">知识笔记</span><span lang="en" class="i18n-en">Knowledge Notes</span></h1>
+        <p class="lede">
+          <span lang="zh-CN" class="i18n-zh">关于大模型训练、分布式系统、计算机视觉与工程实践的零散笔记 &mdash; 写给未来的自己,也欢迎你顺便看看。</span>
+          <span lang="en" class="i18n-en">Scattered notes on LLM training, distributed systems, computer vision, and engineering practice &mdash; written for future me, and you&rsquo;re welcome to read along.</span>
+        </p>
+      </div>
+
+      <div class="notes-toolbar">
+        <label class="notes-search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input
+            type="search"
+            id="notes-search"
+            autocomplete="off"
+            aria-label="Search notes / 搜索笔记"
+            data-zh="搜索笔记…"
+            data-en="Search notes…"
+            placeholder="搜索笔记…"
+          />
+        </label>
+        <div class="tag-filters" id="tag-filters" role="group" aria-label="Filter by tag"></div>
+        <span class="notes-count" id="notes-count"></span>
+      </div>
+
+      <div class="notes-grid" id="notes-grid"></div>
+
+      <div class="notes-empty" id="notes-empty" hidden>
+        <div><i class="fas fa-folder-open" aria-hidden="true"></i></div>
+        <p><span lang="zh-CN" class="i18n-zh">没有匹配的笔记。</span><span lang="en" class="i18n-en">No matching notes.</span></p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <ul>
+        <li><a href="https://linkedin.com/in/h-zhuang" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        <li><a href="mailto:hong.zhuang@tum.de" aria-label="Email"><i class="fas fa-envelope"></i></a></li>
+      </ul>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> <span lang="zh-CN" class="i18n-zh">庄宏 · 纯手工 vanilla CSS/JS 打造</span><span lang="en" class="i18n-en">Hong Zhuang &middot; Hand-built with vanilla CSS/JS</span> &middot;
+        <a href="index.html"><span lang="zh-CN" class="i18n-zh">回首页</span><span lang="en" class="i18n-en">Home</span> ↑</a>
+      </div>
+    </footer>
+
+    <script src="notes/notes.js?ver=2.2.0"></script>
+    <script src="scripts/notes-list.js?ver=2.2.0"></script>
+    <script src="scripts/app.js?ver=2.2.0" defer></script>
+  </body>
+</html>

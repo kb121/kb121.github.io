@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  NEW NOTE TEMPLATE
+  -------------------------------------------------------------------------
+  How to use:
+    1. Copy this file to notes/<your-slug>.html
+    2. Fill in: <title>, the <h1>, the meta (date + tags), and the
+       <div class="prose"> body.
+    3. Add a matching entry to notes/notes.js (see that file's header).
+
+  Bilingual content is optional. Wrap text in:
+       <span lang="zh-CN" class="i18n-zh">中文</span><span lang="en" class="i18n-en">English</span>
+  and it follows the site-wide language toggle. If you only write one
+  language, just put plain text — it will show regardless of toggle.
+
+  Everything below (aurora background, theme toggle, language toggle,
+  custom cursor) is wired up by the shared css/design.css + scripts/app.js.
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      // Early language resolution (keep this — prevents a flash of the wrong language).
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <!-- EDIT: page title -->
+    <title data-zh="笔记标题 — 庄宏" data-en="Note Title — Hong Zhuang">笔记标题 — 庄宏</title>
+    <meta name="description" content="" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <!-- Paths are ../ because notes live one folder down. -->
+    <link href="../css/font-awesome/css/all.min.css?ver=2.2.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.2.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.2.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <!-- EDIT: date + tags. Keep them in sync with notes/notes.js. -->
+          <div class="note-meta">
+            <span>2026-05-29</span>
+            <span class="tags"><span>Tag1</span><span>Tag2</span></span>
+          </div>
+          <!-- EDIT: note title -->
+          <h1><span lang="zh-CN" class="i18n-zh">笔记标题</span><span lang="en" class="i18n-en">Note Title</span></h1>
+        </header>
+
+        <!-- ===================== EDIT BELOW: your note body ===================== -->
+        <div class="prose">
+          <p>
+            <span lang="zh-CN" class="i18n-zh">在这里开始写你的笔记。普通文字、<strong>加粗</strong>、<a href="#">链接</a>、<code>行内代码</code> 都可以直接用。</span>
+            <span lang="en" class="i18n-en">Start writing your note here. Plain text, <strong>bold</strong>, <a href="#">links</a>, and <code>inline code</code> all work out of the box.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">小标题</span><span lang="en" class="i18n-en">A heading</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">段落内容……</span><span lang="en" class="i18n-en">Paragraph content…</span></p>
+
+          <ul>
+            <li><span lang="zh-CN" class="i18n-zh">列表项一</span><span lang="en" class="i18n-en">List item one</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">列表项二</span><span lang="en" class="i18n-en">List item two</span></li>
+          </ul>
+
+          <blockquote><span lang="zh-CN" class="i18n-zh">引用一句话。</span><span lang="en" class="i18n-en">A quote.</span></blockquote>
+
+          <pre><code>// code block
+def hello():
+    print("hi")</code></pre>
+        </div>
+        <!-- ===================== EDIT ABOVE ===================== -->
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.2.0" defer></script>
+  </body>
+</html>

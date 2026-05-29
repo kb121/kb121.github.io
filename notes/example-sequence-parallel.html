@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="DeepSpeed-Ulysses 序列并行入门 — 庄宏" data-en="A Primer on DeepSpeed-Ulysses Sequence Parallelism — Hong Zhuang">DeepSpeed-Ulysses 序列并行入门 — 庄宏</title>
+    <meta name="description" content="为什么长序列训练会爆显存,序列并行如何把 32K 训练从 32 卡降到 8 卡。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link href="../css/font-awesome/css/all.min.css?ver=2.2.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.2.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.2.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-05-20</span>
+            <span class="tags"><span>LLM</span><span>Distributed</span><span>Training</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">DeepSpeed-Ulysses 序列并行入门</span><span lang="en" class="i18n-en">A Primer on DeepSpeed-Ulysses Sequence Parallelism</span></h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            <span lang="zh-CN" class="i18n-zh">训练长序列模型时,激活值显存随序列长度线性增长,注意力部分甚至接近平方级。当序列推到 32K、64K,单卡显存很快就不够用了。这篇笔记记录我在 Wan2.1 14B 文生视频模型上做长序列训练时,为什么选了 <strong>DeepSpeed-Ulysses 序列并行</strong>,以及它的核心思想。</span>
+            <span lang="en" class="i18n-en">When training long-sequence models, activation memory grows linearly with sequence length — and the attention block grows closer to quadratically. Push the sequence to 32K or 64K and a single device runs out of memory fast. These are my notes on why I picked <strong>DeepSpeed-Ulysses sequence parallelism</strong> for long-sequence training of the Wan2.1 14B text-to-video model, and how it works.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">问题:显存从哪来</span><span lang="en" class="i18n-en">The problem: where memory goes</span></h2>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">先做一次显存 profiling,把占用拆成三块:参数与优化器状态、激活值、临时缓冲。长序列场景下激活值是绝对大头,而它正比于 <code>batch × seq_len × hidden</code>。要扩 <code>seq_len</code>,要么砍 batch,要么把序列这一维切到多卡上。</span>
+            <span lang="en" class="i18n-en">Start with a memory profile and split usage into three buckets: parameters + optimizer state, activations, and scratch buffers. For long sequences, activations dominate, and they scale with <code>batch × seq_len × hidden</code>. To grow <code>seq_len</code>, you either shrink the batch or shard the sequence dimension across devices.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">Ulysses 的核心:沿序列维切分 + all-to-all</span><span lang="en" class="i18n-en">The core idea: shard the sequence, then all-to-all</span></h2>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">Ulysses 的做法是:大部分时间每张卡只持有完整序列的一个分片(沿 <code>seq</code> 维切);到了注意力计算这一步,用一次 <strong>all-to-all</strong> 把数据重排成"沿 head 维切",这样每张卡拿到完整序列、但只算自己负责的几个 attention head;算完再 all-to-all 切回去。</span>
+            <span lang="en" class="i18n-en">Ulysses keeps each device holding only a shard of the full sequence (split along the <code>seq</code> dimension) most of the time. At the attention step, a single <strong>all-to-all</strong> reshuffles the data to be split along the <em>head</em> dimension instead — so each device now sees the full sequence but computes only its assigned attention heads. A second all-to-all switches the layout back afterward.</span>
+          </p>
+          <blockquote>
+            <span lang="zh-CN" class="i18n-zh">直觉:注意力需要"完整序列",其它算子需要"完整 hidden"。Ulysses 用两次 all-to-all 在这两种布局之间来回切换,从而两边都不爆显存。</span>
+            <span lang="en" class="i18n-en">Intuition: attention needs the <em>full sequence</em>; everything else needs the <em>full hidden dim</em>. Ulysses uses two all-to-alls to flip between those two layouts so neither blows up memory.</span>
+          </blockquote>
+
+          <h2><span lang="zh-CN" class="i18n-zh">结果</span><span lang="en" class="i18n-en">Results</span></h2>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">在 Wan2.1 14B 上,32K 序列的训练从 32 卡降到了 8 卡,节点数下降 <strong>75%</strong>、整体显存占用下降 <strong>50%</strong>,并且在相同卡数下能支持更长的序列。</span>
+            <span lang="en" class="i18n-en">On Wan2.1 14B, 32K-sequence training went from 32 GPUs down to 8 — a <strong>75%</strong> cut in nodes and a <strong>50%</strong> drop in overall memory, while also enabling longer sequences at the same device count.</span>
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th><span lang="zh-CN" class="i18n-zh">指标</span><span lang="en" class="i18n-en">Metric</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">之前</span><span lang="en" class="i18n-en">Before</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">之后</span><span lang="en" class="i18n-en">After</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><span lang="zh-CN" class="i18n-zh">卡数(32K 序列)</span><span lang="en" class="i18n-en">GPUs (32K seq)</span></td><td>32</td><td>8</td></tr>
+              <tr><td><span lang="zh-CN" class="i18n-zh">显存占用</span><span lang="en" class="i18n-en">Memory use</span></td><td>100%</td><td>50%</td></tr>
+            </tbody>
+          </table>
+
+          <h2><span lang="zh-CN" class="i18n-zh">什么时候用</span><span lang="en" class="i18n-en">When to reach for it</span></h2>
+          <ul>
+            <li><span lang="zh-CN" class="i18n-zh">序列很长、激活值是瓶颈时,序列并行比单纯加 ZeRO 更直接。</span><span lang="en" class="i18n-en">When sequences are long and activations are the bottleneck, sequence parallelism is more direct than just stacking ZeRO.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">可以和数据并行 / ZeRO 组合,形成多维并行。</span><span lang="en" class="i18n-en">It composes with data parallelism / ZeRO into multi-dimensional parallelism.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">注意 all-to-all 的通信开销,在带宽不足的互联上收益会打折。</span><span lang="en" class="i18n-en">Watch the all-to-all communication cost — the win shrinks on bandwidth-starved interconnects.</span></li>
+          </ul>
+
+          <hr />
+          <p>
+            <span lang="zh-CN" class="i18n-zh">这是一篇演示用的示例笔记 &mdash; 复制 <code>notes/_template.html</code> 就能照着写自己的。</span>
+            <span lang="en" class="i18n-en">This is a demo note &mdash; copy <code>notes/_template.html</code> to write your own.</span>
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.2.0" defer></script>
+  </body>
+</html>
