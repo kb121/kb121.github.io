@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "vllm-architecture",
+    title: {
+      zh: "vLLM 完整调用链路拆解(面试向)",
+      en: "vLLM End-to-End Call Chain (Interview Guide)",
+    },
+    summary: {
+      zh: "从 vllm serve 拉起服务,到 curl 请求、模型加载、KV cache、连续批处理、PagedAttention、调度器的完整链路图文拆解。",
+      en: "From vllm serve to a curl request: the full call chain through model loading, KV cache, continuous batching, PagedAttention, and the scheduler — illustrated.",
+    },
+    date: "2026-05-29",
+    tags: ["vLLM", "LLM", "Inference", "System"],
+  },
+  {
     slug: "example-sequence-parallel",
     title: {
       zh: "DeepSpeed-Ulysses 序列并行入门",
