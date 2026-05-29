@@ -362,6 +362,273 @@
   padding: 1px 6px;
 }
 
+/* =========================================================================
+   Diagram kit — reusable figure components for rich notes.
+   All built with plain HTML + CSS so notes stay dependency-free.
+   ========================================================================= */
+
+.fig {
+  margin: 1.8em 0;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.fig > .fig-cap {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  font-family: var(--font-mono);
+}
+.fig-title {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-1);
+  margin-bottom: 16px;
+}
+
+/* Generic node box */
+.node {
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.node .node-h {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.node .node-h i { color: var(--accent-2); }
+.node .node-sub { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+.node.accent-1 { border-color: color-mix(in srgb, var(--accent-1) 55%, transparent); }
+.node.accent-2 { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); }
+.node.accent-3 { border-color: color-mix(in srgb, var(--accent-3) 55%, transparent); }
+
+/* Vertical layered stack with connectors */
+.stack { display: flex; flex-direction: column; gap: 0; align-items: stretch; }
+.stack .node { position: relative; }
+.stack .node + .node { margin-top: 30px; }
+.stack .node + .node::before {
+  content: "▼";
+  position: absolute;
+  top: -25px; left: 50%;
+  transform: translateX(-50%);
+  color: var(--accent-2);
+  font-size: 0.8rem;
+}
+
+/* Process-boundary group */
+.proc-box {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  margin-top: 14px;
+}
+.proc-box > .proc-label {
+  position: absolute;
+  top: -10px; left: 14px;
+  background: var(--bg-2);
+  padding: 1px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent-1);
+}
+
+/* Horizontal flow of steps */
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+.flow .flow-step {
+  flex: 1 1 0;
+  min-width: 120px;
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  padding: 12px;
+  font-size: 0.82rem;
+}
+.flow .flow-step .s-n {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-1);
+  display: block;
+  margin-bottom: 4px;
+}
+.flow .flow-step .s-h { font-weight: 600; font-size: 0.88rem; }
+.flow .flow-step .s-d { color: var(--text-muted); margin-top: 3px; font-size: 0.78rem; }
+.flow .flow-arrow {
+  align-self: center;
+  color: var(--accent-2);
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+@media (max-width: 640px) {
+  .flow { flex-direction: column; }
+  .flow .flow-arrow { transform: rotate(90deg); align-self: center; }
+}
+
+/* Numbered steps (vertical, big index) */
+.steps { list-style: none; margin: 1.4em 0; padding: 0; counter-reset: step; }
+.steps > li {
+  position: relative;
+  padding: 4px 0 18px 56px;
+  counter-increment: step;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 0;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-grad);
+}
+.steps > li::after {
+  content: "";
+  position: absolute;
+  left: 18px; top: 40px; bottom: 0;
+  width: 2px;
+  background: var(--border-strong);
+}
+.steps > li:last-child::after { display: none; }
+.steps > li .st-h { font-weight: 600; font-family: var(--font-display); }
+.steps > li .st-d { color: var(--text-muted); font-size: 0.92rem; margin-top: 2px; }
+
+/* Callouts */
+.callout {
+  margin: 1.4em 0;
+  padding: 14px 16px 14px 48px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+  font-size: 0.95rem;
+}
+.callout::before {
+  position: absolute;
+  left: 16px; top: 15px;
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+.callout.info { border-left: 3px solid var(--accent-1); }
+.callout.info::before { content: "\f05a"; color: var(--accent-1); }
+.callout.tip { border-left: 3px solid #22c55e; }
+.callout.tip::before { content: "\f0eb"; color: #22c55e; }
+.callout.warn { border-left: 3px solid #f59e0b; }
+.callout.warn::before { content: "\f071"; color: #f59e0b; }
+.callout.key { border-left: 3px solid var(--accent-2); }
+.callout.key::before { content: "\f084"; color: var(--accent-2); }
+.callout b, .callout strong { color: var(--text); }
+
+/* KV-cache block grid (PagedAttention viz) */
+.blocks { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.blk {
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-strong);
+  color: var(--text-muted);
+}
+.blk.a { background: color-mix(in srgb, var(--accent-1) 30%, transparent); color: var(--text); border-color: var(--accent-1); }
+.blk.b { background: color-mix(in srgb, var(--accent-2) 30%, transparent); color: var(--text); border-color: var(--accent-2); }
+.blk.c { background: color-mix(in srgb, var(--accent-3) 30%, transparent); color: var(--text); border-color: var(--accent-3); }
+.blk.free { border-style: dashed; opacity: 0.5; }
+
+/* Two-column comparison */
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 1.4em 0; }
+@media (max-width: 640px) { .cols2 { grid-template-columns: 1fr; } }
+.cols2 .col-card { padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); }
+.cols2 .col-card h4 { margin: 0 0 8px; font-family: var(--font-display); font-size: 1rem; }
+.cols2 .col-card.good { border-top: 3px solid #22c55e; }
+.cols2 .col-card.bad { border-top: 3px solid #ef4444; }
+
+/* Mini stat pills inline */
+.stat-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.stat-pill b { color: var(--accent-1); }
+
+/* Q&A collapsibles */
+.qa { margin: 1.2em 0; }
+.qa details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.qa details[open] { border-color: var(--border-strong); }
+.qa summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 18px 14px 44px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  position: relative;
+  color: var(--text);
+}
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::before {
+  content: "Q";
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--accent-grad);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.qa summary::after {
+  content: "+";
+  position: absolute;
+  right: 18px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+.qa details[open] summary::after { content: "\2212"; }
+.qa .qa-body {
+  padding: 0 18px 16px 44px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.qa .qa-body strong { color: var(--text); }
+
 /* ---------- Print ---------- */
 
 @media print {

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="vLLM 完整调用链路拆解(面试向) — 庄宏" data-en="vLLM End-to-End Call Chain (Interview Guide) — Hong Zhuang">vLLM 完整调用链路拆解(面试向) — 庄宏</title>
+    <meta name="description" content="从 vllm serve 拉起服务,到 curl 请求,到模型加载、KV cache、连续批处理、PagedAttention、调度器的完整调用链路图文拆解,面试速成。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link href="../css/font-awesome/css/all.min.css?ver=2.3.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.3.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.3.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-05-29</span>
+            <span class="tags"><span>vLLM</span><span>LLM</span><span>Inference</span><span>System</span></span>
+          </div>
+          <h1>vLLM 完整调用链路拆解(面试向)</h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            这篇笔记把 <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener">vLLM</a> 从 <code>vllm serve</code> 拉起服务、到一条 <code>curl</code> 请求打进来、再到模型前向、采样、流式返回的 <strong>完整调用链路</strong> 串成一条线,配多张图。目标是看完能在面试里把"vLLM 是怎么跑起来的、为什么快"讲清楚。基于 <strong>V1 引擎</strong>(2025 起的默认架构)。
+          </p>
+
+          <div class="callout key">
+            <strong>一句话总览:</strong> vLLM = <em>OpenAI 兼容 API 服务</em> + <em>把 CPU 活(分词/调度/流式)和 GPU 活(前向)拆进不同进程</em> + <em>连续批处理(continuous batching)</em> + <em>PagedAttention 像操作系统分页一样管理 KV cache</em>。这四点撑起了它"高吞吐"的核心卖点。
+          </div>
+
+          <h2>0 · 为什么需要 vLLM</h2>
+          <p>朴素的 LLM 推理有两个致命浪费,vLLM 就是冲着这两点去的:</p>
+          <div class="cols2">
+            <div class="col-card bad">
+              <h4><i class="fas fa-xmark" aria-hidden="true"></i> 朴素实现的痛点</h4>
+              <ul>
+                <li><strong>显存碎片:</strong>给每个请求预留 <code>max_len</code> 的连续 KV cache,实际只用一点点,利用率常常 &lt; 40%。</li>
+                <li><strong>静态批处理:</strong>一个 batch 里要等最慢的请求生成完才能整批结束,GPU 大量空转。</li>
+              </ul>
+            </div>
+            <div class="col-card good">
+              <h4><i class="fas fa-check" aria-hidden="true"></i> vLLM 的解法</h4>
+              <ul>
+                <li><strong>PagedAttention:</strong>KV cache 切成固定大小的 block,按需分配、可共享,显存利用率拉到 &gt; 90%。</li>
+                <li><strong>连续批处理:</strong>每一步(每次前向)都能让完成的请求退出、新请求插入,GPU 始终满载。</li>
+              </ul>
+            </div>
+          </div>
+          <p>
+            结果:相比朴素 HF Transformers 实现,吞吐量可达
+            <span class="stat-pill"><b>10&ndash;24&times;</b></span> 量级的提升(取决于模型与负载)。
+          </p>
+
+          <h2>1 · 核心心智模型(一张图先记住)</h2>
+          <p>先把"谁调用谁"这条主干刻进脑子,后面所有细节都挂在这棵树上:</p>
+
+          <figure class="fig">
+            <div class="fig-title">vLLM V1 总体架构</div>
+            <div class="stack">
+              <div class="node">
+                <div class="node-h"><i class="fas fa-terminal"></i> 客户端 Client</div>
+                <div class="node-sub">curl / OpenAI SDK，走 HTTP 打到 <code>/v1/chat/completions</code></div>
+              </div>
+              <div class="proc-box">
+                <span class="proc-label">进程 A · API / 前端进程(CPU)</span>
+                <div class="stack">
+                  <div class="node accent-1">
+                    <div class="node-h"><i class="fas fa-server"></i> API Server(FastAPI + uvicorn)</div>
+                    <div class="node-sub"><code>vllm/entrypoints/openai/api_server.py</code> · 解析 OpenAI 协议、鉴权、SSE 流式</div>
+                  </div>
+                  <div class="node accent-1">
+                    <div class="node-h"><i class="fas fa-shuffle"></i> AsyncLLM</div>
+                    <div class="node-sub">异步包装层 · 负责<strong>分词 / 反分词</strong>、提交请求、回收输出、流式推送</div>
+                  </div>
+                </div>
+              </div>
+              <div class="proc-box">
+                <span class="proc-label">进程 B · EngineCore 进程(GPU 主战场)· 经 ZeroMQ IPC 通信</span>
+                <div class="stack">
+                  <div class="node accent-2">
+                    <div class="node-h"><i class="fas fa-rotate"></i> EngineCore · busy loop</div>
+                    <div class="node-sub">核心循环:从输入队列取请求 → 跑一个 step → 把输出推回</div>
+                  </div>
+                  <div class="node accent-2">
+                    <div class="node-h"><i class="fas fa-list-check"></i> Scheduler 调度器</div>
+                    <div class="node-sub">维护 waiting / running 队列,按 token 预算决定这一步谁跑、跑几个 token</div>
+                  </div>
+                  <div class="node accent-3">
+                    <div class="node-h"><i class="fas fa-microchip"></i> Executor → Worker(每张 GPU 一个)</div>
+                    <div class="node-sub"><code>ModelRunner</code> 装配输入张量、跑前向、PagedAttention 读写 KV cache、采样</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span class="fig-cap">图 1 · 自上而下的调用主干:Client → API Server → AsyncLLM →(IPC)→ EngineCore → Scheduler → Worker</span>
+          </figure>
+
+          <div class="callout info">
+            <strong>记忆锚点:</strong>上半截(进程 A)全是 <strong>CPU 活</strong>,下半截(进程 B)是 <strong>GPU 活</strong>。V1 把它们拆成两个进程,就是为了让分词/流式这些 CPU 活和 GPU 前向<strong>重叠执行</strong>,绕开 Python 的 GIL。这是 V1 相对 V0 最大的架构升级。
+          </div>
+
+          <h2>2 · 仓库结构速览</h2>
+          <p>面试常被问"你看过源码吗,大概什么结构"。记住这几个目录就够答:</p>
+          <pre><code>vllm/
+├── entrypoints/          # 入口层
+│   ├── openai/
+│   │   └── api_server.py # ★ vllm serve 起的 OpenAI 兼容服务
+│   ├── llm.py            # 离线批量推理入口 LLM(...)
+│   └── cli/              # vllm serve / vllm bench 等命令
+├── engine/               # V0 引擎(老,仍被部分复用)
+├── v1/                   # ★ V1 引擎(当前默认)
+│   ├── engine/
+│   │   ├── async_llm.py  # AsyncLLM:分词/反分词、对外接口
+│   │   └── core.py       # EngineCore:busy loop、step()
+│   ├── core/
+│   │   ├── sched/        # Scheduler 调度器
+│   │   └── kv_cache_*    # KV cache 管理(block 分配)
+│   ├── executor/         # Executor:管理多 GPU worker
+│   ├── worker/
+│   │   └── gpu_model_runner.py  # ★ ModelRunner:装张量、跑前向
+│   ├── attention/        # attention backend 元数据
+│   └── sample/           # 采样器
+├── model_executor/       # 模型实现 + 各种 layer + 量化
+│   ├── models/           # llama.py / qwen.py ... 每个模型一个文件
+│   └── model_loader/     # 权重加载(支持多种格式)
+├── attention/            # PagedAttention / FlashAttention 后端
+└── distributed/          # TP / PP / 通信原语</code></pre>
+          <div class="callout tip">
+            <strong>一句话答法:</strong>"入口在 <code>entrypoints/openai</code>,引擎核心在 <code>v1/</code>(<code>async_llm.py</code> 管 CPU 侧、<code>core.py</code> 是 busy loop),调度在 <code>v1/core/sched</code>,真正跑模型的是 <code>v1/worker/gpu_model_runner.py</code>,模型定义在 <code>model_executor/models</code>。"
+          </div>
+
+          <h2>3 · 服务拉起:<code>vllm serve</code> 发生了什么</h2>
+          <p>当你敲下 <code>vllm serve Qwen/Qwen2.5-7B-Instruct</code>,这一串事情按顺序发生:</p>
+
+          <ol class="steps">
+            <li>
+              <div class="st-h">解析参数,起 HTTP 服务</div>
+              <div class="st-d">CLI 解析 <code>EngineArgs</code>(模型名、TP 大小、<code>gpu-memory-utilization</code> 等),用 FastAPI + uvicorn 在 <code>:8000</code> 起 OpenAI 兼容服务。</div>
+            </li>
+            <li>
+              <div class="st-h">构建 AsyncLLM,拉起 EngineCore 子进程</div>
+              <div class="st-d">AsyncLLM 通过 <code>AsyncMPClient</code> fork/spawn 出独立的 <strong>EngineCore 进程</strong>,两边用 <strong>ZeroMQ</strong> 做 IPC。</div>
+            </li>
+            <li>
+              <div class="st-h">Executor 起 Worker,每张 GPU 一个</div>
+              <div class="st-d">单机多卡用 <code>MultiProcExecutor</code>,每个 <code>Worker</code> 绑一张 GPU,内含一个 <code>GPUModelRunner</code>。</div>
+            </li>
+            <li>
+              <div class="st-h">加载模型权重</div>
+              <div class="st-d"><code>ModelRunner</code> 调 <code>model_loader</code> 把权重读到显存(支持 safetensors / GGUF / bitsandbytes 等),按 TP/PP 切分到各卡。</div>
+            </li>
+            <li>
+              <div class="st-h">显存 profiling + 分配 KV cache</div>
+              <div class="st-d">跑一次假的前向探测峰值显存,用 <code>剩余显存 × gpu_memory_utilization</code> 推算能放多少个 KV <strong>block</strong>,一次性把这块"显存池"占下来。</div>
+            </li>
+            <li>
+              <div class="st-h">捕获 CUDA Graph(可选但默认开)</div>
+              <div class="st-d">对常见 batch 形状提前 capture CUDA Graph,消除 decode 阶段的 kernel launch 开销。</div>
+            </li>
+            <li>
+              <div class="st-h">就绪,EngineCore 进入 busy loop</div>
+              <div class="st-d">服务打印 <code>Application startup complete</code>,开始空转等请求。</div>
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>高频考点 —— <code>gpu-memory-utilization</code>:</strong>它<strong>不是</strong>限制权重大小,而是决定"显存里留多大一块给 KV cache 池"。调大 → 能容纳更多并发/更长上下文,但留给临时激活的余量变小,过大可能 OOM。默认 0.9。
+          </div>
+
+          <h2>4 · 模型 &amp; KV cache "拉起"的本质</h2>
+          <p>很多人以为"模型拉起 = 加载权重"。在 vLLM 语境里它其实是<strong>两件事</strong>,第二件才是重点:</p>
+          <div class="cols2">
+            <div class="col-card">
+              <h4><i class="fas fa-weight-hanging" aria-hidden="true"></i> ① 加载权重</h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.9rem">把 N B 参数读进显存,按张量并行(TP)切到各卡。这部分和别的框架差不多。</p>
+            </div>
+            <div class="col-card">
+              <h4><i class="fas fa-layer-group" aria-hidden="true"></i> ② 圈定 KV cache 池</h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.9rem">权重之外的<strong>所有剩余显存</strong>切成等大 block 预先占住。这是 vLLM 高吞吐的物理基础。</p>
+            </div>
+          </div>
+          <p>显存大致这样分:</p>
+          <figure class="fig">
+            <div class="fig-title">单卡显存布局</div>
+            <div class="flow">
+              <div class="flow-step" style="flex:3"><span class="s-n">固定</span><span class="s-h">模型权重</span><span class="s-d">FP16/量化后的参数</span></div>
+              <div class="flow-step" style="flex:1"><span class="s-n">临时</span><span class="s-h">激活 / 临时缓冲</span><span class="s-d">前向中间结果</span></div>
+              <div class="flow-step" style="flex:5"><span class="s-n">池子</span><span class="s-h">KV cache blocks</span><span class="s-d">≈ 剩余显存,按 block 切分</span></div>
+            </div>
+            <span class="fig-cap">图 2 · 权重占固定一块,剩下的尽量都拿去做 KV cache 池(块越多 → 并发/上下文越大)</span>
+          </figure>
+
+          <h2>5 · 一次 <code>curl</code> 请求的完整链路</h2>
+          <p>假设你发了这样一条请求:</p>
+          <pre><code>curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "messages": [{"role": "user", "content": "用一句话解释 PagedAttention"}],
+    "stream": true
+  }'</code></pre>
+          <p>它会走完这一圈(注意是<strong>环路</strong>:CPU 进 → GPU 转 → CPU 出):</p>
+
+          <figure class="fig">
+            <div class="fig-title">请求生命周期(去程 → GPU → 回程)</div>
+            <div class="flow">
+              <div class="flow-step"><span class="s-n">1 · API</span><span class="s-h">收 HTTP</span><span class="s-d">FastAPI 解析 OpenAI 请求体</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><span class="s-n">2 · AsyncLLM</span><span class="s-h">分词</span><span class="s-d">文本 → token ids,组装采样参数</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><span class="s-n">3 · IPC</span><span class="s-h">入队</span><span class="s-d">经 ZeroMQ 发给 EngineCore</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step"><span class="s-n">4 · Sched</span><span class="s-h">加入 waiting</span><span class="s-d">调度器排队、分配 KV block</span></div>
+            </div>
+            <div class="flow" style="margin-top:10px">
+              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n">5 · Step</span><span class="s-h">前向 (prefill)</span><span class="s-d">ModelRunner 跑 prompt,写 KV</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n">6 · Sample</span><span class="s-h">采样 1 token</span><span class="s-d">logits → 下一个 token</span></div>
+              <div class="flow-arrow">↻</div>
+              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n">7 · Decode</span><span class="s-h">逐 token 循环</span><span class="s-d">每步生成 1 个,直到 EOS / 长度上限</span></div>
+            </div>
+            <div class="flow" style="margin-top:10px">
+              <div class="flow-step" style="border-color:var(--accent-1)"><span class="s-n">8 · IPC</span><span class="s-h">输出回传</span><span class="s-d">新 token 经 ZeroMQ 回 AsyncLLM</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step" style="border-color:var(--accent-1)"><span class="s-n">9 · Detok</span><span class="s-h">反分词</span><span class="s-d">token → 文本片段</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step" style="border-color:var(--accent-1)"><span class="s-n">10 · SSE</span><span class="s-h">流式吐出</span><span class="s-d"><code>data: {...}</code> 一块块推给客户端</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step" style="border-color:var(--accent-1)"><span class="s-n">11 · 释放</span><span class="s-h">回收 block</span><span class="s-d">请求完成,KV block 还回池子</span></div>
+            </div>
+            <span class="fig-cap">图 3 · 步骤 5&ndash;7 在 GPU 进程里循环;每个 decode step 都受调度器连续批处理调度</span>
+          </figure>
+
+          <div class="callout key">
+            <strong>关键洞察:</strong>第 6&ndash;7 步的"逐 token 生成"并不是这一条请求独占 GPU。<strong>每一个 decode step,调度器都会把当前所有活跃请求拼成一个大 batch 一起算</strong> —— 这就是连续批处理,下一节细讲。
+          </div>
+
+          <h2>6 · 连续批处理(Continuous Batching)</h2>
+          <p>传统静态批处理:一批请求必须同生共死。连续批处理:<strong>以 step(一次前向)为粒度</strong>动态进出。</p>
+
+          <figure class="fig">
+            <div class="fig-title">静态 vs 连续批处理</div>
+            <div class="cols2" style="margin:0">
+              <div class="col-card bad">
+                <h4><i class="fas fa-clock" aria-hidden="true"></i> 静态批处理</h4>
+                <p style="margin:0;color:var(--text-muted);font-size:.88rem">请求 A(短)和 B(长)同批。A 早就生成完了,却要陪着 B 跑到底,这段时间 A 占的 GPU 槽位<strong>纯浪费</strong>。</p>
+              </div>
+              <div class="col-card good">
+                <h4><i class="fas fa-bolt" aria-hidden="true"></i> 连续批处理</h4>
+                <p style="margin:0;color:var(--text-muted);font-size:.88rem">A 一完成立刻退出、释放槽位,新请求 C 当步就能补进来。GPU 每一步都<strong>尽量塞满</strong>。</p>
+              </div>
+            </div>
+            <div style="margin-top:16px;overflow-x:auto">
+              <table>
+                <thead>
+                  <tr><th>Step</th><th>本步参与的请求(各跑几 token)</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>t0</td><td>A:prefill 20 · B:prefill 12</td><td>两个新请求一起 prefill</td></tr>
+                  <tr><td>t1</td><td>A:1 · B:1</td><td>都进入 decode,各出 1 token</td></tr>
+                  <tr><td>t2</td><td>A:1 · B:1 · <b style="color:var(--accent-3)">C:prefill 30</b></td><td>C 刚到,插进来一起算</td></tr>
+                  <tr><td>t3</td><td><s style="opacity:.5">A 完成</s> · B:1 · C:1</td><td>A 命中 EOS 退出,释放 block</td></tr>
+                  <tr><td>t4</td><td>B:1 · C:1 · <b style="color:var(--accent-3)">D:prefill 8</b></td><td>D 补位,槽位不空转</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <span class="fig-cap">图 4 · 每个 step 的 batch 成分都在变 —— 这就是"连续"的含义</span>
+          </figure>
+
+          <h2>7 · PagedAttention &amp; KV cache:像操作系统分页</h2>
+          <p>这是 vLLM 的招牌,几乎必考。核心类比一句话:<strong>KV cache 之于 vLLM,就像物理内存之于操作系统</strong>。</p>
+
+          <div class="callout info">
+            <strong>背景:</strong>自回归生成里,每个已生成 token 的 Key/Value 要缓存下来给后续 token 做注意力(避免重算)。这块缓存就是 KV cache,它随序列变长而线性增长,是长序列推理的显存大头。
+          </div>
+
+          <p>PagedAttention 把每个序列的 KV cache 切成<strong>固定大小的 block</strong>(比如每 block 存 16 个 token 的 KV),逻辑上连续、物理上可以散落 —— 就像 OS 的虚拟内存分页:</p>
+
+          <figure class="fig">
+            <div class="fig-title">逻辑块 → 物理块映射(block table)</div>
+            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);margin:0 0 6px">序列 A 的逻辑块(连续):</p>
+            <div class="blocks">
+              <span class="blk a">A0</span><span class="blk a">A1</span><span class="blk a">A2</span><span class="blk a">A3</span>
+            </div>
+            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);margin:12px 0 6px">物理显存池(实际散落,还混着别的序列 + 空闲块):</p>
+            <div class="blocks">
+              <span class="blk b">B0</span><span class="blk a">A0</span><span class="blk free">·</span><span class="blk a">A2</span>
+              <span class="blk c">C0</span><span class="blk a">A1</span><span class="blk free">·</span><span class="blk b">B1</span>
+              <span class="blk a">A3</span><span class="blk free">·</span><span class="blk c">C1</span><span class="blk free">·</span>
+            </div>
+            <span class="fig-cap">图 5 · 每个序列维护一张 block table 记录"逻辑块→物理块"。和 OS 页表一模一样的思路</span>
+          </figure>
+
+          <p>这种设计直接带来三个好处:</p>
+          <ul>
+            <li><strong>几乎零碎片:</strong>按 block 粒度分配,不再为每个请求预留 <code>max_len</code> 连续空间,显存利用率 &gt; 90%。</li>
+            <li><strong>KV 共享(prefix caching):</strong>多个请求的相同前缀(如同一个 system prompt)可以<strong>指向同一批物理块</strong>,省显存又省重复 prefill。</li>
+            <li><strong>copy-on-write:</strong>beam search / 并行采样分叉时,共享块只在写时才复制。</li>
+          </ul>
+
+          <h2>8 · 调度器:prefill 与 decode 的统一</h2>
+          <p>V1 调度器做了个漂亮的简化:<strong>不再区分 prefill 和 decode 阶段</strong>,统一表示成"这一步给每个请求跑几个 token"。</p>
+
+          <figure class="fig">
+            <div class="fig-title">调度器的一个 step</div>
+            <div class="cols2" style="margin:0 0 14px">
+              <div class="node accent-1"><div class="node-h"><i class="fas fa-hourglass-half"></i> waiting 队列</div><div class="node-sub">新来的、或被抢占换出的请求</div></div>
+              <div class="node accent-2"><div class="node-h"><i class="fas fa-person-running"></i> running 队列</div><div class="node-sub">正在生成中的请求</div></div>
+            </div>
+            <p style="margin:0;color:var(--text-muted);font-size:.92rem">
+              每步给定一个 <strong>token 预算</strong>(<code>max_num_batched_tokens</code>),调度器输出一个字典 <code>{请求id: 本步token数}</code>,例如
+              <code>{A: 3, B: 5, C: 256}</code> —— A、B 在 decode(各 1~几个),C 在做 chunked prefill(一次只吃一块 prompt)。
+            </p>
+            <span class="fig-cap">图 6 · 调度决策 = 一个 {id: token数} 字典,天然支持 chunked prefill / prefix caching / 投机解码</span>
+          </figure>
+
+          <div class="cols2">
+            <div class="col-card">
+              <h4>Prefill 阶段</h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.88rem">处理输入 prompt,<strong>一次算很多 token</strong>,算力密集(compute-bound)。延迟体现为 <em>首 token 时间 TTFT</em>。</p>
+            </div>
+            <div class="col-card">
+              <h4>Decode 阶段</h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.88rem"><strong>每步只生成 1 token</strong>,要反复读全部 KV cache,访存密集(memory-bound)。延迟体现为 <em>每 token 时间 TPOT</em>。</p>
+            </div>
+          </div>
+          <div class="callout tip">
+            <strong>Chunked Prefill:</strong>长 prompt 的 prefill 会一次性吃满 GPU、把正在 decode 的请求"饿死"造成卡顿。解法是把长 prefill 切成小块,和 decode 请求<strong>混在同一个 batch</strong> 里跑,兼顾吞吐与延迟。这也是统一调度表示带来的红利。
+          </div>
+
+          <h2>9 · 为什么拆成多进程(V1 的核心升级)</h2>
+          <figure class="fig">
+            <div class="fig-title">进程切分:CPU 活与 GPU 活解耦</div>
+            <div class="cols2" style="margin:0">
+              <div class="col-card">
+                <h4 style="color:var(--accent-1)"><i class="fas fa-gauge-high"></i> 进程 A(CPU)</h4>
+                <p style="margin:0;color:var(--text-muted);font-size:.88rem">HTTP、分词、反分词、流式推送、多模态预处理。这些是 Python 重活,会抢 GIL。</p>
+              </div>
+              <div class="col-card">
+                <h4 style="color:var(--accent-2)"><i class="fas fa-microchip"></i> 进程 B(GPU)</h4>
+                <p style="margin:0;color:var(--text-muted);font-size:.88rem">EngineCore busy loop:只管调度 + 前向。一刻不停地喂 GPU。</p>
+              </div>
+            </div>
+            <span class="fig-cap">图 7 · 两进程经 ZeroMQ 通信,且只传"增量",worker 侧缓存请求状态,降低 IPC 开销</span>
+          </figure>
+          <p>
+            好处:GPU 进程永远不会因为"主线程在忙着分词/拼 JSON"而空等。CPU 活和 GPU 活<strong>真正并行</strong>,这是 V1 把吞吐进一步拉高的关键。代价是引入了 IPC 复杂度,V1 用"只传增量 + worker 缓存状态"把这个开销压到很低。
+          </p>
+
+          <h2>10 · 名词速查表</h2>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>名词</th><th>一句话解释</th></tr></thead>
+              <tbody>
+                <tr><td><b>AsyncLLM</b></td><td>CPU 侧异步包装层,管分词/反分词、对接 API、流式</td></tr>
+                <tr><td><b>EngineCore</b></td><td>独立进程里的 busy loop,调度 + 执行一个 step</td></tr>
+                <tr><td><b>Scheduler</b></td><td>维护 waiting/running 队列,按 token 预算决定每步跑什么</td></tr>
+                <tr><td><b>Executor / Worker</b></td><td>每张 GPU 一个 worker,内含 ModelRunner</td></tr>
+                <tr><td><b>ModelRunner</b></td><td>装配输入张量、跑前向、用 CUDA Graph 加速</td></tr>
+                <tr><td><b>PagedAttention</b></td><td>把 KV cache 切成 block 按需分配/共享的注意力实现</td></tr>
+                <tr><td><b>KV block</b></td><td>固定大小的 KV cache 单元(如 16 token),分配/回收的最小粒度</td></tr>
+                <tr><td><b>Continuous batching</b></td><td>以 step 为粒度动态进出请求,GPU 不空转</td></tr>
+                <tr><td><b>Chunked prefill</b></td><td>把长 prompt 的 prefill 切块,与 decode 混批,降卡顿</td></tr>
+                <tr><td><b>TTFT / TPOT</b></td><td>首 token 时间 / 每 token 时间,两个核心延迟指标</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>11 · 面试高频问答</h2>
+          <p>点开看参考答案。建议先自己默答,再对照。</p>
+
+          <div class="qa">
+            <details>
+              <summary>vLLM 为什么比朴素 HF 推理快这么多?</summary>
+              <div class="qa-body">两大支柱:<strong>① PagedAttention</strong> —— 把 KV cache 按固定 block 分页管理,消除显存碎片(利用率从 &lt;40% 到 &gt;90%),还能跨请求共享前缀;<strong>② 连续批处理</strong> —— 以每次前向为粒度让请求动态进出,GPU 始终满载。再加上 CUDA Graph、量化、FlashAttention 等内核优化。一句话:<strong>显存利用率上去了 + GPU 不空转</strong>。</div>
+            </details>
+            <details>
+              <summary>PagedAttention 到底解决了什么?用什么类比?</summary>
+              <div class="qa-body">解决 KV cache 的<strong>显存碎片</strong>和<strong>不可共享</strong>问题。类比<strong>操作系统的虚拟内存分页</strong>:KV cache 切成固定大小物理块,每个序列用一张 block table 把"逻辑连续"映射到"物理散落"。好处是按需分配几乎零碎片、相同前缀可共享物理块(prefix caching)、分叉时 copy-on-write。</div>
+            </details>
+            <details>
+              <summary>Prefill 和 Decode 有什么区别?各自的瓶颈?</summary>
+              <div class="qa-body"><strong>Prefill</strong>:处理输入 prompt,一次并行算很多 token,<strong>compute-bound</strong>,决定 TTFT(首 token 延迟)。<strong>Decode</strong>:逐 token 自回归生成,每步只算 1 个但要读全部 KV cache,<strong>memory-bound</strong>,决定 TPOT(每 token 延迟)。Chunked prefill 把长 prefill 切块和 decode 混批,平衡两者。</div>
+            </details>
+            <details>
+              <summary>连续批处理和静态批处理的区别?</summary>
+              <div class="qa-body">静态批处理整批同生共死,短请求要陪长请求跑完,槽位浪费。连续批处理<strong>以 step 为粒度</strong>:完成的请求立刻退出释放 KV block,新请求当步插入。每个 step 的 batch 成分都在变,GPU 利用率显著更高。</div>
+            </details>
+            <details>
+              <summary>V1 为什么要拆成多进程?解决了什么?</summary>
+              <div class="qa-body">把 <strong>CPU 活</strong>(HTTP、分词、反分词、流式、多模态预处理)和 <strong>GPU 活</strong>(调度 + 前向)拆进两个进程,绕开 Python GIL,让两类工作<strong>真正并行</strong>,GPU 进程(EngineCore)不会被主线程的 CPU 活阻塞。代价是 IPC 开销,V1 用 ZeroMQ + "只传增量、worker 缓存状态"把它压低。</div>
+            </details>
+            <details>
+              <summary><code>gpu-memory-utilization</code> 是干嘛的?调大调小的影响?</summary>
+              <div class="qa-body">它决定<strong>留多大一块显存给 KV cache 池</strong>(不是限制权重)。调大 → KV 块更多 → 支持更高并发 / 更长上下文,但留给临时激活的余量变小,过大易 OOM。默认 0.9。结合显存 profiling 在启动时一次性把池子占下来。</div>
+            </details>
+            <details>
+              <summary>一条请求从 curl 到返回,大致经过哪些组件?</summary>
+              <div class="qa-body">API Server(FastAPI,解析 OpenAI 协议)→ AsyncLLM(分词)→(ZeroMQ IPC)→ EngineCore → Scheduler(入 waiting、分配 KV block)→ ModelRunner(prefill + 逐 token decode,每步受连续批处理调度)→ 采样 → 回传 AsyncLLM(反分词)→ SSE <code>data:</code> 流式吐给客户端 → 完成后回收 KV block。</div>
+            </details>
+            <details>
+              <summary>vLLM 怎么做分布式 / 多卡?</summary>
+              <div class="qa-body">张量并行(TP)把单层权重切到多卡、每步 all-reduce;流水线并行(PP)把不同层放不同卡。Executor 给每张卡起一个 Worker(单机用 MultiProcExecutor,多机可用 Ray)。KV cache 也随 TP 切分。大模型(如 70B)就靠 <code>--tensor-parallel-size</code> 摊到多卡。</div>
+            </details>
+            <details>
+              <summary>prefix caching 是什么,什么场景受益最大?</summary>
+              <div class="qa-body">相同前缀的 KV(如共享的 system prompt、few-shot 例子、长文档多轮问答)只 prefill 一次、物理块共享,后续请求直接命中。受益最大的场景:<strong>大量请求共享长 system prompt</strong>、多轮对话、RAG 同文档多问。既省显存又省重复计算,显著降 TTFT。</div>
+            </details>
+          </div>
+
+          <h2>12 · 一图流总结</h2>
+          <figure class="fig">
+            <div class="fig-title">把整条链路压成一句话路径</div>
+            <p style="text-align:center;font-family:var(--font-mono);font-size:.86rem;line-height:2.4;color:var(--text)">
+              <span class="stat-pill">curl</span> →
+              <span class="stat-pill">FastAPI</span> →
+              <span class="stat-pill">AsyncLLM 分词</span> →
+              <span class="stat-pill" style="border-color:var(--accent-2)">ZeroMQ</span> →
+              <span class="stat-pill" style="border-color:var(--accent-2)">EngineCore</span> →
+              <span class="stat-pill" style="border-color:var(--accent-2)">Scheduler 连续批处理</span> →
+              <span class="stat-pill" style="border-color:var(--accent-3)">ModelRunner 前向</span> →
+              <span class="stat-pill" style="border-color:var(--accent-3)">PagedAttention 读写 KV</span> →
+              <span class="stat-pill" style="border-color:var(--accent-3)">采样</span> →
+              <span class="stat-pill">反分词</span> →
+              <span class="stat-pill">SSE 流式返回</span>
+            </p>
+            <span class="fig-cap">图 8 · 能把这一行复述出来 + 解释每一跳为什么存在,面试基本稳了</span>
+          </figure>
+
+          <div class="callout key">
+            <strong>临场速记口诀:</strong>"两进程(CPU/GPU 拆开)、一循环(EngineCore busy loop)、两优化(PagedAttention + 连续批处理)、一调度(token 预算统一 prefill/decode)。"
+          </div>
+
+          <hr />
+          <p style="color:var(--text-dim);font-size:.88rem">
+            参考:vLLM 官方文档 V1 Guide、Red Hat《vLLM V1: A major upgrade》、Ubicloud《Life of an inference request (vLLM V1)》、vLLM 源码(<code>v1/engine/core.py</code>、<code>v1/worker/gpu_model_runner.py</code>)。架构以 V1 引擎为准,细节可能随版本演进。
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.3.0" defer></script>
+  </body>
+</html>
