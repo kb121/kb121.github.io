@@ -23,6 +23,7 @@ Personal website for **Hong Zhuang** &mdash; Machine Learning Engineer focused o
 - **Lean** &mdash; ~70 KB of critical CSS + JS + HTML combined, no framework, no build step.
 - **Print-friendly** &mdash; dedicated `@media print` stylesheet produces a clean black-and-white single-column PDF.
 - **Bilingual** &mdash; full **English / 中文** content with an in-place toggle in the top nav. Defaults to Chinese; the choice is persisted to `localStorage` and reflected in the URL (`?lang=en`) for shareable deep links.
+- **Knowledge Notes** &mdash; a separate `notes.html` index (search + tag filters) plus individual HTML note pages that reuse the same design system. Adding a note is a two-step, no-build workflow (see below).
 
 ## Stack
 
@@ -46,15 +47,42 @@ python3 -m http.server 8000
 
 ```
 index.html              single-page site (all sections)
+notes.html              knowledge-notes index (search + tag filter)
+notes/
+  notes.js              the notes manifest — EDIT THIS to add a note
+  _template.html        starter template for a new note (copy it)
+  *.html                individual note pages
 css/
   design.css            full design system: tokens / layout / components / animations / print
+  notes.css             notes list + article prose styles
   font-awesome/         icon font (self-hosted)
 scripts/
-  app.js                all interactions: theme spy, reveal, tilt, count-up, cursor, magnetic, marquee
+  app.js                shared interactions: theme + language toggle, spy, reveal, tilt, cursor, etc.
+  notes-list.js         renders the notes index from window.NOTES
 images/                 portraits, project visuals, and README previews
 .github/workflows/      lychee link-check workflow
 CNAME                   custom domain mapping
 ```
+
+## Adding a knowledge note
+
+Two steps, no build:
+
+1. **Create the page.** Copy `notes/_template.html` to `notes/<your-slug>.html` and write your content inside `<div class="prose">`. The template already wires up the aurora background, theme toggle, and language toggle. Content can be bilingual (wrap text in `<span lang="zh-CN" class="i18n-zh">…</span><span lang="en" class="i18n-en">…</span>`) or single-language (just plain text).
+
+2. **Register it.** Add an entry to the top of the `NOTES` array in `notes/notes.js`:
+
+   ```js
+   {
+     slug: "your-slug",                                  // -> notes/your-slug.html
+     title:   { zh: "中文标题", en: "English title" },
+     summary: { zh: "一句话摘要", en: "One-line summary" },
+     date: "2026-05-29",                                 // ISO date, used for sorting
+     tags: ["LLM", "Training"],                          // also build the filter bar
+   }
+   ```
+
+That's it — the index page sorts by date, builds the tag filter bar, and renders bilingual cards automatically. `title` / `summary` may also be a plain string instead of a `{ zh, en }` object.
 
 ## Accessibility &amp; motion
 
