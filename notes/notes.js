@@ -27,8 +27,8 @@ window.NOTES = [
   {
     slug: "vllm-architecture",
     title: {
-      zh: "vLLM 完整调用链路拆解(面试向)",
-      en: "vLLM End-to-End Call Chain (Interview Guide)",
+      zh: "vLLM 完整调用链路拆解",
+      en: "vLLM End-to-End Call Chain",
     },
     summary: {
       zh: "从 vllm serve 拉起服务,到 curl 请求、模型加载、KV cache、连续批处理、PagedAttention、调度器的完整链路图文拆解。",
