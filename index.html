@@ -134,7 +134,7 @@
           <div class="hero-text">
             <span class="eyebrow"
               ><span class="pulse"></span
-              ><span lang="zh-CN" class="i18n-zh">正在寻找机器学习实习 · 2026 暑期</span><span lang="en" class="i18n-en">Available for ML internships · Summer 2026</span></span
+              ><span lang="zh-CN" class="i18n-zh">现在 @ 腾讯混元 · 推理框架实习</span><span lang="en" class="i18n-en">Now @ Tencent Hunyuan · Inference Framework</span></span
             >
             <h1 data-split><span lang="zh-CN" class="i18n-zh">庄宏。</span><span lang="en" class="i18n-en">Hong Zhuang.</span></h1>
             <p class="kicker">
@@ -226,10 +226,10 @@
                 你好,我是 <strong>庄宏</strong> &mdash; <strong>慕尼黑工业大学(TUM)</strong>信息学硕士在读。我专注于大规模 <strong>多模态与强化学习模型</strong> 的训练、扩展与加速。
               </p>
               <p>
-                此前在 <strong>华为昇腾模型中台</strong>,我主导了 Wan2.1 14B 文生视频模型的长序列并行优化(与京东联合创新项目)&mdash; GPU 用量降低 75%,显存下降 50%。更早在 Moii.AI 参与构建了实时枪支检测系统,获得 <strong>Amazon Sigma Award</strong>。
+                目前在 <strong>腾讯混元基础组(AI Infra)</strong> 做推理框架实习,负责跨芯片算子精度验证统一框架与 <strong>vLLM</strong> 推理加速。此前在 <strong>华为昇腾模型中台</strong> 主导了 Wan2.1 14B 文生视频模型的长序列并行优化(与京东联合创新)&mdash; GPU 用量降低 75%,显存下降 50%;更早在 Moii.AI 参与构建实时枪支检测系统,获得 <strong>Amazon Sigma Award</strong>。
               </p>
               <p>
-                目前正在寻找 <strong>模型工程、算法落地、模型加速</strong> 方向的实习机会。
+                兴趣方向:<strong>模型工程、算法落地、模型加速、推理框架</strong>。
               </p>
             </div>
             <div lang="en" class="i18n-en">
@@ -237,10 +237,10 @@
                 Hi, I&rsquo;m <strong>Hong Zhuang</strong> &mdash; an MSc Informatics student at the <strong>Technical University of Munich (TUM)</strong>. I work on training, scaling, and accelerating large <strong>multimodal and reinforcement-learning models</strong>.
               </p>
               <p>
-                Most recently at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel optimization for the Wan2.1 14B text-to-video model in a joint innovation with JD &mdash; cutting GPU usage by 75% and memory by 50%. Earlier, I co-built a real-time firearm detection system at Moii.AI that won the <strong>Amazon Sigma Award</strong>.
+                Currently interning on <strong>Tencent&rsquo;s Hunyuan Foundation Group (AI Infra)</strong>, building a cross-chip operator-precision verification framework and <strong>vLLM</strong> inference acceleration. Previously at <strong>Huawei&rsquo;s Ascend Model Platform</strong>, I drove long-sequence parallel optimization for the Wan2.1 14B text-to-video model (a joint innovation with JD) &mdash; cutting GPU usage by 75% and memory by 50%; and earlier co-built a real-time firearm detection system at Moii.AI that won the <strong>Amazon Sigma Award</strong>.
               </p>
               <p>
-                I&rsquo;m now open to internships in <strong>model engineering, algorithm deployment, and model acceleration</strong>.
+                Interests: <strong>model engineering, algorithm deployment, model acceleration, and inference frameworks</strong>.
               </p>
             </div>
           </article>
@@ -352,10 +352,40 @@
         <div class="section-head">
           <span class="num">/03</span>
           <h2><span lang="zh-CN" class="i18n-zh">工作经历</span><span lang="en" class="i18n-en">Experience</span></h2>
-          <p class="sub"><span lang="zh-CN" class="i18n-zh">两段经历 &mdash; 一段聚焦大模型规模化训练,一段把检测系统落地到真实摄像头上。</span><span lang="en" class="i18n-en">Two chapters so far &mdash; pushing big multimodal models at scale, and shipping detection systems on real cameras.</span></p>
+          <p class="sub"><span lang="zh-CN" class="i18n-zh">从大模型推理框架与跨芯片精度验证,到规模化训练,再到检测系统落地与科研。</span><span lang="en" class="i18n-en">From inference frameworks and cross-chip precision validation, to large-scale training, to shipping detection systems and research.</span></p>
         </div>
 
         <ol class="timeline reveal-stagger">
+          <li class="timeline-item">
+            <article class="glass timeline-card">
+              <header>
+                <h3 class="title"><span lang="zh-CN" class="i18n-zh">推理框架实习生 · AI Infra</span><span lang="en" class="i18n-en">Inference-Framework Intern &middot; AI Infra</span></h3>
+                <span class="company"><span lang="zh-CN" class="i18n-zh">腾讯 · 混元基础组</span><span lang="en" class="i18n-en">Tencent &middot; Hunyuan Foundation Group</span></span>
+                <span class="date"><span lang="zh-CN" class="i18n-zh">2026 年 4 月 &mdash; 至今</span><span lang="en" class="i18n-en">Apr 2026 &mdash; Present</span></span>
+              </header>
+              <div class="body">
+                <div lang="zh-CN" class="i18n-zh">
+                  <p>
+                    负责面向大模型的 <strong>跨芯片(昇腾 / AMD / NVIDIA)算子精度验证统一框架</strong> 的设计与开发,以及 <strong>vLLM</strong> 推理加速框架的加速特性开发与适配。
+                  </p>
+                  <ul>
+                    <li>以混元 3 大模型为基础模型,把算子精度验证统一框架接入不同卡型对应的 vLLM 适配与加速 <strong>CI/CD</strong>。</li>
+                    <li>让它作为<strong>第一道防线</strong>,验证算子在不同卡型下的精度表现,降低上线问题与精度问题。</li>
+                  </ul>
+                </div>
+                <div lang="en" class="i18n-en">
+                  <p>
+                    Building a <strong>unified cross-chip (Ascend / AMD / NVIDIA) operator-precision verification framework</strong> for large models, plus acceleration-feature development and adaptation for the <strong>vLLM</strong> inference stack.
+                  </p>
+                  <ul>
+                    <li>Built on the Hunyuan-3 base models, plugged the precision-verification framework into the per-card-type vLLM adaptation &amp; acceleration <strong>CI/CD</strong>.</li>
+                    <li>It acts as a <strong>first line of defense</strong> — validating operator precision across card types to cut production and precision regressions.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </li>
+
           <li class="timeline-item">
             <article class="glass timeline-card">
               <header>
@@ -411,6 +441,36 @@
                   <p>
                     Collaborated with the team through regular code reviews on system architecture, performance, and cost.
                   </p>
+                </div>
+              </div>
+            </article>
+          </li>
+
+          <li class="timeline-item">
+            <article class="glass timeline-card">
+              <header>
+                <h3 class="title"><span lang="zh-CN" class="i18n-zh">研究助理(RA)</span><span lang="en" class="i18n-en">Research Assistant (RA)</span></h3>
+                <span class="company"><span lang="zh-CN" class="i18n-zh">密歇根州立大学</span><span lang="en" class="i18n-en">Michigan State University</span></span>
+                <span class="date"><span lang="zh-CN" class="i18n-zh">2023 年 5 月 &mdash; 2023 年 8 月</span><span lang="en" class="i18n-en">May 2023 &mdash; Aug 2023</span></span>
+              </header>
+              <div class="body">
+                <div lang="zh-CN" class="i18n-zh">
+                  <p>
+                    研究 <strong>多模态模型</strong> 在医学生考试自动评分、暴力检测等场景下的应用。
+                  </p>
+                  <ul>
+                    <li>主导医学生实践考核自动评分项目:训练 SOTA <strong>弱监督时序动作定位(WTAL)</strong> 多模态模型,并引入文本信息提升性能。</li>
+                    <li>构造了 <strong>1.2 TB、近 9000 个视频</strong> 的数据集用于训练;模型评分准确率达 <strong>92.75%</strong>,ROC-AUC 达 <strong>94.88%</strong>。</li>
+                  </ul>
+                </div>
+                <div lang="en" class="i18n-en">
+                  <p>
+                    Researched <strong>multimodal models</strong> for medical-exam auto-grading, violence detection, and related scenarios.
+                  </p>
+                  <ul>
+                    <li>Led an auto-scoring project for medical students&rsquo; practical exams: trained a SOTA <strong>weakly-supervised temporal action localization (WTAL)</strong> multimodal model, adding text cues to boost performance.</li>
+                    <li>Built a <strong>1.2 TB, ~9,000-video</strong> dataset; the model reached <strong>92.75%</strong> accuracy and <strong>94.88%</strong> ROC-AUC.</li>
+                  </ul>
                 </div>
               </div>
             </article>
