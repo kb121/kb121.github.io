@@ -32,9 +32,75 @@
       media="print"
       onload="this.media='all'"
     />
-    <link href="../css/font-awesome/css/all.min.css?ver=2.4.0" rel="stylesheet" />
-    <link href="../css/design.css?ver=2.4.0" rel="stylesheet" />
-    <link href="../css/notes.css?ver=2.4.0" rel="stylesheet" />
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ---- Scoped animated diagrams for this note (动图) ---- */
+
+      /* Continuous-batching conveyor belt */
+      .vz-belt { position: relative; height: 88px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.03); overflow: hidden; }
+      .vz-track { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; gap: 16px; padding: 0 16px; width: max-content; animation: vz-belt 11s linear infinite; }
+      .vz-req { width: 66px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.82rem; color: #fff; flex: 0 0 auto; box-shadow: 0 6px 16px -8px rgba(0,0,0,0.6); }
+      .vz-req.r1 { background: linear-gradient(135deg,#0d47a1,#00bcd4); }
+      .vz-req.r2 { background: linear-gradient(135deg,#6a1b9a,#a855f7); }
+      .vz-req.r3 { background: linear-gradient(135deg,#ad1457,#ec4899); }
+      .vz-req.r4 { background: linear-gradient(135deg,#00695c,#4db6ac); }
+      .vz-req.r5 { background: linear-gradient(135deg,#e65100,#ffb300); }
+      @keyframes vz-belt { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      .vz-gpu { position: absolute; top: -2px; bottom: -2px; left: 50%; transform: translateX(-50%); width: 180px; border: 2px solid var(--accent-2); border-radius: 14px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 16%, transparent); pointer-events: none; background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
+      .vz-gpu .lab { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-2); white-space: nowrap; }
+
+      /* EngineCore busy-loop ring */
+      .vz-loop { position: relative; width: 230px; height: 230px; margin: 4px auto 8px; }
+      .vz-loop .ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1)); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px)); mask: radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px)); animation: vz-spin 4.5s linear infinite; }
+      .vz-loop .hub { position: absolute; inset: 33%; border-radius: 50%; background: var(--surface-strong); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 0.82rem; }
+      .vz-loop .nd { position: absolute; transform: translate(-50%, -50%); text-align: center; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); width: 96px; }
+      .vz-loop .nd b { display: block; color: var(--text); font-size: 0.86rem; }
+      .vz-loop .nd.n1 { top: 7%; left: 50%; }
+      .vz-loop .nd.n2 { top: 80%; left: 16%; }
+      .vz-loop .nd.n3 { top: 80%; left: 84%; }
+      @keyframes vz-spin { to { transform: rotate(360deg); } }
+
+      /* KV-block growth */
+      .vz-grow { display: flex; gap: 6px; flex-wrap: wrap; }
+      .vz-grow .blk { animation: vz-fill 4.2s ease-in-out infinite; }
+      .vz-grow .blk:nth-child(1) { animation-delay: 0s; }
+      .vz-grow .blk:nth-child(2) { animation-delay: 0.5s; }
+      .vz-grow .blk:nth-child(3) { animation-delay: 1s; }
+      .vz-grow .blk:nth-child(4) { animation-delay: 1.5s; }
+      .vz-grow .blk:nth-child(5) { animation-delay: 2s; }
+      .vz-grow .blk:nth-child(6) { animation-delay: 2.5s; }
+      @keyframes vz-fill {
+        0%, 6% { opacity: 0.2; transform: scale(0.85); }
+        12%, 86% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0.2; transform: scale(0.85); }
+      }
+
+      /* Path glow wave (summary figure) */
+      .vz-path .stat-pill { animation: vz-glow 5s ease-in-out infinite; }
+      .vz-path .stat-pill:nth-of-type(1) { animation-delay: 0s; }
+      .vz-path .stat-pill:nth-of-type(2) { animation-delay: 0.35s; }
+      .vz-path .stat-pill:nth-of-type(3) { animation-delay: 0.7s; }
+      .vz-path .stat-pill:nth-of-type(4) { animation-delay: 1.05s; }
+      .vz-path .stat-pill:nth-of-type(5) { animation-delay: 1.4s; }
+      .vz-path .stat-pill:nth-of-type(6) { animation-delay: 1.75s; }
+      .vz-path .stat-pill:nth-of-type(7) { animation-delay: 2.1s; }
+      .vz-path .stat-pill:nth-of-type(8) { animation-delay: 2.45s; }
+      .vz-path .stat-pill:nth-of-type(9) { animation-delay: 2.8s; }
+      .vz-path .stat-pill:nth-of-type(10) { animation-delay: 3.15s; }
+      .vz-path .stat-pill:nth-of-type(11) { animation-delay: 3.5s; }
+      @keyframes vz-glow {
+        0%, 72%, 100% { box-shadow: none; }
+        10% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 38%, transparent); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .vz-track, .vz-loop .ring, .vz-grow .blk, .vz-path .stat-pill { animation: none !important; }
+        .vz-grow .blk { opacity: 1; transform: none; }
+      }
+    </style>
   </head>
   <body id="top" class="note-page">
     <div class="aurora" aria-hidden="true">
@@ -159,6 +225,18 @@
           <div class="callout info">
             <strong>记忆锚点:</strong>上半截(进程 A)全是 <strong>CPU 活</strong>,下半截(进程 B)是 <strong>GPU 活</strong>。V1 把它们拆成两个进程,就是为了让分词/流式这些 CPU 活和 GPU 前向<strong>重叠执行</strong>,绕开 Python 的 GIL。这是 V1 相对 V0 最大的架构升级。
           </div>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · EngineCore 的 busy loop</div>
+            <div class="vz-loop" aria-hidden="true">
+              <div class="ring"></div>
+              <div class="hub">EngineCore<br />busy loop</div>
+              <div class="nd n1"><b>① 调度</b>Scheduler 选本步</div>
+              <div class="nd n2"><b>② 执行</b>ModelRunner 前向</div>
+              <div class="nd n3"><b>③ 输出</b>新 token 回传</div>
+            </div>
+            <span class="fig-cap">▶ 调度 → 执行 → 输出,一刻不停地循环 —— 每转一圈就是一个 step(一次前向)</span>
+          </figure>
 
           <h2>2 · 仓库结构速览</h2>
           <p>想读源码时,先认清这几个最关键的目录,就能快速定位:</p>
@@ -328,6 +406,18 @@
             <span class="fig-cap">图 4 · 每个 step 的 batch 成分都在变 —— 这就是"连续"的含义</span>
           </figure>
 
+          <figure class="fig">
+            <div class="fig-title">动图 · 请求像传送带一样持续进出,GPU 窗口始终满载</div>
+            <div class="vz-belt" aria-hidden="true">
+              <div class="vz-gpu"><span class="lab">GPU 处理窗口(每步的 batch)</span></div>
+              <div class="vz-track">
+                <span class="vz-req r1">A</span><span class="vz-req r2">B</span><span class="vz-req r3">C</span><span class="vz-req r4">D</span><span class="vz-req r5">E</span><span class="vz-req r1">F</span>
+                <span class="vz-req r1">A</span><span class="vz-req r2">B</span><span class="vz-req r3">C</span><span class="vz-req r4">D</span><span class="vz-req r5">E</span><span class="vz-req r1">F</span>
+              </div>
+            </div>
+            <span class="fig-cap">▶ 请求源源不断地穿过 GPU 窗口:有的完成离场、新的随时补位,窗口里<strong>始终是满的</strong> —— 对比静态批处理"等最慢的那个"的空转</span>
+          </figure>
+
           <h2>7 · PagedAttention &amp; KV cache:像操作系统分页</h2>
           <p>这是 vLLM 的招牌,几乎必考。核心类比一句话:<strong>KV cache 之于 vLLM,就像物理内存之于操作系统</strong>。</p>
 
@@ -350,6 +440,14 @@
               <span class="blk a">A3</span><span class="blk free">·</span><span class="blk c">C1</span><span class="blk free">·</span>
             </div>
             <span class="fig-cap">图 5 · 每个序列维护一张 block table 记录"逻辑块→物理块"。和 OS 页表一模一样的思路</span>
+          </figure>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · 序列变长,就按需追加一个 block(不预留)</div>
+            <div class="vz-grow" aria-hidden="true">
+              <span class="blk a">A0</span><span class="blk a">A1</span><span class="blk a">A2</span><span class="blk a">A3</span><span class="blk a">A4</span><span class="blk a">A5</span>
+            </div>
+            <span class="fig-cap">▶ 每生成约 16 个 token(填满一个 block)才申请下一个 —— 这正是"零碎片、高利用率"的来源;对比朴素实现一上来就按 <code>max_len</code> 预留一整块</span>
           </figure>
 
           <p>这种设计直接带来三个好处:</p>
@@ -429,8 +527,8 @@
 
           <h2>11 · 一图流总结</h2>
           <figure class="fig">
-            <div class="fig-title">把整条链路压成一句话路径</div>
-            <p style="text-align:center;font-family:var(--font-mono);font-size:.86rem;line-height:2.4;color:var(--text)">
+            <div class="fig-title">动图 · 把整条链路压成一句话路径(高亮随调用顺序流动)</div>
+            <p class="vz-path" style="text-align:center;font-family:var(--font-mono);font-size:.86rem;line-height:2.4;color:var(--text)">
               <span class="stat-pill">curl</span> →
               <span class="stat-pill">FastAPI</span> →
               <span class="stat-pill">AsyncLLM 分词</span> →
@@ -466,6 +564,6 @@
       </div>
     </footer>
 
-    <script src="../scripts/app.js?ver=2.4.0" defer></script>
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
   </body>
 </html>
