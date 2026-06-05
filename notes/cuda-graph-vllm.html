@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="CUDA Graph 详解 + vLLM 里的 CUDA Graph 与精度 — 庄宏" data-en="CUDA Graph Explained + CUDA Graph in vLLM & Precision — Hong Zhuang">CUDA Graph 详解 + vLLM 里的 CUDA Graph 与精度 — 庄宏</title>
+    <meta name="description" content="图文 + 动图讲清 CUDA Graph 原理、vLLM 里的 piecewise/full CUDA Graph,以及 CUDA Graph vs Eager 模式对精度的影响。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link href="../css/font-awesome/css/all.min.css?ver=2.4.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.4.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.4.0" rel="stylesheet" />
+
+    <style>
+      /* ---- Scoped animated diagrams for this note (动图) ---- */
+      .cg-lane { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+      .cg-lane .cg-tag {
+        width: 70px; flex: 0 0 70px;
+        font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); text-align: right;
+      }
+      .cg-track {
+        position: relative; flex: 1; height: 36px;
+        border-radius: 8px; background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        display: flex; gap: 4px; padding: 4px; overflow: hidden;
+      }
+      .cg-seg { height: 100%; border-radius: 5px; }
+      .cg-work { background: var(--accent-grad); }
+      .cg-idle { border: 1px dashed var(--border-strong); opacity: 0.45; background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.06) 4px, rgba(255,255,255,0.06) 8px); }
+      .cg-launch { flex: 0 0 7px; background: var(--accent-3); border-radius: 2px; animation: cg-blink 1.1s ease-in-out infinite; }
+      .cg-playhead {
+        position: absolute; top: -2px; bottom: -2px; width: 2px;
+        background: rgba(255,255,255,0.85); box-shadow: 0 0 8px rgba(255,255,255,0.6);
+        animation: cg-sweep 3.4s linear infinite;
+      }
+      @keyframes cg-sweep { 0% { left: 2%; } 100% { left: 99%; } }
+      @keyframes cg-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+      .cg-replay-loop {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 58px; height: 58px; border-radius: 50%;
+        background: var(--accent-grad-soft); border: 1px solid var(--accent-2);
+        color: var(--text); font-size: 1.3rem;
+      }
+      .cg-replay-loop i { animation: cg-spin 2.4s linear infinite; }
+      @keyframes cg-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+      .cg-pulse { animation: cg-pulse 2s ease-in-out infinite; }
+      @keyframes cg-pulse {
+        0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-2) 40%, transparent); }
+        50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-2) 0%, transparent); }
+      }
+
+      .cg-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 0.78rem; color: var(--text-muted); }
+      .cg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .cg-key { width: 16px; height: 12px; border-radius: 3px; display: inline-block; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .cg-launch, .cg-playhead, .cg-replay-loop i, .cg-pulse { animation: none !important; }
+        .cg-playhead { display: none; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-06-05</span>
+            <span class="tags"><span>CUDA</span><span>vLLM</span><span>Inference</span><span>Performance</span></span>
+          </div>
+          <h1>CUDA Graph 详解 &amp; vLLM 里的 CUDA Graph 与精度</h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            这篇笔记用图文 + 动图讲清三件事:<strong>① CUDA Graph 到底是什么、为什么能加速</strong>;<strong>② vLLM 里怎么用 CUDA Graph(piecewise / full)</strong>;<strong>③ vLLM 里 CUDA Graph 模式 vs Eager 模式对精度的影响</strong>。基于 vLLM <strong>V1 引擎</strong>。
+          </p>
+
+          <div class="callout key">
+            <strong>一句话总览:</strong> CUDA Graph = 把一连串 GPU kernel <em>录制成一张图,之后一次发射、整图重放</em>,省掉每个 kernel 的 CPU 发射开销。它对 <strong>decode 阶段(大量小 kernel、访存密集)</strong>提速最明显。vLLM 默认用 <strong>FULL_AND_PIECEWISE</strong>(decode 用整图、prefill/混合用分段图)。CUDA Graph 本身<strong>不改数值</strong>,真正带来微小精度差异的是与之配套的 <strong>torch.compile</strong>(算子融合)和 batch padding。
+          </div>
+
+          <h2>0 · 先看一眼"问题"</h2>
+          <p>
+            GPU 跑一个 kernel,需要 CPU 先"发射(launch)"它 —— 这一步有固定开销(几微秒)。LLM 的一个 <strong>decode step</strong> 要串行跑成百上千个小 kernel(每层的 norm、QKV 投影、MLP、残差…)。当 batch 很小,<strong>单个 kernel 在 GPU 上跑得比 CPU 发射下一个还快</strong>,GPU 就只能干等 —— 这叫 <em>CPU launch-bound</em>。下面这张动图就是这个浪费:
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · Eager:每个 kernel 都要 CPU 单独发射,GPU 频繁空等</div>
+            <div class="cg-lane">
+              <span class="cg-tag">CPU 发射</span>
+              <div class="cg-track">
+                <div class="cg-playhead"></div>
+                <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
+                <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
+                <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
+                <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
+                <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
+              </div>
+            </div>
+            <div class="cg-lane">
+              <span class="cg-tag">GPU 执行</span>
+              <div class="cg-track">
+                <div class="cg-playhead"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
+              </div>
+            </div>
+            <div class="cg-legend">
+              <span><i class="cg-key" style="background:var(--accent-3)"></i> CPU 发射 kernel</span>
+              <span><i class="cg-key" style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2))"></i> GPU 在算</span>
+              <span><i class="cg-key cg-idle" style="border:1px dashed var(--border-strong)"></i> GPU 空等(浪费)</span>
+            </div>
+            <span class="fig-cap">图 1 · 斜纹格子就是被浪费的 GPU 时间 —— 都耗在"等 CPU 发射下一个 kernel"上</span>
+          </figure>
+
+          <h2>1 · CUDA Graph 是什么</h2>
+          <p>
+            CUDA Graph 的思路非常直接:既然每次 decode step 跑的 kernel 序列<strong>几乎一模一样</strong>,那就把它<strong>录制(capture)成一张静态图</strong>,之后每步只发射这一张图、让 GPU 一口气重放(replay)所有 kernel,中间不再回到 CPU。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">CUDA Graph 三步:录制 → 实例化 → 重放</div>
+            <ol class="steps">
+              <li>
+                <div class="st-h">Capture 录制</div>
+                <div class="st-d">在"捕获模式"下跑一遍前向,CUDA 不真正执行,而是把所有 kernel 调用、依赖关系记录成一张 DAG(有向无环图)。</div>
+              </li>
+              <li>
+                <div class="st-h">Instantiate 实例化</div>
+                <div class="st-d">把图编译成一个可执行实例(固化了 kernel 顺序、参数、显存地址)。</div>
+              </li>
+              <li>
+                <div class="st-h">Replay 重放(可重复成千上万次)</div>
+                <div class="st-d">之后每个 step 只需 <code>cudaGraphLaunch</code> 一次,GPU 连续跑完整张图 —— 几乎零发射开销。</div>
+              </li>
+            </ol>
+            <div style="display:flex;align-items:center;gap:16px;justify-content:center;margin-top:10px">
+              <span class="cg-replay-loop" aria-hidden="true"><i class="fas fa-rotate-right"></i></span>
+              <span style="color:var(--text-muted);font-size:.9rem">录一次,重放无数次 —— 这就是收益来源</span>
+            </div>
+            <span class="fig-cap">图 2 · 录制有一次性成本(启动时的 warmup),换来后续每一步的"一次发射"</span>
+          </figure>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · CUDA Graph:一次发射,GPU 连续跑满</div>
+            <div class="cg-lane">
+              <span class="cg-tag">CPU 发射</span>
+              <div class="cg-track">
+                <div class="cg-playhead"></div>
+                <div class="cg-seg cg-launch"></div>
+                <div class="cg-seg cg-idle" style="flex:20"></div>
+              </div>
+            </div>
+            <div class="cg-lane">
+              <span class="cg-tag">GPU 执行</span>
+              <div class="cg-track">
+                <div class="cg-playhead"></div>
+                <div class="cg-seg cg-work" style="flex:1"></div>
+              </div>
+            </div>
+            <span class="fig-cap">图 3 · 对比图 1:CPU 只发射一次,GPU 一整块连续执行,空等几乎消失</span>
+          </figure>
+
+          <div class="callout info">
+            <strong>为什么对 LLM decode 特别有效?</strong> Decode 每步只生成 1 个 token,是 <em>访存密集 + 小 batch</em>:kernel 又多又小、发射开销占比高。CUDA Graph 正好把这部分开销抹平。反观 <strong>prefill</strong>:一次算很多 token,kernel 本身就跑得久,发射开销占比小,收益没那么大。
+          </div>
+
+          <h2>2 · CUDA Graph 的代价与约束</h2>
+          <div class="cols2">
+            <div class="col-card good">
+              <h4><i class="fas fa-check" aria-hidden="true"></i> 收益</h4>
+              <ul>
+                <li>消除每个 kernel 的 CPU 发射开销,decode 延迟显著下降。</li>
+                <li>GPU 利用率拉满,小 batch 场景尤其明显。</li>
+              </ul>
+            </div>
+            <div class="col-card bad">
+              <h4><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> 约束</h4>
+              <ul>
+                <li><strong>静态形状:</strong>图固化了张量形状和显存地址,batch / 序列长度一变就得换一张图。</li>
+                <li><strong>无动态控制流:</strong>图里跳过所有 CPU 逻辑(if / print / Python 分支),只重放 GPU 算子。</li>
+                <li><strong>额外显存 + 启动耗时:</strong>每张捕获的图都要占显存,启动时 warmup 也要时间。</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2>3 · vLLM 里的 CUDA Graph</h2>
+          <p>
+            LLM 模型里,<strong>注意力</strong>用的是 FlashAttention 这类专用 kernel,形状多变、对整图捕获不友好;而 <strong>非注意力部分</strong>(LayerNorm、MLP、残差、logits 投影)规整、好捕获。vLLM 据此提供了 <strong>分段(piecewise)</strong> 和 <strong>整图(full)</strong> 两种思路,并建立在 <code>torch.compile</code> 的分段编译之上。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">Piecewise CUDA Graph:注意力跑 eager,其余段进图</div>
+            <div class="flow">
+              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h">Norm + QKV 投影</span><span class="s-d">进 CUDA Graph</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step" style="border-color:var(--accent-3)"><span class="s-n">eager</span><span class="s-h">Attention</span><span class="s-d">FlashAttention,留在 eager</span></div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h">MLP + 残差</span><span class="s-d">进 CUDA Graph</span></div>
+            </div>
+            <span class="fig-cap">图 4 · 紫色段被 CUDA Graph 捕获(脉冲高亮),粉色注意力段保持 eager —— 兼顾捕获收益与灵活性</span>
+          </figure>
+
+          <p>vLLM V1 用一个 <code>cudagraph_mode</code> 开关统一管理这套策略,共 5 种模式:</p>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>cudagraph_mode</th><th>含义</th><th>适用</th></tr></thead>
+              <tbody>
+                <tr><td><b>NONE</b></td><td>完全关闭 CUDA Graph(= eager)</td><td>调试 / 显存实验</td></tr>
+                <tr><td><b>PIECEWISE</b></td><td>只用分段图,注意力等不兼容算子留 eager</td><td>通用、最灵活</td></tr>
+                <tr><td><b>FULL</b></td><td>整图捕获</td><td>小模型 / 短 prompt</td></tr>
+                <tr><td><b>FULL_DECODE_ONLY</b></td><td>只对 decode 批用整图,混合批不用图</td><td>P/D 分离里的 decode 实例,省显存</td></tr>
+                <tr><td><b>FULL_AND_PIECEWISE</b> <span class="stat-pill"><b>默认</b></span></td><td>decode 批用整图,prefill / 混合批用分段图</td><td>大多数模型最优</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout tip">
+            <strong>默认 FULL_AND_PIECEWISE 的巧思:</strong>decode 阶段对延迟最敏感 → 用<strong>整图</strong>把发射开销压到最低(降 ITL,即 token 间延迟);prefill / 混合阶段形状多变 → 用<strong>分段图</strong>保住灵活性和较小的 TTFT。两全其美。
+          </div>
+
+          <h2>4 · 形状离散化与 padding</h2>
+          <p>
+            CUDA Graph 要静态形状,但运行时 batch 大小千变万化。vLLM 的做法:<strong>只为一组预设的 batch size 捕获图</strong>(<code>cudagraph_capture_sizes</code>,如 1、2、4、8…),运行时把实际 batch <strong>向上 padding 到最近的捕获尺寸</strong>,多出来的是 dummy 行,算完丢弃。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">运行时 batch=5 → padding 到捕获尺寸 8</div>
+            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);margin:0 0 6px">真实请求(5)+ 填充(3)→ 命中捕获图(8):</p>
+            <div class="blocks">
+              <span class="blk a">R1</span><span class="blk a">R2</span><span class="blk a">R3</span><span class="blk a">R4</span><span class="blk a">R5</span>
+              <span class="blk free">pad</span><span class="blk free">pad</span><span class="blk free">pad</span>
+            </div>
+            <span class="fig-cap">图 5 · padding 行必须被正确 mask 掉,不能污染真实请求的结果(下一节精度部分会再提)</span>
+          </figure>
+
+          <h2>5 · CUDA Graph vs Eager:对精度的影响</h2>
+          <p>这是最容易被误解的一节。先把结论摆出来,再拆开讲:</p>
+
+          <div class="callout key">
+            <strong>结论:</strong>CUDA Graph <strong>本身不改变数值</strong> —— 它重放的是和 eager <em>完全相同</em>的 kernel,输入相同,输出逐比特相同。vLLM 里看到的 "graph 模式 vs eager 模式" 的细微差异,主要来自<strong>和 graph 配套的 <code>torch.compile</code></strong>(算子融合、中间精度、kernel 选择),以及 <strong>padding 是否被正确 mask</strong>。
+          </div>
+
+          <div class="cols2">
+            <div class="col-card good">
+              <h4><i class="fas fa-equals" aria-hidden="true"></i> 不会改数值的部分</h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.9rem">纯 CUDA Graph 的"录制 → 重放":同样的 kernel、同样的顺序、同样的地址。重放 = 把 eager 那次执行原样再放一遍,数值<strong>逐比特一致</strong>。</p>
+            </div>
+            <div class="col-card bad">
+              <h4><i class="fas fa-not-equal" aria-hidden="true"></i> 可能带来差异的部分</h4>
+              <ul style="margin:0">
+                <li><strong>torch.compile 融合:</strong>把多个算子融成一个 kernel,中间结果的累加顺序 / 精度变了 → 末位级差异。</li>
+                <li><strong>kernel 选择:</strong>编译后可能选了不同实现(不同 tiling / 算法)。</li>
+                <li><strong>padding 处理:</strong>dummy 行若没 mask 干净,可能影响 reduce / 归一化。</li>
+              </ul>
+            </div>
+          </div>
+
+          <figure class="fig">
+            <div class="fig-title">差异从哪来:同样的输入,两条路径</div>
+            <div class="stack">
+              <div class="node accent-3">
+                <div class="node-h"><i class="fas fa-flask"></i> Eager(参考基准)</div>
+                <div class="node-sub">逐个 kernel,按模型原始算子顺序执行 —— 数值的"参考答案"</div>
+              </div>
+              <div class="node accent-2">
+                <div class="node-h"><i class="fas fa-wand-magic-sparkles"></i> torch.compile 融合 / 选 kernel</div>
+                <div class="node-sub">这里产生末位级差异(不是 CUDA Graph 造成的)</div>
+              </div>
+              <div class="node accent-1">
+                <div class="node-h"><i class="fas fa-clapperboard"></i> CUDA Graph 录制 + 重放</div>
+                <div class="node-sub">对"上一步选定的 kernel"原样重放 —— 这一步不再引入新的数值差异</div>
+              </div>
+            </div>
+            <span class="fig-cap">图 6 · 把差异归因清楚:动数值的是 compile,不是 graph 的录制/重放本身</span>
+          </figure>
+
+          <div class="callout info">
+            <strong>差异有多大?</strong> 通常是浮点末位级(在 fp16/bf16 容差内),<strong>极少改变最终采样出的 token</strong>;贪心解码下偶尔可能在某些 step 选到不同 token(累积效应),采样解码下基本是噪声级。PyTorch 官方口径:eager 与 compile 之间存在小数值差异是<strong>预期之内</strong>的,判断对错应与 fp64 参考比较,而非要求和 fp16 eager 逐比特相等。
+          </div>
+
+          <div class="callout warn">
+            <strong>实战调试法:</strong>怀疑精度问题(输出变差、复现某个 bug)时,第一步加 <code>--enforce-eager</code> 关掉 CUDA Graph + 编译,拿到"参考数值"做 A/B:
+            <ul style="margin:8px 0 0">
+              <li>加上后<strong>问题消失</strong> → 差异来自 compile/graph 路径,多半是融合或 padding mask,可接受或针对性修。</li>
+              <li>加上后<strong>问题还在</strong> → 跟 CUDA Graph 无关,去查模型 / 权重 / 量化 / 输入。</li>
+            </ul>
+          </div>
+
+          <h2>6 · 实操速查</h2>
+          <pre><code># 默认就是 FULL_AND_PIECEWISE,通常无需手动设
+vllm serve Qwen/Qwen2.5-7B-Instruct
+
+# 显式指定 cudagraph 模式
+vllm serve MODEL --compilation-config '{"cudagraph_mode": "FULL_AND_PIECEWISE"}'
+# 可选值: NONE | PIECEWISE | FULL | FULL_DECODE_ONLY | FULL_AND_PIECEWISE
+
+# 纯 eager:关闭 CUDA Graph + torch.compile(调试 / 显存实验 / 拿参考数值)
+vllm serve MODEL --enforce-eager
+
+# 自定义捕获的 batch 尺寸(影响显存与命中率)
+vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,32]}'</code></pre>
+
+          <div class="callout tip">
+            <strong>什么时候用 <code>--enforce-eager</code>?</strong> ① 调试数值/精度;② 显存非常紧张,不想为捕获图额外占显存;③ 用的 attention backend 不支持图捕获;④ 频繁变化的奇异形状导致图反复 miss。其余情况保持默认(开图)就好,性能更优。
+          </div>
+
+          <h2>7 · 一句话总结</h2>
+          <figure class="fig">
+            <div class="fig-title">三句话记住</div>
+            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0">
+              ① <strong>CUDA Graph</strong> = 录一次 kernel 序列、之后一次发射整图重放,专治 decode 的 CPU launch-bound。<br />
+              ② <strong>vLLM</strong> 默认 <span class="stat-pill"><b>FULL_AND_PIECEWISE</b></span>:decode 整图、prefill/混合分段图,建立在 torch.compile 之上,靠形状离散化 + padding 适配动态 batch。<br />
+              ③ <strong>精度</strong>:graph 的录制/重放不改数值,真正动数值的是配套的 torch.compile(融合/精度/选 kernel)与 padding mask;调试就 <code>--enforce-eager</code> 做 A/B。
+            </p>
+            <span class="fig-cap">图 7 · 把这三句讲清楚,CUDA Graph 在 vLLM 里的来龙去脉就通了</span>
+          </figure>
+
+          <hr />
+          <p style="color:var(--text-dim);font-size:.88rem">
+            参考:vLLM 官方文档《CUDA Graphs》与 <code>CompilationConfig</code>、vLLM PR #20059(cudagraph_mode)、NVIDIA《CUDA Graph Best Practice — Numerical Errors》、PyTorch torch.compile 数值差异讨论、TensorRT-LLM Piecewise CUDA Graph 文档。架构以 vLLM V1 为准,细节可能随版本演进。
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.4.0" defer></script>
+  </body>
+</html>
