@@ -16,6 +16,12 @@
 
   Everything below (aurora background, theme toggle, language toggle,
   custom cursor) is wired up by the shared css/design.css + scripts/app.js.
+
+  A right-side overview (总览 / Overview) is generated automatically from the
+  <h2> / <h3> headings directly inside <div class="prose"> — you don't need to
+  write it by hand. It appears on wide screens once a note has 2+ headings and
+  tracks your scroll position. Just use plain <h2>/<h3> for section titles
+  (bilingual <span> wrappers are fine and will be mirrored in the overview).
   =========================================================================
 -->
 <html lang="zh-CN">

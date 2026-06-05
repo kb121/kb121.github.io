@@ -321,6 +321,111 @@
     });
   }
 
+  // ----- 13c. Note TOC (右侧总览 / right-side overview) -----
+  // On a note reading page, auto-build a table-of-contents from the section
+  // headings (.prose > h2 / h3), pin it to the right, and highlight the
+  // heading nearest the top of the viewport as you scroll. Works for every
+  // current and future note without editing the note HTML.
+  let updateTOC = function () {};
+  if (document.body.classList.contains('note-page')) {
+    const prose = document.querySelector('.note-article .prose');
+    if (prose) {
+      const headings = [...prose.children].filter(
+        (el) => el.tagName === 'H2' || el.tagName === 'H3'
+      );
+
+      if (headings.length >= 2) {
+        const slugify = (text) =>
+          (text || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[^\w\u4e00-\u9fa5 -]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+        const usedIds = Object.create(null);
+        const items = headings.map((el, i) => {
+          if (!el.id) {
+            let base = slugify(el.textContent) || 'section-' + i;
+            let id = base;
+            let n = 1;
+            while (usedIds[id] || document.getElementById(id)) id = base + '-' + n++;
+            el.id = id;
+          }
+          usedIds[el.id] = true;
+          return { el, id: el.id, level: el.tagName === 'H3' ? 3 : 2 };
+        });
+
+        const nav = document.createElement('nav');
+        nav.className = 'note-toc';
+        nav.setAttribute('aria-label', 'Overview / 总览');
+
+        const title = document.createElement('div');
+        title.className = 'note-toc-title';
+        title.innerHTML =
+          '<span lang="zh-CN" class="i18n-zh">总览</span><span lang="en" class="i18n-en">Overview</span>';
+        nav.appendChild(title);
+
+        const list = document.createElement('ul');
+        const links = [];
+        items.forEach((it) => {
+          const li = document.createElement('li');
+          li.className = 'lvl-' + it.level;
+          const a = document.createElement('a');
+          a.href = '#' + it.id;
+          // Clone the heading's inner HTML so bilingual <span> wrappers survive
+          // and follow the site-wide language toggle automatically.
+          a.innerHTML = it.el.innerHTML;
+          a.querySelectorAll('i, [aria-hidden="true"]').forEach((n) => n.remove());
+          a.removeAttribute('id');
+          a.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            it.el.scrollIntoView({
+              behavior: supportsReducedMotion ? 'auto' : 'smooth',
+              block: 'start',
+            });
+            try {
+              history.replaceState(null, '', '#' + it.id);
+            } catch (_) {}
+          });
+          li.appendChild(a);
+          list.appendChild(li);
+          links.push(a);
+        });
+        nav.appendChild(list);
+        document.body.appendChild(nav);
+
+        let activeIdx = -1;
+        updateTOC = function () {
+          const offset = 130;
+          let idx = 0;
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].el.getBoundingClientRect().top - offset <= 0) idx = i;
+            else break;
+          }
+          // Snap to the last heading once we've scrolled near the bottom.
+          const h = document.documentElement;
+          if (h.scrollTop + h.clientHeight >= h.scrollHeight - 4) idx = items.length - 1;
+          if (idx === activeIdx) return;
+          activeIdx = idx;
+          links.forEach((a, i) => a.classList.toggle('active', i === idx));
+          // Keep the active entry visible within the (scrollable) TOC panel.
+          const active = links[idx];
+          if (active && nav.scrollHeight > nav.clientHeight) {
+            const aTop = active.offsetTop;
+            const aBot = aTop + active.offsetHeight;
+            if (aTop < nav.scrollTop) nav.scrollTop = aTop - 8;
+            else if (aBot > nav.scrollTop + nav.clientHeight)
+              nav.scrollTop = aBot - nav.clientHeight + 8;
+          }
+        };
+        updateTOC();
+      }
+    }
+  }
+
   // ----- 14. Bind scroll listeners -----
   let ticking = false;
   window.addEventListener('scroll', () => {
@@ -328,11 +433,23 @@
       rAF(() => {
         updateProgress();
         updateTopnav();
+        updateTOC();
         ticking = false;
       });
       ticking = true;
     }
   }, { passive: true });
+  window.addEventListener('resize', () => {
+    rAF(() => {
+      updateProgress();
+      updateTOC();
+    });
+  }, { passive: true });
+  window.addEventListener('load', () => {
+    updateProgress();
+    updateTOC();
+  });
   updateProgress();
   updateTopnav();
+  updateTOC();
 })();
