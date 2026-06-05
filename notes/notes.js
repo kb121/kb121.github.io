@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "cuda-graph-vllm",
+    title: {
+      zh: "CUDA Graph 详解 & vLLM 里的 CUDA Graph 与精度",
+      en: "CUDA Graph Explained & CUDA Graph in vLLM + Precision",
+    },
+    summary: {
+      zh: "图文 + 动图讲清 CUDA Graph 原理、vLLM 里的 piecewise/full CUDA Graph,以及 CUDA Graph vs Eager 对精度的影响。",
+      en: "Illustrated + animated: how CUDA Graph works, piecewise/full CUDA Graph in vLLM, and how CUDA Graph vs Eager affects numerical precision.",
+    },
+    date: "2026-06-05",
+    tags: ["CUDA", "vLLM", "Inference", "Performance"],
+  },
+  {
     slug: "vllm-architecture",
     title: {
       zh: "vLLM 完整调用链路拆解",
