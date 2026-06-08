@@ -103,9 +103,14 @@
             <span lang="en" class="i18n-en">A <strong>daily-rolling</strong> log: every day I capture the ten repositories that gained the most <strong>stars that day</strong> on GitHub, give a one-line intro, and analyze which technical direction they belong to plus the underlying trend (history / present / future, with evidence). Source: <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending (Today)</a>, ranked by stars gained that day; totals verified against the GitHub REST API. Newest day on top; <strong>all historical entries and analysis are preserved</strong>.</span>
           </p>
 
-          <!-- DAILY-ENTRIES:START — new daily <section class="daily-entry"> goes directly below this line (newest first). -->
+          <!--
+            DAILY-ENTRIES:START
+            New daily entries go directly below this marker (newest first), as
+            DIRECT CHILDREN of .prose so the right-side Overview (总览) picks up
+            the <h2>/<h3> headings. One day = <h2> date + content + a closing
+            <hr>. Never delete older entries.
+          -->
 
-          <section class="daily-entry">
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-08 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-08 — Top 10 of the day</span></h2>
 
             <table>
@@ -182,7 +187,8 @@
               <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(Today)+ GitHub REST API + OSSInsight 24h 趋势,抓取于 2026-06-08(UTC)。</em></span>
               <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (Today) + GitHub REST API + OSSInsight 24h trends, captured 2026-06-08 (UTC).</em></span>
             </p>
-          </section>
+
+            <hr />
           <!-- DAILY-ENTRIES:END -->
 
         </div>
