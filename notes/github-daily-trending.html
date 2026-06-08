@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  GITHUB DAILY TRENDING — ACCUMULATING NOTE
+  -------------------------------------------------------------------------
+  This page is updated by a daily automation. Each run PREPENDS one new
+  <section class="daily-entry"> immediately after the marker:
+
+        <!-- DAILY-ENTRIES:START -->
+
+  NEVER delete or overwrite older <section class="daily-entry"> blocks —
+  history (stars + analysis) must be preserved. Only add a new newest-first
+  entry at the top. Ranking = stars gained that day (GitHub Trending,
+  "stars today"), verified against the GitHub REST API for totals.
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      // Early language resolution (keep this — prevents a flash of the wrong language).
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="GitHub 每日 Top 10 Stars 与技术趋势 — 庄宏" data-en="GitHub Daily Top 10 Stars & Tech Trends — Hong Zhuang">GitHub 每日 Top 10 Stars 与技术趋势 — 庄宏</title>
+    <meta name="description" content="GitHub 每日新增 stars 前十仓库的滚动记录,一句话介绍,以及技术方向与趋势(历史 / 当下 / 未来)分析。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-06-08</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>AI Agents</span><span>Trend Analysis</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            <span lang="zh-CN" class="i18n-zh">这是一份<strong>每日滚动更新</strong>的记录:每天抓取 GitHub 当日<strong>新增 stars</strong> 最多的前十个仓库,给出一句话介绍,并分析它们属于什么技术方向、背后的技术趋势(历史 / 当下 / 未来,带证据)。数据来源为 <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending(Today)</a>,按「当日新增 star」排序,总 star 数经 GitHub REST API 校验。最新一天在最上方,<strong>历史记录与分析全部保留</strong>。</span>
+            <span lang="en" class="i18n-en">A <strong>daily-rolling</strong> log: every day I capture the ten repositories that gained the most <strong>stars that day</strong> on GitHub, give a one-line intro, and analyze which technical direction they belong to plus the underlying trend (history / present / future, with evidence). Source: <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending (Today)</a>, ranked by stars gained that day; totals verified against the GitHub REST API. Newest day on top; <strong>all historical entries and analysis are preserved</strong>.</span>
+          </p>
+
+          <!-- DAILY-ENTRIES:START — new daily <section class="daily-entry"> goes directly below this line (newest first). -->
+
+          <section class="daily-entry">
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-08 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-08 — Top 10 of the day</span></h2>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/RyanCodrai/turbovec" target="_blank" rel="noopener">RyanCodrai/turbovec</a></td><td>Rust/Py</td><td>1,554</td><td>7.3k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a></td><td>Python</td><td>1,112</td><td>186k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/mvanhorn/last30days-skill" target="_blank" rel="noopener">mvanhorn/last30days-skill</a></td><td>Python</td><td>1,111</td><td>31k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">Leonxlnx/taste-skill</a></td><td>Shell</td><td>1,103</td><td>37k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/lfnovo/open-notebook" target="_blank" rel="noopener">lfnovo/open-notebook</a></td><td>TypeScript</td><td>554</td><td>27k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/TapXWorld/ChinaTextbook" target="_blank" rel="noopener">TapXWorld/ChinaTextbook</a></td><td>Roff</td><td>350</td><td>72k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/aaif-goose/goose" target="_blank" rel="noopener">aaif-goose/goose</a></td><td>Rust</td><td>322</td><td>47k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/microsoft/pg_durable" target="_blank" rel="noopener">microsoft/pg_durable</a></td><td>Rust</td><td>316</td><td>1.5k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/Crosstalk-Solutions/project-nomad" target="_blank" rel="noopener">Crosstalk-Solutions/project-nomad</a></td><td>TypeScript</td><td>309</td><td>29k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/openai/plugins" target="_blank" rel="noopener">openai/plugins</a></td><td>JavaScript</td><td>262</td><td>2.1k</td></tr>
+              </tbody>
+            </table>
+
+            <h3><span lang="zh-CN" class="i18n-zh">一句话介绍</span><span lang="en" class="i18n-en">One-line intros</span></h3>
+            <ol>
+              <li><strong>turbovec</strong> — <span lang="zh-CN" class="i18n-zh">用 Rust 实现、提供 Python 绑定的向量索引,基于 TurboQuant 量化做高效近邻检索。</span><span lang="en" class="i18n-en">A Rust-built, Python-bound vector index using TurboQuant quantization for efficient nearest-neighbor search.</span></li>
+              <li><strong>hermes-agent</strong> — <span lang="zh-CN" class="i18n-zh">Nous Research 推出的、能持续学习、「与你共同成长」的开源 AI agent。</span><span lang="en" class="i18n-en">Nous Research's open AI agent designed to learn continuously and "grow with you."</span></li>
+              <li><strong>last30days-skill</strong> — <span lang="zh-CN" class="i18n-zh">一个 AI agent 技能:跨 Reddit、X、YouTube、Hacker News、Polymarket 与全网检索某话题,并综合成有依据的摘要。</span><span lang="en" class="i18n-en">An AI-agent skill that researches a topic across Reddit, X, YouTube, HN, Polymarket and the web, then synthesizes a grounded summary.</span></li>
+              <li><strong>taste-skill</strong> — <span lang="zh-CN" class="i18n-zh">一个让 AI「有品味」的 agent 技能,避免生成千篇一律、平庸的内容/前端。</span><span lang="en" class="i18n-en">An agent skill that gives AI "good taste," stopping it from generating generic, boring slop.</span></li>
+              <li><strong>open-notebook</strong> — <span lang="zh-CN" class="i18n-zh">开源版 NotebookLM:更灵活、功能更多的知识笔记 / RAG 工作台。</span><span lang="en" class="i18n-en">An open-source NotebookLM: a more flexible, feature-rich knowledge / RAG workbench.</span></li>
+              <li><strong>ChinaTextbook</strong> — <span lang="zh-CN" class="i18n-zh">收录中国所有小学、初中、高中及大学 PDF 教材的开放资料仓库。</span><span lang="en" class="i18n-en">An open repository collecting PDF textbooks for all Chinese primary, secondary, and university courses.</span></li>
+              <li><strong>goose</strong> — <span lang="zh-CN" class="i18n-zh">开源、可扩展的 AI agent,能用任意 LLM 安装、执行、编辑并测试代码,超越单纯的代码补全。</span><span lang="en" class="i18n-en">An open, extensible AI agent that installs, executes, edits, and tests with any LLM—beyond code suggestions.</span></li>
+              <li><strong>pg_durable</strong> — <span lang="zh-CN" class="i18n-zh">微软出品的 PostgreSQL 数据库内置「持久化执行」(durable execution)扩展。</span><span lang="en" class="i18n-en">Microsoft's PostgreSQL extension bringing durable execution inside the database.</span></li>
+              <li><strong>project-nomad</strong> — <span lang="zh-CN" class="i18n-zh">自包含的离线「生存计算机」,内置关键工具、知识库与本地 AI,断网也能用。</span><span lang="en" class="i18n-en">A self-contained offline "survival computer" packed with tools, knowledge, and local AI that works without internet.</span></li>
+              <li><strong>openai/plugins</strong> — <span lang="zh-CN" class="i18n-zh">OpenAI 官方的 plugins 仓库,围绕其模型生态的插件集合。</span><span lang="en" class="i18n-en">OpenAI's official plugins repository for its model ecosystem.</span></li>
+            </ol>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类</span><span lang="en" class="i18n-en">Direction breakdown</span></h3>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">把今天的十个仓库归类,方向高度集中在 <strong>AI agent / 智能体</strong> 一侧:</span>
+              <span lang="en" class="i18n-en">Classifying today's ten repos, the center of gravity sits firmly on the <strong>AI agent</strong> side:</span>
+            </p>
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 与「agent 技能」(6/10)</strong>:hermes-agent、last30days-skill、taste-skill、goose、project-nomad、openai/plugins。其中三个直接以 <code>*-skill</code> 命名——可插拔的「技能包」正成为 agent 能力的分发单元。</span><span lang="en" class="i18n-en"><strong>Agents &amp; "agent skills" (6/10)</strong>: hermes-agent, last30days-skill, taste-skill, goose, project-nomad, openai/plugins. Three are literally named <code>*-skill</code> — pluggable "skill packs" are becoming the unit of distribution for agent capability.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>RAG / 向量与知识基建 (2/10)</strong>:turbovec(量化向量索引)、open-notebook(开源 NotebookLM)。</span><span lang="en" class="i18n-en"><strong>RAG / vector &amp; knowledge infra (2/10)</strong>: turbovec (quantized vector index), open-notebook (open NotebookLM).</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>后端 / 数据库基建 (1/10)</strong>:pg_durable —— 把「持久化执行」下沉进数据库,正是长跑型 agent 工作流的底座。</span><span lang="en" class="i18n-en"><strong>Backend / database infra (1/10)</strong>: pg_durable — pushing durable execution into the database, exactly the substrate long-running agent workflows need.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>开放教育内容 (1/10)</strong>:ChinaTextbook —— 与「AI 热」并行的开放内容 / 数据主权信号。</span><span lang="en" class="i18n-en"><strong>Open educational content (1/10)</strong>: ChinaTextbook — an open-content / data-sovereignty signal running parallel to the AI hype.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:从「模型 / 框架」到「框架 / 应用」</span><span lang="en" class="i18n-en">History: from "models / frameworks" to "frameworks / apps"</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">回看 GitHub trending 的主角变迁:2022-11 ChatGPT 引爆后,2023-03 的 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> 是第一个病毒式的「autonomous agent」,数周内冲到十万星;紧随其后是 prompt 合集、<a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex 这类编排框架,以及 <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>、Ollama 带来的本地推理浪潮。证据是这些仓库当年都长期霸榜——主角是「模型权重 + 编排框架」。</span>
+              <span lang="en" class="i18n-en">Looking back at who led GitHub trending: after ChatGPT (2022-11), <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> (2023-03) was the first viral "autonomous agent," hitting 100k stars in weeks; then came prompt collections, orchestration frameworks like <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex, and the local-inference wave from <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> and Ollama. The evidence is that these repos dominated the charts for months — the protagonists were "model weights + orchestration frameworks."</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:分发单元变成了「agent 技能」+ 效率基建</span><span lang="en" class="i18n-en">Present: the unit of distribution is now the "agent skill" + efficiency infra</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天榜单本身就是证据:当日 star 前四名里有三个是 <code>*-skill</code>(taste-skill、last30days-skill,以及 OSSInsight 24h 榜上的 graphify),指向 2025 年下半年兴起的 <strong>Agent Skills</strong> 范式——把能力做成小而可组合的「技能包」,挂载到 Claude / Cursor / Codex 等 agent 上,而不是再造一个大框架。与此同时:(a) 通用/编码 agent 走向开源可扩展(goose 用 Rust 重写、hermes-agent);(b) 检索基建在拼效率——turbovec 用 <em>量化</em>(TurboQuant)压索引,OSSInsight 24h 榜上的 headroom 在压 LLM 输入 token(60–95%),说明「降本」成了新战场;(c) 大厂在围绕 agent 重构底座——openai/plugins 与 microsoft/pg_durable(durable execution 是长跑 agent 的可靠性地基);(d) 本地 / 离线 / 主权信号同时出现——project-nomad(离线 AI 计算机)、ChinaTextbook(主权开放内容)。</span>
+              <span lang="en" class="i18n-en">Today's board is itself the evidence: three of the top four by stars-today are <code>*-skill</code> repos (taste-skill, last30days-skill, plus graphify on OSSInsight's 24h board), pointing to the <strong>Agent Skills</strong> paradigm that took off in late 2025 — capabilities packaged as small, composable "skill packs" that mount onto agents (Claude / Cursor / Codex) instead of yet another big framework. In parallel: (a) general/coding agents go open and extensible (goose rewritten in Rust, hermes-agent); (b) retrieval infra competes on efficiency — turbovec compresses indexes via <em>quantization</em> (TurboQuant), and headroom on the 24h board compresses LLM input tokens (60–95%), showing "cost reduction" is the new battleground; (c) incumbents re-platform around agents — openai/plugins and microsoft/pg_durable (durable execution = the reliability substrate for long-running agents); (d) local / offline / sovereignty signals appear together — project-nomad (offline AI computer), ChinaTextbook (sovereign open content).</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:技能市场 + 持久化 agent + 检索极致降本</span><span lang="en" class="i18n-en">Future: skill marketplaces + durable agents + ruthlessly cheaper retrieval</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推,三条线最可能延续:(1) <strong>「技能市场」生态化</strong>——agent 能力像 npm 包一样被发现、安装、版本化,MCP(Model Context Protocol)等标准会加速这一过程;(2) <strong>持久化 / 有状态 agent</strong>——pg_durable 这类「数据库内 durable execution」会成为长跑、可恢复、可审计 agent 工作流的标配;(3) <strong>检索与上下文的效率前沿</strong>——量化向量索引(turbovec)+ token 压缩(headroom)把 RAG 的单位成本继续往下打;叠加模型变小,(4) <strong>本地 / 边缘 agentic AI</strong> 会更普及。可证伪的预测:未来几周 trending 上 <code>*-skill</code> / MCP 相关仓库占比会维持高位,而纯「prompt 合集」类仓库继续退场。</span>
+              <span lang="en" class="i18n-en">Extrapolating from today's signals, three lines are most likely to continue: (1) <strong>"skill marketplaces" become an ecosystem</strong> — agent capabilities get discovered, installed, and versioned like npm packages, accelerated by standards like MCP (Model Context Protocol); (2) <strong>durable / stateful agents</strong> — "in-database durable execution" like pg_durable becomes table stakes for long-running, resumable, auditable agent workflows; (3) <strong>the efficiency frontier in retrieval &amp; context</strong> — quantized vector indexes (turbovec) + token compression (headroom) keep driving RAG unit cost down; and with models shrinking, (4) <strong>local / edge agentic AI</strong> spreads. A falsifiable prediction: over the next few weeks, <code>*-skill</code> / MCP-related repos stay a large share of trending, while pure "prompt-collection" repos keep fading.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(Today)+ GitHub REST API + OSSInsight 24h 趋势,抓取于 2026-06-08(UTC)。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (Today) + GitHub REST API + OSSInsight 24h trends, captured 2026-06-08 (UTC).</em></span>
+            </p>
+          </section>
+          <!-- DAILY-ENTRIES:END -->
+
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>
