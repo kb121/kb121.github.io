@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="主流序列并行(SP)方案对比 + 大模型通信原语 — 庄宏" data-en="Sequence Parallelism Schemes Compared + LLM Communication Primitives — Hong Zhuang">主流序列并行(SP)方案对比 + 大模型通信原语 — 庄宏</title>
+    <meta name="description" content="图文 + 动图对比主流序列并行方案(Megatron-SP / DeepSpeed-Ulysses / Ring-Attention·CP / USP),优缺点对比,以及主流大模型(含 DeepSeek MoE)用的通信原语。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ---- Scoped animated diagrams for this note (动图) ---- */
+      .sp-node { display: inline-flex; align-items: center; justify-content: center; min-width: 58px; height: 38px; padding: 0 8px; border-radius: 9px; font-family: var(--font-mono); font-size: 0.72rem; border: 1px solid var(--border-strong); background: var(--surface-strong); color: var(--text); }
+
+      /* SVG flow lines (used by All-to-All / AllReduce / MoE) */
+      .sp-svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; overflow: visible; }
+      .sp-flow { fill: none; stroke-width: 2; stroke-dasharray: 5 7; animation: sp-dash 0.9s linear infinite; }
+      @keyframes sp-dash { to { stroke-dashoffset: -24; } }
+      .sp-rect { fill: var(--surface-strong); stroke: var(--border-strong); }
+      .sp-txt { font-family: var(--font-mono); font-size: 12px; fill: var(--text); }
+      .sp-hub { fill: #a855f7; }
+      .sp-pulse { fill: none; stroke: #a855f7; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: sp-grow 2.4s ease-out infinite; }
+      @keyframes sp-grow { 0% { transform: scale(1); opacity: 0.75; } 100% { transform: scale(4.4); opacity: 0; } }
+
+      /* AllGather lanes */
+      .sp-gather { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+      .sp-col { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+      .sp-col .h { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; }
+      .sp-cell { width: 40px; height: 22px; border-radius: 5px; border: 1px solid var(--border); }
+      .sp-cell.g { animation: sp-appear 4s ease-in-out infinite; }
+      .sp-cell.g2 { animation-delay: 0.5s; }
+      .sp-cell.g3 { animation-delay: 1s; }
+      .sp-cell.g4 { animation-delay: 1.5s; }
+      @keyframes sp-appear { 0%, 6% { opacity: 0; transform: scale(0.6); } 22%, 88% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.6); } }
+
+      /* Ring orbit (KV passed around the ring) */
+      .sp-ring { position: relative; width: 250px; height: 250px; margin: 6px auto 2px; }
+      .sp-ring .orbit { position: absolute; inset: 26px; animation: sp-spin 5s linear infinite; }
+      .sp-ring .pkt-pos { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); }
+      .sp-ring .pkt { display: inline-block; padding: 5px 9px; border-radius: 8px; background: var(--accent-grad); color: #fff; font-family: var(--font-mono); font-size: 0.7rem; white-space: nowrap; animation: sp-spin-rev 5s linear infinite; box-shadow: 0 0 14px rgba(168,85,247,0.6); }
+      @keyframes sp-spin { to { transform: rotate(360deg); } }
+      @keyframes sp-spin-rev { to { transform: rotate(-360deg); } }
+      .sp-ring .rnode { position: absolute; transform: translate(-50%, -50%); }
+      .sp-ring .rnode.n0 { top: 4%; left: 50%; }
+      .sp-ring .rnode.n1 { top: 50%; left: 96%; }
+      .sp-ring .rnode.n2 { top: 96%; left: 50%; }
+      .sp-ring .rnode.n3 { top: 50%; left: 4%; }
+      .sp-ring .rhub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); width: 120px; }
+
+      /* Ulysses two-state flow */
+      .sp-uly { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+      .sp-uly .panel { flex: 1 1 0; min-width: 150px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-strong); padding: 12px; text-align: center; }
+      .sp-uly .panel .t { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-1); margin-bottom: 8px; }
+      .sp-uly .a2a { align-self: center; flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent-2); text-align: center; }
+      .sp-uly .a2a .ar { font-size: 1.2rem; animation: sp-blink 1.2s ease-in-out infinite; }
+      @keyframes sp-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+      .sp-chiprow { display: flex; gap: 4px; justify-content: center; margin-top: 6px; }
+      .sp-chip { width: 26px; height: 16px; border-radius: 4px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sp-flow, .sp-pulse, .sp-cell.g, .sp-ring .orbit, .sp-ring .pkt, .sp-uly .a2a .ar { animation: none !important; }
+        .sp-cell.g { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-06-11</span>
+            <span class="tags"><span>Distributed</span><span>Sequence Parallel</span><span>LLM</span><span>Communication</span></span>
+          </div>
+          <h1>主流序列并行(SP)方案对比 &amp; 大模型通信原语</h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            这篇笔记用图文 + 动图把 <strong>主流序列并行(SP)方案</strong> 串起来:Megatron-SP、DeepSpeed-Ulysses、Ring-Attention / Context Parallel、以及混合的 USP,逐个讲机制、配动图、对比优缺点;最后讲清 <strong>主流大模型(含 DeepSeek MoE)用的通信原语</strong>。
+          </p>
+
+          <div class="callout key">
+            <strong>一句话总览:</strong> 先分清"SP"的两层意思 —— <strong>① Megatron-SP</strong> 是 TP 的补充,省非 TP 区的激活显存;<strong>② 长上下文 SP</strong>(Ulysses / Ring / USP)才是把<em>序列维</em>切到多卡、训超长序列。底层都靠 <strong>集合通信原语</strong>(NCCL/HCCL):AllReduce、AllGather、ReduceScatter、All-to-All、P2P。
+          </div>
+
+          <h2>0 · 背景:为什么需要 SP</h2>
+          <p>
+            自回归 Transformer 的激活显存随 <code>batch × seq_len × hidden</code> 线性增长,注意力更是接近平方级。序列推到 32K、128K、1M 时,<strong>单卡既放不下激活、也算不动注意力</strong>。SP 的核心思路:<strong>把序列这一维切到多张卡上</strong>,每卡只持有一段,从而摊薄显存与算力 —— 代价是引入跨卡通信。
+          </p>
+
+          <h2>1 · 先备齐"通信原语"</h2>
+          <p>
+            所有并行策略最终都落到几种<strong>集合通信原语</strong>上(由 NCCL / 昇腾 HCCL 提供)。先看懂它们,后面的 SP 方案就是"用哪个原语、用几次"的区别。
+          </p>
+
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>原语</th><th>干什么</th><th>谁在用</th></tr></thead>
+              <tbody>
+                <tr><td><b>AllReduce</b></td><td>各卡数据求和,结果广播回所有卡</td><td>DP 同步梯度、TP</td></tr>
+                <tr><td><b>AllGather</b></td><td>各卡的分片拼成全量,人手一份</td><td>ZeRO/FSDP 取参数、TP+SP</td></tr>
+                <tr><td><b>ReduceScatter</b></td><td>求和后再切片,每卡只拿一片</td><td>ZeRO/FSDP 归约梯度、TP+SP</td></tr>
+                <tr><td><b>All-to-All</b></td><td>每卡把数据按目标重排发给所有卡(分布式转置)</td><td><strong>Ulysses SP、MoE 专家并行</strong></td></tr>
+                <tr><td><b>P2P Send/Recv</b></td><td>点对点收发(All-to-All / Ring 的底层积木)</td><td>流水线 PP、Ring SP</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · AllReduce:汇总求和 → 广播回所有卡</div>
+            <svg class="sp-svg" viewBox="0 0 320 220" role="img" aria-label="AllReduce 动画">
+              <rect class="sp-rect" x="6" y="10" width="58" height="30" rx="7" /><text class="sp-txt" x="35" y="30" text-anchor="middle">G0</text>
+              <rect class="sp-rect" x="256" y="10" width="58" height="30" rx="7" /><text class="sp-txt" x="285" y="30" text-anchor="middle">G1</text>
+              <rect class="sp-rect" x="6" y="180" width="58" height="30" rx="7" /><text class="sp-txt" x="35" y="200" text-anchor="middle">G2</text>
+              <rect class="sp-rect" x="256" y="180" width="58" height="30" rx="7" /><text class="sp-txt" x="285" y="200" text-anchor="middle">G3</text>
+              <line class="sp-flow" x1="35" y1="40" x2="160" y2="110" stroke="#06b6d4" />
+              <line class="sp-flow" x1="285" y1="40" x2="160" y2="110" stroke="#a855f7" />
+              <line class="sp-flow" x1="35" y1="180" x2="160" y2="110" stroke="#ec4899" />
+              <line class="sp-flow" x1="285" y1="180" x2="160" y2="110" stroke="#f59e0b" />
+              <circle class="sp-pulse" cx="160" cy="110" r="24" />
+              <circle class="sp-hub" cx="160" cy="110" r="24" /><text x="160" y="115" text-anchor="middle" fill="#fff" font-family="monospace" font-size="16">Σ</text>
+            </svg>
+            <span class="fig-cap">▶ 四张卡的数据流向中心求和(Σ),再以扩散的脉冲广播回所有卡 —— 这就是 AllReduce</span>
+          </figure>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · All-to-All:每卡把数据按目标重排发给所有卡(分布式转置)</div>
+            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="All-to-All 动画">
+              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8">发送方</text>
+              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8">接收方</text>
+              <rect class="sp-rect" x="8" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="42" text-anchor="middle">G0</text>
+              <rect class="sp-rect" x="8" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="88" text-anchor="middle">G1</text>
+              <rect class="sp-rect" x="8" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="134" text-anchor="middle">G2</text>
+              <rect class="sp-rect" x="8" y="162" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="180" text-anchor="middle">G3</text>
+              <rect class="sp-rect" x="256" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="42" text-anchor="middle">G0</text>
+              <rect class="sp-rect" x="256" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="88" text-anchor="middle">G1</text>
+              <rect class="sp-rect" x="256" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="134" text-anchor="middle">G2</text>
+              <rect class="sp-rect" x="256" y="162" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="180" text-anchor="middle">G3</text>
+              <line class="sp-flow" x1="64" y1="37" x2="256" y2="37" stroke="#06b6d4" /><line class="sp-flow" x1="64" y1="37" x2="256" y2="83" stroke="#06b6d4" /><line class="sp-flow" x1="64" y1="37" x2="256" y2="129" stroke="#06b6d4" /><line class="sp-flow" x1="64" y1="37" x2="256" y2="175" stroke="#06b6d4" />
+              <line class="sp-flow" x1="64" y1="83" x2="256" y2="37" stroke="#a855f7" /><line class="sp-flow" x1="64" y1="83" x2="256" y2="83" stroke="#a855f7" /><line class="sp-flow" x1="64" y1="83" x2="256" y2="129" stroke="#a855f7" /><line class="sp-flow" x1="64" y1="83" x2="256" y2="175" stroke="#a855f7" />
+              <line class="sp-flow" x1="64" y1="129" x2="256" y2="37" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="83" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="129" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="175" stroke="#ec4899" />
+              <line class="sp-flow" x1="64" y1="175" x2="256" y2="37" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="83" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="129" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="175" stroke="#f59e0b" />
+            </svg>
+            <span class="fig-cap">▶ 每张卡都把自己的数据切成 4 份、分别发给 4 张卡(颜色=来源)。通信量低、与序列长度增长解耦,但<strong>并行度被 head 数限制</strong> —— Ulysses 和 MoE 都靠它</span>
+          </figure>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · AllGather:每卡的分片,拼成人手一份的全量</div>
+            <div class="sp-gather" aria-hidden="true">
+              <div class="sp-col"><span class="h">G0</span><span class="sp-cell" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
+              <div class="sp-col"><span class="h">G1</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
+              <div class="sp-col"><span class="h">G2</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
+              <div class="sp-col"><span class="h">G3</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell" style="background:#f59e0b"></span></div>
+            </div>
+            <span class="fig-cap">▶ 每卡原本只有自己那一片(实色),其余三片陆续"收齐"(渐入)→ 最终每卡都有全 4 片。ReduceScatter 是它的逆操作(先求和再各拿一片)</span>
+          </figure>
+
+          <h2>2 · Megatron-style SP(TP 耦合)</h2>
+          <p>
+            这是最容易被混淆的"SP"。它<strong>不单独处理注意力的跨卡</strong>,而是作为 <strong>张量并行(TP)的补充</strong>:TP 已经把注意力/MLP 的权重按 head/维度切了,但 <strong>LayerNorm、Dropout、残差</strong> 这些区域 TP 没覆盖,激活仍是全量、冗余存在每张卡上。Megatron-SP 把这些区域的激活也<strong>沿序列维切开</strong>,从而省下这部分激活显存。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">Megatron-SP:在 TP 区与 SP 区之间换原语</div>
+            <div class="flow">
+              <div class="flow-step"><span class="s-n">SP 区</span><span class="s-h">LayerNorm / Dropout</span><span class="s-d">激活按<strong>序列</strong>切</span></div>
+              <div class="flow-arrow">⇄</div>
+              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n">边界</span><span class="s-h">AllGather / ReduceScatter</span><span class="s-d">替代 TP 原来的 AllReduce</span></div>
+              <div class="flow-arrow">⇄</div>
+              <div class="flow-step"><span class="s-n">TP 区</span><span class="s-h">Attention / MLP</span><span class="s-d">权重按 <strong>head/维度</strong>切</span></div>
+            </div>
+            <span class="fig-cap">图 1 · Megatron-SP 把 TP 的一次 AllReduce 拆成 AllGather + ReduceScatter,顺手把非 TP 区激活也切了 —— 目标是<strong>省激活显存</strong>,不是训超长序列</span>
+          </figure>
+
+          <h2>3 · DeepSpeed-Ulysses(all-to-all)</h2>
+          <p>
+            真正面向长序列的方案之一。平时每卡只持有<strong>一段序列</strong>(按 seq 切);一到注意力计算,用一次 <strong>All-to-All</strong> 把布局<strong>转置</strong>成"按 head 切"——于是每卡拿到<strong>完整序列、但只算自己负责的几个 attention head</strong>;算完再 All-to-All 转回去。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">动图 · Ulysses:All-to-All 在「按序列切 ⇄ 按 head 切」之间转置</div>
+            <div class="sp-uly">
+              <div class="panel">
+                <div class="t">注意力之外:按序列切</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">每卡 = 一段序列<br/>(全部 head)</div>
+                <div class="sp-chiprow"><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#a855f7"></span><span class="sp-chip" style="background:#ec4899"></span><span class="sp-chip" style="background:#f59e0b"></span></div>
+              </div>
+              <div class="a2a"><div class="ar">⇄</div>All-to-All<br/>转置</div>
+              <div class="panel" style="border-color:var(--accent-2)">
+                <div class="t">注意力之内:按 head 切</div>
+                <div style="font-size:.8rem;color:var(--text-muted)">每卡 = 完整序列<br/>(部分 head)</div>
+                <div class="sp-chiprow"><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span></div>
+              </div>
+            </div>
+            <span class="fig-cap">图 2 · 每层注意力前后各做 All-to-All(共约 4 次)。通信省、实现简单,但<strong>并行度 ≤ head 数</strong>(GQA 下受 KV head 限制更紧)</span>
+          </figure>
+
+          <h2>4 · Ring-Attention / Context Parallel(P2P 环)</h2>
+          <p>
+            另一条长序列路线,也是<strong>超长上下文</strong>的主力。每卡持有序列的一个块的 Q/K/V;计算注意力时,<strong>把 K/V 块沿着卡组成的环依次传递</strong>,每收到一块就和本地 Q 算一次局部注意力,用 <strong>online-softmax</strong>(FlashAttention 思路)把分块结果累加起来 —— 通信可以和计算 <strong>overlap</strong>。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">动图 · Ring:K/V 块沿环在卡间传递(P2P)</div>
+            <div class="sp-ring" aria-hidden="true">
+              <div class="rnode"><span class="sp-node">GPU0</span></div>
+              <div class="rnode n1"><span class="sp-node">GPU1</span></div>
+              <div class="rnode n2"><span class="sp-node">GPU2</span></div>
+              <div class="rnode n3"><span class="sp-node">GPU3</span></div>
+              <div class="orbit"><div class="pkt-pos"><span class="pkt">KV 块 →</span></div></div>
+              <div class="rhub">K/V 沿环传递<br/>online-softmax 累加</div>
+            </div>
+            <span class="fig-cap">图 3 · KV 块绕环流动,每到一卡就算一次局部注意力。<strong>并行度不受 head 限制</strong>、可扩到超长序列;代价是通信量随切分增大,且 causal mask 下负载不均(后面的卡算得多)→ 用 <strong>Striped / ZigZag Attention</strong> 重排均衡</span>
+          </figure>
+
+          <h2>5 · USP / 混合(Ulysses × Ring,2D)</h2>
+          <p>
+            Ulysses 通信省但受 head 数限制;Ring 不受 head 限制但通信量大。<strong>USP</strong> 把两者放进一个 <strong>2D mesh</strong>:<strong>组内用 Ulysses(All-to-All)</strong> 吃通信效率,<strong>组间用 Ring(P2P)</strong> 突破 head 上限。长上下文 + 大规模训练的常见选择。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">USP:两级并行,各取所长</div>
+            <div class="cols2" style="margin:0">
+              <div class="node accent-2"><div class="node-h"><i class="fas fa-arrows-left-right"></i> 组内 · Ulysses</div><div class="node-sub">All-to-All,通信高效,受 head 数限制</div></div>
+              <div class="node accent-1"><div class="node-h"><i class="fas fa-circle-notch"></i> 组间 · Ring</div><div class="node-sub">P2P 环传递,突破 head 上限、扩超长序列</div></div>
+            </div>
+            <span class="fig-cap">图 4 · USP = Ulysses(头维度高效) + Ring(序列维度可扩),代表实现:yunchang(USP)、LoongTrain</span>
+          </figure>
+
+          <h2>6 · 四种方案优缺点对比</h2>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>方案</th><th>通信原语</th><th>并行度上限</th><th>优点</th><th>缺点</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><b>Megatron-SP</b></td>
+                  <td>AllGather + ReduceScatter</td>
+                  <td>= TP 度</td>
+                  <td>省非 TP 区激活显存;和 TP 无缝</td>
+                  <td>不解决长序列本身;绑定 TP</td>
+                </tr>
+                <tr>
+                  <td><b>DeepSpeed-Ulysses</b></td>
+                  <td>All-to-All</td>
+                  <td>≤ head 数</td>
+                  <td>通信省、实现简单、与 seq 增长解耦</td>
+                  <td>并行度被 head 卡死;GQA 下更紧</td>
+                </tr>
+                <tr>
+                  <td><b>Ring / CP</b></td>
+                  <td>P2P Send/Recv</td>
+                  <td>不受 head 限制</td>
+                  <td>超长序列友好、通信可 overlap</td>
+                  <td>通信量随切分增大;causal 负载不均(需 ZigZag)</td>
+                </tr>
+                <tr>
+                  <td><b>USP(混合)</b></td>
+                  <td>All-to-All + P2P</td>
+                  <td>突破 head 上限</td>
+                  <td>兼顾通信效率与可扩性</td>
+                  <td>实现/调参更复杂(2D mesh)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout tip">
+            <strong>怎么选:</strong>
+            <ul style="margin:8px 0 0">
+              <li>序列不算特别长、head 够分 → <strong>Ulysses</strong>(简单、通信省)。</li>
+              <li>序列非常长 / head 不够分 → <strong>Ring(CP)</strong>,配 ZigZag 均衡。</li>
+              <li>又长又要大并行 → <strong>USP 混合</strong>。</li>
+              <li>已经在用 TP、只想省激活显存 → 叠 <strong>Megatron-SP</strong>。</li>
+              <li>实战里这些还常和 <strong>DP / TP / PP / ZeRO</strong> 组成多维并行一起上。</li>
+            </ul>
+          </div>
+
+          <h2>7 · 主流大模型用什么通信原语</h2>
+          <p>各并行维度对应的原语其实是固定的,记住这张映射表就能反推任何模型的通信特征:</p>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>并行维度</th><th>主要通信原语</th></tr></thead>
+              <tbody>
+                <tr><td>数据并行 DP(朴素)</td><td>AllReduce</td></tr>
+                <tr><td>ZeRO / FSDP</td><td>ReduceScatter(梯度)+ AllGather(参数)</td></tr>
+                <tr><td>张量并行 TP</td><td>AllReduce;开 SP 后 → AllGather + ReduceScatter</td></tr>
+                <tr><td>序列并行 SP</td><td>Ulysses → All-to-All;Ring/CP → P2P</td></tr>
+                <tr><td>流水线并行 PP</td><td>P2P Send/Recv</td></tr>
+                <tr><td><b>专家并行 EP(MoE)</b></td><td><b>All-to-All</b>(token 派发 / 合并)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>以 DeepSeek(MoE + MLA)为例</h3>
+          <p>
+            DeepSeek-V2/V3 是 <strong>MoE</strong> 架构,通信"主角"就是 <strong>All-to-All</strong>:每个 token 要被路由到分布在不同卡上的专家,再把结果收回 —— 这两步(<strong>dispatch / combine</strong>)就是两次 All-to-All,也是 MoE 训练/推理的主要通信瓶颈。
+          </p>
+          <figure class="fig">
+            <div class="fig-title">动图 · MoE 专家并行:token 经 All-to-All 派发到各卡专家</div>
+            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="MoE All-to-All 动画">
+              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8">token(各卡)</text>
+              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8">专家(各卡)</text>
+              <rect class="sp-rect" x="8" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="42" text-anchor="middle">G0</text>
+              <rect class="sp-rect" x="8" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="88" text-anchor="middle">G1</text>
+              <rect class="sp-rect" x="8" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="134" text-anchor="middle">G2</text>
+              <rect class="sp-rect" x="8" y="162" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="180" text-anchor="middle">G3</text>
+              <rect class="sp-rect" x="256" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="42" text-anchor="middle">E0</text>
+              <rect class="sp-rect" x="256" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="88" text-anchor="middle">E1</text>
+              <rect class="sp-rect" x="256" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="134" text-anchor="middle">E2</text>
+              <rect class="sp-rect" x="256" y="162" width="56" height="26" rx="6" /><text class="sp-txt" x="284" y="180" text-anchor="middle">E3</text>
+              <line class="sp-flow" x1="64" y1="37" x2="256" y2="37" stroke="#06b6d4" /><line class="sp-flow" x1="64" y1="37" x2="256" y2="129" stroke="#06b6d4" />
+              <line class="sp-flow" x1="64" y1="83" x2="256" y2="83" stroke="#a855f7" /><line class="sp-flow" x1="64" y1="83" x2="256" y2="175" stroke="#a855f7" />
+              <line class="sp-flow" x1="64" y1="129" x2="256" y2="37" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="83" stroke="#ec4899" />
+              <line class="sp-flow" x1="64" y1="175" x2="256" y2="129" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="175" stroke="#f59e0b" />
+            </svg>
+            <span class="fig-cap">图 5 · 每卡的 token 按路由结果发往对应专家所在的卡(dispatch),算完再 All-to-All 收回(combine)</span>
+          </figure>
+          <ul>
+            <li><strong>DeepEP:</strong>DeepSeek 自研开源的 EP 通信库,专门优化这两次 All-to-All —— 区分高吞吐 kernel(训练/prefill)与低延迟 kernel(decode),吃 NVLink(机内)+ RDMA/IB(机间),支持 FP8 通信。</li>
+            <li><strong>DualPipe:</strong>它的流水线并行方案(PP 用 P2P),把计算与通信(尤其 EP 的 All-to-All)<strong>充分 overlap</strong>,把通信开销藏到计算后面。</li>
+            <li>其余维度照常:DP/ZeRO 用 <strong>AllGather + ReduceScatter</strong>,(若有)TP 用 <strong>AllReduce</strong>;MLA 主要省 KV cache,不改通信原语。</li>
+          </ul>
+          <div class="callout info">
+            <strong>注意:</strong>"ds" 若指 <strong>DeepSpeed(框架)</strong> 而非 DeepSeek(模型):ZeRO 用 <strong>ReduceScatter + AllGather</strong>,DeepSpeed-Ulysses 用 <strong>All-to-All</strong>。
+          </div>
+
+          <h2>8 · 一句话总结</h2>
+          <figure class="fig">
+            <div class="fig-title">两句话拎清</div>
+            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0">
+              ① <strong>SP 方案</strong>:省 TP 激活显存用 <strong>Megatron-SP</strong>(AllGather+ReduceScatter);长序列三选一 —— <strong>Ulysses</strong>(All-to-All,受 head 限)、<strong>Ring/CP</strong>(P2P 环,不受 head 限、超长友好但需 ZigZag 均衡)、<strong>USP</strong>(2D 混合,取长补短)。<br />
+              ② <strong>大模型通信原语</strong>:DP→AllReduce、ZeRO→ReduceScatter+AllGather、TP→AllReduce、PP→P2P、SP→All-to-All/P2P、<strong>MoE→All-to-All</strong>;DeepSeek 这类 MoE 的主角是 All-to-All,用 DeepEP 优化、DualPipe overlap。
+            </p>
+            <span class="fig-cap">图 6 · 记住"哪个并行用哪个原语",就能反推任何大模型的通信特征</span>
+          </figure>
+
+          <hr />
+          <p style="color:var(--text-dim);font-size:.88rem">
+            参考:Megatron-LM(Sequence Parallelism)、DeepSpeed-Ulysses 论文、Ring Attention / Striped Attention、Megatron-Core Context Parallelism、USP(yunchang)/ LoongTrain、DeepSeek-V3 技术报告与 DeepEP / DualPipe 开源仓库、NCCL/HCCL 集合通信文档。细节可能随版本演进。
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>
