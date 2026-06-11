@@ -349,7 +349,103 @@
             </ul>
           </div>
 
-          <h2>6 · 实操速查</h2>
+          <h2>6 · Eager / 编译 / CUDA Graph 的关系与性能</h2>
+          <p>
+            很多人把 <strong>eager</strong>、<strong>torch.compile(图模式编译)</strong>、<strong>CUDA Graph</strong> 并列,以为是三选一。其实它们不在同一个维度上 —— 是<strong>两条正交的轴</strong>:一条管"<strong>跑哪些 kernel</strong>"(编译层),一条管"<strong>怎么发射这些 kernel</strong>"(下发层)。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">两层正交:编译层(选 kernel) × 下发层(怎么发射)</div>
+            <div class="stack">
+              <div class="node accent-2">
+                <div class="node-h"><i class="fas fa-wand-magic-sparkles"></i> 编译层 · 决定"跑哪些 kernel"</div>
+                <div class="node-sub"><strong>Eager(不编译)</strong> &nbsp;—或—&nbsp; <strong>torch.compile</strong>(算子融合 / Triton codegen)。二选一</div>
+              </div>
+              <div class="node accent-1">
+                <div class="node-h"><i class="fas fa-paper-plane"></i> 下发层 · 决定"怎么发射"</div>
+                <div class="node-sub"><strong>逐个 launch</strong> &nbsp;—或—&nbsp; <strong>CUDA Graph 重放</strong>(一次发射整图)。二选一</div>
+              </div>
+            </div>
+            <span class="fig-cap">图 7 · 编译层在上、下发层在下;CUDA Graph 拿的是"上游已经定好的 kernel 序列",所以它和编译<strong>可叠加</strong>,不是二选一</span>
+          </figure>
+
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>比较</th><th>关系</th><th>为什么</th></tr></thead>
+              <tbody>
+                <tr><td>Eager ↔ torch.compile</td><td><b>并行</b>(同层二选一)</td><td>都在编译层,回答同一个问题:跑原始 kernel 还是融合后的 kernel,互斥</td></tr>
+                <tr><td>compile ↔ CUDA Graph</td><td><b>上下</b>(先后,可叠加)</td><td>compile 先产出 kernel(上游),CUDA Graph 再把它们的发射打包(下游)</td></tr>
+                <tr><td>Eager ↔ CUDA Graph</td><td><b>上下</b>(不同层)</td><td>CUDA Graph 不关心上游是 eager 还是 compile,只负责重放定好的 kernel</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>两条轴一交叉,就是这 4 种组合:</p>
+          <figure class="fig">
+            <div class="fig-title">4 组合矩阵(行=下发层 · 列=编译层)</div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead>
+                  <tr><th></th><th>不编译(原始 eager kernel)</th><th>torch.compile(融合后)</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>逐 kernel 发射</b></td>
+                    <td>① <strong>纯 Eager</strong><br /><code>--enforce-eager</code> · 最慢 · 调试 / 参考数值</td>
+                    <td>② <strong>只编译</strong><br />kernel 更优,但仍有逐 kernel launch 开销</td>
+                  </tr>
+                  <tr>
+                    <td><b>CUDA Graph 重放</b></td>
+                    <td>③ <strong>full cudagraph(无编译)</strong><br />省了 launch,但 kernel 未融合</td>
+                    <td>④ <strong>compile + CUDA Graph</strong><br /><span class="stat-pill"><b>vLLM 默认</b></span> · 最快</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <span class="fig-cap">图 8 · <code>--enforce-eager</code> = 左上角①(两层都关到最朴素);vLLM 默认走右下角④(两层都开)</span>
+          </figure>
+
+          <p>性能上,这 4 种在 <strong>decode(小 batch、launch-bound)</strong> 场景下的相对延迟大致是(条越长越慢):</p>
+          <figure class="fig">
+            <div class="fig-title">相对延迟对比 · decode / 小 batch(示意,非绝对值)</div>
+            <table>
+              <thead><tr><th>模式</th><th>相对延迟</th><th>收益来源</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>① 纯 Eager</td>
+                  <td><span style="display:inline-block;height:11px;width:100%;border-radius:5px;background:#ef4444;opacity:.8"></span></td>
+                  <td>基准(无优化)</td>
+                </tr>
+                <tr>
+                  <td>② 只 compile</td>
+                  <td><span style="display:inline-block;height:11px;width:68%;border-radius:5px;background:#f59e0b;opacity:.85"></span></td>
+                  <td>kernel 融合 / codegen,但仍有 launch 开销</td>
+                </tr>
+                <tr>
+                  <td>③ eager + CUDA Graph</td>
+                  <td><span style="display:inline-block;height:11px;width:46%;border-radius:5px;background:var(--accent-1)"></span></td>
+                  <td>消除 launch 开销(kernel 未融合)</td>
+                </tr>
+                <tr>
+                  <td>④ compile + CUDA Graph</td>
+                  <td><span style="display:inline-block;height:11px;width:34%;border-radius:5px;background:var(--accent-grad)"></span></td>
+                  <td><strong>融合 + 消除 launch,叠加收益</strong></td>
+                </tr>
+              </tbody>
+            </table>
+            <span class="fig-cap">图 9 · 数值只表相对量级,实际取决于模型 / 硬件 / batch。注意:launch 开销在小 batch 占比高,所以 CUDA Graph(③④)的提升在此最明显</span>
+          </figure>
+
+          <div class="callout key">
+            <strong>什么时候谁更重要?</strong>
+            <ul style="margin:8px 0 0">
+              <li><strong>小 batch / decode(launch-bound):</strong>瓶颈是 CPU 发射开销 → <strong>CUDA Graph 是最大的杠杆</strong>(③相比①已大幅提升)。</li>
+              <li><strong>大 batch / prefill(compute-bound):</strong>kernel 本身就跑得久、发射占比小 → <strong>kernel 质量(compile 融合)更重要</strong>,CUDA Graph 收益变小。</li>
+              <li>所以 vLLM 默认 <strong>④ compile + CUDA Graph</strong>:两边通吃。两层全关(<code>--enforce-eager</code>)只在调试 / 显存紧张 / backend 不支持时用。</li>
+            </ul>
+          </div>
+
+          <h2>7 · 实操速查</h2>
           <pre><code># 默认就是 FULL_AND_PIECEWISE,通常无需手动设
 vllm serve Qwen/Qwen2.5-7B-Instruct
 
@@ -367,7 +463,7 @@ vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,3
             <strong>什么时候用 <code>--enforce-eager</code>?</strong> ① 调试数值/精度;② 显存非常紧张,不想为捕获图额外占显存;③ 用的 attention backend 不支持图捕获;④ 频繁变化的奇异形状导致图反复 miss。其余情况保持默认(开图)就好,性能更优。
           </div>
 
-          <h2>7 · 一句话总结</h2>
+          <h2>8 · 一句话总结</h2>
           <figure class="fig">
             <div class="fig-title">三句话记住</div>
             <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0">
@@ -375,7 +471,7 @@ vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,3
               ② <strong>vLLM</strong> 默认 <span class="stat-pill"><b>FULL_AND_PIECEWISE</b></span>:decode 整图、prefill/混合分段图,建立在 torch.compile 之上,靠形状离散化 + padding 适配动态 batch。<br />
               ③ <strong>精度</strong>:graph 的录制/重放不改数值,真正动数值的是配套的 torch.compile(融合/精度/选 kernel)与 padding mask;调试就 <code>--enforce-eager</code> 做 A/B。
             </p>
-            <span class="fig-cap">图 7 · 把这三句讲清楚,CUDA Graph 在 vLLM 里的来龙去脉就通了</span>
+            <span class="fig-cap">图 10 · 把这三句讲清楚,CUDA Graph 在 vLLM 里的来龙去脉就通了</span>
           </figure>
 
           <hr />
