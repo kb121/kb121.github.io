@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "sequence-parallel-and-comms",
+    title: {
+      zh: "主流序列并行(SP)方案对比 & 大模型通信原语",
+      en: "Sequence Parallelism Schemes Compared & LLM Communication Primitives",
+    },
+    summary: {
+      zh: "图文 + 动图对比 Megatron-SP / Ulysses / Ring·CP / USP 的机制与优缺点,并讲清主流大模型(含 DeepSeek MoE)用的通信原语。",
+      en: "Illustrated + animated comparison of Megatron-SP / Ulysses / Ring·CP / USP, with the communication primitives mainstream LLMs (incl. DeepSeek MoE) rely on.",
+    },
+    date: "2026-06-11",
+    tags: ["Distributed", "Sequence Parallel", "LLM", "Communication"],
+  },
+  {
     slug: "github-daily-trending",
     title: {
       zh: "GitHub 每日 Top 10 Stars 与技术趋势",
