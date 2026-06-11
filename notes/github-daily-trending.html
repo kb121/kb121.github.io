@@ -52,6 +52,95 @@
     <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
     <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
     <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* =====================================================================
+         Scoped animated visuals for the daily trending entries (动图).
+         Namespaced gt-* so they never collide with global note styles.
+         ===================================================================== */
+
+      /* —— 当日 star 竞速:条形随载入生长 + 高光扫过 —— */
+      .gt-bars { display: flex; flex-direction: column; gap: 7px; margin: 4px 0; }
+      .gt-bar-row { display: flex; align-items: center; gap: 10px; }
+      .gt-bar-name {
+        flex: 0 0 138px; font-family: var(--font-mono); font-size: 0.7rem;
+        color: var(--text-muted); text-align: right; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+      }
+      .gt-bar-track {
+        position: relative; flex: 1; height: 18px; border-radius: 6px;
+        background: rgba(255,255,255,0.04); border: 1px solid var(--border); overflow: hidden;
+      }
+      .gt-bar-fill {
+        position: relative; height: 100%; border-radius: 6px 0 0 6px;
+        background: var(--accent-grad); transform-origin: left center;
+        animation: gt-grow 1.5s cubic-bezier(.22,.61,.36,1) both;
+      }
+      .gt-bar-fill::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transform: translateX(-120%); animation: gt-shimmer 2.8s ease-in-out infinite;
+      }
+      .gt-bar-val { flex: 0 0 54px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text); }
+      @keyframes gt-grow { from { transform: scaleX(0.02); } to { transform: scaleX(1); } }
+      @keyframes gt-shimmer { 0% { transform: translateX(-120%); } 55%,100% { transform: translateX(260%); } }
+
+      /* —— 方向占比:分段条按序"填入" —— */
+      .gt-share { display: flex; height: 32px; border-radius: 9px; overflow: hidden; border: 1px solid var(--border); margin: 8px 0; }
+      .gt-share .seg {
+        display: flex; align-items: center; justify-content: center; gap: 5px;
+        font-size: 0.68rem; color: #fff; white-space: nowrap; overflow: hidden;
+        transform-origin: left center; animation: gt-segin 0.9s ease both;
+      }
+      .gt-share .seg.s1 { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); animation-delay: .05s; }
+      .gt-share .seg.s2 { background: color-mix(in srgb, var(--accent-2) 60%, transparent); animation-delay: .25s; }
+      .gt-share .seg.s3 { background: color-mix(in srgb, var(--accent-3) 55%, transparent); animation-delay: .45s; }
+      .gt-share .seg.s4 { background: rgba(255,255,255,0.10); color: var(--text-muted); animation-delay: .65s; }
+      @keyframes gt-segin { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+
+      /* —— 历史时间线:小球沿轴滑动 —— */
+      .gt-timeline { position: relative; margin: 16px 0 4px; }
+      .gt-axis { position: absolute; left: 6px; right: 6px; top: 6px; height: 2px; background: var(--border-strong); }
+      .gt-runner {
+        position: absolute; top: 1px; width: 12px; height: 12px; margin-left: -6px;
+        border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2);
+        animation: gt-run 7s linear infinite;
+      }
+      @keyframes gt-run { 0% { left: 6px; } 100% { left: calc(100% - 6px); } }
+      .gt-stops { display: flex; justify-content: space-between; padding-top: 18px; }
+      .gt-stop { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+      .gt-stop .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent-1); }
+      .gt-stop .yr { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text); }
+      .gt-stop .lab { font-size: 0.68rem; color: var(--text-muted); text-align: center; line-height: 1.3; max-width: 120px; }
+
+      /* —— "技能 = 分发单元":中心脉冲 + 技能芯片浮动 —— */
+      .gt-orbit { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; }
+      .gt-core {
+        width: 96px; height: 96px; border-radius: 50%; text-align: center; padding: 0 8px;
+        display: flex; align-items: center; justify-content: center; font-size: 0.78rem; color: var(--text);
+        background: var(--accent-grad-soft); border: 1px solid var(--accent-2); animation: gt-pulse 2.4s ease-in-out infinite;
+      }
+      .gt-chip {
+        position: absolute; padding: 4px 9px; border-radius: 999px; font-family: var(--font-mono);
+        font-size: 0.66rem; color: var(--text-muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong);
+        animation: gt-float 3.4s ease-in-out infinite;
+      }
+      .gt-chip.c1 { top: 8px; left: 16%; animation-delay: 0s; }
+      .gt-chip.c2 { top: 18px; right: 14%; animation-delay: .5s; }
+      .gt-chip.c3 { bottom: 14px; left: 12%; animation-delay: 1s; }
+      .gt-chip.c4 { bottom: 8px; right: 18%; animation-delay: 1.5s; }
+      @keyframes gt-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+      @keyframes gt-pulse {
+        0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-2) 45%, transparent); }
+        50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent-2) 0%, transparent); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .gt-bar-fill, .gt-bar-fill::after, .gt-share .seg, .gt-runner, .gt-core, .gt-chip { animation: none !important; }
+        .gt-bar-fill { transform: none; }
+        .gt-runner { display: none; }
+      }
+    </style>
   </head>
   <body id="top" class="note-page">
     <div class="aurora" aria-hidden="true">
@@ -91,7 +180,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-08</span>
+            <span>2026-06-11</span>
             <span class="tags"><span>GitHub</span><span>Trending</span><span>AI Agents</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
@@ -110,6 +199,143 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-11 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-11 — Top 10 of the day</span></h2>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/mvanhorn/last30days-skill" target="_blank" rel="noopener">mvanhorn/last30days-skill</a></td><td>Python</td><td>2,535</td><td>39.1k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a></td><td>Swift</td><td>1,611</td><td>29.8k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">harry0703/MoneyPrinterTurbo</a></td><td>Python</td><td>1,389</td><td>85.0k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td>1,104</td><td>223.6k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">addyosmani/agent-skills</a></td><td>Shell</td><td>821</td><td>51.8k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/phuryn/pm-skills" target="_blank" rel="noopener">phuryn/pm-skills</a></td><td>—</td><td>804</td><td>14.9k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/roboflow/supervision" target="_blank" rel="noopener">roboflow/supervision</a></td><td>Python</td><td>695</td><td>43.6k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/refactoringhq/tolaria" target="_blank" rel="noopener">refactoringhq/tolaria</a></td><td>TypeScript</td><td>612</td><td>14.9k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/maziyarpanahi/openmed" target="_blank" rel="noopener">maziyarpanahi/openmed</a></td><td>Python</td><td>527</td><td>2.3k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/ruvnet/RuView" target="_blank" rel="noopener">ruvnet/RuView</a></td><td>Rust</td><td>420</td><td>72.9k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="fig">
+              <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 star 竞速(条形随载入生长,高光循环扫过)</span><span lang="en" class="i18n-en">Animated · stars-today race (bars grow on load, a highlight sweeps across)</span></div>
+              <div class="gt-bars">
+                <div class="gt-bar-row"><span class="gt-bar-name">last30days-skill</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:100%"></div></div><span class="gt-bar-val">2,535</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">apple/container</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:63.5%"></div></div><span class="gt-bar-val">1,611</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">MoneyPrinterTurbo</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:54.8%"></div></div><span class="gt-bar-val">1,389</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">superpowers</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:43.6%"></div></div><span class="gt-bar-val">1,104</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">agent-skills</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:32.4%"></div></div><span class="gt-bar-val">821</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">pm-skills</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:31.7%"></div></div><span class="gt-bar-val">804</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">supervision</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:27.4%"></div></div><span class="gt-bar-val">695</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">tolaria</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:24.1%"></div></div><span class="gt-bar-val">612</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">openmed</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:20.8%"></div></div><span class="gt-bar-val">527</span></div>
+                <div class="gt-bar-row"><span class="gt-bar-name">RuView</span><div class="gt-bar-track"><div class="gt-bar-fill" style="width:16.6%"></div></div><span class="gt-bar-val">420</span></div>
+              </div>
+              <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 · 条形长度 = 当日新增 star(相对第一名归一化)。研究型 agent 技能 last30days-skill 再次断层登顶。</span><span lang="en" class="i18n-en">Fig · bar length = stars gained today (normalized to No. 1). The research agent-skill last30days-skill tops the board again by a clear margin.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">一句话介绍</span><span lang="en" class="i18n-en">One-line intros</span></h3>
+            <ol>
+              <li><strong>last30days-skill</strong> — <span lang="zh-CN" class="i18n-zh">一个 AI agent 技能:跨 Reddit、X、YouTube、Hacker News、Polymarket 与全网检索某话题,并综合成有依据的摘要(再度登顶)。</span><span lang="en" class="i18n-en">An AI-agent skill that researches a topic across Reddit, X, YouTube, HN, Polymarket and the web, then synthesizes a grounded summary (No. 1 again).</span></li>
+              <li><strong>apple/container</strong> — <span lang="zh-CN" class="i18n-zh">Apple 官方:用轻量虚拟机在 Mac(Apple silicon)上创建并运行 Linux 容器,用 Swift 编写。</span><span lang="en" class="i18n-en">Apple's official tool for creating &amp; running Linux containers on a Mac (Apple silicon) via lightweight VMs, written in Swift.</span></li>
+              <li><strong>MoneyPrinterTurbo</strong> — <span lang="zh-CN" class="i18n-zh">利用 AI 大模型,一键生成高清短视频。</span><span lang="en" class="i18n-en">Generate HD short videos with one click using AI LLMs.</span></li>
+              <li><strong>superpowers</strong> — <span lang="zh-CN" class="i18n-zh">一个「能落地」的 agentic 技能框架与软件开发方法论(已逾 22 万 star)。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology "that works" (220k+ stars).</span></li>
+              <li><strong>agent-skills</strong> — <span lang="zh-CN" class="i18n-zh">Addy Osmani 整理的、面向 AI 编码 agent 的「生产级工程技能」集合。</span><span lang="en" class="i18n-en">Addy Osmani's collection of production-grade engineering skills for AI coding agents.</span></li>
+              <li><strong>pm-skills</strong> — <span lang="zh-CN" class="i18n-zh">产品经理技能市场:100+ agentic 技能/命令/插件,覆盖从发现、策略到执行、上线与增长。</span><span lang="en" class="i18n-en">A PM skills marketplace: 100+ agentic skills/commands/plugins, from discovery and strategy to execution, launch and growth.</span></li>
+              <li><strong>supervision</strong> — <span lang="zh-CN" class="i18n-zh">Roboflow 出品的可复用计算机视觉工具库:检测、追踪、标注、计数等通用 CV 原语。</span><span lang="en" class="i18n-en">Roboflow's library of reusable computer-vision tools — detection, tracking, annotation, counting and other CV primitives.</span></li>
+              <li><strong>tolaria</strong> — <span lang="zh-CN" class="i18n-zh">一个管理 Markdown 知识库的桌面应用。</span><span lang="en" class="i18n-en">A desktop app for managing markdown knowledge bases.</span></li>
+              <li><strong>openmed</strong> — <span lang="zh-CN" class="i18n-zh">开源的医疗健康 AI 项目。</span><span lang="en" class="i18n-en">An open-source healthcare-AI project.</span></li>
+              <li><strong>RuView</strong> — <span lang="zh-CN" class="i18n-zh">把普通 WiFi 信号变成实时空间感知、生命体征监测与存在检测——完全不用摄像头。</span><span lang="en" class="i18n-en">Turns commodity WiFi signals into real-time spatial intelligence, vital-sign monitoring and presence detection — with no camera at all.</span></li>
+            </ol>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类</span><span lang="en" class="i18n-en">Direction breakdown</span></h3>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">把今天的十个仓库归类,<strong>agent 技能 / 智能体</strong> 仍是最大方向(4/10),但今天最醒目的信号是「技能」已经长出 <strong>方法论(superpowers)+ 市场(pm-skills)+ 大厂基建(apple/container)</strong> 三件套;同时,垂直 / 应用 AI 与「无摄像头感知」拓宽了赛道:</span>
+              <span lang="en" class="i18n-en">Classifying today's ten repos, <strong>agent skills / agents</strong> remain the single largest bucket (4/10), but the standout signal is that "skills" have grown a triad — <strong>methodology (superpowers) + marketplace (pm-skills) + incumbent infra (apple/container)</strong>; meanwhile vertical/applied AI and "camera-less sensing" widen the field:</span>
+            </p>
+
+            <figure class="fig">
+              <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 Top 10 方向占比(分段条按序填入)</span><span lang="en" class="i18n-en">Animated · direction mix of today's Top 10 (segments fill in sequence)</span></div>
+              <div class="gt-share">
+                <span class="seg s1" style="flex:4">Agent skills · 4</span>
+                <span class="seg s2" style="flex:2"><span lang="zh-CN" class="i18n-zh">应用 AI · 2</span><span lang="en" class="i18n-en">Applied AI · 2</span></span>
+                <span class="seg s3" style="flex:2"><span lang="zh-CN" class="i18n-zh">基建/工具 · 2</span><span lang="en" class="i18n-en">Infra/tools · 2</span></span>
+                <span class="seg s4" style="flex:2"><span lang="zh-CN" class="i18n-zh">感知 · 2</span><span lang="en" class="i18n-en">Perception · 2</span></span>
+              </div>
+              <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 · Agent skills(last30days-skill、superpowers、agent-skills、pm-skills)占 40%;应用 AI(MoneyPrinterTurbo、openmed)、基建/工具(apple/container、tolaria)、感知(supervision、RuView)各 20%。</span><span lang="en" class="i18n-en">Fig · agent skills (last30days-skill, superpowers, agent-skills, pm-skills) = 40%; applied AI (MoneyPrinterTurbo, openmed), infra/tools (apple/container, tolaria), perception (supervision, RuView) = 20% each.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 技能与框架 (4/10)</strong>:last30days-skill、superpowers、addyosmani/agent-skills、pm-skills。值得注意的是体量——superpowers 已 22 万+ star、agent-skills 5 万+,pm-skills 直接做成「技能市场」,说明技能不再是零散脚本,而是有方法论、有市场的品类。</span><span lang="en" class="i18n-en"><strong>Agent skills &amp; frameworks (4/10)</strong>: last30days-skill, superpowers, addyosmani/agent-skills, pm-skills. Note the scale — superpowers at 220k+ stars, agent-skills at 50k+, and pm-skills literally a "skills marketplace": skills are no longer scattered scripts but a category with methodology and a market.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>应用 / 垂直 AI (2/10)</strong>:MoneyPrinterTurbo(AI 一键短视频)、openmed(开源医疗 AI)——AI 正从「通用 agent」继续向具体行业落地。</span><span lang="en" class="i18n-en"><strong>Applied / vertical AI (2/10)</strong>: MoneyPrinterTurbo (one-click AI short video), openmed (open healthcare AI) — AI keeps landing in concrete verticals beyond general agents.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>基建 / 工具 (2/10)</strong>:apple/container(Apple 官方,Mac 上跑 Linux 容器)、tolaria(Markdown 知识库桌面端)。大厂官方下场做开发者基建是今天的强信号。</span><span lang="en" class="i18n-en"><strong>Infra / tools (2/10)</strong>: apple/container (Apple official, Linux containers on Mac), tolaria (markdown knowledge-base desktop app). An incumbent shipping developer infra is a strong signal today.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>感知 (2/10)</strong>:supervision(经典 CV 工具库)、RuView(用 WiFi 信号做无摄像头感知)。提醒我们 LLM 之外,「让机器看见世界」的感知层仍在快速演进。</span><span lang="en" class="i18n-en"><strong>Perception (2/10)</strong>: supervision (classic CV toolkit), RuView (camera-less sensing from WiFi signals). A reminder that beyond LLMs, the perception layer that lets machines "see the world" is still evolving fast.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能 → 技能「方法论 + 市场」</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills → skill "methodology + marketplace"</span></h4>
+
+            <figure class="fig">
+              <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub 顶流主角的迁移(小球沿时间轴滑动)</span><span lang="en" class="i18n-en">Animated · how GitHub's protagonists migrated (a marker glides along the axis)</span></div>
+              <div class="gt-timeline">
+                <div class="gt-axis"></div>
+                <div class="gt-runner"></div>
+                <div class="gt-stops">
+                  <div class="gt-stop"><span class="dot"></span><span class="yr">2022–23</span><span class="lab"><span lang="zh-CN" class="i18n-zh">模型/框架<br/>Auto-GPT · LangChain · llama.cpp</span><span lang="en" class="i18n-en">models/frameworks<br/>Auto-GPT · LangChain · llama.cpp</span></span></div>
+                  <div class="gt-stop"><span class="dot"></span><span class="yr">2024–25</span><span class="lab"><span lang="zh-CN" class="i18n-zh">编码 agent/应用<br/>goose · 应用化工具</span><span lang="en" class="i18n-en">coding agents/apps<br/>goose · productized tools</span></span></div>
+                  <div class="gt-stop"><span class="dot"></span><span class="yr">2025H2</span><span class="lab"><span lang="zh-CN" class="i18n-zh">可插拔技能<br/>*-skill 包</span><span lang="en" class="i18n-en">pluggable skills<br/>*-skill packs</span></span></div>
+                  <div class="gt-stop"><span class="dot"></span><span class="yr">2026</span><span class="lab"><span lang="zh-CN" class="i18n-zh">技能方法论+市场<br/>superpowers · pm-skills</span><span lang="en" class="i18n-en">skill methodology+market<br/>superpowers · pm-skills</span></span></div>
+                </div>
+              </div>
+              <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 · 分发单元越来越细、越来越「产品化」:从模型权重,到框架,到应用,到可插拔技能,再到今天的「技能方法论 + 市场」。</span><span lang="en" class="i18n-en">Fig · the unit of distribution keeps getting finer and more "productized": from model weights to frameworks to apps to pluggable skills, and now to "skill methodology + marketplace."</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">回看主角变迁:2022-11 ChatGPT 引爆后,2023-03 的 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> 是第一个病毒式「autonomous agent」,数周冲到十万星;随后是 prompt 合集、<a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex 编排框架,以及 <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>、Ollama 的本地推理浪潮。2024–2025 编码 agent 与应用化工具接棒;2025 下半年分发单元细化为可插拔的 <strong>agent 技能</strong>(<code>*-skill</code>)。今天的榜单把这条线再推进一步:技能开始拥有<strong>方法论</strong>(superpowers 22 万+ star 的「框架 + 开发方法」)与<strong>市场</strong>(pm-skills 的 100+ 技能集市)。</span>
+              <span lang="en" class="i18n-en">Recapping the protagonists: after ChatGPT (2022-11), <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> (2023-03) was the first viral "autonomous agent," hitting 100k stars in weeks; then prompt collections, orchestration frameworks like <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex, and the local-inference wave of <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> and Ollama. Through 2024–2025 coding agents and productized tools took over; in late 2025 the unit of distribution narrowed to pluggable <strong>agent skills</strong> (<code>*-skill</code>). Today's board pushes that line one step further: skills now have a <strong>methodology</strong> (superpowers, a 220k+ star "framework + dev method") and a <strong>marketplace</strong> (pm-skills, a 100+ skill bazaar).</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:技能化的「三件套」——方法论 × 市场 × 大厂基建</span><span lang="en" class="i18n-en">Present: the skills triad — methodology × marketplace × incumbent infra</span></h4>
+
+            <figure class="fig">
+              <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 「技能 = 分发单元」:agent 核心脉冲,技能芯片环绕浮动</span><span lang="en" class="i18n-en">Animated · "skills = the unit of distribution": a pulsing agent core, skill chips floating around it</span></div>
+              <div class="gt-orbit">
+                <span class="gt-chip c1">superpowers</span>
+                <span class="gt-chip c2">pm-skills</span>
+                <span class="gt-chip c3">agent-skills</span>
+                <span class="gt-chip c4">last30days</span>
+                <span class="gt-core"><span lang="zh-CN" class="i18n-zh">AI&nbsp;Agent<br/>核心</span><span lang="en" class="i18n-en">AI&nbsp;Agent<br/>core</span></span>
+              </div>
+              <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 · 能力不再以「再造一个大框架」交付,而是以可挂载、可组合、可买卖的「技能」环绕 agent 核心。</span><span lang="en" class="i18n-en">Fig · capability is no longer shipped as "yet another big framework," but as mountable, composable, tradeable "skills" orbiting the agent core.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天的榜单给出三条强证据:(1) <strong>技能有了方法论与规模</strong>——superpowers(22 万+ star)把「技能 + 软件开发方法论」一起打包,addyosmani/agent-skills(5 万+)主打「生产级工程技能」,说明技能正在从玩具走向工程实践;(2) <strong>技能有了市场</strong>——pm-skills 直接做成「100+ 技能 / 命令 / 插件」的集市,加上榜单边缘的 <a href="https://github.com/google/skills" target="_blank" rel="noopener">google/skills</a>、claude-howto,技能的「发现—分发」环节正在成形;(3) <strong>大厂在补基建</strong>——<a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a>(官方,用轻量 VM 在 Mac 上跑 Linux 容器)上榜,提示「让 agent 可靠地跑起来」的底层容器 / 沙箱基建被重新重视。与此同时,<strong>应用 AI</strong>(MoneyPrinterTurbo 一键短视频、openmed 医疗)与<strong>感知</strong>(supervision 的 CV、RuView 的无摄像头 WiFi 感知)在并行扩张——last30days-skill 连日第一、tolaria 与 supervision 多日在榜,说明这些是真实需求而非一次性刷榜。</span>
+              <span lang="en" class="i18n-en">Today's board offers three strong pieces of evidence: (1) <strong>skills now have methodology and scale</strong> — superpowers (220k+ stars) bundles "skills + a software-development methodology," and addyosmani/agent-skills (50k+) headlines "production-grade engineering skills," showing skills moving from toys to engineering practice; (2) <strong>skills now have a marketplace</strong> — pm-skills is literally a bazaar of "100+ skills/commands/plugins," and with <a href="https://github.com/google/skills" target="_blank" rel="noopener">google/skills</a> and claude-howto just off the board, the discovery→distribution loop for skills is taking shape; (3) <strong>incumbents fill the infra gap</strong> — <a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a> (official, Linux containers on Mac via light VMs) charts, signaling renewed focus on the container/sandbox substrate that lets agents "run reliably." In parallel, <strong>applied AI</strong> (MoneyPrinterTurbo's one-click video, openmed's healthcare) and <strong>perception</strong> (supervision's CV, RuView's camera-less WiFi sensing) keep expanding — last30days-skill is No. 1 on consecutive days, and tolaria &amp; supervision chart over multiple days, evidence of real demand rather than one-off spikes.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:技能市场标准化 + agent 运行时基建 + 垂直/感知扩张</span><span lang="en" class="i18n-en">Future: standardized skill marketplaces + agent runtime infra + vertical/perception expansion</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推:(1) <strong>技能市场走向标准化</strong>——pm-skills 这类「集市」会催生发现、版本化、签名、评分与计费机制,技能像 npm / 应用商店里的依赖一样被消费;(2) <strong>「方法论」成为一个品类</strong>——superpowers 证明开发者不只要工具,更要「怎么用 agent 做事」的方法论,未来会有更多「agentic 开发范式」仓库登顶;(3) <strong>agent 运行时基建被补齐</strong>——apple/container 提示容器 / 沙箱 / 隔离会成为 agent 可靠执行的底座,与 MCP(工具)、AG-UI(前端)等协议层互补;(4) <strong>垂直化与感知并行</strong>——openmed(医疗)、MoneyPrinterTurbo(内容)、RuView(无摄像头感知)说明 agent 之外的应用与「让机器看见世界」仍是高增长支线。可证伪预测:未来两周 trending 上,带「方法论 / 市场」属性的 <code>skills</code> 仓库与大厂官方基建仓库会维持高占比,纯 prompt 合集继续退场。</span>
+              <span lang="en" class="i18n-en">Extrapolating from today's signals: (1) <strong>skill marketplaces standardize</strong> — bazaars like pm-skills will grow discovery, versioning, signing, ratings and billing, so skills get consumed like dependencies in npm / an app store; (2) <strong>"methodology" becomes a category</strong> — superpowers shows developers want not just tools but a method for "how to get things done with agents," so expect more "agentic dev-paradigm" repos to top the charts; (3) <strong>agent runtime infra fills in</strong> — apple/container hints that containers/sandboxes/isolation will become the substrate for reliable agent execution, complementing protocol layers like MCP (tools) and AG-UI (frontend); (4) <strong>verticalization and perception run in parallel</strong> — openmed (healthcare), MoneyPrinterTurbo (content) and RuView (camera-less sensing) show that applications beyond agents and "letting machines see the world" remain high-growth side-threads. Falsifiable prediction: over the next two weeks, <code>skills</code> repos with "methodology / marketplace" traits and official incumbent-infra repos stay a large share of trending, while pure prompt-collections keep fading.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(Today)+ GitHub REST API 校验总 star 数,抓取于 2026-06-11(UTC)。当日 ★ = GitHub Trending「stars today」。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (Today) + GitHub REST API (totals verified), captured 2026-06-11 (UTC). ★ today = GitHub Trending "stars today."</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-09 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-09 — Top 10 of the day</span></h2>
 
