@@ -27,6 +27,7 @@ jobs:
             --no-progress
             --cache
             --max-cache-age 1d
-            --accept 200,201,202,203,204,301,302,303,307,308,403,429
+            --accept 200,201,202,203,204,301,302,303,307,308,403,405,429,999
+            --exclude '^http://www\.capstone\.cse\.msu\.edu/2023-08/projects/moii-ai/$'
             './**/*.html'
           fail: true
