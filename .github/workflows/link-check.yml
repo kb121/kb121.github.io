@@ -27,7 +27,6 @@ jobs:
             --no-progress
             --cache
             --max-cache-age 1d
-            --exclude-mail
             --accept 200,201,202,203,204,301,302,303,307,308,403,429
             './**/*.html'
           fail: true
