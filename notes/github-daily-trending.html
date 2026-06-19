@@ -113,12 +113,58 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* --- Time-window radar (5 scanning cards) --- */
+      .ght-windows { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      .ght-win { position: relative; min-height: 108px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--surface-strong); padding: 11px; overflow: hidden; }
+      .ght-win::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 0 30%, color-mix(in srgb, var(--accent-1) 22%, transparent) 42%, transparent 58%); transform: translateX(-120%); animation: ght-scan 5s ease-in-out infinite; animation-delay: var(--d, 0s); }
+      .ght-win b { position: relative; z-index: 1; display: block; font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-2); }
+      .ght-win .wn { position: relative; z-index: 1; display: block; margin-top: 7px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text); }
+      .ght-win .ws { position: relative; z-index: 1; display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.68rem; line-height: 1.4; }
+      @keyframes ght-scan { 0%, 16% { transform: translateX(-120%); } 44%, 60% { transform: translateX(120%); } 100% { transform: translateX(120%); } }
+
+      /* --- Repo image+text cards (图文) --- */
+      .ght-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .ght-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface-strong); display: flex; flex-direction: column; text-decoration: none; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+      .ght-card:hover { transform: translateY(-4px); border-color: var(--accent-2); box-shadow: 0 12px 30px rgba(8, 10, 25, .45); }
+      .ght-card img { width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; display: block; background: #0b1020; border-bottom: 1px solid var(--border); }
+      .ght-card .cc { padding: 11px 13px 13px; }
+      .ght-card .cn { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent-1); word-break: break-word; }
+      .ght-card .cs { display: block; margin-top: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); }
+      .ght-card .cb { display: inline-block; margin-top: 9px; font-family: var(--font-mono); font-size: 0.62rem; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); color: var(--text); }
+
+      /* --- Orbit: the Top-10 circling the agent core --- */
+      .ght-orbit { position: relative; height: 290px; max-width: 540px; margin: 6px auto 0; }
+      .ght-ocore { position: absolute; left: 50%; top: 50%; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; box-shadow: 0 0 40px rgba(168, 85, 247, .5); animation: ght-pulse 2.4s ease-in-out infinite; }
+      .ght-sat { position: absolute; left: 50%; top: 50%; width: 124px; margin: -15px 0 0 -62px; padding: 6px 8px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface-strong); text-align: center; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text); animation: ght-rot 17s linear infinite; transform-origin: 62px 15px; }
+      .ght-sat:nth-child(2) { animation-delay: 0s; }
+      .ght-sat:nth-child(3) { animation-delay: -1.7s; }
+      .ght-sat:nth-child(4) { animation-delay: -3.4s; }
+      .ght-sat:nth-child(5) { animation-delay: -5.1s; }
+      .ght-sat:nth-child(6) { animation-delay: -6.8s; }
+      .ght-sat:nth-child(7) { animation-delay: -8.5s; }
+      .ght-sat:nth-child(8) { animation-delay: -10.2s; }
+      .ght-sat:nth-child(9) { animation-delay: -11.9s; }
+      .ght-sat:nth-child(10) { animation-delay: -13.6s; }
+      .ght-sat:nth-child(11) { animation-delay: -15.3s; }
+      @keyframes ght-rot { 0% { transform: rotate(0deg) translateX(192px) rotate(0deg); } 100% { transform: rotate(360deg) translateX(192px) rotate(-360deg); } }
+
+      @media (max-width: 760px) {
+        .ght-windows, .ght-cards { grid-template-columns: 1fr; }
+        .ght-bar-row { grid-template-columns: 120px 1fr; }
+        .ght-orbit { height: auto; max-width: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .ght-ocore, .ght-sat { position: static; width: auto; height: auto; margin: 0; transform: none !important; animation: none; border-radius: 12px; }
+        .ght-ocore { grid-column: 1 / -1; min-height: 64px; }
+      }
+      @media (min-width: 481px) and (max-width: 760px) { .ght-cards { grid-template-columns: repeat(2, 1fr); } }
+
       @media (prefers-reduced-motion: reduce) {
-        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
+        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val,
+        .ght-win::before, .ght-ocore, .ght-sat { animation: none !important; }
         .ght-bar-fill, .ght-seg { transform: scaleX(1); }
         .ght-stage { opacity: 1; }
         .ght-bar-val { opacity: 1; }
         .ght-pkt-move { display: none; }
+        .ght-win::before { display: none; }
       }
     </style>
   </head>
@@ -160,7 +206,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-12</span>
+            <span>2026-06-19</span>
             <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
@@ -179,6 +225,273 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-19 — 多窗口 Top 5 Stars · 前 10 方向与趋势</span><span lang="en" class="i18n-en">2026-06-19 — Multi-window Top 5 Stars · Top 10 directions &amp; trends</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">这是一期<strong>多窗口特别版</strong>:在每日榜之外,我把统计窗口拉成五档 —— <strong>当天 / 一周 / 一月 / 半年 / 一年</strong>,每档取「前 5 stars」。前三档来自 <a href="https://github.com/trending" target="_blank" rel="noopener">GitHub Trending</a>(按「窗口内新增 ★」排序);半年 / 一年来自 <a href="https://docs.github.com/rest/search" target="_blank" rel="noopener">GitHub Search API</a>(<code>created:&gt;日期 &amp; sort=stars</code>,即「该窗口内创建、按总 ★ 最高」的爆款新仓库)。随后我对「近一年前 10 stars」做方向归类,并给出带证据的趋势分析(历史 / 当下 / 未来)。所有数字为运行时 API/页面快照。</span>
+              <span lang="en" class="i18n-en">A <strong>multi-window special</strong>: beyond the daily board, I widen the lens into five windows — <strong>day / week / month / half-year / year</strong> — taking the "top 5 by stars" in each. The first three come from <a href="https://github.com/trending" target="_blank" rel="noopener">GitHub Trending</a> (ranked by ★ gained in the window); the half-year/year come from the <a href="https://docs.github.com/rest/search" target="_blank" rel="noopener">GitHub Search API</a> (<code>created:&gt;date &amp; sort=stars</code> — the breakout new repos created in that window, by total ★). Then I classify the "past-year Top 10" by direction and give an evidence-based trend analysis (history / present / future). All numbers are runtime API/page snapshots.</span>
+            </p>
+
+            <div class="callout info">
+              <span lang="zh-CN" class="i18n-zh"><strong>读法:</strong>当天看「谁在被疯狂 star」,一周看「持续热度」,一月看「真正的爆款」,半年看「形态迁移」,一年看「范式迁移」。真正的信号不是某个仓库名字,而是 GitHub 顶部正在被<strong>「AI 智能体生态」</strong>整体接管 —— 以及它周围开始长出的记忆、降本、沙箱、安全等配套层。</span>
+              <span lang="en" class="i18n-en"><strong>How to read it:</strong> the day shows "who is being star-rushed," the week shows "sustained heat," the month shows "the real breakouts," the half-year shows "form-factor shifts," the year shows "paradigm shifts." The real signal isn't a single repo name — it's that the very top of GitHub is being taken over by the <strong>AI-agent ecosystem</strong>, and by the memory / cost / sandbox / security layers now growing around it.</span>
+            </div>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 五个统计窗口(雷达扫描)</span><span lang="en" class="i18n-en">Animated · the five time windows (radar scan)</span></div>
+              <div class="ght-windows" aria-hidden="true">
+                <div class="ght-win" style="--d:0s"><b><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">Day</span></b><span class="wn">codebase-memory-mcp</span><span class="ws"><span lang="zh-CN" class="i18n-zh">agent 记忆/代码图谱抢占当日榜首</span><span lang="en" class="i18n-en">agent memory / code-graph tops the day</span></span></div>
+                <div class="ght-win" style="--d:.2s"><b><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">Week</span></b><span class="wn">headroom</span><span class="ws"><span lang="zh-CN" class="i18n-zh">token 降本 + 技能仓库持续刷榜</span><span lang="en" class="i18n-en">token-cutting + skills keep charting</span></span></div>
+                <div class="ght-win" style="--d:.4s"><b><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">Month</span></b><span class="wn">Understand-Anything</span><span class="ws"><span lang="zh-CN" class="i18n-zh">代码知识图谱成最大爆款</span><span lang="en" class="i18n-en">code knowledge-graphs break out</span></span></div>
+                <div class="ght-win" style="--d:.6s"><b><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">½ yr</span></b><span class="wn">ECC / claw-code</span><span class="ws"><span lang="zh-CN" class="i18n-zh">agent harness / 自维护项目</span><span lang="en" class="i18n-en">agent harness / self-maintaining</span></span></div>
+                <div class="ght-win" style="--d:.8s"><b><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">Year</span></b><span class="wn">openclaw / superpowers</span><span class="ws"><span lang="zh-CN" class="i18n-zh">智能体生态占满前 10</span><span lang="en" class="i18n-en">agent ecosystem owns the Top 10</span></span></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 五个窗口不是孤立事件:从「当日某仓库被疯狂 star」一直累积到「一年里整个 GitHub 顶部都是智能体」。</span><span lang="en" class="i18n-en">▶ The five windows aren't isolated: from "a repo star-rushed today" all the way up to "the whole top of GitHub is agents over a year."</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五个窗口 · 各取「前 5 Stars」</span><span lang="en" class="i18n-en">Five windows · top 5 stars each</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当天(2026-06-19)· GitHub Trending「stars today」</span><span lang="en" class="i18n-en">Day (2026-06-19) · GitHub Trending "stars today"</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a></td><td>C</td><td>2,322</td><td>7.0k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td>1,429</td><td>232.4k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/Kilo-Org/kilocode" target="_blank" rel="noopener">Kilo-Org/kilocode</a></td><td>TypeScript</td><td>1,345</td><td>22.1k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/google-research/timesfm" target="_blank" rel="noopener">google-research/timesfm</a></td><td>Python</td><td>844</td><td>23.1k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/makeplane/plane" target="_blank" rel="noopener">makeplane/plane</a></td><td>TypeScript</td><td>613</td><td>51.8k</td></tr>
+              </tbody>
+            </table>
+
+            <h4><span lang="zh-CN" class="i18n-zh">近一周 · GitHub Trending「stars this week」</span><span lang="en" class="i18n-en">Past week · GitHub Trending "stars this week"</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">本周 ★</span><span lang="en" class="i18n-en">★ week</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">chopratejas/headroom</a></td><td>Python</td><td>10,159</td><td>34.5k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">addyosmani/agent-skills</a></td><td>Shell</td><td>9,285</td><td>62.9k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org/iptv</a></td><td>TypeScript</td><td>7,899</td><td>125.5k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a></td><td>Python</td><td>7,856</td><td>34.4k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a></td><td>Swift</td><td>7,671</td><td>38.6k</td></tr>
+              </tbody>
+            </table>
+
+            <h4><span lang="zh-CN" class="i18n-zh">近一月 · GitHub Trending「stars this month」</span><span lang="en" class="i18n-en">Past month · GitHub Trending "stars this month"</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">本月 ★</span><span lang="en" class="i18n-en">★ month</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Egonex-AI/Understand-Anything</a></td><td>TypeScript</td><td>48,608</td><td>63.5k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">colbymchenry/codegraph</a></td><td>TypeScript</td><td>47,770</td><td>51.6k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">harry0703/MoneyPrinterTurbo</a></td><td>Python</td><td>32,867</td><td>89.7k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">microsoft/markitdown</a></td><td>Python</td><td>32,454</td><td>155.6k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">chopratejas/headroom</a></td><td>Python</td><td>30,943</td><td>34.5k</td></tr>
+              </tbody>
+            </table>
+
+            <h4><span lang="zh-CN" class="i18n-zh">近半年 · 创建于过去半年、按总 ★(GitHub Search API)</span><span lang="en" class="i18n-en">Past half-year · created in the last 6 months, by total ★ (Search API)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th><th><span lang="zh-CN" class="i18n-zh">创建</span><span lang="en" class="i18n-en">Created</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>JavaScript</td><td>217.8k</td><td>2026-01-18</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>Rust</td><td>194.0k</td><td>2026-03-31</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a></td><td>Markdown</td><td>178.3k</td><td>2026-01-27</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a></td><td>Shell</td><td>135.4k</td><td>2026-02-03</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a></td><td>TypeScript</td><td>111.2k</td><td>2026-03-11</td></tr>
+              </tbody>
+            </table>
+
+            <h4><span lang="zh-CN" class="i18n-zh">近一年 · 创建于过去一年、按总 ★(GitHub Search API)</span><span lang="en" class="i18n-en">Past year · created in the last 12 months, by total ★ (Search API)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th><th><span lang="zh-CN" class="i18n-zh">创建</span><span lang="en" class="i18n-en">Created</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a></td><td>TypeScript</td><td>379.4k</td><td>2025-11-24</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td>232.4k</td><td>2025-10-09</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>JavaScript</td><td>217.8k</td><td>2026-01-18</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a></td><td>Python</td><td>197.0k</td><td>2025-07-22</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>Rust</td><td>194.0k</td><td>2026-03-31</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">codebase-memory-mcp</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#06b6d4"></div><span class="ght-bar-val">2,322</span></div></div>
+                <div class="ght-bar-row"><span class="nm">superpowers</span><div class="ght-bar-track" style="--w:62%"><div class="ght-bar-fill" style="width:61.5%;background:#a855f7"></div><span class="ght-bar-val">1,429</span></div></div>
+                <div class="ght-bar-row"><span class="nm">kilocode</span><div class="ght-bar-track" style="--w:58%"><div class="ght-bar-fill" style="width:57.9%;background:#a855f7"></div><span class="ght-bar-val">1,345</span></div></div>
+                <div class="ght-bar-row"><span class="nm">timesfm</span><div class="ght-bar-track" style="--w:36%"><div class="ght-bar-fill" style="width:36.3%;background:#22c55e"></div><span class="ght-bar-val">844</span></div></div>
+                <div class="ght-bar-row"><span class="nm">plane</span><div class="ght-bar-track" style="--w:26%"><div class="ght-bar-fill" style="width:26.4%;background:#64748b"></div><span class="ght-bar-val">613</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">Agent 记忆/代码图谱</span><span lang="en" class="i18n-en">Agent memory/code-graph</span></span>
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">Agent 技能/平台</span><span lang="en" class="i18n-en">Agent skills/platform</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">基础模型(非 LLM)</span><span lang="en" class="i18n-en">Foundation model (non-LLM)</span></span>
+                <span><i style="background:#64748b"></i><span lang="zh-CN" class="i18n-zh">通用工具</span><span lang="en" class="i18n-en">General tooling</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日榜首 <strong>codebase-memory-mcp</strong> 把代码索引成「持久知识图谱」给 agent 当记忆 —— 前 3 名全部服务于智能体。</span><span lang="en" class="i18n-en">▶ The day's #1 <strong>codebase-memory-mcp</strong> indexes code into a "persistent knowledge graph" as agent memory — the top 3 all serve agents.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">图文介绍 · 仓库画廊</span><span lang="en" class="i18n-en">Illustrated · repo gallery</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">多图 · 跨窗口代表性仓库(GitHub 卡片图)</span><span lang="en" class="i18n-en">Gallery · representative repos across windows (GitHub social cards)</span></div>
+              <div class="ght-cards">
+                <a class="ght-card" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/openclaw/openclaw" alt="openclaw/openclaw" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">openclaw/openclaw</span><span class="cs"><span lang="zh-CN" class="i18n-zh">一年榜第一(379k):跨平台的「个人 AI 助理」,任意系统皆可运行。</span><span lang="en" class="i18n-en">#1 of the year (379k): a cross-platform "personal AI assistant" that runs on any OS.</span></span><span class="cb">★ 379.4k · <span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">year</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/obra/superpowers" alt="obra/superpowers" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">obra/superpowers</span><span class="cs"><span lang="zh-CN" class="i18n-zh">「真正能落地」的 agentic 技能框架 + 软件开发方法论,今日仍在涨。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; dev methodology "that works" — still climbing today.</span></span><span class="cb">★ 232.4k · <span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">skills</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/anthropics/skills" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/anthropics/skills" alt="anthropics/skills" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">anthropics/skills</span><span class="cs"><span lang="zh-CN" class="i18n-zh">Anthropic 官方的 Agent Skills 仓库 —— 「技能化」被模型厂商亲自定义。</span><span lang="en" class="i18n-en">Anthropic's official Agent Skills repo — the skills paradigm defined by the model vendor itself.</span></span><span class="cb">★ 152.5k · <span lang="zh-CN" class="i18n-zh">官方技能</span><span lang="en" class="i18n-en">official skills</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/affaan-m/ECC" alt="affaan-m/ECC" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">affaan-m/ECC</span><span class="cs"><span lang="zh-CN" class="i18n-zh">半年榜第一:为编码 agent 做「性能优化外壳」—— 技能、记忆、安全、研究优先。</span><span lang="en" class="i18n-en">#1 of the half-year: a performance-optimization "harness" for coding agents — skills, memory, security, research-first.</span></span><span class="cb">★ 217.8k · <span lang="zh-CN" class="i18n-zh">harness</span><span lang="en" class="i18n-en">harness</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/DeusData/codebase-memory-mcp" alt="DeusData/codebase-memory-mcp" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">DeusData/codebase-memory-mcp</span><span class="cs"><span lang="zh-CN" class="i18n-zh">当日榜首:高性能代码情报 MCP server,把代码库索引成持久知识图谱。</span><span lang="en" class="i18n-en">#1 today: a high-performance code-intelligence MCP server that indexes a codebase into a persistent knowledge graph.</span></span><span class="cb">★ 7.0k · <span lang="zh-CN" class="i18n-zh">agent 记忆</span><span lang="en" class="i18n-en">agent memory</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/Egonex-AI/Understand-Anything" alt="Egonex-AI/Understand-Anything" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">Egonex-AI/Understand-Anything</span><span class="cs"><span lang="zh-CN" class="i18n-zh">一月最大爆款(+48.6k):把任意代码变成可探索、可提问的交互式知识图谱。</span><span lang="en" class="i18n-en">The month's biggest breakout (+48.6k): turn any code into an interactive, queryable knowledge graph.</span></span><span class="cb">★ 63.5k · <span lang="zh-CN" class="i18n-zh">代码图谱</span><span lang="en" class="i18n-en">code-graph</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/chopratejas/headroom" alt="chopratejas/headroom" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">chopratejas/headroom</span><span class="cs"><span lang="zh-CN" class="i18n-zh">本周第一:在喂给 LLM 之前压缩工具输出/日志/RAG 块,token 砍 60–95%。</span><span lang="en" class="i18n-en">#1 this week: compress tool outputs/logs/RAG chunks before the LLM — 60–95% fewer tokens.</span></span><span class="cb">★ 34.5k · <span lang="zh-CN" class="i18n-zh">token 降本</span><span lang="en" class="i18n-en">token-cut</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/apple/container" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/apple/container" alt="apple/container" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">apple/container</span><span class="cs"><span lang="zh-CN" class="i18n-zh">Apple 官方:在 Mac 上用轻量虚拟机跑 Linux 容器 —— agent 安全执行的沙箱底座。</span><span lang="en" class="i18n-en">Apple's official lightweight-VM Linux containers on Mac — the sandbox substrate for safe agent execution.</span></span><span class="cb">★ 38.6k · <span lang="zh-CN" class="i18n-zh">沙箱</span><span lang="en" class="i18n-en">sandbox</span></span></span>
+                </a>
+                <a class="ght-card" href="https://github.com/Kilo-Org/kilocode" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/1/Kilo-Org/kilocode" alt="Kilo-Org/kilocode" loading="lazy" decoding="async" width="640" height="320" onerror="this.style.display='none'" />
+                  <span class="cc"><span class="cn">Kilo-Org/kilocode</span><span class="cs"><span lang="zh-CN" class="i18n-zh">一体化的 agentic 工程平台:开源编码 agent,集 build/ship/iterate 于一体。</span><span lang="en" class="i18n-en">An all-in-one agentic engineering platform: an open-source coding agent to build, ship, and iterate.</span></span><span class="cb">★ 22.1k · <span lang="zh-CN" class="i18n-zh">agent 平台</span><span lang="en" class="i18n-en">agent platform</span></span></span>
+                </a>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 九个跨窗口代表仓库:除 timesfm(时序基础模型)与 plane(项目管理)外,几乎全部是「智能体本体 + 它的记忆 / 降本 / 沙箱 / 技能」配套层。</span><span lang="en" class="i18n-en">▶ Nine representative repos across windows: apart from timesfm (time-series model) and plane (project mgmt), nearly all are "agents themselves + their memory / cost / sandbox / skills" support layers.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">前 10 Stars 的技术方向(近一年榜)</span><span lang="en" class="i18n-en">Top-10 stars by direction (past-year board)</span></h3>
+
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th><th><span lang="zh-CN" class="i18n-zh">方向</span><span lang="en" class="i18n-en">Direction</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a></td><td>379.4k</td><td><span lang="zh-CN" class="i18n-zh">个人/自治 agent</span><span lang="en" class="i18n-en">Personal/autonomous agent</span></td></tr>
+                <tr><td>2</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>232.4k</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能/方法论</span><span lang="en" class="i18n-en">Agent skills/methodology</span></td></tr>
+                <tr><td>3</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>217.8k</td><td><span lang="zh-CN" class="i18n-zh">Agent harness/运行时</span><span lang="en" class="i18n-en">Agent harness/runtime</span></td></tr>
+                <tr><td>4</td><td><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a></td><td>197.0k</td><td><span lang="zh-CN" class="i18n-zh">个人/自治 agent</span><span lang="en" class="i18n-en">Personal/autonomous agent</span></td></tr>
+                <tr><td>5</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>194.0k</td><td><span lang="zh-CN" class="i18n-zh">自维护 agent 项目</span><span lang="en" class="i18n-en">Self-maintaining agent</span></td></tr>
+                <tr><td>6</td><td><a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a></td><td>178.3k</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></td></tr>
+                <tr><td>7</td><td><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">anthropics/skills</a></td><td>152.5k</td><td><span lang="zh-CN" class="i18n-zh">官方 Agent 技能</span><span lang="en" class="i18n-en">Official agent skills</span></td></tr>
+                <tr><td>8</td><td><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a></td><td>135.4k</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></td></tr>
+                <tr><td>9</td><td><a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a></td><td>114.4k</td><td><span lang="zh-CN" class="i18n-zh">多 agent / 团队</span><span lang="en" class="i18n-en">Multi-agent / team</span></td></tr>
+                <tr><td>10</td><td><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">github/spec-kit</a></td><td>113.9k</td><td><span lang="zh-CN" class="i18n-zh">Agent 开发流程(SDD)</span><span lang="en" class="i18n-en">Agent dev workflow (SDD)</span></td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 近一年前 10 方向占比</span><span lang="en" class="i18n-en">Animated · past-year Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:40%;background:#a855f7">4 · <span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">skills</span></div>
+                <div class="ght-seg" style="width:30%;background:#06b6d4;animation-delay:.18s">3 · <span lang="zh-CN" class="i18n-zh">agent</span><span lang="en" class="i18n-en">agents</span></div>
+                <div class="ght-seg" style="width:10%;background:#ec4899;animation-delay:.36s">1</div>
+                <div class="ght-seg" style="width:10%;background:#f59e0b;animation-delay:.54s">1</div>
+                <div class="ght-seg" style="width:10%;background:#22c55e;animation-delay:.72s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ <strong>10/10 全部属于「AI 智能体生态」</strong>:技能/技能包 4、个人/自治 agent 3、harness 1、多 agent 团队 1、spec 驱动开发 1。没有一个例外。</span><span lang="en" class="i18n-en">▶ <strong>10/10 belong to the "AI-agent ecosystem"</strong>: skills/skill-packs 4, personal/autonomous agents 3, harness 1, multi-agent team 1, spec-driven dev 1. Not a single exception.</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 前 10 仓库环绕「Agent 内核」运转</span><span lang="en" class="i18n-en">Animated · the Top 10 orbiting the "agent core"</span></div>
+              <div class="ght-orbit" aria-hidden="true">
+                <span class="ght-ocore"><span lang="zh-CN" class="i18n-zh">AI Agent<br/>生态内核</span><span lang="en" class="i18n-en">AI Agent<br/>ecosystem</span></span>
+                <span class="ght-sat">openclaw</span>
+                <span class="ght-sat">superpowers</span>
+                <span class="ght-sat">ECC</span>
+                <span class="ght-sat">hermes-agent</span>
+                <span class="ght-sat">claw-code</span>
+                <span class="ght-sat">karpathy-skills</span>
+                <span class="ght-sat">anthropics/skills</span>
+                <span class="ght-sat">mattpocock/skills</span>
+                <span class="ght-sat">agency-agents</span>
+                <span class="ght-sat">spec-kit</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 模型权重不再是榜单主角:前 10 仓库全部是「围绕模型转」的 agent 本体、技能、外壳与流程 —— 价值正从模型迁向「如何把模型用好」。</span><span lang="en" class="i18n-en">▶ Model weights are no longer the protagonists: all Top 10 are agents, skills, harnesses, and workflows that "orbit the model" — value is migrating from the model to "how to use the model well."</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 技能 / 技能包 (4/10)</strong>:superpowers、andrej-karpathy-skills、anthropics/skills、mattpocock/skills。从「真人的工作习惯/品味」(Karpathy、mattpocock)到「模型厂官方技能」(anthropics) —— 技能已经分层、且开始由巨头定义。</span><span lang="en" class="i18n-en"><strong>Agent skills / skill packs (4/10)</strong>: superpowers, andrej-karpathy-skills, anthropics/skills, mattpocock/skills — from "a real engineer's habits/taste" (Karpathy, mattpocock) to "the model vendor's official skills" (anthropics); skills are stratified and increasingly defined by incumbents.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>个人 / 自治 agent (3/10)</strong>:openclaw(跨平台个人助理)、hermes-agent(「与你共同成长」)、claw-code(「零人工干预」自维护)。agent 正从「工具」走向「有持续状态、能自我维护」的主体。</span><span lang="en" class="i18n-en"><strong>Personal / autonomous agents (3/10)</strong>: openclaw (cross-platform personal assistant), hermes-agent ("grows with you"), claw-code ("no human intervention" self-maintaining). Agents are shifting from "tools" to stateful, self-maintaining entities.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent harness / 运行时 (1/10)</strong>:ECC —— 给编码 agent 套一层「性能优化外壳」(技能 + 记忆 + 安全 + 研究优先),是「如何把 agent 跑得更好」的工程层。</span><span lang="en" class="i18n-en"><strong>Agent harness / runtime (1/10)</strong>: ECC — a performance-optimization "harness" around coding agents (skills + memory + security + research-first), the engineering layer for "running agents better."</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>多 agent / 团队 (1/10)</strong>:agency-agents —— 一整套有人设、有流程的「AI 代理公司」。</span><span lang="en" class="i18n-en"><strong>Multi-agent / team (1/10)</strong>: agency-agents — a full "AI agency" of agents with personas and processes.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 开发流程 (1/10)</strong>:github/spec-kit —— GitHub 官方的「规格驱动开发(SDD)」工具,把 agent 编码纳入可控的工程流程。</span><span lang="en" class="i18n-en"><strong>Agent dev workflow (1/10)</strong>: github/spec-kit — GitHub's official "Spec-Driven Development" toolkit, putting agent coding into a controllable engineering process.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能 → 整个智能体生态</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills → the whole agent ecosystem</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub 顶部主角的五次迁移</span><span lang="en" class="i18n-en">Animated · five shifts of who tops GitHub</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">框架 / 本地推理</span><span lang="en" class="i18n-en">Frameworks / local</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 应用</span><span lang="en" class="i18n-en">Coding agents / apps</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2025 H2</div><div class="lb"><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">智能体生态独占</span><span lang="en" class="i18n-en">Agent ecosystem owns it</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 价值从「一整个模型权重」一路下沉,到框架、应用、技能,直到今天整个 GitHub 顶部都是「围绕模型转」的智能体生态。</span><span lang="en" class="i18n-en">▶ Value keeps sinking from "whole model weights" down to frameworks, apps, skills — until today the entire top of GitHub is an agent ecosystem that "orbits the model."</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">把时间拉长看:2022-11 ChatGPT 引爆,2023-03 的 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> 是第一个病毒式「自治 agent」,数周冲到十万星;随后是 <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a>/LlamaIndex 编排框架与 <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>/Ollama 本地推理(主角是「模型权重 + 框架」);2024–2025 编码 agent 与应用化工具接棒;2025 下半年起,分发单元缩成可插拔的 <strong>agent 技能</strong> —— 证据是 <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">anthropics/skills</a>(创建于 2025-09)与 <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a>(2025-10)接连出现。到 2026,这条弧线走到了极致:<strong>近一年总 star 前 10 全部是智能体生态</strong>(openclaw 379k 创建于 2025-11、ECC 218k 创建于 2026-01),模型权重本身已不在榜单顶部。</span>
+              <span lang="en" class="i18n-en">Zooming out: after ChatGPT (2022-11), <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> (2023-03) was the first viral "autonomous agent," hitting 100k stars in weeks; then came orchestration frameworks like <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a>/LlamaIndex and local inference from <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>/Ollama ("model weights + frameworks"). Through 2024–2025 coding agents and productized tools took over; from late 2025 the unit narrowed to pluggable <strong>agent skills</strong> — evidenced by <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">anthropics/skills</a> (created 2025-09) and <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a> (2025-10). By 2026 the arc peaks: the <strong>past-year Top 10 by total stars are all agent-ecosystem</strong> (openclaw 379k created 2025-11, ECC 218k created 2026-01), and model weights themselves are no longer at the very top.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:智能体周围长出「配套供应链」—— 记忆 / 降本 / 沙箱 / 安全</span><span lang="en" class="i18n-en">Present: a "supply chain" grows around agents — memory / cost / sandbox / security</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 一个任务流经智能体配套层</span><span lang="en" class="i18n-en">Animated · a task flowing through the agent support layers</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="agent support supply chain">
+                <rect class="ght-box hot" x="2" y="44" width="108" height="46" rx="9" /><text class="ght-stxt" x="56" y="64" text-anchor="middle">Code memory</text><text class="ght-ssub" x="56" y="79" text-anchor="middle">Understand-Anything</text>
+                <rect class="ght-box" x="125" y="44" width="108" height="46" rx="9" /><text class="ght-stxt" x="179" y="64" text-anchor="middle">Token cut</text><text class="ght-ssub" x="179" y="79" text-anchor="middle">headroom / rtk</text>
+                <rect class="ght-box" x="248" y="44" width="108" height="46" rx="9" /><text class="ght-stxt" x="302" y="64" text-anchor="middle">Sandbox</text><text class="ght-ssub" x="302" y="79" text-anchor="middle">apple/container</text>
+                <rect class="ght-box" x="371" y="44" width="108" height="46" rx="9" /><text class="ght-stxt" x="425" y="64" text-anchor="middle">Skill scan</text><text class="ght-ssub" x="425" y="79" text-anchor="middle">SkillSpector</text>
+                <rect class="ght-box hot" x="494" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="546" y="64" text-anchor="middle">Agent</text><text class="ght-ssub" x="546" y="79" text-anchor="middle">openclaw / ECC</text>
+                <line class="ght-flow" x1="110" y1="67" x2="125" y2="67" stroke="#06b6d4" />
+                <line class="ght-flow" x1="233" y1="67" x2="248" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="356" y1="67" x2="371" y2="67" stroke="#ec4899" />
+                <line class="ght-flow" x1="479" y1="67" x2="494" y2="67" stroke="#f59e0b" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#f59e0b">task</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 任务流:把代码喂成「记忆/图谱」→ 压缩 token → 沙箱执行 → 技能安全扫描 → 交给 agent。这四块今天都同时出现在各窗口榜上(证据见下)。</span><span lang="en" class="i18n-en">▶ Task flow: feed code into "memory/graph" → compress tokens → run in a sandbox → scan skills for security → hand to the agent. All four appear across today's windows (evidence below).</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">当下最强的信号:不是「又一个 agent」,而是<strong>智能体周围正在长出完整的配套供应链</strong>,四条直接证据都在本期各窗口榜上:(1) <strong>记忆 / 代码图谱</strong> —— 一月最大两个爆款 <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a>(+48.6k)与 <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a>(+47.7k),叠加当日榜首 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>,都在把代码库索引成「持久知识图谱」给 agent 当长期记忆;(2) <strong>token 降本</strong> —— 本周第一 <a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a>(60–95% fewer tokens)、半年榜的 <a href="https://github.com/rtk-ai/rtk" target="_blank" rel="noopener">rtk</a>(降 60–90%)与 caveman(砍 65%),把「上下文成本」做成独立中间件;(3) <strong>沙箱 / 隔离</strong> —— 本周 <a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a>(+7.7k)提供轻量 VM 隔离,正是 agent 安全跑别人代码/技能的执行底座;(4) <strong>技能安全</strong> —— <a href="https://github.com/NVIDIA/SkillSpector" target="_blank" rel="noopener">NVIDIA/SkillSpector</a>(本周 +5.5k)专门扫描 agent 技能里的漏洞与恶意模式。与此同时,非 agent 的稳态需求仍在(<a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv</a> 125k、<a href="https://github.com/google-research/timesfm" target="_blank" rel="noopener">timesfm</a> 时序基础模型、<a href="https://github.com/makeplane/plane" target="_blank" rel="noopener">plane</a> 项目管理),提示「世界不止 LLM」。</span>
+              <span lang="en" class="i18n-en">The strongest present-day signal isn't "yet another agent" — it's that a <strong>full support supply chain is growing around agents</strong>, with four pieces of evidence all on this issue's boards: (1) <strong>memory / code graphs</strong> — the month's two biggest breakouts <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a> (+48.6k) and <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a> (+47.7k), plus the day's #1 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>, all index a codebase into a "persistent knowledge graph" as long-term agent memory; (2) <strong>token cost-cutting</strong> — the week's #1 <a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a> (60–95% fewer tokens), plus half-year repos <a href="https://github.com/rtk-ai/rtk" target="_blank" rel="noopener">rtk</a> (60–90% off) and caveman (−65%), turning "context cost" into standalone middleware; (3) <strong>sandbox / isolation</strong> — this week's <a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a> (+7.7k) provides lightweight VM isolation, exactly the substrate agents need to safely run others' code/skills; (4) <strong>skill security</strong> — <a href="https://github.com/NVIDIA/SkillSpector" target="_blank" rel="noopener">NVIDIA/SkillSpector</a> (+5.5k this week) scans agent skills for vulnerabilities and malicious patterns. Meanwhile non-agent steady demand persists (<a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv</a> 125k, <a href="https://github.com/google-research/timesfm" target="_blank" rel="noopener">timesfm</a> time-series model, <a href="https://github.com/makeplane/plane" target="_blank" rel="noopener">plane</a> PM) — a reminder the world isn't only LLMs.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:技能即依赖、记忆成层、agent 自我维护</span><span lang="en" class="i18n-en">Future: skills as dependencies, memory as a layer, self-maintaining agents</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从本期信号外推,给出可证伪的预测:(1) <strong>「agent 记忆」独立成层</strong> —— 代码知识图谱(Understand-Anything / codegraph / codebase-memory-mcp)会像向量库一样成为 agent 标配,通过 MCP 暴露;可证伪:未来两周月榜里仍有 ≥2 个「代码图谱 / agent 记忆」类仓库。(2) <strong>token 降本成为默认中间件</strong> —— headroom / rtk / caveman 这类「省 token 代理」会被内置进 agent 框架,降本从「卖点」变「基线」。(3) <strong>技能即依赖</strong> —— 在 anthropics/skills、mattpocock/skills 之后,技能会被版本化、签名、审计,SkillSpector 式扫描像 npm audit 一样成为标配,技能供应链投毒成为新安全议题。(4) <strong>沙箱默认化</strong> —— apple/container 式轻量隔离下沉为「跑不可信技能」的默认运行时。(5) <strong>自我维护 agent 增多</strong> —— claw-code 的「零人工干预」与 openclaw 预示更多「由 agent 构建并维护」的项目。可证伪总判断:未来两周,各窗口榜上「智能体生态」(本体 + 记忆/降本/沙箱/安全配套)占比维持在 ≥ 70%,而纯 prompt 合集继续退场。</span>
+              <span lang="en" class="i18n-en">Extrapolating, with falsifiable predictions: (1) <strong>"agent memory" becomes its own layer</strong> — code knowledge graphs (Understand-Anything / codegraph / codebase-memory-mcp) become standard like vector DBs, exposed via MCP; falsifiable: over the next two weeks the monthly board still holds ≥2 "code-graph / agent-memory" repos. (2) <strong>token cost-cutting becomes default middleware</strong> — "token-saving proxies" like headroom / rtk / caveman get baked into agent frameworks, turning cost reduction from a selling point into a baseline. (3) <strong>skills as dependencies</strong> — after anthropics/skills and mattpocock/skills, skills get versioned, signed, audited; SkillSpector-style scanning becomes standard like npm audit, and skill supply-chain poisoning becomes a new security topic. (4) <strong>sandbox by default</strong> — apple/container-style lightweight isolation sinks into the default runtime for "running untrusted skills." (5) <strong>more self-maintaining agents</strong> — claw-code's "no human intervention" and openclaw foreshadow more "built and maintained by agents" projects. Overall falsifiable call: over the next two weeks, the "agent ecosystem" (agents + memory/cost/sandbox/security support) stays ≥ 70% of each window's board, while pure prompt-collections keep fading.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(当天/一周/一月,按窗口内新增 ★)+ GitHub Search API(半年/一年,<code>created:&gt;日期 &amp; sort=stars</code>,跨多次查询取并集去抖),抓取于 2026-06-19(UTC)。仓库卡片图来自 GitHub OpenGraph。半年/一年榜衡量「该窗口内创建的爆款新仓库」,不含更早创建的长青项目。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (day/week/month, by ★ gained in window) + GitHub Search API (half-year/year, <code>created:&gt;date &amp; sort=stars</code>, merged across several queries to de-noise), captured 2026-06-19 (UTC). Repo cards via GitHub OpenGraph. The half-year/year boards measure "breakout new repos created within the window," not evergreen projects created earlier.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 
