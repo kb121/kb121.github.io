@@ -57,10 +57,10 @@ window.NOTES = [
       en: "GitHub Daily Top 10 Stars & Tech Trends",
     },
     summary: {
-      zh: "每日滚动记录 GitHub 当日新增 stars 前十仓库,一句话介绍,并分析技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A daily-rolling log of the top 10 repos by stars gained that day, with one-line intros and a trend analysis (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一个月/半年/一年的 Top 5 仓库,真实社交卡片图文介绍当日 Top 10,并用多组动图分析技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
+      en: "A rolling log of GitHub's Top 5 repos across day/week/month/half-year/year windows, an illustrated daily Top 10 (real social cards), and animated trend analysis (history/present/future, with evidence). History preserved.",
     },
-    date: "2026-06-12",
+    date: "2026-06-21",
     tags: ["GitHub", "Trending", "Agent Skills", "Trend Analysis"],
   },
   {
