@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      // Early language resolution (keep this — prevents a flash of the wrong language).
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="AI Infra 与大模型趋势雷达 2026-06-23 — 庄宏" data-en="AI Infra &amp; LLM Trend Radar 2026-06-23 — Hong Zhuang">AI Infra 与大模型趋势雷达 2026-06-23 — 庄宏</title>
+    <meta name="description" content="AI Infra 与大模型热点统计:当天、一周、1个月、半年、一年窗口,Top 10 信息源,以及带证据的历史、当下、未来技术趋势分析。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ===== Scoped animated diagrams for the AI infra radar note (动图) ===== */
+      .air23-fig { margin: 1.7em 0; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); overflow: hidden; }
+      .air23-title { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-1); margin-bottom: 14px; }
+      .air23-cap { display: block; margin-top: 12px; color: var(--text-dim); font-size: 0.84rem; line-height: 1.55; text-align: center; }
+      .air23-note { color: var(--text-muted); font-size: 0.92rem; }
+
+      .air23-window-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+      .air23-window { position: relative; min-height: 128px; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--surface-strong); padding: 12px; overflow: hidden; }
+      .air23-window::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 0 25%, color-mix(in srgb, var(--accent-1) 24%, transparent) 39%, transparent 56%); transform: translateX(-120%); animation: air23-scan 4.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+      .air23-window b { position: relative; z-index: 1; display: block; font-family: var(--font-display); font-size: 1.05rem; }
+      .air23-window span { position: relative; z-index: 1; display: block; margin-top: 6px; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
+      @keyframes air23-scan { 0%, 18% { transform: translateX(-120%); } 42%, 60% { transform: translateX(120%); } 100% { transform: translateX(120%); } }
+
+      .air23-bars { display: flex; flex-direction: column; gap: 8px; }
+      .air23-row { display: grid; grid-template-columns: minmax(126px, 190px) 1fr 70px; gap: 10px; align-items: center; }
+      .air23-row .nm { font-family: var(--font-mono); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .air23-track { height: 18px; border-radius: 999px; background: color-mix(in srgb, var(--surface-strong) 84%, transparent); overflow: hidden; border: 1px solid var(--border); }
+      .air23-fill { height: 100%; border-radius: 999px; transform-origin: left center; transform: scaleX(0); animation: air23-grow 1.2s cubic-bezier(.2,.75,.2,1) forwards; animation-delay: var(--d, 0s); background: var(--c, var(--accent-1)); }
+      .air23-val { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-align: right; opacity: 0; animation: air23-fade .5s ease forwards; animation-delay: calc(var(--d, 0s) + .8s); }
+      @keyframes air23-grow { to { transform: scaleX(1); } }
+      @keyframes air23-fade { to { opacity: 1; } }
+
+      .air23-stack { display: grid; grid-template-columns: repeat(6, 1fr); align-items: stretch; gap: 8px; position: relative; }
+      .air23-layer { min-height: 104px; border: 1px solid var(--border-strong); border-radius: 14px; padding: 12px 10px; background: var(--surface-strong); position: relative; }
+      .air23-layer .h { display: block; font-weight: 600; font-family: var(--font-display); font-size: 0.88rem; }
+      .air23-layer .s { display: block; color: var(--text-muted); font-size: 0.72rem; margin-top: 4px; line-height: 1.38; }
+      .air23-pulse { position: absolute; top: 50%; left: 0; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 18px rgba(245, 158, 11, .8); animation: air23-token 5.6s ease-in-out infinite; z-index: 2; }
+      @keyframes air23-token { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(min(730px, calc(100vw - 96px))); opacity: 0; } }
+
+      .air23-route { position: relative; display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 14px; align-items: center; min-height: 212px; }
+      .air23-route-card { border: 1px solid var(--border-strong); border-radius: 16px; padding: 14px; min-height: 120px; background: var(--surface-strong); }
+      .air23-route-card strong { display: block; font-family: var(--font-display); }
+      .air23-route-card span { display: block; margin-top: 6px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+      .air23-router { position: relative; min-height: 172px; border-radius: 999px; border: 1px dashed var(--accent-2); display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-display); font-weight: 700; color: var(--accent-2); background: radial-gradient(circle, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 64%); }
+      .air23-router::before, .air23-router::after { content: ""; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 16px rgba(6, 182, 212, .8); animation: air23-hop 3.2s ease-in-out infinite; }
+      .air23-router::after { background: #a855f7; animation-delay: -1.6s; }
+      @keyframes air23-hop { 0%, 100% { transform: rotate(0deg) translateX(76px); } 50% { transform: rotate(180deg) translateX(76px); } }
+
+      .air23-timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+      .air23-era { border: 1px dashed var(--border); border-radius: 14px; padding: 12px 8px; min-height: 112px; opacity: .52; animation: air23-era 12s ease-in-out infinite; animation-delay: var(--d, 0s); background: color-mix(in srgb, var(--surface-strong) 70%, transparent); }
+      .air23-era .yr { font-family: var(--font-mono); font-size: .68rem; color: var(--accent-2); }
+      .air23-era .lb { display: block; margin-top: 5px; font-weight: 600; font-size: .84rem; }
+      .air23-era .ds { display: block; margin-top: 4px; color: var(--text-muted); font-size: .72rem; line-height: 1.38; }
+      @keyframes air23-era { 0%, 10% { opacity: .52; transform: translateY(0); border-style: dashed; } 18%, 30% { opacity: 1; transform: translateY(-4px); border-style: solid; border-color: var(--accent-2); } 40%, 100% { opacity: .52; transform: translateY(0); border-style: dashed; } }
+
+      .air23-orbit { position: relative; height: 290px; max-width: 640px; margin: 0 auto; }
+      .air23-core { position: absolute; left: 50%; top: 50%; width: 146px; height: 146px; margin-left: -73px; margin-top: -73px; border-radius: 50%; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; font-family: var(--font-display); font-weight: 700; box-shadow: 0 0 42px rgba(168, 85, 247, .48); animation: air23-core 2.4s ease-in-out infinite; }
+      .air23-sat { position: absolute; left: 50%; top: 50%; width: 124px; margin-left: -62px; margin-top: -17px; padding: 6px 8px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface-strong); text-align: center; font-family: var(--font-mono); font-size: .66rem; animation: air23-orbit 10s linear infinite; transform-origin: 62px 17px; }
+      .air23-sat:nth-child(2) { animation-delay: 0s; }
+      .air23-sat:nth-child(3) { animation-delay: -1.66s; }
+      .air23-sat:nth-child(4) { animation-delay: -3.32s; }
+      .air23-sat:nth-child(5) { animation-delay: -4.98s; }
+      .air23-sat:nth-child(6) { animation-delay: -6.64s; }
+      .air23-sat:nth-child(7) { animation-delay: -8.3s; }
+      @keyframes air23-core { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+      @keyframes air23-orbit {
+        0% { transform: rotate(0deg) translateX(224px) rotate(0deg); }
+        100% { transform: rotate(360deg) translateX(224px) rotate(-360deg); }
+      }
+
+      .air23-future { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .air23-card { min-height: 126px; border-radius: 16px; border: 1px solid var(--border-strong); background: linear-gradient(180deg, var(--surface-strong), color-mix(in srgb, var(--surface-strong) 70%, transparent)); padding: 14px; position: relative; overflow: hidden; }
+      .air23-card::after { content: ""; position: absolute; width: 80px; height: 80px; border-radius: 50%; right: -28px; bottom: -28px; background: color-mix(in srgb, var(--accent-1) 18%, transparent); animation: air23-breathe 2.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+      .air23-card strong { position: relative; z-index: 1; display: block; font-family: var(--font-display); }
+      .air23-card span { position: relative; z-index: 1; display: block; margin-top: 6px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+      @keyframes air23-breathe { 0%, 100% { transform: scale(.8); opacity: .52; } 50% { transform: scale(1.25); opacity: .9; } }
+
+      @media (max-width: 760px) {
+        .air23-window-grid, .air23-stack, .air23-timeline, .air23-route, .air23-future { grid-template-columns: 1fr; }
+        .air23-row { grid-template-columns: 116px 1fr 58px; }
+        .air23-pulse { display: none; }
+        .air23-route { min-height: 0; }
+        .air23-router { min-height: 98px; border-radius: 16px; }
+        .air23-orbit { height: auto; display: grid; gap: 8px; }
+        .air23-core, .air23-sat { position: static; width: auto; height: auto; margin: 0; transform: none !important; animation: none; border-radius: 14px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .air23-window::before, .air23-fill, .air23-val, .air23-pulse, .air23-router::before, .air23-router::after, .air23-era, .air23-core, .air23-sat, .air23-card::after { animation: none !important; }
+        .air23-fill { transform: scaleX(1); }
+        .air23-val { opacity: 1; }
+        .air23-era { opacity: 1; }
+        .air23-pulse { display: none; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-06-23</span>
+            <span class="tags"><span>AI Infra</span><span>LLM</span><span>Inference</span><span>Agents</span><span>Trend Analysis</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">AI Infra 与大模型趋势雷达: 2026-06-23</span><span lang="en" class="i18n-en">AI Infra &amp; LLM Trend Radar: 2026-06-23</span></h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            这是一份面向个人站点的 AI Infra / 大模型技术雷达快照,统计时间为 <strong>2026-06-23 22:01 UTC</strong>。证据来自 GitHub API 快照、GitHub release、官方文档/技术博客、论文和公开新闻报道;热度排序综合了<strong>新鲜度、开源活跃度、生产影响、对推理成本与平台容量的影响</strong>。
+          </p>
+
+          <div class="callout info">
+            <strong>总判断:</strong> AI Infra 的主线继续从“把模型跑起来”迁移到“把推理变成可调度、可缓存、可审计、可恢复的生产系统”。6/23 当天最强信号是 KV cache 层和低精推理继续快速发布;一周窗口最强信号是 agent runtime 和本地/边缘 runtime 同步周更;半年到一年窗口则显示 Kubernetes-native inference、disaggregated serving、MCP/agent workflow 正在把推理平台推向新的操作系统层。
+          </div>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated radar · five time windows</div>
+            <div class="air23-window-grid" aria-hidden="true">
+              <div class="air23-window" style="--d:0s"><b>当天</b><span>LMCache 0.5.0、TensorRT-LLM 1.3.0rc19、llama.cpp b9775 当天发布;核心 repo 多数在 6/23 有 push。</span></div>
+              <div class="air23-window" style="--d:.25s"><b>一周</b><span>OpenAI Agents、LangGraph、Ollama、LMCache、TensorRT-LLM、llama.cpp 在 7 天内集中 release。</span></div>
+              <div class="air23-window" style="--d:.5s"><b>1个月</b><span>vLLM/SGLang/LMCache/TRT-LLM/Dynamo/Kueue 连续迭代,推理栈进入周更节奏。</span></div>
+              <div class="air23-window" style="--d:.75s"><b>半年</b><span>llm-d、GAIE、Dynamo、OpenAI sandbox agents、MCP 把 serving、tools、sandbox 纳入平台。</span></div>
+              <div class="air23-window" style="--d:1s"><b>一年</b><span>从单 engine 优化扩展到 agent OS: router、cache、scheduler、sandbox、governance 共同演进。</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 1: 五个观察窗口从“今天发了什么”逐步放大到“一年内系统边界如何迁移”。</figcaption>
+          </figure>
+
+          <h2>1. 时间窗口统计</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>窗口</th>
+                <th>统计到的关键信号</th>
+                <th>证据</th>
+                <th>技术含义</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>当天</td>
+                <td>LMCache 发布 v0.5.0 / v0.5.0-cu129; TensorRT-LLM 发布 v1.3.0rc19; llama.cpp 连续发布 b9773-b9775; vLLM、SGLang、Dynamo、llm-d、Kueue、Ollama、LangGraph 在 6/23 均有 push。</td>
+                <td>GitHub API 快照: Ollama 174,808 stars; llama.cpp 117,841; vLLM 83,653; LangGraph 35,556; SGLang 29,565; OpenAI Agents Python 27,373; TensorRT-LLM 13,944; LMCache 9,709。</td>
+                <td>当天热度集中在两端:底层是 cache/engine/kernel;上层是 agent orchestration。中间层的路由和调度将成为成本控制点。</td>
+              </tr>
+              <tr>
+                <td>一周</td>
+                <td>OpenAI Agents Python v0.17.6 和 JS v0.11.8(6/19)、LangGraph 1.2.6(6/18)、Ollama v0.30.10(6/17)、TensorRT-LLM rc19(6/23)、LMCache 0.5.0(6/23)、llama.cpp b9775(6/23)集中发布。</td>
+                <td><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.6" target="_blank" rel="noopener">OpenAI Agents Python</a>; <a href="https://github.com/openai/openai-agents-js/releases/tag/v0.11.8" target="_blank" rel="noopener">OpenAI Agents JS</a>; <a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.6" target="_blank" rel="noopener">LangGraph</a>; <a href="https://github.com/ollama/ollama/releases/tag/v0.30.10" target="_blank" rel="noopener">Ollama</a>。</td>
+                <td>一周级别显示 agent runtime 和 inference runtime 形成正反馈:agent 执行越长、工具越多,越需要低延迟、可恢复、可路由的推理基础设施。</td>
+              </tr>
+              <tr>
+                <td>1个月</td>
+                <td>vLLM 在 5/29、6/5、6/15 连续发布; SGLang 在 5/16、5/26、6/13 发布; TensorRT-LLM rc17/18/19 连续推进; Kueue 0.18.0/0.18.1 和 Dynamo 1.2.x 继续把 AI workload 带进 Kubernetes 调度层。</td>
+                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">vLLM v0.23.0</a>; <a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.13" target="_blank" rel="noopener">SGLang v0.5.13</a>; <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.3.0rc19" target="_blank" rel="noopener">TensorRT-LLM rc19</a>; <a href="https://github.com/kubernetes-sigs/kueue/releases/tag/v0.18.1" target="_blank" rel="noopener">Kueue v0.18.1</a>。</td>
+                <td>1个月窗口说明推理平台已不是单一模型服务,而是 engine、KV cache、router、scheduler、agent runtime 同时迭代的复合系统。</td>
+              </tr>
+              <tr>
+                <td>半年</td>
+                <td>llm-d v0.5/v0.6/v0.7、Gateway API Inference Extension v1.5.0、OpenAI Agents Sandbox Agents、MCP reference servers 2026.1、Dynamo 1.x 共同把“推理”变成 Kubernetes-native、cache-aware、sandbox-aware 的平台问题。</td>
+                <td><a href="https://github.com/llm-d/llm-d/releases/tag/v0.7.0" target="_blank" rel="noopener">llm-d v0.7.0</a>; <a href="https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/tag/v1.5.0" target="_blank" rel="noopener">GAIE v1.5.0</a>; <a href="https://github.com/openai/openai-agents-python/releases/tag/v0.14.0" target="_blank" rel="noopener">OpenAI Agents v0.14.0</a>; <a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.1.26" target="_blank" rel="noopener">MCP servers 2026.1.26</a>。</td>
+                <td>半年级别的变化不是单点性能,而是控制面成熟:如何隔离 agent、如何路由有状态请求、如何把 KV cache 当成资源调度。</td>
+              </tr>
+              <tr>
+                <td>一年</td>
+                <td>Disaggregated inference 从论文/原型走向 vLLM、SGLang、Dynamo、llm-d 等主流系统;GitHub Agentic Workflows 从 technical preview 到 public preview;MCP/AGENTS.md/sandbox 让 agent toolchain 标准化。</td>
+                <td><a href="https://haoailab.com/blogs/distserve-retro/" target="_blank" rel="noopener">Disaggregated Inference: 18 Months Later</a>; <a href="https://arxiv.org/html/2606.03910" target="_blank" rel="noopener">NetKV</a>; <a href="https://github.blog/changelog/2026-06-11-github-agentic-workflows-is-now-in-public-preview/" target="_blank" rel="noopener">GitHub Agentic Workflows public preview</a>; <a href="https://developers.openai.com/api/docs/guides/agents/sandboxes" target="_blank" rel="noopener">OpenAI Sandbox Agents docs</a>。</td>
+                <td>一年趋势是“agent workload 操作层”成型:模型、工具、代码执行、缓存、审计和部署策略被放到同一个系统边界中优化。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated heat · GitHub star scale</div>
+            <div class="air23-bars" aria-hidden="true">
+              <div class="air23-row"><span class="nm">Ollama</span><span class="air23-track"><span class="air23-fill" style="--d:0s;--c:#22c55e;width:100%"></span></span><span class="air23-val">174.8k</span></div>
+              <div class="air23-row"><span class="nm">llama.cpp</span><span class="air23-track"><span class="air23-fill" style="--d:.1s;--c:#06b6d4;width:67%"></span></span><span class="air23-val">117.8k</span></div>
+              <div class="air23-row"><span class="nm">vLLM</span><span class="air23-track"><span class="air23-fill" style="--d:.2s;--c:#a855f7;width:48%"></span></span><span class="air23-val">83.7k</span></div>
+              <div class="air23-row"><span class="nm">MCP servers</span><span class="air23-track"><span class="air23-fill" style="--d:.3s;--c:#f97316;width:50%"></span></span><span class="air23-val">87.6k</span></div>
+              <div class="air23-row"><span class="nm">LangGraph</span><span class="air23-track"><span class="air23-fill" style="--d:.4s;--c:#3b82f6;width:20%"></span></span><span class="air23-val">35.6k</span></div>
+              <div class="air23-row"><span class="nm">SGLang</span><span class="air23-track"><span class="air23-fill" style="--d:.5s;--c:#ec4899;width:17%"></span></span><span class="air23-val">29.6k</span></div>
+              <div class="air23-row"><span class="nm">OpenAI Agents</span><span class="air23-track"><span class="air23-fill" style="--d:.6s;--c:#14b8a6;width:16%"></span></span><span class="air23-val">27.4k</span></div>
+              <div class="air23-row"><span class="nm">TensorRT-LLM</span><span class="air23-track"><span class="air23-fill" style="--d:.7s;--c:#84cc16;width:8%"></span></span><span class="air23-val">13.9k</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 2: star 规模只能说明社区面,不能代表生产影响;因此 Top 10 同时看 release 新鲜度和系统层位置。</figcaption>
+          </figure>
+
+          <h2>2. 今日热点 Top 10</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>热点</th>
+                <th>来源与证据</th>
+                <th>为什么重要</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>本地/边缘推理继续高热: Ollama + llama.cpp</td>
+                <td><a href="https://github.com/ollama/ollama/releases/tag/v0.30.10" target="_blank" rel="noopener">Ollama v0.30.10</a>; <a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9775" target="_blank" rel="noopener">llama.cpp b9775</a>; API 快照分别为 174,808 / 117,841 stars。</td>
+                <td>本地推理不再只是 demo,而是隐私、端侧、开发者工具链和离线 agent 的运行底座。</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>KV cache 层成为独立基础设施: LMCache 0.5.0</td>
+                <td><a href="https://github.com/LMCache/LMCache/releases/tag/v0.5.0" target="_blank" rel="noopener">LMCache v0.5.0</a>; <a href="https://github.com/LMCache/LMCache/releases/tag/v0.5.0-cu129" target="_blank" rel="noopener">v0.5.0-cu129</a>; 6/23 当天发布。</td>
+                <td>长上下文和 agent 重复前缀让 KV cache 变成可复用资产,cache hit 直接影响 TTFT 和 GPU 成本。</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>TensorRT-LLM 继续推进低精/高性能推理</td>
+                <td><a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.3.0rc19" target="_blank" rel="noopener">TensorRT-LLM v1.3.0rc19</a>; 6/23 发布; API 快照 13,944 stars。</td>
+                <td>Blackwell、NVFP4/FP8、kernel 和 runtime 协同优化会继续压低 token cost,也会推动开源框架吸收厂商优化。</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>vLLM 仍是开源 serving 的事实中心之一</td>
+                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">vLLM v0.23.0</a>; API 快照 83,653 stars, 6/23 当天 push。</td>
+                <td>vLLM 是 llm-d、Dynamo、GAIE、LMCache 等平台层经常对接的 engine,其接口会影响上层生态。</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>SGLang 强化高性能 serving 与多模态/推理 workload</td>
+                <td><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.13" target="_blank" rel="noopener">SGLang v0.5.13</a>; API 快照 29,565 stars, 6/23 当天 push。</td>
+                <td>SGLang 与 vLLM 共同定义开源 engine 竞争格局;平台层必须同时兼容多 engine,避免被单栈锁定。</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>NVIDIA Dynamo 把 inference orchestration 命名为 AI factory OS</td>
+                <td><a href="https://nvidianews.nvidia.com/news/dynamo-1-0" target="_blank" rel="noopener">NVIDIA Dynamo 1.0 newsroom</a>; <a href="https://developer.nvidia.com/dynamo" target="_blank" rel="noopener">Dynamo Developer page</a>; <a href="https://github.com/ai-dynamo/dynamo/releases/tag/v1.2.1" target="_blank" rel="noopener">Dynamo v1.2.1</a>。</td>
+                <td>厂商正在把 routing、KV movement、memory tiering、gang scheduling 封装为控制面,目标是让多节点推理像集群操作系统一样运行。</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>llm-d 将 Kubernetes 变成 state-aware inference plane</td>
+                <td><a href="https://github.com/llm-d/llm-d/releases/tag/v0.7.0" target="_blank" rel="noopener">llm-d v0.7.0</a>; <a href="https://cloud.google.com/blog/products/containers-kubernetes/llm-d-officially-a-cncf-sandbox-project" target="_blank" rel="noopener">Google Cloud: llm-d CNCF Sandbox</a>; API 快照 3,430 stars。</td>
+                <td>普通 L7 负载均衡不懂 KV cache 和 queue depth;llm-d 把这些状态送进路由决策,是 Kubernetes AI 化的关键一步。</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Gateway API Inference Extension + Kueue 补齐平台接口</td>
+                <td><a href="https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/tag/v1.5.0" target="_blank" rel="noopener">GAIE v1.5.0</a>; <a href="https://github.com/kubernetes-sigs/kueue/releases/tag/v0.18.1" target="_blank" rel="noopener">Kueue v0.18.1</a>; <a href="https://docs.cloud.google.com/kubernetes-engine/docs/concepts/about-gke-inference-gateway" target="_blank" rel="noopener">GKE Inference Gateway docs</a>。</td>
+                <td>AI workload 不只需要 pod 调度,还需要请求级 routing、quota、fairness、queueing 和 SLO 反馈回路。</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Agent runtime 周更: OpenAI Agents + LangGraph</td>
+                <td><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.6" target="_blank" rel="noopener">OpenAI Agents Python v0.17.6</a>; <a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.6" target="_blank" rel="noopener">LangGraph 1.2.6</a>; API 快照分别为 27,373 / 35,556 stars。</td>
+                <td>agent runtime 把 session、handoff、tool calling、sandbox、tracing 变成一等对象,会持续放大对推理平台的长上下文和工具调用压力。</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Agentic workflow 与 MCP 标准化开发者操作层</td>
+                <td><a href="https://github.blog/changelog/2026-06-11-github-agentic-workflows-is-now-in-public-preview/" target="_blank" rel="noopener">GitHub Agentic Workflows public preview</a>; <a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.1.26" target="_blank" rel="noopener">MCP servers 2026.1.26</a>; MCP servers API 快照 87,607 stars。</td>
+                <td>AI Infra 的 workload 从“用户 prompt”扩展到“仓库任务、CI、审计、代码修改”,需要权限、日志、沙箱和 safe output。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated stack · production inference path</div>
+            <div class="air23-stack" aria-hidden="true">
+              <span class="air23-pulse"></span>
+              <div class="air23-layer"><span class="h">Agent</span><span class="s">sessions, tools, code tasks</span></div>
+              <div class="air23-layer"><span class="h">Gateway</span><span class="s">HTTPRoute, EPP, policy</span></div>
+              <div class="air23-layer"><span class="h">Router</span><span class="s">KV hit, queue, LoRA affinity</span></div>
+              <div class="air23-layer"><span class="h">Cache</span><span class="s">GPU, CPU, SSD, remote tier</span></div>
+              <div class="air23-layer"><span class="h">Engine</span><span class="s">vLLM, SGLang, TRT-LLM</span></div>
+              <div class="air23-layer"><span class="h">Scheduler</span><span class="s">Kueue, Grove, KAI, LWS</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 3: 生产路径从 agent 请求进入,经过 gateway/router/cache/engine/scheduler;任何一层缺失都会把成本转嫁给 GPU。</figcaption>
+          </figure>
+
+          <h2>3. 技术趋势分析: 历史、当下、未来</h2>
+          <h3>3.1 历史: 从 engine 优化到 serving 架构</h3>
+          <p>
+            历史上 AI Infra 的第一阶段重点是让单个模型更快:continuous batching、PagedAttention、CUDA graph、quantization、tensor parallel。第二阶段开始关心服务架构:prefill 和 decode 的资源画像不同,长上下文让 KV cache 成为瓶颈,单纯增加 GPU 不能线性解决 TTFT、tail latency 和成本问题。
+          </p>
+          <ul>
+            <li><strong>证据 1:</strong> <a href="https://arxiv.org/html/2601.08833" target="_blank" rel="noopener">Revisiting Disaggregated Large Language Model Serving</a> 总结了 disaggregated serving 的性能与能耗权衡,说明 prefill/decode 拆分不是简单优化,而是服务架构选择。</li>
+            <li><strong>证据 2:</strong> <a href="https://haoailab.com/blogs/distserve-retro/" target="_blank" rel="noopener">Disaggregated Inference: 18 Months Later</a> 提到 vLLM、SGLang、Dynamo、llm-d 等主流框架已经建设 first-class disaggregated inference 能力。</li>
+            <li><strong>证据 3:</strong> vLLM 和 SGLang 在一个月内多次发布,说明开源 engine 仍在快速吸收生产反馈。</li>
+          </ul>
+
+          <h3>3.2 当下: Router + KV cache + Kubernetes 控制面</h3>
+          <p>
+            当下最明显的变化是“有状态推理”被带进路由层。普通 round-robin 对无状态 HTTP 服务足够,但 LLM replica 持有不同 prefix/KV 状态,路由错误会导致重复 prefill。GKE Inference Gateway、llm-d Endpoint Picker、Gateway API Inference Extension 都在把 KV cache 命中率、queue depth、LoRA affinity 纳入请求级调度。
+          </p>
+          <ul>
+            <li><strong>证据 1:</strong> <a href="https://docs.cloud.google.com/kubernetes-engine/docs/concepts/about-gke-inference-gateway" target="_blank" rel="noopener">GKE Inference Gateway docs</a> 明确说明 llm-d Router/EPP 依据 KV cache utilization、queue length、prefix cache state、LoRA adapter affinity 做 per-request endpoint decisions。</li>
+            <li><strong>证据 2:</strong> <a href="https://cloud.google.com/blog/products/containers-kubernetes/llm-d-officially-a-cncf-sandbox-project" target="_blank" rel="noopener">Google Cloud blog</a> 将 llm-d 放在 Kubernetes AI Infrastructure 语境中,并强调 LWS、wide expert parallelism、prefill/decode 独立扩缩容。</li>
+            <li><strong>证据 3:</strong> 6/23 当天 LMCache 发布 v0.5.0,说明 KV cache 层正在以独立项目速度迭代。</li>
+          </ul>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated routing · state-aware request placement</div>
+            <div class="air23-route" aria-hidden="true">
+              <div class="air23-route-card"><strong>Request</strong><span>prompt prefix, adapter, SLO, user tier</span></div>
+              <div class="air23-router">EPP / Router<br />KV aware<br />load aware</div>
+              <div class="air23-route-card"><strong>Best replica</strong><span>cache hit, lower queue, right LoRA, less TTFT</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 4: 当路由层理解 KV cache 和队列状态,一次请求不再随机落到 replica,而是被放到最便宜的位置。</figcaption>
+          </figure>
+
+          <h3>3.3 未来: Agent OS 与推理成本市场化</h3>
+          <p>
+            未来一年的关键不是“哪个模型 API 更强”,而是“哪个平台能把 agent workload 的不确定性压成可管理的系统变量”。长时运行 agent 会产生代码执行、文件读写、MCP 工具调用、浏览器/CI、持久化 session、失败恢复和审计需求。推理侧则需要把 token、cache、GPU、网络、队列、sandbox 权限都纳入可观测和可调度体系。
+          </p>
+          <ul>
+            <li><strong>趋势 1:</strong> 推理成本会更像实时调度市场:prefill GPU、decode GPU、KV cache tier、network path、batch slot 都需要按 SLO 动态分配。</li>
+            <li><strong>趋势 2:</strong> Agent runtime 会逼迫 infra 提供 durable execution:session resume、workspace snapshot、sandbox isolation、safe output、审计日志会成为生产默认项。</li>
+            <li><strong>趋势 3:</strong> 开源 engine 竞争会从单点吞吐转向“平台可组合性”:vLLM/SGLang/TensorRT-LLM 是否能干净对接 router、cache、scheduler、observability,比单 benchmark 更重要。</li>
+          </ul>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated timeline · system boundary shift</div>
+            <div class="air23-timeline" aria-hidden="true">
+              <div class="air23-era" style="--d:0s"><span class="yr">2023</span><span class="lb">Batching</span><span class="ds">continuous batching, PagedAttention</span></div>
+              <div class="air23-era" style="--d:1s"><span class="yr">2024</span><span class="lb">Serving</span><span class="ds">OpenAI-compatible APIs, quantization</span></div>
+              <div class="air23-era" style="--d:2s"><span class="yr">2025</span><span class="lb">Disaggregate</span><span class="ds">prefill/decode split, KV transfer</span></div>
+              <div class="air23-era" style="--d:3s"><span class="yr">2026H1</span><span class="lb">Platform</span><span class="ds">llm-d, GAIE, Dynamo, Kueue</span></div>
+              <div class="air23-era" style="--d:4s"><span class="yr">2026H2</span><span class="lb">Agent OS</span><span class="ds">sandbox, MCP, safe outputs</span></div>
+              <div class="air23-era" style="--d:5s"><span class="yr">Next</span><span class="lb">Cost Market</span><span class="ds">SLO-driven token/cache/GPU routing</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 5: 系统边界从 engine 内部优化,逐步外移到平台控制面和 agent 操作层。</figcaption>
+          </figure>
+
+          <h2>4. 架构观察: 该怎么落地</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>层</th>
+                <th>今天的代表</th>
+                <th>近期应该关注的指标</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Engine</td>
+                <td>vLLM、SGLang、TensorRT-LLM、llama.cpp、Ollama</td>
+                <td>TTFT、TBT、throughput/GPU、低精精度损失、speculative decoding 命中率。</td>
+              </tr>
+              <tr>
+                <td>Cache</td>
+                <td>LMCache、prefix cache、hierarchical KV offload</td>
+                <td>prefix hit rate、cache transfer latency、GPU/CPU/SSD tier 成本、cache eviction 策略。</td>
+              </tr>
+              <tr>
+                <td>Routing</td>
+                <td>llm-d Router/EPP、GAIE、GKE Inference Gateway、Dynamo router</td>
+                <td>cache-aware routing uplift、tail latency、queue depth、LoRA affinity、multi-tenant fairness。</td>
+              </tr>
+              <tr>
+                <td>Scheduling</td>
+                <td>Kueue、LeaderWorkerSet、Grove、KAI Scheduler</td>
+                <td>gang scheduling 成功率、scale-to-zero 冷启动、quota borrowing、batch/online 混部。</td>
+              </tr>
+              <tr>
+                <td>Agent Runtime</td>
+                <td>OpenAI Agents、LangGraph、GitHub Agentic Workflows、MCP</td>
+                <td>session resume 成功率、tool call latency、sandbox escape 风险、safe output 审计。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <figure class="air23-fig">
+            <div class="air23-title">Animated future · four pressure points</div>
+            <div class="air23-future" aria-hidden="true">
+              <div class="air23-card" style="--d:0s"><strong>Cache as resource</strong><span>KV cache 从 engine 内部状态变成调度资源。</span></div>
+              <div class="air23-card" style="--d:.4s"><strong>Agent safety</strong><span>sandbox、权限、审计、safe outputs 成为默认。</span></div>
+              <div class="air23-card" style="--d:.8s"><strong>K8s AI plane</strong><span>Gateway、queue、gang scheduling 进入标准接口。</span></div>
+              <div class="air23-card" style="--d:1.2s"><strong>Cost-aware SLO</strong><span>以 token 成本和 SLO 反推路由、batch、cache tier。</span></div>
+            </div>
+            <figcaption class="air23-cap">动图 6: 下一阶段的四个压力点:cache、safety、Kubernetes control plane、cost-aware SLO。</figcaption>
+          </figure>
+
+          <h2>5. 证据索引</h2>
+          <ul>
+            <li>GitHub API 快照: 2026-06-23 22:01 UTC,覆盖 vLLM、SGLang、LMCache、TensorRT-LLM、Dynamo、llm-d、GAIE、Kueue、Ollama、llama.cpp、OpenAI Agents、LangGraph、MCP servers 等 repo。</li>
+            <li><a href="https://github.com/LMCache/LMCache/releases/tag/v0.5.0" target="_blank" rel="noopener">LMCache v0.5.0</a>, <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.3.0rc19" target="_blank" rel="noopener">TensorRT-LLM v1.3.0rc19</a>, <a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9775" target="_blank" rel="noopener">llama.cpp b9775</a>。</li>
+            <li><a href="https://nvidianews.nvidia.com/news/dynamo-1-0" target="_blank" rel="noopener">NVIDIA Dynamo 1.0</a>, <a href="https://developer.nvidia.com/dynamo" target="_blank" rel="noopener">Dynamo developer docs</a>, <a href="https://docs.nvidia.com/dynamo/kubernetes-deployment/multinode/multinode-deployments" target="_blank" rel="noopener">Dynamo multinode deployments</a>。</li>
+            <li><a href="https://cloud.google.com/blog/products/containers-kubernetes/llm-d-officially-a-cncf-sandbox-project" target="_blank" rel="noopener">Google Cloud: llm-d CNCF Sandbox</a>, <a href="https://docs.cloud.google.com/kubernetes-engine/docs/concepts/about-gke-inference-gateway" target="_blank" rel="noopener">GKE Inference Gateway docs</a>, <a href="https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/tag/v1.5.0" target="_blank" rel="noopener">Gateway API Inference Extension v1.5.0</a>。</li>
+            <li><a href="https://github.blog/changelog/2026-06-11-github-agentic-workflows-is-now-in-public-preview/" target="_blank" rel="noopener">GitHub Agentic Workflows public preview</a>, <a href="https://developers.openai.com/api/docs/guides/agents/sandboxes" target="_blank" rel="noopener">OpenAI Sandbox Agents docs</a>, <a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.1.26" target="_blank" rel="noopener">MCP servers 2026.1.26</a>。</li>
+            <li><a href="https://arxiv.org/html/2606.03910" target="_blank" rel="noopener">NetKV</a>, <a href="https://arxiv.org/html/2601.08833" target="_blank" rel="noopener">Revisiting Disaggregated LLM Serving</a>, <a href="https://haoailab.com/blogs/distserve-retro/" target="_blank" rel="noopener">Disaggregated Inference: 18 Months Later</a>。</li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>
