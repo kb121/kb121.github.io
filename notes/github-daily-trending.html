@@ -113,6 +113,27 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* --- 图文介绍仓库:GitHub OpenGraph cards (real per-repo images) --- */
+      .ght-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; margin: 14px 0 4px; }
+      a.ght-card { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 13px; overflow: hidden; background: var(--surface); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.2,.7,.2,1), border-color .26s ease, box-shadow .26s ease; }
+      a.ght-card:hover { transform: translateY(-5px); border-color: var(--accent-1); box-shadow: 0 14px 34px rgba(0,0,0,.28); }
+      .ght-card img { width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; display: block; border-bottom: 1px solid var(--border); background: var(--surface-strong); }
+      .ght-card-body { padding: 11px 13px 13px; }
+      .ght-card-rank { font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent-2); letter-spacing: .04em; }
+      .ght-card-name { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); margin: 3px 0 7px; word-break: break-all; }
+      .ght-card-desc { font-size: 0.8rem; line-height: 1.55; color: var(--text-muted); }
+      .ght-card-meta { margin-top: 9px; display: flex; gap: 12px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-muted); }
+      .ght-card-meta b { color: var(--accent-1); font-weight: 600; }
+
+      /* --- Multi-window mini boards (当天 / 一周 / 一月 / 半年 / 一年) --- */
+      .ght-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 13px; margin: 6px 0; }
+      .ght-win { border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px 14px; background: var(--surface); }
+      .ght-win h5 { margin: 0 0 4px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-1); letter-spacing: .02em; }
+      .ght-win .ght-win-sub { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-muted); display: block; margin-bottom: 9px; }
+      .ght-win ol { margin: 0; padding-left: 1.35em; }
+      .ght-win li { font-size: 0.77rem; line-height: 1.7; padding-left: 2px; }
+      .ght-win li .s { font-family: var(--font-mono); font-size: 0.64rem; color: var(--accent-2); }
+
       @media (prefers-reduced-motion: reduce) {
         .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
         .ght-bar-fill, .ght-seg { transform: scaleX(1); }
@@ -160,8 +181,8 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-12</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Trend Analysis</span></span>
+            <span>2026-06-22</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Context Engineering</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
         </header>
@@ -179,6 +200,297 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-22 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)+ 当日 Top 10 深度分析</span><span lang="en" class="i18n-en">2026-06-22 — Multi-window boards (day / week / month / half-year / year) + deep dive on today's Top 10</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">这是一期<strong>扩展版</strong>:除了照例记录<strong>当日 Top 10</strong>(图文 + 动图),还加上了<strong>一周 / 一个月 / 半年 / 一年</strong>四个时间窗口的 <strong>Top 5</strong>,用来对照「短期热度」与「长期沉淀」。数据来源:<a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending</a> 的当天 / 一周 / 一月榜(按当期新增 star 排序),半年 / 一年用 GitHub Search API 取「该窗口内新建、按总 star 排序」的仓库;所有总 star 均经 GitHub REST API 校验,抓取于 2026-06-22(UTC)。</span>
+              <span lang="en" class="i18n-en">An <strong>extended edition</strong>: alongside the usual <strong>Top 10 of the day</strong> (illustrated + animated), I add the <strong>Top 5</strong> for <strong>week / month / half-year / year</strong> to contrast "short-term heat" with "long-term accumulation." Sources: <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending</a> day/week/month boards (ranked by stars gained in the period); half-year/year use the GitHub Search API for repos "created within the window, ranked by total stars." All totals verified against the GitHub REST API, captured 2026-06-22 (UTC).</span>
+            </p>
+
+            <h3><span lang="zh-CN" class="i18n-zh">① 当日 Top 10(按当日新增 ★)</span><span lang="en" class="i18n-en">① Top 10 of the day (by ★ gained today)</span></h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">chopratejas/headroom</a></td><td>Python</td><td>2,624</td><td>44.3k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/tw93/Pake" target="_blank" rel="noopener">tw93/Pake</a></td><td>Rust</td><td>1,848</td><td>56.2k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/palmier-io/palmier-pro" target="_blank" rel="noopener">palmier-io/palmier-pro</a></td><td>Swift</td><td>1,834</td><td>5.1k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a></td><td>Shell</td><td>1,443</td><td>139.7k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/penpot/penpot" target="_blank" rel="noopener">penpot/penpot</a></td><td>Clojure</td><td>1,135</td><td>52.2k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a></td><td>C</td><td>1,032</td><td>10.2k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a></td><td>Python</td><td>987</td><td>8.6k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/ZhuLinsen/daily_stock_analysis" target="_blank" rel="noopener">ZhuLinsen/daily_stock_analysis</a></td><td>Python</td><td>568</td><td>44.4k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/tursodatabase/turso" target="_blank" rel="noopener">tursodatabase/turso</a></td><td>Rust</td><td>548</td><td>20.8k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/bytedance/deer-flow" target="_blank" rel="noopener">bytedance/deer-flow</a></td><td>Python</td><td>442</td><td>72.6k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按技术方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">headroom</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#a855f7"></div><span class="ght-bar-val">2,624</span></div></div>
+                <div class="ght-bar-row"><span class="nm">tw93/Pake</span><div class="ght-bar-track" style="--w:70.4%"><div class="ght-bar-fill" style="width:70.4%;background:#06b6d4"></div><span class="ght-bar-val">1,848</span></div></div>
+                <div class="ght-bar-row"><span class="nm">palmier-pro</span><div class="ght-bar-track" style="--w:69.9%"><div class="ght-bar-fill" style="width:69.9%;background:#ec4899"></div><span class="ght-bar-val">1,834</span></div></div>
+                <div class="ght-bar-row"><span class="nm">mattpocock/skills</span><div class="ght-bar-track" style="--w:55%"><div class="ght-bar-fill" style="width:55%;background:#6366f1"></div><span class="ght-bar-val">1,443</span></div></div>
+                <div class="ght-bar-row"><span class="nm">penpot</span><div class="ght-bar-track" style="--w:43.3%"><div class="ght-bar-fill" style="width:43.3%;background:#06b6d4"></div><span class="ght-bar-val">1,135</span></div></div>
+                <div class="ght-bar-row"><span class="nm">codebase-memory-mcp</span><div class="ght-bar-track" style="--w:39.3%"><div class="ght-bar-fill" style="width:39.3%;background:#a855f7"></div><span class="ght-bar-val">1,032</span></div></div>
+                <div class="ght-bar-row"><span class="nm">OpenMontage</span><div class="ght-bar-track" style="--w:37.6%"><div class="ght-bar-fill" style="width:37.6%;background:#ec4899"></div><span class="ght-bar-val">987</span></div></div>
+                <div class="ght-bar-row"><span class="nm">daily_stock_analysis</span><div class="ght-bar-track" style="--w:21.6%"><div class="ght-bar-fill" style="width:21.6%;background:#22c55e"></div><span class="ght-bar-val">568</span></div></div>
+                <div class="ght-bar-row"><span class="nm">tursodatabase/turso</span><div class="ght-bar-track" style="--w:20.9%"><div class="ght-bar-fill" style="width:20.9%;background:#f59e0b"></div><span class="ght-bar-val">548</span></div></div>
+                <div class="ght-bar-row"><span class="nm">deer-flow</span><div class="ght-bar-track" style="--w:16.8%"><div class="ght-bar-fill" style="width:16.8%;background:#6366f1"></div><span class="ght-bar-val">442</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">上下文 / 记忆 / Token 效率</span><span lang="en" class="i18n-en">Context / memory / token-efficiency</span></span>
+                <span><i style="background:#6366f1"></i><span lang="zh-CN" class="i18n-zh">Agent 框架 / 技能 / harness</span><span lang="en" class="i18n-en">Agent framework / skills / harness</span></span>
+                <span><i style="background:#ec4899"></i><span lang="zh-CN" class="i18n-zh">AI 创作 / 多媒体</span><span lang="en" class="i18n-en">AI creation / multimedia</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">设计 / 开发工具</span><span lang="en" class="i18n-en">Design / dev tools</span></span>
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">数据库 / 系统基建</span><span lang="en" class="i18n-en">Database / systems infra</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">垂直 AI 应用</span><span lang="en" class="i18n-en">Vertical AI app</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日榜首是 <strong>headroom</strong>(把进入 LLM 的内容压掉 60–95% token);与 #6 codebase-memory-mcp 一起,「<strong>上下文 / 记忆 / 效率</strong>」(紫色)成了今天最亮的信号。</span><span lang="en" class="i18n-en">▶ The day is led by <strong>headroom</strong> (cuts 60–95% of tokens before they hit the LLM); together with #6 codebase-memory-mcp, "<strong>context / memory / efficiency</strong>" (purple) is today's brightest signal.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">② 图文介绍 · 当日 Top 10 仓库卡片</span><span lang="en" class="i18n-en">② Illustrated intros · today's Top 10 repo cards</span></h3>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">下面每张卡片是该仓库的 GitHub 社交预览图(含头像、描述、star / fork / 语言),点击直达仓库:</span>
+              <span lang="en" class="i18n-en">Each card below is the repo's GitHub social-preview image (avatar, description, stars / forks / language); click through to the repo:</span>
+            </p>
+
+            <div class="ght-cards">
+              <a class="ght-card" href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">
+                <img loading="lazy" alt="chopratejas/headroom — GitHub social preview" src="https://opengraph.githubassets.com/1/chopratejas/headroom" />
+                <div class="ght-card-body"><div class="ght-card-rank">#1 · +2,624 ★ today</div><div class="ght-card-name">chopratejas/headroom</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">在数据进入 LLM 之前压缩工具输出、日志、文件与 RAG 片段——号称 60–95% 更少 token、答案不变;提供库 / 代理 / MCP server。</span><span lang="en" class="i18n-en">Compresses tool outputs, logs, files, and RAG chunks before they reach the LLM — 60–95% fewer tokens, same answers; ships as a library, proxy, and MCP server.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 44.3k</span><span>Python</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/tw93/Pake" target="_blank" rel="noopener">
+                <img loading="lazy" alt="tw93/Pake — GitHub social preview" src="https://opengraph.githubassets.com/1/tw93/Pake" />
+                <div class="ght-card-body"><div class="ght-card-rank">#2 · +1,848 ★ today</div><div class="ght-card-name">tw93/Pake</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">一条命令把任意网页打包成轻量桌面应用(Rust),体积远小于 Electron。</span><span lang="en" class="i18n-en">Turns any webpage into a lightweight desktop app with one command (Rust) — far smaller than Electron.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 56.2k</span><span>Rust</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/palmier-io/palmier-pro" target="_blank" rel="noopener">
+                <img loading="lazy" alt="palmier-io/palmier-pro — GitHub social preview" src="https://opengraph.githubassets.com/1/palmier-io/palmier-pro" />
+                <div class="ght-card-body"><div class="ght-card-rank">#3 · +1,834 ★ today</div><div class="ght-card-name">palmier-io/palmier-pro</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">为 AI 打造的 macOS 视频编辑器。</span><span lang="en" class="i18n-en">A macOS video editor built for AI.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 5.1k</span><span>Swift</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">
+                <img loading="lazy" alt="mattpocock/skills — GitHub social preview" src="https://opengraph.githubassets.com/1/mattpocock/skills" />
+                <div class="ght-card-body"><div class="ght-card-rank">#4 · +1,443 ★ today</div><div class="ght-card-name">mattpocock/skills</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接公开自己 .claude 目录里「给真正工程师用的」Agent 技能集。</span><span lang="en" class="i18n-en">Matt Pocock's "skills for real engineers," published straight from his .claude directory.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 139.7k</span><span>Shell</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/penpot/penpot" target="_blank" rel="noopener">
+                <img loading="lazy" alt="penpot/penpot — GitHub social preview" src="https://opengraph.githubassets.com/1/penpot/penpot" />
+                <div class="ght-card-body"><div class="ght-card-rank">#5 · +1,135 ★ today</div><div class="ght-card-name">penpot/penpot</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">开源设计工具,主打设计与代码协作(Figma 的开源替代)。</span><span lang="en" class="i18n-en">The open-source design tool for design-and-code collaboration (an open Figma alternative).</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 52.2k</span><span>Clojure</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">
+                <img loading="lazy" alt="DeusData/codebase-memory-mcp — GitHub social preview" src="https://opengraph.githubassets.com/1/DeusData/codebase-memory-mcp" />
+                <div class="ght-card-body"><div class="ght-card-rank">#6 · +1,032 ★ today</div><div class="ght-card-name">DeusData/codebase-memory-mcp</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">高性能代码智能 MCP server:把代码库索引成持久知识图谱,158 种语言、亚毫秒查询,号称省 99% token。</span><span lang="en" class="i18n-en">A high-performance code-intelligence MCP server: indexes a codebase into a persistent knowledge graph — 158 languages, sub-ms queries, ~99% fewer tokens.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 10.2k</span><span>C</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">
+                <img loading="lazy" alt="calesthio/OpenMontage — GitHub social preview" src="https://opengraph.githubassets.com/1/calesthio/OpenMontage" />
+                <div class="ght-card-body"><div class="ght-card-rank">#7 · +987 ★ today</div><div class="ght-card-name">calesthio/OpenMontage</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">号称「全球首个开源 agentic 视频制作系统」:12 条流水线 / 52 个工具 / 500+ agent 技能,把 AI 编码助手变成视频工作室。</span><span lang="en" class="i18n-en">Billed as the "world's first open-source agentic video production system": 12 pipelines, 52 tools, 500+ agent skills that turn an AI coding assistant into a video studio.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 8.6k</span><span>Python</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/ZhuLinsen/daily_stock_analysis" target="_blank" rel="noopener">
+                <img loading="lazy" alt="ZhuLinsen/daily_stock_analysis — GitHub social preview" src="https://opengraph.githubassets.com/1/ZhuLinsen/daily_stock_analysis" />
+                <div class="ght-card-body"><div class="ght-card-rank">#8 · +568 ★ today</div><div class="ght-card-name">ZhuLinsen/daily_stock_analysis</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">LLM 驱动的多市场股票智能分析系统:多源行情、实时新闻、决策看板与自动推送,可零成本定时运行。</span><span lang="en" class="i18n-en">An LLM-driven multi-market stock-analysis system: multi-source quotes, real-time news, a decision dashboard, and automated push — with cost-free scheduled runs.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 44.4k</span><span>Python</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/tursodatabase/turso" target="_blank" rel="noopener">
+                <img loading="lazy" alt="tursodatabase/turso — GitHub social preview" src="https://opengraph.githubassets.com/1/tursodatabase/turso" />
+                <div class="ght-card-body"><div class="ght-card-rank">#9 · +548 ★ today</div><div class="ght-card-name">tursodatabase/turso</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">用 Rust 重写、与 SQLite 兼容的进程内 SQL 数据库。</span><span lang="en" class="i18n-en">An in-process SQL database, compatible with SQLite, rewritten in Rust.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 20.8k</span><span>Rust</span></div></div>
+              </a>
+              <a class="ght-card" href="https://github.com/bytedance/deer-flow" target="_blank" rel="noopener">
+                <img loading="lazy" alt="bytedance/deer-flow — GitHub social preview" src="https://opengraph.githubassets.com/1/bytedance/deer-flow" />
+                <div class="ght-card-body"><div class="ght-card-rank">#10 · +442 ★ today</div><div class="ght-card-name">bytedance/deer-flow</div>
+                  <div class="ght-card-desc"><span lang="zh-CN" class="i18n-zh">字节跳动开源的「长程 SuperAgent harness」:靠沙箱、记忆、工具、技能与子 agent 处理可达数小时的复杂任务。</span><span lang="en" class="i18n-en">ByteDance's open-source long-horizon "SuperAgent harness": uses sandboxes, memory, tools, skills, and subagents to handle tasks spanning minutes to hours.</span></div>
+                  <div class="ght-card-meta"><span><b>★</b> 72.6k</span><span>Python</span></div></div>
+              </a>
+            </div>
+
+            <h3><span lang="zh-CN" class="i18n-zh">③ 多窗口 Top 5(一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">③ Top 5 across windows (week / month / half-year / year)</span></h3>
+
+            <div class="ght-windows">
+              <div class="ght-win">
+                <h5><span lang="zh-CN" class="i18n-zh">一周 · Top 5</span><span lang="en" class="i18n-en">This week · Top 5</span></h5>
+                <span class="ght-win-sub"><span lang="zh-CN" class="i18n-zh">按本周新增 ★</span><span lang="en" class="i18n-en">by ★ this week</span></span>
+                <ol>
+                  <li><a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a> <span class="s">+16,102</span></li>
+                  <li><a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> <span class="s">+8,233</span></li>
+                  <li><a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org/iptv</a> <span class="s">+7,266</span></li>
+                  <li><a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a> <span class="s">+6,372</span></li>
+                  <li><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">agent-skills</a> <span class="s">+5,610</span></li>
+                </ol>
+              </div>
+              <div class="ght-win">
+                <h5><span lang="zh-CN" class="i18n-zh">一个月 · Top 5</span><span lang="en" class="i18n-en">This month · Top 5</span></h5>
+                <span class="ght-win-sub"><span lang="zh-CN" class="i18n-zh">按本月新增 ★</span><span lang="en" class="i18n-en">by ★ this month</span></span>
+                <ol>
+                  <li><a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a> <span class="s">+49,339</span></li>
+                  <li><a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a> <span class="s">+41,093</span></li>
+                  <li><a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a> <span class="s">+40,915</span></li>
+                  <li><a href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">MoneyPrinterTurbo</a> <span class="s">+33,719</span></li>
+                  <li><a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">markitdown</a> <span class="s">+33,203</span></li>
+                </ol>
+              </div>
+              <div class="ght-win">
+                <h5><span lang="zh-CN" class="i18n-zh">半年 · Top 5</span><span lang="en" class="i18n-en">Half-year · Top 5</span></h5>
+                <span class="ght-win-sub"><span lang="zh-CN" class="i18n-zh">近半年新建、按总 ★</span><span lang="en" class="i18n-en">created in ~6mo, by total ★</span></span>
+                <ol>
+                  <li><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a> <span class="s">★219.3k</span></li>
+                  <li><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a> <span class="s">★194.1k</span></li>
+                  <li><a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">andrej-karpathy-skills</a> <span class="s">★179.7k</span></li>
+                  <li><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a> <span class="s">★139.7k</span></li>
+                  <li><a href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a> <span class="s">★112.3k</span></li>
+                </ol>
+              </div>
+              <div class="ght-win">
+                <h5><span lang="zh-CN" class="i18n-zh">一年 · Top 5</span><span lang="en" class="i18n-en">One year · Top 5</span></h5>
+                <span class="ght-win-sub"><span lang="zh-CN" class="i18n-zh">近一年新建、按总 ★</span><span lang="en" class="i18n-en">created in ~1yr, by total ★</span></span>
+                <ol>
+                  <li><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a> <span class="s">★379.8k</span></li>
+                  <li><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a> <span class="s">★235.0k</span></li>
+                  <li><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a> <span class="s">★219.3k</span></li>
+                  <li><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> <span class="s">★199.0k</span></li>
+                  <li><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a> <span class="s">★194.1k</span></li>
+                </ol>
+              </div>
+            </div>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 跨窗口的「领头羊」与主题(当天 → 一年)</span><span lang="en" class="i18n-en">Animated · each window's leader &amp; theme (day → year)</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr"><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">Day</span></div><div class="lb">headroom<br/><small><span lang="zh-CN" class="i18n-zh">上下文压缩</span><span lang="en" class="i18n-en">context compress</span></small></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr"><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">Week</span></div><div class="lb">headroom<br/><small><span lang="zh-CN" class="i18n-zh">上下文压缩</span><span lang="en" class="i18n-en">context compress</span></small></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr"><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">Month</span></div><div class="lb">Understand-Anything<br/><small><span lang="zh-CN" class="i18n-zh">代码→知识图谱</span><span lang="en" class="i18n-en">code→graph</span></small></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr"><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">6&nbsp;mo</span></div><div class="lb">ECC<br/><small><span lang="zh-CN" class="i18n-zh">harness + 记忆</span><span lang="en" class="i18n-en">harness + memory</span></small></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr"><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">Year</span></div><div class="lb">openclaw<br/><small><span lang="zh-CN" class="i18n-zh">个人 AI 助手</span><span lang="en" class="i18n-en">personal AI</span></small></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 短窗口(天/周/月)被「<strong>上下文 / 记忆 / 代码图谱</strong>」类占据,长窗口(半年/年)沉淀下来的是「<strong>agent / 技能 / harness</strong>」—— 新一层基建正在旧主线之上生长。</span><span lang="en" class="i18n-en">▶ Short windows (day/week/month) are led by "<strong>context / memory / code-graphs</strong>"; long windows (half-year/year) accumulate "<strong>agents / skills / harnesses</strong>" — a new infra layer is growing on top of the older through-line.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">④ 当日 Top 10 技术方向归类</span><span lang="en" class="i18n-en">④ Direction breakdown of today's Top 10</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 今日 Top 10 方向占比</span><span lang="en" class="i18n-en">Animated · today's Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:20%;background:#a855f7">2 · <span lang="zh-CN" class="i18n-zh">上下文</span><span lang="en" class="i18n-en">ctx</span></div>
+                <div class="ght-seg" style="width:20%;background:#6366f1;animation-delay:.16s">2 · <span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">agent</span></div>
+                <div class="ght-seg" style="width:20%;background:#ec4899;animation-delay:.32s">2 · <span lang="zh-CN" class="i18n-zh">创作</span><span lang="en" class="i18n-en">media</span></div>
+                <div class="ght-seg" style="width:20%;background:#06b6d4;animation-delay:.48s">2 · <span lang="zh-CN" class="i18n-zh">工具</span><span lang="en" class="i18n-en">tools</span></div>
+                <div class="ght-seg" style="width:10%;background:#f59e0b;animation-delay:.64s">1</div>
+                <div class="ght-seg" style="width:10%;background:#22c55e;animation-delay:.8s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 上下文/记忆、Agent 框架/技能、AI 创作、设计/开发工具各 <strong>2/10</strong>,数据库基建与垂直 AI 各 <strong>1/10</strong> —— 比之前几期更「分散」,但上下文/记忆首次跃居榜首。</span><span lang="en" class="i18n-en">▶ Context/memory, agent framework/skills, AI creation, and design/dev tools at <strong>2/10</strong> each; database infra and vertical AI at <strong>1/10</strong> — more spread out than prior days, but context/memory tops the board for the first time.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>上下文 / 记忆 / Token 效率 (2/10)</strong>:headroom(进 LLM 前压 60–95% token)、codebase-memory-mcp(把代码库做成持久知识图谱、省 99% token)。这是<strong>新出现的一层</strong>:不再只关心 agent「会做什么」,而是关心它「拿到什么上下文 / 记住什么」。</span><span lang="en" class="i18n-en"><strong>Context / memory / token-efficiency (2/10)</strong>: headroom (cut 60–95% of tokens before the LLM) and codebase-memory-mcp (codebase → persistent knowledge graph, ~99% fewer tokens). This is a <strong>newly emerged layer</strong>: not just "what the agent can do," but "what context it gets / what it remembers."</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 框架 / 技能 / harness (2/10)</strong>:mattpocock/skills(技能)、deer-flow(字节的长程 SuperAgent harness,内含沙箱/记忆/工具/技能/子 agent)。</span><span lang="en" class="i18n-en"><strong>Agent framework / skills / harness (2/10)</strong>: mattpocock/skills (skills) and deer-flow (ByteDance's long-horizon SuperAgent harness with sandbox/memory/tools/skills/subagents).</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>AI 创作 / 多媒体 (2/10)</strong>:palmier-pro(AI 视频编辑器)、OpenMontage(agentic 视频制作系统,且本身是 500+ 技能的集合)。</span><span lang="en" class="i18n-en"><strong>AI creation / multimedia (2/10)</strong>: palmier-pro (AI video editor) and OpenMontage (an agentic video-production system that is itself a 500+ skill collection).</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>设计 / 开发工具 (2/10)</strong>:penpot(开源设计协作)、Pake(网页→桌面应用)。经典开发者工具在 AI 浪潮里持续供货。</span><span lang="en" class="i18n-en"><strong>Design / dev tools (2/10)</strong>: penpot (open design collaboration) and Pake (webpage → desktop app). Classic developer tooling keeps shipping through the AI wave.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>数据库 / 系统基建 (1/10)</strong>:turso(Rust 重写的 SQLite)—— 提醒底层系统仍在持续演进。</span><span lang="en" class="i18n-en"><strong>Database / systems infra (1/10)</strong>: turso (SQLite rewritten in Rust) — a reminder that low-level systems keep evolving.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>垂直 AI 应用 (1/10)</strong>:daily_stock_analysis(LLM 金融分析)—— 垂直行业应用继续独立成长。</span><span lang="en" class="i18n-en"><strong>Vertical AI app (1/10)</strong>: daily_stock_analysis (LLM finance) — vertical domain apps keep growing on their own.</span></li>
+            </ul>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 上下文 / 记忆如何喂进 agent</span><span lang="en" class="i18n-en">Animated · how context / memory feeds the agent</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">markitdown</span>
+                <span class="ght-chip">Agent-Reach</span>
+                <span class="ght-chip">codegraph</span>
+                <span class="ght-chip">headroom</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">AI Agent<br/>核心</span><span lang="en" class="i18n-en">AI Agent<br/>core</span></span>
+                <span class="ght-chip">codebase-memory</span>
+                <span class="ght-chip">…</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 模型不变,但「喂给它的内容」被工程化:摄取(markitdown / Agent-Reach)→ 图谱/记忆(codegraph / codebase-memory)→ 压缩(headroom)→ agent。这就是 <strong>context engineering(上下文工程)</strong>。</span><span lang="en" class="i18n-en">▶ The model stays fixed, but "what you feed it" gets engineered: ingest (markitdown / Agent-Reach) → graph/memory (codegraph / codebase-memory) → compress (headroom) → agent. This is <strong>context engineering</strong>.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">⑤ 趋势分析(带证据):历史 / 当下 / 未来</span><span lang="en" class="i18n-en">⑤ Trend analysis (with evidence): history / present / future</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → agent → 技能 →(今天)上下文/记忆</span><span lang="en" class="i18n-en">History: models → frameworks → apps → agents → skills → (today) context/memory</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的第五、六次迁移</span><span lang="en" class="i18n-en">Animated · the 5th &amp; 6th shifts of who leads trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编排框架</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">应用 / 编码 agent</span><span lang="en" class="i18n-en">Apps / coding agents</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2025</div><div class="lb"><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">上下文 / 记忆</span><span lang="en" class="i18n-en">Context / memory</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 一年期榜单(openclaw / superpowers / hermes-agent / ECC / claw-code,全是 2025 的 agent/技能仓库)定格了「技能」这一阶段;而当下的天/周/月榜把主角推进到「上下文/记忆」。</span><span lang="en" class="i18n-en">▶ The 1-year board (openclaw / superpowers / hermes-agent / ECC / claw-code — all 2025 agent/skills repos) freezes the "skills" stage; today's day/week/month boards push the protagonist to "context / memory."</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">把镜头拉长:2022-11 ChatGPT → 2023 的 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> 与 <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a>/LlamaIndex、<a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>/Ollama(模型+框架)→ 2024–25 编码 agent 与应用化工具 → 2025 下半年「agent 技能」成为分发单元(见本笔记 06-08 / 06-09 / 06-12)。<strong>证据就在本期的一年榜:</strong> openclaw(个人 AI 助手)、superpowers(技能框架)、hermes-agent(「与你共同成长」)、ECC(harness)、claw-code —— 年度前五清一色 2025 年的 agent / 技能 / harness 仓库,说明过去一年的绝对主线就是「agent + 技能」。</span>
+              <span lang="en" class="i18n-en">Zooming out: ChatGPT (2022-11) → 2023's <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> and <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a>/LlamaIndex, <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a>/Ollama (models + frameworks) → 2024–25 coding agents and productized tools → late-2025 "agent skills" as the unit of distribution (see this note's 06-08 / 06-09 / 06-12 entries). <strong>The evidence is in this issue's 1-year board:</strong> openclaw (personal AI assistant), superpowers (skills framework), hermes-agent ("grows with you"), ECC (harness), claw-code — the year's top five are uniformly 2025 agent/skills/harness repos, confirming "agents + skills" as the dominant through-line of the past year.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:前沿从「技能」下沉到「上下文工程 / agent 记忆」</span><span lang="en" class="i18n-en">Present: the frontier moves from "skills" down to "context engineering / agent memory"</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 正在成形的「上下文工程」流水线</span><span lang="en" class="i18n-en">Animated · the emerging "context-engineering" pipeline</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="context engineering pipeline">
+                <rect class="ght-box hot" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="64" text-anchor="middle">Ingest</text><text class="ght-ssub" x="54" y="79" text-anchor="middle">markitdown</text>
+                <rect class="ght-box" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="64" text-anchor="middle">Graph / memory</text><text class="ght-ssub" x="202" y="79" text-anchor="middle">codegraph</text>
+                <rect class="ght-box" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="64" text-anchor="middle">Compress</text><text class="ght-ssub" x="350" y="79" text-anchor="middle">headroom</text>
+                <rect class="ght-box" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="64" text-anchor="middle">Agent</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">deer-flow</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#06b6d4" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#ec4899" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#f59e0b">context</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 上下文从「摄取 → 图谱/记忆 → 压缩 → agent」四段流动,而这四段今天都同时出现在天/周/月榜上(证据见下)。</span><span lang="en" class="i18n-en">▶ Context flows through "ingest → graph/memory → compress → agent," and all four stages appear on today's day/week/month boards simultaneously (evidence below).</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天最强的信号是:前沿已从「agent 会用哪些技能」下沉到「agent 拥有什么上下文 / 记忆」——即 <strong>context engineering(上下文工程)</strong>。跨窗口证据:(1) <strong>当日</strong> #1 <a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a>(进 LLM 前压 60–95% token)、#6 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>(代码库→持久知识图谱、省 99% token);(2) <strong>一周</strong> headroom(+16k)、<a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a>(给 agent「看全网的眼睛」)、codebase-memory-mcp 同列前四;(3) <strong>一月</strong>更夸张:#1 <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a>、#3 <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a>(都是「代码→知识图谱」)、#2 headroom、#5 <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">markitdown</a>(把文件/Office 文档转 Markdown 喂模型)—— top 5 里 <strong>4 个</strong>都是「把世界喂给模型」的上下文/摄取基建。半年榜 <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a>(harness 明写 skills + instincts + <em>memory</em> + security)与一年榜 <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a>(「与你共同成长」=记忆/持续学习)进一步坐实:<strong>记忆与上下文正成为 agent 的护城河。</strong></span>
+              <span lang="en" class="i18n-en">Today's strongest signal: the frontier has moved from "which skills can the agent use" down to "what context / memory does the agent have" — i.e., <strong>context engineering</strong>. Cross-window evidence: (1) <strong>day</strong>: #1 <a href="https://github.com/chopratejas/headroom" target="_blank" rel="noopener">headroom</a> (cut 60–95% of tokens before the LLM), #6 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a> (codebase → persistent knowledge graph, ~99% fewer tokens); (2) <strong>week</strong>: headroom (+16k), <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> ("eyes on the whole internet"), and codebase-memory-mcp all in the top four; (3) <strong>month</strong>, even starker: #1 <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a> and #3 <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a> (both "code → knowledge graph"), #2 headroom, #5 <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">markitdown</a> (convert files/Office docs to Markdown to feed the model) — <strong>4 of the top 5</strong> are context/ingestion infra for "feeding the world to the model." Half-year's <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a> (a harness explicitly listing skills + instincts + <em>memory</em> + security) and the year's <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> ("grows with you" = memory / continual learning) seal it: <strong>memory and context are becoming the agent's moat.</strong></span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:上下文工程标准化 + agent 记忆成默认组件 +「技能 × 记忆 × 上下文」三件套</span><span lang="en" class="i18n-en">Future: context engineering standardizes + agent memory as a default component + the "skills × memory × context" trio</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推:(1) <strong>「上下文工程」成为独立工种与产品类目</strong> —— 摄取、图谱、压缩、检索会像 CI/CD 一样被标准化;<strong>token 效率</strong>(headroom 的「60–95%」)会像延迟、成本一样成为被对比的一线指标。(2) <strong>agent 记忆标准化</strong> —— 持久知识图谱 + MCP「记忆服务器」会成为 agent 的默认组件,代码记忆(codegraph / codebase-memory 类)先行,通用记忆随后;ECC、hermes-agent 的「memory」是早期信号。(3) <strong>「技能 × 记忆 × 上下文」三件套</strong> —— 继 2025 的技能供应链后,2026 的 agent 栈会是「技能(做什么)× 记忆(记住什么)× 上下文(喂什么)」的组合,deer-flow 这类把四者打包的 harness 会增多。(4) <strong>创作与垂直副线并行</strong> —— AI 视频(palmier-pro / OpenMontage)、垂直金融(daily_stock_analysis)、数据主权(iptv / turso 本地库)会在主线之外稳定供货。<strong>可证伪预测:</strong>未来两周,trending 上「上下文 / 记忆 / 检索」类仓库(knowledge graph / MCP memory / token 压缩)的占比将继续高于纯技能合集。</span>
+              <span lang="en" class="i18n-en">Extrapolating: (1) <strong>"context engineering" becomes a discipline and a product category</strong> — ingestion, graphs, compression, and retrieval get standardized like CI/CD; <strong>token efficiency</strong> (headroom's "60–95%") becomes a first-class, comparable metric alongside latency and cost. (2) <strong>agent memory standardizes</strong> — persistent knowledge graphs + MCP "memory servers" become default agent components, with code memory (codegraph / codebase-memory) leading and general memory following; ECC's and hermes-agent's "memory" are early signals. (3) <strong>the "skills × memory × context" trio</strong> — after 2025's skills supply chain, the 2026 agent stack becomes "skills (what to do) × memory (what to remember) × context (what to feed)," and harnesses bundling all of it (like deer-flow) multiply. (4) <strong>creative &amp; vertical side-threads run in parallel</strong> — AI video (palmier-pro / OpenMontage), vertical finance (daily_stock_analysis), and data sovereignty (iptv / turso local DB) keep shipping alongside the main line. <strong>Falsifiable prediction:</strong> over the next two weeks, "context / memory / retrieval" repos (knowledge graph / MCP memory / token compression) stay a larger share of trending than pure skill collections.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(当天 / 一周 / 一月,按当期新增 star 排序)+ GitHub Search API(半年 / 一年:窗口内新建、按总 star)+ GitHub REST API 校验总 star 数,抓取于 2026-06-22(UTC)。当日 ★ = GitHub Trending「stars today」。仓库卡片图为各仓库 GitHub 社交预览图。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (day / week / month, ranked by stars gained in the period) + GitHub Search API (half-year / year: created within the window, by total stars) + GitHub REST API (totals verified), captured 2026-06-22 (UTC). ★ today = GitHub Trending "stars today." Repo card images are each repo's GitHub social-preview image.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 
