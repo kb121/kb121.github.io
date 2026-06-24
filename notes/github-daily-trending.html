@@ -113,11 +113,26 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* --- Prediction-confirmed "promotion" (24h board → daily Top 10) --- */
+      .ght-promote { display: flex; flex-direction: column; gap: 10px; }
+      .ght-prow { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
+      .ght-prow .lane { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); text-align: right; }
+      .ght-track2 { position: relative; height: 46px; border-radius: 10px; border: 1px dashed var(--border); background: var(--surface-strong); overflow: hidden; }
+      .ght-track2.top10 { border-style: solid; border-color: #ec4899; }
+      .ght-pill { position: absolute; top: 50%; transform: translateY(-50%); padding: 5px 10px; border-radius: 999px; font-family: var(--font-mono); font-size: 0.66rem; color: #06121f; font-weight: 600; white-space: nowrap; }
+      .ght-pill.rise { animation: ght-rise 5s ease-in-out infinite; }
+      .ght-pill.rise2 { animation: ght-rise2 5s ease-in-out infinite; }
+      @keyframes ght-rise { 0%,12% { transform: translateY(28px); opacity: .5; } 40%,100% { transform: translateY(-22px); opacity: 1; } }
+      @keyframes ght-rise2 { 0%,20% { transform: translateY(28px); opacity: .5; } 48%,100% { transform: translateY(-22px); opacity: 1; } }
+      .ght-uparrow { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); color: #ec4899; font-size: 0.9rem; animation: ght-upbob 1.4s ease-in-out infinite; }
+      @keyframes ght-upbob { 0%,100% { transform: translateX(-50%) translateY(0); opacity: .5; } 50% { transform: translateX(-50%) translateY(-5px); opacity: 1; } }
+
       @media (prefers-reduced-motion: reduce) {
-        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
+        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val, .ght-pill, .ght-uparrow { animation: none !important; }
         .ght-bar-fill, .ght-seg { transform: scaleX(1); }
         .ght-stage { opacity: 1; }
         .ght-bar-val { opacity: 1; }
+        .ght-pill.rise, .ght-pill.rise2 { transform: translateY(-22px); opacity: 1; }
         .ght-pkt-move { display: none; }
       }
     </style>
@@ -179,6 +194,159 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-14 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-14 — Top 10 of the day</span></h2>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/addyosmani/agent-skills" target="_blank" rel="noopener">addyosmani/agent-skills</a></td><td>Shell</td><td>1,514</td><td>58.4k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a></td><td>Swift</td><td>1,487</td><td>36.3k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td>924</td><td>226.9k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/NVIDIA/SkillSpector" target="_blank" rel="noopener">NVIDIA/SkillSpector</a></td><td>Python</td><td>804</td><td>4.5k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org/iptv</a></td><td>TypeScript</td><td>530</td><td>119.1k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/microsoft/PowerToys" target="_blank" rel="noopener">microsoft/PowerToys</a></td><td>C#</td><td>370</td><td>134.7k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/music-assistant/server" target="_blank" rel="noopener">music-assistant/server</a></td><td>Python</td><td>270</td><td>2.0k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/LMCache/LMCache" target="_blank" rel="noopener">LMCache/LMCache</a></td><td>Python</td><td>238</td><td>8.9k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/kenn-io/agentsview" target="_blank" rel="noopener">kenn-io/agentsview</a></td><td>Go</td><td>190</td><td>2.4k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/andrewyng/aisuite" target="_blank" rel="noopener">andrewyng/aisuite</a></td><td>Python</td><td>127</td><td>14.1k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">agent-skills</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#a855f7"></div><span class="ght-bar-val">1,514</span></div></div>
+                <div class="ght-bar-row"><span class="nm">apple/container</span><div class="ght-bar-track" style="--w:98%"><div class="ght-bar-fill" style="width:98.2%;background:#06b6d4"></div><span class="ght-bar-val">1,487</span></div></div>
+                <div class="ght-bar-row"><span class="nm">superpowers</span><div class="ght-bar-track" style="--w:61%"><div class="ght-bar-fill" style="width:61%;background:#a855f7"></div><span class="ght-bar-val">924</span></div></div>
+                <div class="ght-bar-row"><span class="nm">SkillSpector</span><div class="ght-bar-track" style="--w:53%"><div class="ght-bar-fill" style="width:53.1%;background:#ec4899"></div><span class="ght-bar-val">804</span></div></div>
+                <div class="ght-bar-row"><span class="nm">iptv-org/iptv</span><div class="ght-bar-track" style="--w:35%"><div class="ght-bar-fill" style="width:35%;background:#f59e0b"></div><span class="ght-bar-val">530</span></div></div>
+                <div class="ght-bar-row"><span class="nm">PowerToys</span><div class="ght-bar-track" style="--w:24%"><div class="ght-bar-fill" style="width:24.4%;background:#06b6d4"></div><span class="ght-bar-val">370</span></div></div>
+                <div class="ght-bar-row"><span class="nm">music-assistant</span><div class="ght-bar-track" style="--w:18%"><div class="ght-bar-fill" style="width:17.8%;background:#f59e0b"></div><span class="ght-bar-val">270</span></div></div>
+                <div class="ght-bar-row"><span class="nm">LMCache</span><div class="ght-bar-track" style="--w:16%"><div class="ght-bar-fill" style="width:15.7%;background:#22c55e"></div><span class="ght-bar-val">238</span></div></div>
+                <div class="ght-bar-row"><span class="nm">agentsview</span><div class="ght-bar-track" style="--w:13%"><div class="ght-bar-fill" style="width:12.5%;background:#ec4899"></div><span class="ght-bar-val">190</span></div></div>
+                <div class="ght-bar-row"><span class="nm">aisuite</span><div class="ght-bar-track" style="--w:8%"><div class="ght-bar-fill" style="width:8.4%;background:#22c55e"></div><span class="ght-bar-val">127</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></span>
+                <span><i style="background:#ec4899"></i><span lang="zh-CN" class="i18n-zh">技能供应链(安全/观测)</span><span lang="en" class="i18n-en">Skill supply-chain (security/observability)</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">LLM 推理基建</span><span lang="en" class="i18n-en">LLM serving infra</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">开发/桌面基建</span><span lang="en" class="i18n-en">Dev/desktop infra</span></span>
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">自托管/开放媒体</span><span lang="en" class="i18n-en">Self-hosted/open media</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 榜首仍是 <strong>Agent 技能</strong>(agent-skills、superpowers),但今天最值得注意的是 <strong>粉色(技能供应链)</strong>:专扫技能漏洞的 <strong>NVIDIA/SkillSpector</strong> 冲到第 4。</span><span lang="en" class="i18n-en">▶ Agent skills (agent-skills, superpowers) still top the board, but today's standout is <strong>pink (skill supply-chain)</strong>: skill-vulnerability scanner <strong>NVIDIA/SkillSpector</strong> jumps to No. 4.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">一句话介绍</span><span lang="en" class="i18n-en">One-line intros</span></h3>
+            <ol>
+              <li><strong>agent-skills</strong> — <span lang="zh-CN" class="i18n-zh">Addy Osmani 出品的一组面向 AI 编码 agent 的「生产级工程技能」集合(连续多日登顶)。</span><span lang="en" class="i18n-en">Addy Osmani's collection of production-grade engineering skills for AI coding agents (No. 1 several days running).</span></li>
+              <li><strong>apple/container</strong> — <span lang="zh-CN" class="i18n-zh">Apple 官方:在 Mac 上用轻量虚拟机创建/运行 Linux 容器,Swift 编写、为 Apple 芯片优化。</span><span lang="en" class="i18n-en">Apple's official tool to create &amp; run Linux containers via lightweight VMs on a Mac, written in Swift and optimized for Apple silicon.</span></li>
+              <li><strong>superpowers</strong> — <span lang="zh-CN" class="i18n-zh">一个「真正能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology "that actually works."</span></li>
+              <li><strong>SkillSpector</strong> — <span lang="zh-CN" class="i18n-zh">NVIDIA 出品:专门扫描 AI agent 技能的安全扫描器,检测漏洞、恶意模式与安全风险。</span><span lang="en" class="i18n-en">NVIDIA's security scanner for AI agent skills — detects vulnerabilities, malicious patterns, and security risks.</span></li>
+              <li><strong>iptv-org/iptv</strong> — <span lang="zh-CN" class="i18n-zh">收集全球公开 IPTV 频道的超大开放清单仓库。</span><span lang="en" class="i18n-en">A massive open collection of publicly available IPTV channels from around the world.</span></li>
+              <li><strong>PowerToys</strong> — <span lang="zh-CN" class="i18n-zh">微软出品的一组 Windows 实用工具,增强生产力与系统定制。</span><span lang="en" class="i18n-en">Microsoft's set of Windows utilities that supercharge productivity and customization.</span></li>
+              <li><strong>music-assistant/server</strong> — <span lang="zh-CN" class="i18n-zh">开源、自托管的媒体库管理器,连接流媒体服务与各类联网音箱(常驻设备上运行的核心)。</span><span lang="en" class="i18n-en">A free, self-hosted media-library manager linking streaming services to a wide range of networked speakers (the always-on core).</span></li>
+              <li><strong>LMCache</strong> — <span lang="zh-CN" class="i18n-zh">为 LLM 推理加速的「最快 KV Cache 层」,跨请求复用/卸载 KV 缓存(常与 vLLM 配合)。</span><span lang="en" class="i18n-en">"The fastest KV cache layer" for LLM inference — reuses/offloads KV cache across requests (often paired with vLLM).</span></li>
+              <li><strong>agentsview</strong> — <span lang="zh-CN" class="i18n-zh">本地优先的编码 agent 会话分析/观测工具,支持 Claude Code、Codex 等 20+ agent。</span><span lang="en" class="i18n-en">Local-first session intelligence &amp; analytics for coding agents — Claude Code, Codex, and 20+ others.</span></li>
+              <li><strong>aisuite</strong> — <span lang="zh-CN" class="i18n-zh">吴恩达团队出品:对多家生成式 AI 提供商的统一、简洁接口。</span><span lang="en" class="i18n-en">Andrew Ng's team: a simple, unified interface to multiple generative-AI providers.</span></li>
+            </ol>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类</span><span lang="en" class="i18n-en">Direction breakdown</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 今日 Top 10 方向占比(2·2·2·2·2)</span><span lang="en" class="i18n-en">Animated · today's Top 10 by direction (2·2·2·2·2)</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:20%;background:#a855f7">2 · <span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">skills</span></div>
+                <div class="ght-seg" style="width:20%;background:#ec4899;animation-delay:.18s">2</div>
+                <div class="ght-seg" style="width:20%;background:#22c55e;animation-delay:.36s">2</div>
+                <div class="ght-seg" style="width:20%;background:#06b6d4;animation-delay:.54s">2</div>
+                <div class="ght-seg" style="width:20%;background:#f59e0b;animation-delay:.72s">2</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 罕见的「五等分」:Agent 技能、技能供应链(安全/观测)、LLM 推理基建、开发/桌面基建、自托管/开放媒体各 <strong>2/10</strong>。</span><span lang="en" class="i18n-en">▶ A rare even split: agent skills, skill supply-chain (security/observability), LLM serving infra, dev/desktop infra, and self-hosted/open media — each <strong>2/10</strong>.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 技能 (2/10)</strong>:agent-skills、superpowers —— 通用技能合集与方法论框架,仍是榜单的「常青树」。</span><span lang="en" class="i18n-en"><strong>Agent skills (2/10)</strong>: agent-skills, superpowers — general skill collections and a methodology framework, still the board's evergreens.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>技能供应链:安全 / 观测 (2/10)</strong>:SkillSpector(扫描技能漏洞)、agentsview(agent 会话观测)。这正是两天前(06-12)预测的「供应链/工具层」,如今直接进入当日 Top 10。</span><span lang="en" class="i18n-en"><strong>Skill supply-chain: security / observability (2/10)</strong>: SkillSpector (scans skills for vulnerabilities), agentsview (agent-session observability) — exactly the "supply chain / tooling layer" predicted two days ago (06-12), now squarely inside the daily Top 10.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>LLM 推理基建 (2/10)</strong>:LMCache(KV Cache 层)、aisuite(多家模型统一接口)。「让推理更快、更便宜、更易切换」的底座层正在变厚。</span><span lang="en" class="i18n-en"><strong>LLM serving infra (2/10)</strong>: LMCache (KV-cache layer), aisuite (unified multi-provider interface) — the "make inference faster, cheaper, swappable" substrate is thickening.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>开发 / 桌面基建 (2/10)</strong>:apple/container(Mac 上的轻量容器/沙箱)、PowerToys(Windows 生产力工具)。apple/container 的 VM 隔离恰是 agent 安全跑技能的沙箱底座。</span><span lang="en" class="i18n-en"><strong>Dev / desktop infra (2/10)</strong>: apple/container (lightweight containers/sandbox on Mac), PowerToys (Windows productivity). apple/container's VM isolation is precisely the sandbox substrate for agents to run skills safely.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>自托管 / 开放媒体 (2/10)</strong>:iptv-org/iptv(开放 IPTV 清单)、music-assistant(自托管音乐中枢)。与「AI 热」并行的「数据/媒体主权」副线持续在榜。</span><span lang="en" class="i18n-en"><strong>Self-hosted / open media (2/10)</strong>: iptv-org/iptv (open IPTV lists), music-assistant (self-hosted music hub) — the "data/media sovereignty" side-thread keeps charting alongside the AI hype.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能 → 技能供应链</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills → skills supply-chain</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的五次迁移</span><span lang="en" class="i18n-en">Animated · five shifts of who leads GitHub trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">框架 LangChain</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">应用 / 编码 agent</span><span lang="en" class="i18n-en">Apps / coding agents</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2025–26</div><div class="lb"><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">技能供应链</span><span lang="en" class="i18n-en">Skills supply-chain</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 同一条弧线在延伸:2022-11 ChatGPT → 2023-03 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> → <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> → 编码 agent → 技能 → 今天的「技能供应链」。</span><span lang="en" class="i18n-en">▶ The same arc keeps extending: 2022-11 ChatGPT → 2023-03 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> → <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> → coding agents → skills → today's "skills supply-chain."</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">分发单元持续变小、变得「可组合」:从整套模型权重(2022–23),到编排框架(LangChain / LlamaIndex)与本地推理(llama.cpp / Ollama),再到编码 agent(2024–25),再到可即插即用的 <strong>agent 技能</strong>(2025 下半年起)。今天榜单不再只是「又一个技能仓库」——围绕技能的 <strong>安全(SkillSpector)、观测(agentsview)、沙箱(apple/container)、推理底座(LMCache、aisuite)</strong> 同时出现,说明这一层正在从「内容」走向「基础设施」。</span>
+              <span lang="en" class="i18n-en">The unit of distribution keeps shrinking and turning composable: from whole model weights (2022–23), to orchestration frameworks (LangChain / LlamaIndex) and local inference (llama.cpp / Ollama), to coding agents (2024–25), to plug-and-play <strong>agent skills</strong> (from late 2025). Today's board is no longer just "another skill repo" — <strong>security (SkillSpector), observability (agentsview), sandbox (apple/container), and an inference substrate (LMCache, aisuite)</strong> show up together, signaling this layer is shifting from "content" to "infrastructure."</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:两天前的预测被验证 —— 「供应链」从 24h 副榜升进 Top 10</span><span lang="en" class="i18n-en">Present: the two-day-old prediction is confirmed — the "supply chain" climbs from the 24h board into the Top 10</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 可证伪预测被验证:技能供应链升榜</span><span lang="en" class="i18n-en">Animated · falsifiable prediction confirmed: supply-chain promoted</span></div>
+              <div class="ght-promote" aria-hidden="true">
+                <div class="ght-prow">
+                  <span class="lane"><span lang="zh-CN" class="i18n-zh">06-12<br/>24h 副榜</span><span lang="en" class="i18n-en">06-12<br/>24h board</span></span>
+                  <div class="ght-track2">
+                    <span class="ght-pill" style="left:14px;background:#ec4899">SkillSpector</span>
+                    <span class="ght-pill" style="left:170px;background:#ec4899">agentsview</span>
+                    <span class="ght-uparrow">↑↑</span>
+                  </div>
+                </div>
+                <div class="ght-prow">
+                  <span class="lane"><span lang="zh-CN" class="i18n-zh">06-14<br/>当日 Top 10</span><span lang="en" class="i18n-en">06-14<br/>daily Top 10</span></span>
+                  <div class="ght-track2 top10">
+                    <span class="ght-pill rise" style="left:14px;background:#ec4899">#4 SkillSpector</span>
+                    <span class="ght-pill rise2" style="left:180px;background:#ec4899">#9 agentsview</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 06-12 我写下可证伪预测:「未来两周,技能安全/沙箱/观测类仓库占比将上升」。两天后,当时只在 24h 副榜的 <strong>SkillSpector</strong> 与 <strong>agentsview</strong> 双双升进当日 Top 10(#4、#9)。</span><span lang="en" class="i18n-en">▶ On 06-12 I wrote a falsifiable prediction: "over the next two weeks, skill-security / sandbox / observability repos rise as a share of trending." Two days later, <strong>SkillSpector</strong> and <strong>agentsview</strong> — then only on the 24h board — both climbed into the daily Top 10 (#4, #9).</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天最强的信号是一条 <strong>被验证的预测</strong>:06-12 的笔记把 <a href="https://github.com/NVIDIA/SkillSpector" target="_blank" rel="noopener">NVIDIA/SkillSpector</a>(技能安全扫描)与 <a href="https://github.com/kenn-io/agentsview" target="_blank" rel="noopener">kenn-io/agentsview</a>(agent 观测)仅作为「同日 24h 副榜」的旁证,用来论证「技能供应链正在成形」,并给出可证伪预测「这类仓库占比会上升」。两天后,二者直接进入当日 Top 10(SkillSpector #4、agentsview #9)——预测兑现。配套证据还有三条:(1) <strong>沙箱</strong>:<a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a> 稳居第 2,提供 agent 安全跑技能所需的 VM 级隔离;(2) <strong>推理底座变厚</strong>:<a href="https://github.com/LMCache/LMCache" target="_blank" rel="noopener">LMCache</a>(KV Cache 复用/卸载,常与 vLLM 搭配)与 <a href="https://github.com/andrewyng/aisuite" target="_blank" rel="noopener">aisuite</a>(多模型统一接口)同日上榜,把「更快/更省/可切换」做成中间层;(3) <strong>主权副线仍在</strong>:iptv-org/iptv 与 music-assistant 维持「数据/媒体主权」信号。</span>
+              <span lang="en" class="i18n-en">Today's strongest signal is a <strong>confirmed prediction</strong>: the 06-12 note used <a href="https://github.com/NVIDIA/SkillSpector" target="_blank" rel="noopener">NVIDIA/SkillSpector</a> (skill-security scanning) and <a href="https://github.com/kenn-io/agentsview" target="_blank" rel="noopener">kenn-io/agentsview</a> (agent observability) only as "same-day 24h board" corroboration for the claim that a "skills supply chain is forming," with a falsifiable prediction that such repos would rise. Two days later both jumped straight into the daily Top 10 (SkillSpector #4, agentsview #9) — prediction realized. Three more supporting pieces: (1) <strong>sandbox</strong> — <a href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a> sits at No. 2, providing the VM-level isolation agents need to run skills safely; (2) <strong>a thickening inference substrate</strong> — <a href="https://github.com/LMCache/LMCache" target="_blank" rel="noopener">LMCache</a> (KV-cache reuse/offload, often with vLLM) and <a href="https://github.com/andrewyng/aisuite" target="_blank" rel="noopener">aisuite</a> (unified multi-provider interface) chart the same day, turning "faster/cheaper/swappable" into a middle layer; (3) <strong>the sovereignty side-thread persists</strong> — iptv-org/iptv and music-assistant keep the "data/media sovereignty" signal alive.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:技能像带 SBOM 的依赖包 + 观测标准化 + KV Cache 成共享层</span><span lang="en" class="i18n-en">Future: skills become SBOM'd dependencies + standardized observability + KV cache as a shared layer</span></h4>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推:(1) <strong>技能即「带 SBOM 的依赖」</strong>——SkillSpector 升榜说明「技能安全扫描」正成为刚需,未来技能会被签名、生成物料清单(SBOM)、扫描提示注入/投毒,像 <code>npm audit</code> / Dependabot 一样接入 CI;(2) <strong>观测层标准化</strong>——agentsview 这类工具会把「agent 干了什么、花了多少 token、调了哪些技能」做成可对比的指标面板,并很可能向 OpenTelemetry 这样的统一规范收敛;(3) <strong>KV Cache 成为共享基础层</strong>——LMCache 把 KV 缓存做成可跨请求/跨实例复用的服务,叠加沙箱(apple/container)与统一接口(aisuite),推理侧会出现稳定的「中间件」分层;(4) <strong>主权副线不灭</strong>——开放清单/自托管(iptv、music-assistant)继续与 AI 主线并行。可证伪预测:未来两周,trending 上「技能安全 / 观测 / 推理中间件」(而非技能本体)的占比将继续上升,且至少再出现一个「技能注册表 / 签名」类新仓库。</span>
+              <span lang="en" class="i18n-en">Extrapolating from today: (1) <strong>skills as "SBOM'd dependencies"</strong> — SkillSpector charting shows "skill security scanning" is becoming a must-have; expect skills to be signed, shipped with an SBOM, and scanned for prompt-injection/poisoning, wired into CI like <code>npm audit</code> / Dependabot; (2) <strong>observability standardizes</strong> — tools like agentsview turn "what the agent did, tokens spent, which skills it called" into comparable dashboards, likely converging on a shared spec à la OpenTelemetry; (3) <strong>KV cache becomes a shared substrate</strong> — LMCache makes KV cache reusable across requests/instances; together with the sandbox (apple/container) and a unified interface (aisuite), a stable "middleware" tier emerges on the serving side; (4) <strong>the sovereignty side-thread endures</strong> — open lists / self-hosting (iptv, music-assistant) keep running parallel to the AI mainline. Falsifiable prediction: over the next two weeks, "skill-security / observability / inference-middleware" repos (not skills themselves) keep rising as a share of trending, and at least one new "skill registry / signing" repo appears.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(Today)+ GitHub REST API 校验总 star 数,抓取于 2026-06-14(UTC)。当日 ★ = GitHub Trending「stars today」,按当日新增 star 重排取前十。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Trending (Today) + GitHub REST API (totals verified), captured 2026-06-14 (UTC). ★ today = GitHub Trending "stars today"; the board is re-ranked by stars gained today and the top ten taken.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 
