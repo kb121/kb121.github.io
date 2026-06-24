@@ -79,14 +79,14 @@ window.NOTES = [
   {
     slug: "github-daily-trending",
     title: {
-      zh: "GitHub 每日 Top 10 Stars 与技术趋势",
-      en: "GitHub Daily Top 10 Stars & Tech Trends",
+      zh: "GitHub Top Stars 与技术趋势(多周期 · 图文 · 动图)",
+      en: "GitHub Top Stars & Tech Trends (multi-window · illustrated · animated)",
     },
     summary: {
-      zh: "每日滚动记录 GitHub 当日新增 stars 前十仓库,一句话介绍,并分析技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A daily-rolling log of the top 10 repos by stars gained that day, with one-line intros and a trend analysis (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年各前 5 仓库,GitHub 社交卡图文介绍,并对一年期前 10 stars 做方向归类与趋势分析(历史/当下/未来,带证据)。历史全部保留。",
+      en: "A rolling log of the top repos by stars across today/week/month/6mo/year windows, illustrated with GitHub social cards, plus a direction + trend analysis of the year's top-10 (history/present/future, with evidence). History preserved.",
     },
-    date: "2026-06-12",
+    date: "2026-06-17",
     tags: ["GitHub", "Trending", "Agent Skills", "Trend Analysis"],
   },
   {
