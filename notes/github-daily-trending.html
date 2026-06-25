@@ -36,8 +36,8 @@
       })();
     </script>
 
-    <title data-zh="GitHub 每日 Top 10 Stars 与技术趋势 — 庄宏" data-en="GitHub Daily Top 10 Stars & Tech Trends — Hong Zhuang">GitHub 每日 Top 10 Stars 与技术趋势 — 庄宏</title>
-    <meta name="description" content="GitHub 每日新增 stars 前十仓库的滚动记录,一句话介绍,以及技术方向与趋势(历史 / 当下 / 未来)分析。" />
+    <title data-zh="GitHub Top Stars 与技术趋势(多窗口)— 庄宏" data-en="GitHub Top Stars & Tech Trends (Multi-window) — Hong Zhuang">GitHub Top Stars 与技术趋势(多窗口)— 庄宏</title>
+    <meta name="description" content="GitHub 当天/一周/一月/半年/一年各 Top 5 新星的滚动记录,图文介绍,以及一年窗口前 10 的技术方向与趋势(历史 / 当下 / 未来)分析,含多组动图。" />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
 
@@ -113,11 +113,34 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* --- Multi-window cards (当天 / 一周 / 一月 / 半年 / 一年) --- */
+      .ght-wins { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+      .ght-win { position: relative; border: 1px solid var(--border-strong); border-radius: 11px; padding: 11px 12px 12px; background: var(--surface-strong); opacity: 0; transform: translateY(9px); animation: ght-rise 0.6s cubic-bezier(.2,.7,.2,1) forwards; overflow: hidden; }
+      .ght-win::after { content: ""; position: absolute; left: 0; bottom: 0; height: 3px; width: var(--lvl, 40%); background: var(--accent-grad); transform-origin: left; transform: scaleX(0); animation: ght-grow 1s ease 0.4s forwards; }
+      .ght-win:nth-child(2) { animation-delay: .12s; }
+      .ght-win:nth-child(3) { animation-delay: .24s; }
+      .ght-win:nth-child(4) { animation-delay: .36s; }
+      .ght-win:nth-child(5) { animation-delay: .48s; }
+      .ght-win .win-k { font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent-2); letter-spacing: .05em; text-transform: uppercase; }
+      .ght-win .win-top { font-size: 0.82rem; color: var(--text); margin-top: 7px; font-weight: 600; line-height: 1.3; word-break: break-word; }
+      .ght-win .win-st { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-1); margin-top: 5px; }
+      @keyframes ght-rise { to { opacity: 1; transform: translateY(0); } }
+
+      /* --- Animated "star race" rings for the 5 windows --- */
+      .ght-rings { display: flex; flex-wrap: wrap; gap: 16px 22px; justify-content: center; align-items: flex-end; }
+      .ght-ring { position: relative; width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; background: conic-gradient(var(--accent-1) calc(var(--p) * 1%), var(--surface) 0); animation: ght-spin 1.1s ease forwards; }
+      .ght-ring::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: var(--surface-strong); border: 1px solid var(--border); }
+      .ght-ring .rg-v { position: relative; font-family: var(--font-mono); font-size: 0.74rem; color: var(--text); }
+      .ght-ring .rg-k { position: relative; font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-muted); margin-top: 2px; }
+      @keyframes ght-spin { from { filter: grayscale(1) opacity(.4); } to { filter: none; } }
+
       @media (prefers-reduced-motion: reduce) {
-        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
+        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val, .ght-win, .ght-win::after, .ght-ring { animation: none !important; }
         .ght-bar-fill, .ght-seg { transform: scaleX(1); }
         .ght-stage { opacity: 1; }
         .ght-bar-val { opacity: 1; }
+        .ght-win { opacity: 1; transform: none; }
+        .ght-win::after { transform: scaleX(1); }
         .ght-pkt-move { display: none; }
       }
     </style>
@@ -160,16 +183,16 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-12</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Trend Analysis</span></span>
+            <span>2026-06-25</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Agent Skills</span><span>Trend Analysis</span></span>
           </div>
-          <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
+          <h1><span lang="zh-CN" class="i18n-zh">GitHub Top Stars 与技术趋势(多窗口)</span><span lang="en" class="i18n-en">GitHub Top Stars &amp; Tech Trends (Multi-window)</span></h1>
         </header>
 
         <div class="prose">
           <p>
-            <span lang="zh-CN" class="i18n-zh">这是一份<strong>每日滚动更新</strong>的记录:每天抓取 GitHub 当日<strong>新增 stars</strong> 最多的前十个仓库,给出一句话介绍,并分析它们属于什么技术方向、背后的技术趋势(历史 / 当下 / 未来,带证据)。数据来源为 <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending(Today)</a>,按「当日新增 star」排序,总 star 数经 GitHub REST API 校验。最新一天在最上方,<strong>历史记录与分析全部保留</strong>。</span>
-            <span lang="en" class="i18n-en">A <strong>daily-rolling</strong> log: every day I capture the ten repositories that gained the most <strong>stars that day</strong> on GitHub, give a one-line intro, and analyze which technical direction they belong to plus the underlying trend (history / present / future, with evidence). Source: <a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending (Today)</a>, ranked by stars gained that day; totals verified against the GitHub REST API. Newest day on top; <strong>all historical entries and analysis are preserved</strong>.</span>
+            <span lang="zh-CN" class="i18n-zh">这是一份<strong>滚动更新</strong>的记录:抓取 GitHub 上<strong>新增 / 新建 stars</strong> 最多的仓库,给出图文介绍,并分析它们属于什么技术方向、背后的技术趋势(历史 / 当下 / 未来,带证据)。部分日更条目按「当日新增 star」(<a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending</a>)排序;<strong>2026-06-25 起新增「多窗口」快照</strong>:同时统计 <strong>当天 / 一周 / 一月 / 半年 / 一年</strong> 五个时间窗口里新建且总 star 最高的前 5,并对一年窗口的前 10 做深度趋势分析。总 star 数经 GitHub Search / REST API 校验。最新条目在最上方,<strong>历史记录与分析全部保留</strong>。</span>
+            <span lang="en" class="i18n-en">A <strong>rolling</strong> log: I capture the repositories gaining (or born with) the most <strong>stars</strong> on GitHub, give an illustrated intro, and analyze their technical direction plus the underlying trend (history / present / future, with evidence). Some daily entries are ranked by "stars gained that day" (<a href="https://github.com/trending?since=daily" target="_blank" rel="noopener">GitHub Trending</a>); <strong>from 2026-06-25 a "multi-window" snapshot is added</strong>: the top-5 newest, highest-starred repos across <strong>day / week / month / half-year / year</strong>, plus a deep Top-10 trend analysis on the year window. Totals are verified against the GitHub Search / REST API. Newest entry on top; <strong>all history and analysis are preserved</strong>.</span>
           </p>
 
           <!--
@@ -179,6 +202,260 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2 id="d-2026-06-25"><span lang="zh-CN" class="i18n-zh">2026-06-25 — 多窗口 Top 5 + 前 10 趋势分析</span><span lang="en" class="i18n-en">2026-06-25 — Multi-window Top 5 + Top-10 trends</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天换一个更全的视角:不只看「当日」,而是同时统计 <strong>当天 / 一周 / 一个月 / 半年 / 一年</strong> 五个时间窗口里<strong>新建且总 star 最高的前 5 个仓库</strong>(口径:<code>created:&gt;=窗口起点</code> 按总 star 倒序,经 GitHub Search/REST API 校验;已剔除无描述、无主题、疑似刷星的仓库)。随后对「一年窗口」的 <strong>前 10 stars</strong> 做技术方向归类与趋势分析(历史 / 当下 / 未来,带证据)。</span>
+              <span lang="en" class="i18n-en">A wider lens today: instead of just "today," I tally the <strong>top-5 newest, highest-starred repos</strong> across five windows — <strong>day / week / month / half-year / year</strong> (method: <code>created:&gt;=window-start</code> sorted by total stars, verified via GitHub Search/REST API; repos with no description/topics and signs of star-inflation are filtered out). Then I classify and analyze the <strong>top-10 stars</strong> of the <em>year</em> window (history / present / future, with evidence).</span>
+            </p>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 五个时间窗口的「新星之王」</span><span lang="en" class="i18n-en">Animated · the "king of new stars" in each of the five windows</span></div>
+              <div class="ght-wins" aria-hidden="true">
+                <div class="ght-win" style="--lvl:16%"><div class="win-k">当天 · day</div><div class="win-top">awesome-evals</div><div class="win-st">★ 170</div></div>
+                <div class="ght-win" style="--lvl:40%"><div class="win-k">一周 · week</div><div class="win-top">baidu/Unlimited-OCR</div><div class="win-st">★ 6.3k</div></div>
+                <div class="ght-win" style="--lvl:66%"><div class="win-k">一月 · month</div><div class="win-top">…/odysseus</div><div class="win-st">★ 77.4k</div></div>
+                <div class="ght-win" style="--lvl:86%"><div class="win-k">半年 · 6mo</div><div class="win-top">affaan-m/ECC</div><div class="win-st">★ 221.2k</div></div>
+                <div class="ght-win" style="--lvl:100%"><div class="win-k">一年 · year</div><div class="win-top">openclaw/openclaw</div><div class="win-st">★ 380.3k</div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 窗口越长,登顶门槛呈数量级跃升:当天 ~10² → 一周 ~10³·⁷ → 一月 ~10⁴·⁹ → 半年/一年 ~10⁵·⁶。五个「新星之王」里有四个直接属于 <strong>AI 编码 agent / agent 技能</strong> 生态,唯一的例外是一周的百度 OCR。</span><span lang="en" class="i18n-en">▶ The longer the window, the higher the bar — by orders of magnitude: day ~10² → week ~10³·⁷ → month ~10⁴·⁹ → half-year/year ~10⁵·⁶. Four of the five "kings" sit squarely in the <strong>AI coding-agent / agent-skills</strong> ecosystem; the lone exception is Baidu's OCR in the week window.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五个时间窗口 · 各 Top 5(图文)</span><span lang="en" class="i18n-en">Five windows · Top 5 each (illustrated)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">① 当天(近 24h 新建)</span><span lang="en" class="i18n-en">① Today (created in last 24h)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">建仓</span><span lang="en" class="i18n-en">Created</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/benchflow-ai/awesome-evals" target="_blank" rel="noopener">benchflow-ai/awesome-evals</a></td><td>—</td><td>06-24</td><td>170</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/todd866/codex-adversary" target="_blank" rel="noopener">todd866/codex-adversary</a></td><td>JS</td><td>06-24</td><td>29</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/goolars/OpenFinto" target="_blank" rel="noopener">goolars/OpenFinto</a></td><td>TS</td><td>06-24</td><td>27</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/kristoferlund/ratcn" target="_blank" rel="noopener">kristoferlund/ratcn</a></td><td>—</td><td>06-24</td><td>26</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/diyanqi/copyGen" target="_blank" rel="noopener">diyanqi/copyGen</a></td><td>TS</td><td>06-24</td><td>25</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>awesome-evals</strong> — <span lang="zh-CN" class="i18n-zh">精选的「构建与评测 AI agent」资源库:论文、博客、工具、benchmark。</span><span lang="en" class="i18n-en">A curated library of resources for building &amp; evaluating AI agents — papers, tools, benchmarks.</span></li>
+              <li><strong>codex-adversary</strong> — <span lang="zh-CN" class="i18n-zh">把 Codex(GPT)拉进 Claude Code 当「对抗式评审员」,引入思路多样性。</span><span lang="en" class="i18n-en">Recruits Codex (GPT) as an adversarial reviewer inside Claude Code for diversity of thought.</span></li>
+              <li><strong>OpenFinto</strong> — <span lang="zh-CN" class="i18n-zh">纯客户端、无后端的个人记账 / 理财小工具。</span><span lang="en" class="i18n-en">A calm, client-only personal money companion (no backend).</span></li>
+              <li><strong>ratcn</strong> — <span lang="zh-CN" class="i18n-zh">为 Ratatui(Rust 终端 UI)打造的精美 TUI 组件库。</span><span lang="en" class="i18n-en">Beautifully designed terminal-UI components for Ratatui apps.</span></li>
+              <li><strong>copyGen(软著通)</strong> — <span lang="zh-CN" class="i18n-zh">一键生成软件著作权申报材料。</span><span lang="en" class="i18n-en">One-click generator for Chinese software-copyright filing materials.</span></li>
+              <li><em><span lang="zh-CN" class="i18n-zh">同窗口还有 <a href="https://github.com/amplifthq/opentag" target="_blank" rel="noopener">amplifthq/opentag</a>(★23):把「@agent」提及路由给 Codex / Claude Code —— 又一条 agent 工具化信号。</span><span lang="en" class="i18n-en">Also in-window: <a href="https://github.com/amplifthq/opentag" target="_blank" rel="noopener">amplifthq/opentag</a> (★23) routes "@agent" mentions to Codex / Claude Code — another agent-tooling signal.</span></em></li>
+            </ul>
+
+            <h4><span lang="zh-CN" class="i18n-zh">② 一周(近 7 天新建)</span><span lang="en" class="i18n-en">② This week (created in last 7 days)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">建仓</span><span lang="en" class="i18n-en">Created</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/baidu/Unlimited-OCR" target="_blank" rel="noopener">baidu/Unlimited-OCR</a></td><td>Python</td><td>06-18</td><td>6,349</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/bozhouDev/codex-orange-book" target="_blank" rel="noopener">bozhouDev/codex-orange-book</a></td><td>HTML</td><td>06-23</td><td>1,379</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/lyra81604/zhengxi-views" target="_blank" rel="noopener">lyra81604/zhengxi-views</a></td><td>Python</td><td>06-20</td><td>987</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/Forsy-AI/agent-apprenticeship" target="_blank" rel="noopener">Forsy-AI/agent-apprenticeship</a></td><td>—</td><td>06-19</td><td>905</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/aidenybai/cnfast" target="_blank" rel="noopener">aidenybai/cnfast</a></td><td>TS</td><td>06-19</td><td>878</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>Unlimited-OCR</strong> — <span lang="zh-CN" class="i18n-zh">百度开源:面向「一次性长文档解析」的无限 OCR。</span><span lang="en" class="i18n-en">Baidu's open OCR for one-shot, long-horizon document parsing.</span></li>
+              <li><strong>codex-orange-book(Codex 橙皮书)</strong> — <span lang="zh-CN" class="i18n-zh">从安装到实战的全链路 Codex 使用指南(含可下载 PDF)。</span><span lang="en" class="i18n-en">An end-to-end Codex usage guide, from install to real cases (with PDF).</span></li>
+              <li><strong>zhengxi-views(郑希投研)</strong> — <span lang="zh-CN" class="i18n-zh">以基金经理公开观点原文为底的「可溯源」投研 agent 技能。</span><span lang="en" class="i18n-en">A source-traceable investment-research agent skill built on a fund manager's public views.</span></li>
+              <li><strong>agent-apprenticeship</strong> — <span lang="zh-CN" class="i18n-zh">让 AI agent 在真实工作中「以学徒方式」迭代成长、复用经验的生态。</span><span lang="en" class="i18n-en">An ecosystem where AI agents learn apprentice-style from real-world work, reusing experience.</span></li>
+              <li><strong>cnfast</strong> — <span lang="zh-CN" class="i18n-zh">前端 <code>cn</code>(clsx + tailwind-merge)的高速 drop-in 替代。</span><span lang="en" class="i18n-en">A fast drop-in replacement for the frontend <code>cn</code> helper.</span></li>
+              <li><em><span lang="zh-CN" class="i18n-zh">紧随其后:<a href="https://github.com/cloudflare/security-audit-skill" target="_blank" rel="noopener">cloudflare/security-audit-skill</a>(★701)—— Cloudflare 官方的「多阶段安全审计」编码 agent 技能,官方下场的又一例证。</span><span lang="en" class="i18n-en">Just behind: <a href="https://github.com/cloudflare/security-audit-skill" target="_blank" rel="noopener">cloudflare/security-audit-skill</a> (★701) — Cloudflare's official multi-phase security-audit coding-agent skill, another "incumbent steps in" data point.</span></em></li>
+            </ul>
+
+            <h4><span lang="zh-CN" class="i18n-zh">③ 一个月(近 30 天新建)</span><span lang="en" class="i18n-en">③ This month (created in last 30 days)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">建仓</span><span lang="en" class="i18n-en">Created</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/pewdiepie-archdaemon/odysseus" target="_blank" rel="noopener">pewdiepie-archdaemon/odysseus</a></td><td>Python</td><td>05-31</td><td>77.4k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/DietrichGebert/ponytail" target="_blank" rel="noopener">DietrichGebert/ponytail</a></td><td>JS</td><td>06-12</td><td>55.1k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/XiaomiMiMo/MiMo-Code" target="_blank" rel="noopener">XiaomiMiMo/MiMo-Code</a></td><td>TS</td><td>06-10</td><td>10.6k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/unicity-astrid/book" target="_blank" rel="noopener">unicity-astrid/book</a></td><td>Perl</td><td>06-06</td><td>7.1k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/unicity-astrid/handbook" target="_blank" rel="noopener">unicity-astrid/handbook</a></td><td>—</td><td>06-06</td><td>7.0k</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>odysseus</strong> — <span lang="zh-CN" class="i18n-zh">自托管的 AI 工作台(self-hosted AI workspace)。</span><span lang="en" class="i18n-en">A self-hosted AI workspace.</span></li>
+              <li><strong>ponytail</strong> — <span lang="zh-CN" class="i18n-zh">让 agent「像房间里最懒的资深工程师那样思考」——最好的代码是你没写的代码。</span><span lang="en" class="i18n-en">Makes your agent think like the laziest senior dev — the best code is code you never wrote.</span></li>
+              <li><strong>MiMo-Code</strong> — <span lang="zh-CN" class="i18n-zh">小米 MiMo:模型与 agent 协同进化的编码栈。</span><span lang="en" class="i18n-en">Xiaomi MiMo: a coding stack where models and agents co-evolve.</span></li>
+              <li><strong>astrid/book + handbook</strong> — <span lang="zh-CN" class="i18n-zh">「Astrid OS」的内核 / 能力 / 安全模型参考与协作手册(成对登榜)。</span><span lang="en" class="i18n-en">The reference + working handbook for "Astrid OS" (a charting pair).</span></li>
+              <li><em><span lang="zh-CN" class="i18n-zh">紧随其后:baidu/Unlimited-OCR(★6.3k)、<a href="https://github.com/shadcn/improve" target="_blank" rel="noopener">shadcn/improve</a>(★6.2k,用强模型审计代码、为弱模型写执行计划)。</span><span lang="en" class="i18n-en">Just behind: baidu/Unlimited-OCR (★6.3k) and <a href="https://github.com/shadcn/improve" target="_blank" rel="noopener">shadcn/improve</a> (★6.2k — strong model audits code &amp; writes plans for cheaper models to execute).</span></em></li>
+            </ul>
+
+            <h4><span lang="zh-CN" class="i18n-zh">④ 半年(近 180 天新建)</span><span lang="en" class="i18n-en">④ Half-year (created in last 180 days)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">建仓</span><span lang="en" class="i18n-en">Created</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>JS</td><td>01-18</td><td>221.2k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>Rust</td><td>03-31</td><td>194.3k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a></td><td>—</td><td>01-27</td><td>181.6k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a></td><td>Shell</td><td>02-03</td><td>144.8k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a></td><td>TS</td><td>03-11</td><td>114.9k</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>ECC</strong> — <span lang="zh-CN" class="i18n-zh">面向 Claude Code/Codex/Cursor 的 agent「harness」性能优化系统:技能、本能、记忆、安全、研究优先。</span><span lang="en" class="i18n-en">An agent-"harness" performance system for Claude Code/Codex/Cursor: skills, instincts, memory, security, research-first.</span></li>
+              <li><strong>claw-code</strong> — <span lang="zh-CN" class="i18n-zh">完全「无人工干预」、由 agent 自主开发与维护的 Rust 工程(行为艺术式 agent 实验)。</span><span lang="en" class="i18n-en">A Rust project developed &amp; maintained by agents with no human intervention.</span></li>
+              <li><strong>andrej-karpathy-skills</strong> — <span lang="zh-CN" class="i18n-zh">一份 CLAUDE.md,把 Karpathy 对 LLM 编码坑的观察固化为规则。</span><span lang="en" class="i18n-en">A single CLAUDE.md distilling Karpathy's notes on LLM coding pitfalls.</span></li>
+              <li><strong>mattpocock/skills</strong> — <span lang="zh-CN" class="i18n-zh">「给真正工程师的技能」,直接来自作者的 .claude 目录。</span><span lang="en" class="i18n-en">"Skills for real engineers," straight from the author's .claude directory.</span></li>
+              <li><strong>gstack</strong> — <span lang="zh-CN" class="i18n-zh">复刻 Garry Tan 的 Claude Code 配置:23 个分饰 CEO / 设计 / 工程经理…的工具。</span><span lang="en" class="i18n-en">Garry Tan's exact Claude Code setup: 23 opinionated tools playing CEO / Designer / Eng-Manager…</span></li>
+              <li><em><span lang="zh-CN" class="i18n-zh">紧随其后:VoltAgent/awesome-design-md(★92.8k)、karpathy/autoresearch(★88.5k)、JuliusBrussee/caveman(★76.6k)、safishamsi/graphify(★71.6k)。</span><span lang="en" class="i18n-en">Just behind: VoltAgent/awesome-design-md (★92.8k), karpathy/autoresearch (★88.5k), JuliusBrussee/caveman (★76.6k), safishamsi/graphify (★71.6k).</span></em></li>
+            </ul>
+
+            <h4><span lang="zh-CN" class="i18n-zh">⑤ 一年(近 365 天新建)</span><span lang="en" class="i18n-en">⑤ Year (created in last 365 days)</span></h4>
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">建仓</span><span lang="en" class="i18n-en">Created</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a></td><td>TS</td><td>2025-11</td><td>380.3k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td>2025-10</td><td>237.8k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>JS</td><td>2026-01</td><td>221.2k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a></td><td>Python</td><td>2025-07</td><td>202.0k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>Rust</td><td>2026-03</td><td>194.3k</td></tr>
+              </tbody>
+            </table>
+            <ul>
+              <li><strong>openclaw</strong> — <span lang="zh-CN" class="i18n-zh">「属于你自己」的个人 AI 助手,跨任意 OS / 平台(🦞 the lobster way)。</span><span lang="en" class="i18n-en">Your own personal AI assistant, any OS / platform (🦞 the lobster way).</span></li>
+              <li><strong>superpowers</strong> — <span lang="zh-CN" class="i18n-zh">「真能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology that works.</span></li>
+              <li><strong>ECC / claw-code</strong> — <span lang="zh-CN" class="i18n-zh">见上「半年」窗口(harness 优化系统 / agent 自主维护工程)。</span><span lang="en" class="i18n-en">See the "half-year" window above (harness optimizer / agent-maintained project).</span></li>
+              <li><strong>hermes-agent</strong> — <span lang="zh-CN" class="i18n-zh">Nous Research:「与你共同成长」的开源 agent。</span><span lang="en" class="i18n-en">Nous Research's open agent that "grows with you."</span></li>
+              <li><em><span lang="zh-CN" class="i18n-zh">一年榜的第 6–10 名见下方「前 10 深度分析」。</span><span lang="en" class="i18n-en">Ranks 6–10 of the year board appear in the "Top-10 deep dive" below.</span></em></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">前 10 Stars 深度分析(一年窗口)</span><span lang="en" class="i18n-en">Top-10 stars deep dive (year window)</span></h3>
+
+            <table>
+              <thead><tr><th>#</th><th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th><th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th><th><span lang="zh-CN" class="i18n-zh">方向</span><span lang="en" class="i18n-en">Direction</span></th><th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a></td><td>TS</td><td><span lang="zh-CN" class="i18n-zh">AI 助手</span><span lang="en" class="i18n-en">AI assistant</span></td><td>380.3k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a></td><td>Shell</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></td><td>237.8k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a></td><td>JS</td><td><span lang="zh-CN" class="i18n-zh">Agent harness</span><span lang="en" class="i18n-en">Agent harness</span></td><td>221.2k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a></td><td>Python</td><td><span lang="zh-CN" class="i18n-zh">AI 助手</span><span lang="en" class="i18n-en">AI assistant</span></td><td>202.0k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a></td><td>Rust</td><td><span lang="zh-CN" class="i18n-zh">自主 agent</span><span lang="en" class="i18n-en">Autonomous agent</span></td><td>194.3k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a></td><td>—</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></td><td>181.6k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">anthropics/skills</a></td><td>Python</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能(官方)</span><span lang="en" class="i18n-en">Agent skills (official)</span></td><td>154.8k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a></td><td>Shell</td><td><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></td><td>144.8k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a></td><td>Shell</td><td><span lang="zh-CN" class="i18n-zh">多 agent 编排</span><span lang="en" class="i18n-en">Multi-agent agency</span></td><td>115.6k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">github/spec-kit</a></td><td>Python</td><td><span lang="zh-CN" class="i18n-zh">规范驱动开发(官方)</span><span lang="en" class="i18n-en">Spec-driven dev (official)</span></td><td>115.3k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 一年窗口 Top 10 总 stars(按方向着色)</span><span lang="en" class="i18n-en">Animated · year-window Top 10 total stars (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">openclaw</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#06b6d4"></div><span class="ght-bar-val">380.3k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">superpowers</span><div class="ght-bar-track" style="--w:62.5%"><div class="ght-bar-fill" style="width:62.5%;background:#a855f7"></div><span class="ght-bar-val">237.8k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">ECC</span><div class="ght-bar-track" style="--w:58.2%"><div class="ght-bar-fill" style="width:58.2%;background:#f59e0b"></div><span class="ght-bar-val">221.2k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">hermes-agent</span><div class="ght-bar-track" style="--w:53.1%"><div class="ght-bar-fill" style="width:53.1%;background:#06b6d4"></div><span class="ght-bar-val">202.0k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">claw-code</span><div class="ght-bar-track" style="--w:51.1%"><div class="ght-bar-fill" style="width:51.1%;background:#06b6d4"></div><span class="ght-bar-val">194.3k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">karpathy-skills</span><div class="ght-bar-track" style="--w:47.7%"><div class="ght-bar-fill" style="width:47.7%;background:#a855f7"></div><span class="ght-bar-val">181.6k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">anthropics/skills</span><div class="ght-bar-track" style="--w:40.7%"><div class="ght-bar-fill" style="width:40.7%;background:#a855f7"></div><span class="ght-bar-val">154.8k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">mattpocock/skills</span><div class="ght-bar-track" style="--w:38.1%"><div class="ght-bar-fill" style="width:38.1%;background:#a855f7"></div><span class="ght-bar-val">144.8k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">agency-agents</span><div class="ght-bar-track" style="--w:30.4%"><div class="ght-bar-fill" style="width:30.4%;background:#f59e0b"></div><span class="ght-bar-val">115.6k</span></div></div>
+                <div class="ght-bar-row"><span class="nm">github/spec-kit</span><div class="ght-bar-track" style="--w:30.3%"><div class="ght-bar-fill" style="width:30.3%;background:#f59e0b"></div><span class="ght-bar-val">115.3k</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">AI 编码 agent / 助手</span><span lang="en" class="i18n-en">Coding agents / assistants</span></span>
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">Harness / 编排 / 方法论</span><span lang="en" class="i18n-en">Harness / orchestration / methodology</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 一年窗口 Top 10 <strong>10/10</strong> 全部落在「AI 编码 agent 生态」内,没有一个例外 —— 这本身就是过去一年 GitHub 最强的单一信号。</span><span lang="en" class="i18n-en">▶ All <strong>10/10</strong> of the year's Top 10 fall inside the "AI coding-agent ecosystem" — with zero exceptions. That alone is GitHub's single strongest signal of the past year.</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一句话介绍(第 6–10 名)</span><span lang="en" class="i18n-en">One-line intros (ranks 6–10)</span></h4>
+            <ol start="6">
+              <li><strong>andrej-karpathy-skills</strong> — <span lang="zh-CN" class="i18n-zh">一份 CLAUDE.md,把 Karpathy 对 LLM 编码坑的观察固化成 Claude Code 的行为规则。</span><span lang="en" class="i18n-en">A single CLAUDE.md turning Karpathy's LLM-coding observations into Claude Code behavior rules.</span></li>
+              <li><strong>anthropics/skills</strong> — <span lang="zh-CN" class="i18n-zh">Anthropic 官方的 Agent Skills 公共仓库 —— 技能范式的「官方标准库」。</span><span lang="en" class="i18n-en">Anthropic's official public Agent Skills repo — the "standard library" of the skills paradigm.</span></li>
+              <li><strong>mattpocock/skills</strong> — <span lang="zh-CN" class="i18n-zh">「给真正工程师的技能」,直接来自作者 .claude 目录。</span><span lang="en" class="i18n-en">"Skills for real engineers," straight from the author's .claude directory.</span></li>
+              <li><strong>agency-agents</strong> — <span lang="zh-CN" class="i18n-zh">一整套「AI 代理公司」:每个 agent 都是带人设、流程与交付物的专家。</span><span lang="en" class="i18n-en">A complete "AI agency": each agent a specialist with personality, process, and deliverables.</span></li>
+              <li><strong>github/spec-kit</strong> — <span lang="zh-CN" class="i18n-zh">GitHub 官方:面向「规范驱动开发(SDD)」的工具包。</span><span lang="en" class="i18n-en">GitHub's official toolkit for Spec-Driven Development (SDD).</span></li>
+            </ol>
+
+            <h4><span lang="zh-CN" class="i18n-zh">技术方向归类</span><span lang="en" class="i18n-en">Direction breakdown</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 前 10 方向占比</span><span lang="en" class="i18n-en">Animated · Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:40%;background:#a855f7">4 · <span lang="zh-CN" class="i18n-zh">技能</span><span lang="en" class="i18n-en">skills</span></div>
+                <div class="ght-seg" style="width:30%;background:#06b6d4;animation-delay:.18s">3 · <span lang="zh-CN" class="i18n-zh">助手</span><span lang="en" class="i18n-en">agents</span></div>
+                <div class="ght-seg" style="width:30%;background:#f59e0b;animation-delay:.36s">3 · harness</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ Agent 技能 <strong>4/10</strong>(superpowers、karpathy-skills、anthropics/skills、mattpocock/skills);AI 编码 agent / 助手 <strong>3/10</strong>(openclaw、hermes-agent、claw-code);Harness / 编排 / 方法论 <strong>3/10</strong>(ECC、agency-agents、spec-kit)。</span><span lang="en" class="i18n-en">▶ Agent skills <strong>4/10</strong> (superpowers, karpathy-skills, anthropics/skills, mattpocock/skills); coding agents / assistants <strong>3/10</strong> (openclaw, hermes-agent, claw-code); harness / orchestration / methodology <strong>3/10</strong> (ECC, agency-agents, spec-kit).</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 一个 agent 的「四层装配」</span><span lang="en" class="i18n-en">Animated · the four-layer assembly of an agent</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">superpowers</span>
+                <span class="ght-chip">anthropics/skills</span>
+                <span class="ght-chip">karpathy CLAUDE.md</span>
+                <span class="ght-chip">spec-kit</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">编码 Agent<br/>openclaw / hermes</span><span lang="en" class="i18n-en">Coding Agent<br/>openclaw / hermes</span></span>
+                <span class="ght-chip">ECC harness</span>
+                <span class="ght-chip">agency-agents</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 同一个「编码 agent 核心」外面,正在长出四层:<strong>技能</strong>(superpowers/anthropics)→ <strong>规则/方法论</strong>(karpathy CLAUDE.md / spec-kit)→ <strong>harness</strong>(ECC,管记忆/安全/性能)→ <strong>agency</strong>(agency-agents,多 agent 协作)。</span><span lang="en" class="i18n-en">▶ Around the same "coding-agent core," four layers are forming: <strong>skills</strong> (superpowers/anthropics) → <strong>rules/methodology</strong> (karpathy CLAUDE.md / spec-kit) → <strong>harness</strong> (ECC: memory/security/perf) → <strong>agency</strong> (agency-agents: multi-agent collaboration).</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h4>
+
+            <h5><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能 → harness/agency</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills → harness/agency</span></h5>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的五次迁移</span><span lang="en" class="i18n-en">Animated · five shifts of who leads GitHub trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编排框架</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 应用</span><span lang="en" class="i18n-en">Coding agents</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2025 H2</div><div class="lb"><span lang="zh-CN" class="i18n-zh">Agent 技能</span><span lang="en" class="i18n-en">Agent skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">Harness / Agency</span><span lang="en" class="i18n-en">Harness / Agency</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 证据就在创建时间里:一年榜的 superpowers(2025-10)、hermes(2025-07)、anthropics/skills(2025-09)、spec-kit(2025-08)集中在 2025 下半年;而半年榜领头的 ECC(2026-01)、claw-code(2026-03)、gstack(2026-03)已明显转向 <strong>harness / 配置 / agency</strong>。</span><span lang="en" class="i18n-en">▶ The evidence is in the creation dates: the year board's superpowers (2025-10), hermes (2025-07), anthropics/skills (2025-09), spec-kit (2025-08) cluster in H2-2025; while the half-year leaders ECC (2026-01), claw-code (2026-03), gstack (2026-03) have visibly shifted to <strong>harness / config / agency</strong>.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">把镜头拉长:2022-11 ChatGPT 引爆后,2023-03 的 <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> 是第一个病毒式「autonomous agent」;随后是 <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex 编排框架与 <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> / Ollama 本地推理(主角是「模型 + 框架」);2024–2025 编码 agent 与应用接棒;2025 下半年分发单元缩成可插拔的 <strong>agent 技能</strong>。本期数据把这条弧线又往前推了一格:一年 Top 10 里技能类已是最大单块(4/10),但<strong>增量(半年窗口)正从「单个技能」转向「整套 harness / 配置 / agency」</strong>—— ECC(harness 优化)、gstack(Garry Tan 的整套配置)、mattpocock(整份 .claude 目录)、andrej-karpathy(一份 CLAUDE.md)都在卖「别人调好的整套 setup」,而不是单点能力。</span>
+              <span lang="en" class="i18n-en">Zooming out: after ChatGPT (2022-11), <a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank" rel="noopener">Auto-GPT</a> (2023-03) was the first viral "autonomous agent"; then came <a href="https://github.com/langchain-ai/langchain" target="_blank" rel="noopener">LangChain</a> / LlamaIndex orchestration and <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> / Ollama local inference ("models + frameworks" as protagonists); 2024–2025 coding agents and apps took over; in H2-2025 the unit narrowed to pluggable <strong>agent skills</strong>. This snapshot pushes the arc one notch further: skills are still the single biggest block of the year's Top 10 (4/10), but the <strong>increment (half-year window) is shifting from "a single skill" to "a whole harness / config / agency"</strong> — ECC (harness optimization), gstack (Garry Tan's full setup), mattpocock (an entire .claude directory), andrej-karpathy (one CLAUDE.md) all sell "someone's tuned-up complete setup," not a point capability.</span>
+            </p>
+
+            <h5><span lang="zh-CN" class="i18n-zh">当下:「整套 setup」+ 官方下场 + 评测/安全工具补齐</span><span lang="en" class="i18n-en">Present: "whole setups" + incumbents step in + eval/security tooling fills in</span></h5>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 从「单技能」到「整套交付」的供应链</span><span lang="en" class="i18n-en">Animated · supply chain from "single skill" to "whole delivery"</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="agent setup supply chain">
+                <rect class="ght-box" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="64" text-anchor="middle">Skill</text><text class="ght-ssub" x="54" y="79" text-anchor="middle">anthropics/skills</text>
+                <rect class="ght-box hot" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="64" text-anchor="middle">Setup / harness</text><text class="ght-ssub" x="202" y="79" text-anchor="middle">ECC · gstack</text>
+                <rect class="ght-box" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="64" text-anchor="middle">Eval / audit</text><text class="ght-ssub" x="350" y="79" text-anchor="middle">awesome-evals</text>
+                <rect class="ght-box" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="64" text-anchor="middle">Agency</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">agency-agents</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#f59e0b" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#ec4899" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#f59e0b">setup</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 价值单元从「单技能」上移到「整套 setup/harness」,两侧再补「评测/审计」与「多 agent 编排」—— 四块在本期不同窗口里都能找到实例。</span><span lang="en" class="i18n-en">▶ The unit of value moves up from a "single skill" to a "whole setup/harness," flanked by "eval/audit" and "multi-agent agency" — all four appear across this snapshot's windows.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">三条带证据的「当下」信号:(1) <strong>「整套 setup」成为新爆款</strong> —— 半年榜前五里 ECC(harness)、gstack(整套配置)、mattpocock(.claude 目录)、andrej-karpathy(CLAUDE.md)四个都是「打包好的整套 agent 设置」,说明用户要的已不是「一个技能」,而是「一套调好的工作方式」;(2) <strong>官方/大厂密集下场</strong> —— 一年榜有 anthropics/skills、github/spec-kit;近一月/一周更出现 XiaomiMiMo/MiMo-Code(★10.6k)、baidu/Unlimited-OCR(★6.3k)、cloudflare/security-audit-skill(★701),Anthropic、GitHub、小米、百度、Cloudflare 同框;(3) <strong>评测 / 对抗 / 安全工具开始补位</strong> —— 当天榜的 awesome-evals(评测资源)、codex-adversary(对抗评审)、opentag(@agent 路由),以及 cloudflare 的安全审计技能,说明「质量与安全」这一层正在围绕 agent 长出来。</span>
+              <span lang="en" class="i18n-en">Three evidence-backed "present" signals: (1) <strong>"whole setups" are the new hit</strong> — four of the half-year top five (ECC harness, gstack full config, mattpocock's .claude dir, andrej-karpathy's CLAUDE.md) are <em>packaged complete agent setups</em>, showing users now want "a tuned way of working," not "a single skill"; (2) <strong>incumbents pile in</strong> — the year board has anthropics/skills and github/spec-kit; the past month/week add XiaomiMiMo/MiMo-Code (★10.6k), baidu/Unlimited-OCR (★6.3k), and cloudflare/security-audit-skill (★701) — Anthropic, GitHub, Xiaomi, Baidu, Cloudflare all in one frame; (3) <strong>eval / adversarial / security tooling fills in</strong> — today's board has awesome-evals (eval resources), codex-adversary (adversarial review), opentag (@agent routing), plus Cloudflare's security-audit skill — the "quality &amp; safety" layer is growing around agents.</span>
+            </p>
+
+            <h5><span lang="zh-CN" class="i18n-zh">未来:setup 即产品 · 评测/安全标准化 · agency 协作</span><span lang="en" class="i18n-en">Future: setups as products · eval/security standardize · agency collaboration</span></h5>
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从本期信号外推:(1) <strong>「整套 setup / harness」成为新分发单元</strong> —— 继单个技能之后,完整的 CLAUDE.md / .claude 目录 / harness 会像脚手架模板一样被发现、版本化、复刻与售卖(ECC、gstack、mattpocock 是早期形态);(2) <strong>评测与安全走向标配</strong> —— awesome-evals、codex-adversary、cloudflare/security-audit-skill 预示「评测基准 + 对抗评审 + 安全审计」会像 CI 一样接进 agent 工作流;(3) <strong>多 agent / agency 协作上位</strong> —— agency-agents(一年 Top 10)与 agent-apprenticeship(本周新)指向「agent 团队 + 经验复用」;(4) <strong>官方与厂商继续主导</strong> —— anthropics/skills、github/spec-kit、MiMo-Code、Unlimited-OCR。<strong>可证伪预测</strong>:下一期(约一个月后)的「半年 / 一年」窗口 Top 10 中,「harness / 配置 / 评测 / 安全 / agency」这类<strong>非单一技能</strong>仓库的占比将较本期(≥3/10)进一步上升,而纯 prompt / 单技能合集占比下降。</span>
+              <span lang="en" class="i18n-en">Extrapolating from this snapshot: (1) <strong>"whole setups / harnesses" become the new unit of distribution</strong> — after single skills, complete CLAUDE.md / .claude dirs / harnesses get discovered, versioned, cloned, and sold like scaffolding templates (ECC, gstack, mattpocock are early forms); (2) <strong>eval &amp; security become table stakes</strong> — awesome-evals, codex-adversary, cloudflare/security-audit-skill foreshadow "benchmarks + adversarial review + security audit" wiring into agent workflows like CI; (3) <strong>multi-agent / agency collaboration rises</strong> — agency-agents (year Top 10) and agent-apprenticeship (new this week) point to "agent teams + reusable experience"; (4) <strong>incumbents keep leading</strong> — anthropics/skills, github/spec-kit, MiMo-Code, Unlimited-OCR. <strong>Falsifiable prediction</strong>: in the next snapshot (~a month out), the share of <strong>non-single-skill</strong> repos (harness / config / eval / security / agency) in the half-year / year Top 10 rises above this snapshot's level (≥3/10), while pure prompt / single-skill collections decline.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Search API(<code>created:&gt;=窗口起点</code> 按总 star 倒序)+ GitHub REST API 校验,抓取于 2026-06-25(UTC)。每个窗口取「窗口内新建、总 star 最高」的前 5;已剔除无描述 / 无主题 / 疑似刷星仓库(如 Cowart、birds.cafe)与当天榜的盗版 / 外挂 / 仿冒仓库。前 10 分析基于「一年」窗口。</em></span>
+              <span lang="en" class="i18n-en"><em>Sources: GitHub Search API (<code>created:&gt;=window-start</code> sorted by total stars) + GitHub REST API verification, captured 2026-06-25 (UTC). Each window takes the top 5 "newest, highest-starred within the window"; repos with no description / topics / signs of star-inflation (e.g. Cowart, birds.cafe) and today's piracy / cheat / impersonation repos are filtered out. The Top-10 analysis uses the "year" window.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 

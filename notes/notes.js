@@ -79,15 +79,15 @@ window.NOTES = [
   {
     slug: "github-daily-trending",
     title: {
-      zh: "GitHub 每日 Top 10 Stars 与技术趋势",
-      en: "GitHub Daily Top 10 Stars & Tech Trends",
+      zh: "GitHub Top Stars 与技术趋势(多窗口)",
+      en: "GitHub Top Stars & Tech Trends (Multi-window)",
     },
     summary: {
-      zh: "每日滚动记录 GitHub 当日新增 stars 前十仓库,一句话介绍,并分析技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A daily-rolling log of the top 10 repos by stars gained that day, with one-line intros and a trend analysis (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年各 Top 5 新星,图文介绍,并对一年窗口前 10 做方向归类与趋势分析(历史/当下/未来,带证据,多动图)。历史全部保留。",
+      en: "A rolling log of GitHub's top-5 new stars across day/week/month/half-year/year, illustrated, plus a Top-10 direction & trend analysis on the year window (history/present/future, animated). History preserved.",
     },
-    date: "2026-06-12",
-    tags: ["GitHub", "Trending", "Agent Skills", "Trend Analysis"],
+    date: "2026-06-25",
+    tags: ["GitHub", "Trending", "Multi-window", "Agent Skills", "Trend Analysis"],
   },
   {
     slug: "cuda-graph-vllm",
