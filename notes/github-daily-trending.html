@@ -4,11 +4,10 @@
   GITHUB DAILY TRENDING — ACCUMULATING NOTE
   -------------------------------------------------------------------------
   This page is updated by a daily automation. Each run PREPENDS one new
-  <section class="daily-entry"> immediately after the marker:
+  "section.daily-entry" block immediately after the marker named
+  DAILY-ENTRIES:START (an HTML comment placed inside .prose, see below).
 
-        <!-- DAILY-ENTRIES:START -->
-
-  NEVER delete or overwrite older <section class="daily-entry"> blocks —
+  NEVER delete or overwrite older "section.daily-entry" blocks —
   history (stars + analysis) must be preserved. Only add a new newest-first
   entry at the top. Ranking = stars gained that day (GitHub Trending,
   "stars today"), verified against the GitHub REST API for totals.
