@@ -209,6 +209,450 @@
             <hr>. Never delete older entries.
           -->
 
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-27 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-06-27 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">今天换一个更立体的视角:同时抓取 GitHub 当天、一周、一月的 <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> 榜(按各窗口内新增 stars 排序),再用 GitHub Search API 取「半年内 / 一年内新建、且总 star 最高」的仓库作为「破圈新秀」代理,给出各窗口<strong>前 5</strong>的图文卡片;并对<strong>当日前 10</strong>做方向归类与趋势分析(历史 / 当下 / 未来,带证据)。注意两类指标不同:当天/一周/一月是<strong>窗口内新增 ★</strong>,半年/一年是<strong>该窗口新建仓库的总 ★</strong>,卡片上分别标注。</span><span lang="en" class="i18n-en">A more three-dimensional view today: I capture GitHub’s <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> boards for today, this week and this month (ranked by stars gained within each window), then use the GitHub Search API for the highest-starred repos <em>created</em> within the last 6 months / 1 year as a “breakout newcomer” proxy — giving illustrated top-5 cards per window, plus a direction &amp; trend analysis of the <strong>daily top 10</strong> (history / present / future, with evidence). Note two different metrics: today/week/month are <strong>★ gained in-window</strong>, while 6mo/year are <strong>total ★ of repos created in that window</strong> — each labeled on the cards.</span>
+            </p>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五窗口 · 各前 5 名(图文卡片)</span><span lang="en" class="i18n-en">Five windows · top 5 each (illustrated cards)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 窗口越长,头部仓库的体量越大</span><span lang="en" class="i18n-en">Animated · the longer the window, the larger the headline repo</span></div>
+              <div class="ght-horizon" aria-hidden="true">
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">today</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:9%;background:#a855f7"></div><span class="ght-hz-lab" style="color:var(--text)">design.md · +2,407</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">week</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:24%;background:#f59e0b;animation-delay:.12s"></div><span class="ght-hz-lab">OpenMontage · +17,249</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">month</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:47%;background:#a855f7;animation-delay:.24s"></div><span class="ght-hz-lab">markitdown · +34,806</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">6 mo</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:73%;background:#06b6d4;animation-delay:.36s"></div><span class="ght-hz-lab">ECC · 222.2k★</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">year</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:100%;background:#f59e0b;animation-delay:.48s"></div><span class="ght-hz-lab">openclaw · 380.6k★</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当天/一周/一月为<strong>窗口内新增 ★</strong>,半年/一年为<strong>新建仓库总 ★</strong>(指标不同,仅示意体量级差)。每跨一个量级,主角从「单日话题」过渡到「沉淀下来的平台级项目」。</span><span lang="en" class="i18n-en">▶ today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of newly-created repos</strong> (different metrics, magnitude only). As the window widens, the protagonist shifts from a “one-day topic” to a “settled, platform-scale project.”</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当天 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">Today · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(daily),按当日新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (daily), ranked by ★ gained today.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/161364575?v=4&amp;s=96" alt="google-labs-code avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">google-labs-code/design.md</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+2,407</span><span class="ght-pill ght-pill-star">★ 21.2k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Google Labs 提出的 DESIGN.md 规范:把「视觉设计系统」写成结构化文件喂给编码 agent,让它持续理解你的设计语言。</span><span lang="en" class="i18n-en">Google Labs’ DESIGN.md spec: write your visual design system as a structured file so coding agents persistently understand your design language.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,754</span><span class="ght-pill ght-pill-star">★ 23.6k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">号称「全球首个开源 agentic 视频生产系统」:12 条流水线、52 个工具、500+ 技能,把 AI 编码助手变成完整视频工作室。</span><span lang="en" class="i18n-en">Claims to be the “world’s first open-source agentic video production system”: 12 pipelines, 52 tools, 500+ skills that turn your AI coding assistant into a full video studio.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6993203?v=4&amp;s=96" alt="xbtlin avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">xbtlin/ai-berkshire</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,274</span><span class="ght-pill ght-pill-star">★ 3.1k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「AI 时代的伯克希尔」:基于 Claude Code 的价值投资研究框架,内置巴菲特·芒格·段永平·李录四套方法论 + 多 agent 并行研究。</span><span lang="en" class="i18n-en">“AI-era Berkshire”: a value-investing research framework on Claude Code, packing four masters’ methodologies plus multi-agent parallel research.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,194</span><span class="ght-pill ght-pill-star">★ 42.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「一双看全网的眼睛」:一个 CLI 读取/搜索 Twitter、Reddit、YouTube、GitHub、B 站、小红书,零 API 费用。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads &amp; searches Twitter, Reddit, YouTube, GitHub, Bilibili, Xiaohongshu — zero API fees.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/182581310?v=4&amp;s=96" alt="JCodesMore avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/JCodesMore/ai-website-cloner-template" target="_blank" rel="noopener">JCodesMore/ai-website-cloner-template</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,088</span><span class="ght-pill ght-pill-star">★ 21.3k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一条命令、用 AI 编码 agent 克隆任意网站的模板工程。</span><span lang="en" class="i18n-en">A template project to clone any website with a single command using AI coding agents.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一周 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This week · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(weekly),按本周新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (weekly), ranked by ★ gained this week.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+17,249</span><span class="ght-pill ght-pill-star">★ 23.6k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">号称「全球首个开源 agentic 视频生产系统」:12 条流水线、52 个工具、500+ 技能,把 AI 编码助手变成完整视频工作室。</span><span lang="en" class="i18n-en">Claims to be the “world’s first open-source agentic video production system”: 12 pipelines, 52 tools, 500+ skills that turn your AI coding assistant into a full video studio.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/28293365?v=4&amp;s=96" alt="mattpocock avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+11,060</span><span class="ght-pill ght-pill-star">★ 147.5k</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接开放自己 .claude 目录里的「给真正工程师用的技能」。</span><span lang="en" class="i18n-en">Matt Pocock’s “.claude directory” opened up — “skills for real engineers.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/81762164?v=4&amp;s=96" alt="DeusData avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,592</span><span class="ght-pill ght-pill-star">★ 15.6k</span><span class="ght-card-lang">C</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">高性能代码情报 MCP 服务:把代码库索引成持久知识图谱,158 种语言、亚毫秒查询、省 99% token,单静态二进制零依赖。</span><span lang="en" class="i18n-en">A high-performance code-intelligence MCP server: indexes a codebase into a persistent knowledge graph — 158 languages, sub-ms queries, 99% fewer tokens, single static binary.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,199</span><span class="ght-pill ght-pill-star">★ 42.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「一双看全网的眼睛」:一个 CLI 读取/搜索 Twitter、Reddit、YouTube、GitHub、B 站、小红书,零 API 费用。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads &amp; searches Twitter, Reddit, YouTube, GitHub, Bilibili, Xiaohongshu — zero API fees.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/42829555?v=4&amp;s=96" alt="ZhuLinsen avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ZhuLinsen/daily_stock_analysis" target="_blank" rel="noopener">ZhuLinsen/daily_stock_analysis</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+6,919</span><span class="ght-pill ght-pill-star">★ 50.1k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">LLM 驱动的多市场股票分析系统:多源行情、实时新闻、决策看板与自动推送,可零成本定时运行。</span><span lang="en" class="i18n-en">An LLM-powered multi-market stock-analysis system: multi-source data, real-time news, a decision dashboard, and automated push — runnable on a free schedule.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一月 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This month · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(monthly),按本月新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (monthly), ranked by ★ gained this month.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6154722?v=4&amp;s=96" alt="microsoft avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">microsoft/markitdown</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+34,806</span><span class="ght-pill ght-pill-star">★ 159.6k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">微软出品:把各种文件与 Office 文档转换成 Markdown 的 Python 工具(喂给 LLM 的标准预处理器)。</span><span lang="en" class="i18n-en">Microsoft’s Python tool that converts files and Office docs to Markdown — a standard preprocessor for feeding LLMs.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/4928832?v=4&amp;s=96" alt="harry0703 avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">harry0703/MoneyPrinterTurbo</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+34,671</span><span class="ght-pill ght-pill-star">★ 93.2k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">利用 AI 大模型,一键生成高清短视频。</span><span lang="en" class="i18n-en">Generate HD short videos with one click using AI LLMs.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/257477979?v=4&amp;s=96" alt="Egonex-AI avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Egonex-AI/Understand-Anything</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+34,542</span><span class="ght-pill ght-pill-star">★ 68.3k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">把任意代码变成可探索、可搜索、可问答的交互式知识图谱,适配 Claude Code、Codex、Cursor、Copilot、Gemini CLI 等。</span><span lang="en" class="i18n-en">Turns any code into an interactive knowledge graph you can explore, search, and query — works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and more.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/219127460?v=4&amp;s=96" alt="Leonxlnx avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">Leonxlnx/taste-skill</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+30,953</span><span class="ght-pill ght-pill-star">★ 51.6k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「品味技能」:给 AI 注入审美,阻止它生成无聊、模板化的内容。</span><span lang="en" class="i18n-en">“Taste-Skill” — gives your AI good taste so it stops producing boring, generic slop.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/18431132?v=4&amp;s=96" alt="colbymchenry avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">colbymchenry/codegraph</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+28,289</span><span class="ght-pill ght-pill-star">★ 55.0k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">预索引的代码知识图谱,代码变更自动同步,服务 Claude Code、Codex、Gemini、Cursor 等 —— 更少 token、更少工具调用、100% 本地。</span><span lang="en" class="i18n-en">A pre-indexed code knowledge graph that auto-syncs on changes for Claude Code, Codex, Gemini, Cursor and more — fewer tokens, fewer tool calls, 100% local.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">半年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">6 months · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-12-27,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-12-27, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 222.2k</span><span class="ght-pill ght-pill-gain">新建 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:为 Claude Code、Codex、Opencode、Cursor 等提供技能、直觉、记忆、安全与研究优先的开发范式。</span><span lang="en" class="i18n-en">“The agent harness performance-optimization system”: skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.3k</span><span class="ght-pill ght-pill-gain">新建 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「由 agent 自主运营的博物馆展品」,用 Rust + Gajae-Code/LazyCodex 构建,全程无人工干预地开发与维护。</span><span lang="en" class="i18n-en">An “agent-run museum exhibit” built in Rust with Gajae-Code / LazyCodex — developed and maintained with no human intervention.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/254743058?v=4&amp;s=96" alt="multica-ai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 182.8k</span><span class="ght-pill ght-pill-gain">新建 2026-01</span><span class="ght-card-lang">Markdown</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个 CLAUDE.md 文件,源自 Andrej Karpathy 对 LLM 编码常见坑的观察,用来改进 Claude Code 行为。</span><span lang="en" class="i18n-en">A single CLAUDE.md, derived from Andrej Karpathy’s notes on LLM coding pitfalls, to improve Claude Code behavior.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/28293365?v=4&amp;s=96" alt="mattpocock avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 147.5k</span><span class="ght-pill ght-pill-gain">新建 2026-02</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接开放自己 .claude 目录里的「给真正工程师用的技能」。</span><span lang="en" class="i18n-en">Matt Pocock’s “.claude directory” opened up — “skills for real engineers.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/19957?v=4&amp;s=96" alt="garrytan avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 116.6k</span><span class="ght-pill ght-pill-gain">新建 2026-03</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">直接复用 Garry Tan 的 Claude Code 配置:23 个有主见的工具,分别扮演 CEO、设计师、工程经理、发布经理、文档与 QA。</span><span lang="en" class="i18n-en">Use Garry Tan’s exact Claude Code setup: 23 opinionated tools acting as CEO, Designer, Eng Manager, Release Manager, Doc Engineer, and QA.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">1 year · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-06-27,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-06-27, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/252820863?v=4&amp;s=96" alt="openclaw avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 380.6k</span><span class="ght-pill ght-pill-gain">新建 2025-11</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">你的私人 AI 助手,任意操作系统、任意平台 ——「龙虾之道」。</span><span lang="en" class="i18n-en">Your own personal AI assistant — any OS, any platform, “the lobster way.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/45416?v=4&amp;s=96" alt="obra avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 239.4k</span><span class="ght-pill ght-pill-gain">新建 2025-10</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「真正能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology that actually works.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 222.2k</span><span class="ght-pill ght-pill-gain">新建 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:为 Claude Code、Codex、Opencode、Cursor 等提供技能、直觉、记忆、安全与研究优先的开发范式。</span><span lang="en" class="i18n-en">“The agent harness performance-optimization system”: skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/134168893?v=4&amp;s=96" alt="NousResearch avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 203.8k</span><span class="ght-pill ght-pill-gain">新建 2025-07</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Nous Research 的「会与你一起成长」的 agent —— 强调记忆与个性化。</span><span lang="en" class="i18n-en">Nous Research’s “agent that grows with you” — emphasizing memory and personalization.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.3k</span><span class="ght-pill ght-pill-gain">新建 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「由 agent 自主运营的博物馆展品」,用 Rust + Gajae-Code/LazyCodex 构建,全程无人工干预地开发与维护。</span><span lang="en" class="i18n-en">An “agent-run museum exhibit” built in Rust with Gajae-Code / LazyCodex — developed and maintained with no human intervention.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h3><span lang="zh-CN" class="i18n-zh">当日 Top 10 · 新增 stars 榜</span><span lang="en" class="i18n-en">Daily Top 10 · stars-gained board</span></h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">google-labs-code/design.md</a></td><td>TypeScript</td><td>2,407</td><td>21.2k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a></td><td>Python</td><td>1,754</td><td>23.6k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">xbtlin/ai-berkshire</a></td><td>Python</td><td>1,274</td><td>3.1k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a></td><td>Python</td><td>1,194</td><td>42.3k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/JCodesMore/ai-website-cloner-template" target="_blank" rel="noopener">JCodesMore/ai-website-cloner-template</a></td><td>TypeScript</td><td>1,088</td><td>21.3k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/mauriceboe/TREK" target="_blank" rel="noopener">mauriceboe/TREK</a></td><td>TypeScript</td><td>1,060</td><td>7.6k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/opendatalab/MinerU" target="_blank" rel="noopener">opendatalab/MinerU</a></td><td>Python</td><td>960</td><td>70.4k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a></td><td>TypeScript</td><td>950</td><td>116.6k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/NanmiCoder/MediaCrawler" target="_blank" rel="noopener">NanmiCoder/MediaCrawler</a></td><td>Python</td><td>673</td><td>53.3k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/IceWhaleTech/CasaOS" target="_blank" rel="noopener">IceWhaleTech/CasaOS</a></td><td>Go</td><td>619</td><td>35.4k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">design.md</span><div class="ght-bar-track" style="--w:100.0%"><div class="ght-bar-fill" style="width:100.0%;background:#a855f7"></div><span class="ght-bar-val">2,407</span></div></div>
+                <div class="ght-bar-row"><span class="nm">OpenMontage</span><div class="ght-bar-track" style="--w:72.9%"><div class="ght-bar-fill" style="width:72.9%;background:#f59e0b"></div><span class="ght-bar-val">1,754</span></div></div>
+                <div class="ght-bar-row"><span class="nm">ai-berkshire</span><div class="ght-bar-track" style="--w:52.9%"><div class="ght-bar-fill" style="width:52.9%;background:#f59e0b"></div><span class="ght-bar-val">1,274</span></div></div>
+                <div class="ght-bar-row"><span class="nm">Agent-Reach</span><div class="ght-bar-track" style="--w:49.6%"><div class="ght-bar-fill" style="width:49.6%;background:#a855f7"></div><span class="ght-bar-val">1,194</span></div></div>
+                <div class="ght-bar-row"><span class="nm">ai-website-cloner-template</span><div class="ght-bar-track" style="--w:45.2%"><div class="ght-bar-fill" style="width:45.2%;background:#f59e0b"></div><span class="ght-bar-val">1,088</span></div></div>
+                <div class="ght-bar-row"><span class="nm">TREK</span><div class="ght-bar-track" style="--w:44.0%"><div class="ght-bar-fill" style="width:44.0%;background:#22c55e"></div><span class="ght-bar-val">1,060</span></div></div>
+                <div class="ght-bar-row"><span class="nm">MinerU</span><div class="ght-bar-track" style="--w:39.9%"><div class="ght-bar-fill" style="width:39.9%;background:#a855f7"></div><span class="ght-bar-val">960</span></div></div>
+                <div class="ght-bar-row"><span class="nm">gstack</span><div class="ght-bar-track" style="--w:39.5%"><div class="ght-bar-fill" style="width:39.5%;background:#06b6d4"></div><span class="ght-bar-val">950</span></div></div>
+                <div class="ght-bar-row"><span class="nm">MediaCrawler</span><div class="ght-bar-track" style="--w:28.0%"><div class="ght-bar-fill" style="width:28.0%;background:#ec4899"></div><span class="ght-bar-val">673</span></div></div>
+                <div class="ght-bar-row"><span class="nm">CasaOS</span><div class="ght-bar-track" style="--w:25.7%"><div class="ght-bar-fill" style="width:25.7%;background:#22c55e"></div><span class="ght-bar-val">619</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">Agent 上下文/记忆</span><span lang="en" class="i18n-en">Agent context/memory</span></span>
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">Agent 应用</span><span lang="en" class="i18n-en">Agent apps</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">自托管/常青</span><span lang="en" class="i18n-en">Self-hosted/evergreen</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">Agent harness/技能</span><span lang="en" class="i18n-en">Agent harness/skills</span></span>
+                <span><i style="background:#ec4899"></i><span lang="zh-CN" class="i18n-zh">数据/爬取</span><span lang="en" class="i18n-en">Data/scraping</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日 #1 是 Google Labs 的 <strong>design.md</strong>(+2,407)——一份「写给编码 agent 的设计系统规范」;前 10 中 <strong>3 个是 Agent 上下文/记忆</strong>(design.md、Agent-Reach、MinerU),<strong>3 个是 Agent 应用</strong>,合计占当日前十新增 ★ 的 <strong>≈ 63%</strong>。</span><span lang="en" class="i18n-en">▶ Today’s #1 is Google Labs’ <strong>design.md</strong> (+2,407) — a “design-system spec written for coding agents”; <strong>3 of the top 10 are Agent context/memory</strong> (design.md, Agent-Reach, MinerU) and <strong>3 are Agent apps</strong>, together ≈ <strong>63%</strong> of the top-10 stars gained today.</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">图 · 当日 Top 6 仓库社交卡片(GitHub OpenGraph)</span><span lang="en" class="i18n-en">Images · today’s Top 6 social cards (GitHub OpenGraph)</span></div>
+              <div class="ght-gallery">
+                <a class="ght-gcard" href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/google-labs-code/design.md" alt="google-labs-code/design.md social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">google-labs-code/design.md · +2,407 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/calesthio/OpenMontage" alt="calesthio/OpenMontage social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">calesthio/OpenMontage · +1,754 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/xbtlin/ai-berkshire" alt="xbtlin/ai-berkshire social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">xbtlin/ai-berkshire · +1,274 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/Panniantong/Agent-Reach" alt="Panniantong/Agent-Reach social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">Panniantong/Agent-Reach · +1,194 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/JCodesMore/ai-website-cloner-template" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/JCodesMore/ai-website-cloner-template" alt="JCodesMore/ai-website-cloner-template social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">JCodesMore/ai-website-cloner-template · +1,088 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/mauriceboe/TREK" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260627/mauriceboe/TREK" alt="mauriceboe/TREK social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">mauriceboe/TREK · +1,060 ★</span>
+                </a>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 社交预览卡直观展示了「上下文/记忆」与「Agent 应用」两条主线如何同日并存。</span><span lang="en" class="i18n-en">▶ The social-preview cards make it visually clear how the “context/memory” and “Agent apps” threads coexist on the same day.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类(当日前 10)</span><span lang="en" class="i18n-en">Direction breakdown (daily top 10)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 Top 10 方向占比</span><span lang="en" class="i18n-en">Animated · today’s Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:30%;background:#a855f7">3 · <span lang="zh-CN" class="i18n-zh">上下文</span><span lang="en" class="i18n-en">context</span></div>
+                <div class="ght-seg" style="width:30%;background:#f59e0b;animation-delay:.16s">3 · <span lang="zh-CN" class="i18n-zh">应用</span><span lang="en" class="i18n-en">apps</span></div>
+                <div class="ght-seg" style="width:20%;background:#22c55e;animation-delay:.32s">2</div>
+                <div class="ght-seg" style="width:10%;background:#06b6d4;animation-delay:.48s">1</div>
+                <div class="ght-seg" style="width:10%;background:#ec4899;animation-delay:.64s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ Agent 上下文/记忆 <strong>3/10</strong>、Agent 应用 <strong>3/10</strong>、自托管/常青 <strong>2/10</strong>、Agent harness/技能 与 数据/爬取 各 <strong>1/10</strong>。</span><span lang="en" class="i18n-en">▶ Agent context/memory <strong>3/10</strong>, Agent apps <strong>3/10</strong>, self-hosted/evergreen <strong>2/10</strong>, harness/skills and data/scraping <strong>1/10</strong> each.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 上下文 / 记忆 (3/10)</strong>:design.md(给 agent 的设计系统规范)、Agent-Reach(全网读取)、MinerU(文档→Markdown)。三者都在回答同一个问题——<em>「喂给 agent 什么结构化上下文」</em>:设计上下文、网络上下文、文档上下文。</span><span lang="en" class="i18n-en"><strong>Agent context / memory (3/10)</strong>: design.md (a design-system spec for agents), Agent-Reach (read the whole web), MinerU (docs→markdown). All three answer the same question — <em>“what structured context do you feed the agent?”</em>: design context, web context, document context.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 应用 (3/10)</strong>:OpenMontage(agentic 视频生产)、ai-berkshire(价值投资研究)、ai-website-cloner-template(一键克隆网站)。把「harness + 领域技能 + 上下文」打包成面向具体场景的垂直产品。</span><span lang="en" class="i18n-en"><strong>Agent apps (3/10)</strong>: OpenMontage (agentic video production), ai-berkshire (value-investing research), ai-website-cloner-template (one-command site cloning). They package “harness + domain skills + context” into vertical products for concrete use-cases.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>自托管 / 常青 (2/10)</strong>:TREK(自托管行程规划)、CasaOS(个人云系统)。提醒「自托管 / 数据自主」这条常青副线始终在榜。</span><span lang="en" class="i18n-en"><strong>Self-hosted / evergreen (2/10)</strong>: TREK (self-hosted trip planner), CasaOS (personal-cloud OS) — the evergreen “self-host / data-ownership” side-thread is always present.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent harness / 技能 (1/10)</strong>:gstack(Garry Tan 的 Claude Code 配置)——「名人 harness 配置」作为分发方式仍在持续吸星。</span><span lang="en" class="i18n-en"><strong>Agent harness / skills (1/10)</strong>: gstack (Garry Tan’s Claude Code setup) — “celebrity harness configs” remain a strong distribution channel.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>数据 / 爬取 (1/10)</strong>:MediaCrawler(多平台自媒体爬虫)——既是经典数据工具,也是「为 agent 抓上下文」的上游。</span><span lang="en" class="i18n-en"><strong>Data / scraping (1/10)</strong>: MediaCrawler (multi-platform social crawler) — both a classic data tool and an upstream supplier of “context for agents.”</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能 / harness → 上下文</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills / harness → context</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的五次迁移</span><span lang="en" class="i18n-en">Animated · five shifts of who leads GitHub trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编排框架</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 应用</span><span lang="en" class="i18n-en">Coding agents / apps</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2025–26</div><div class="lb"><span lang="zh-CN" class="i18n-zh">技能 / harness</span><span lang="en" class="i18n-en">Skills / harness</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">上下文 / 记忆层</span><span lang="en" class="i18n-en">Context / memory</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 分发单元越来越小、越来越可组合:模型权重 → 框架 → 应用 → 技能/harness,如今进一步到「喂给 agent 的结构化上下文与记忆」。</span><span lang="en" class="i18n-en">▶ The unit of distribution keeps shrinking and getting more composable: model weights → frameworks → apps → skills/harness, and now onward to “structured context &amp; memory fed to the agent.”</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">长窗口给出最稳的历史证据。<strong>一年榜</strong>的前 5 名几乎是一部「agent 进化史」:<a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a>(私人助手平台,380.6k★,2025-11 新建)、<a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a>(技能框架 + 方法论,239.4k★,2025-10)、<a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a>(agent harness 优化系统,222.2k★,2026-01)、<a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a>(强调记忆的 agent,203.8k★,2025-07)、<a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a>(全程无人工干预的自运营项目,194.3k★,2026-03)。从「平台 → 技能框架 → harness → 记忆 → 自主」一路递进。本 log 6-12 记录的主旋律还是「agent 技能供应链(发现→扫描→沙箱→观测)」;两周后的今天,主角已从「技能本体」上移到「喂给 agent 的结构化上下文」——同一条供应链的对象,从 skill 变成了 context。</span><span lang="en" class="i18n-en">The long windows give the steadiest historical evidence. The <strong>year board</strong>’s top 5 is almost a history of agent evolution: <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a> (personal-assistant platform, 380.6k★, created 2025-11), <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a> (skills framework + methodology, 239.4k★, 2025-10), <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a> (agent-harness optimization system, 222.2k★, 2026-01), <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> (memory-centric agent, 203.8k★, 2025-07), and <a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a> (a self-running project with no human intervention, 194.3k★, 2026-03) — a clean progression from platform → skills framework → harness → memory → autonomy. This log’s 6-12 entry was still about the “agent-skills supply chain (discover→scan→sandbox→observe)”; two weeks later the protagonist has moved up from the “skill itself” to the “structured context fed to the agent” — same supply chain, but the object shifted from skill to context.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:上下文工程正在变成「分类型的供应链」</span><span lang="en" class="i18n-en">Present: context engineering is becoming a typed supply chain</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 正在成形的「Agent 上下文供应链」</span><span lang="en" class="i18n-en">Animated · the emerging “agent context supply chain”</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="agent context supply chain">
+                <rect class="ght-box" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="63" text-anchor="middle"><span lang="zh-CN" class="i18n-zh">来源</span><span lang="en" class="i18n-en">Sources</span></text><text class="ght-ssub" x="54" y="79" text-anchor="middle">code/doc/design/web</text>
+                <rect class="ght-box" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="63" text-anchor="middle"><span lang="zh-CN" class="i18n-zh">转换</span><span lang="en" class="i18n-en">Convert</span></text><text class="ght-ssub" x="202" y="79" text-anchor="middle">markitdown/MinerU</text>
+                <rect class="ght-box hot" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="63" text-anchor="middle"><span lang="zh-CN" class="i18n-zh">图谱/记忆</span><span lang="en" class="i18n-en">Graph/Memory</span></text><text class="ght-ssub" x="350" y="79" text-anchor="middle">codegraph/U-Anything</text>
+                <rect class="ght-box" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="63" text-anchor="middle">Agent</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">Claude/Codex/Cursor</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#ec4899" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#06b6d4" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#f59e0b">context</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 原始的代码/文档/设计/网页,经「转换」与「知识图谱/记忆」两道工序,最终成为 agent 可消费的上下文——四段在本周与本月榜上同时出现。</span><span lang="en" class="i18n-en">▶ Raw code/docs/design/web pass through “convert” and “knowledge-graph/memory” stages to become agent-consumable context — all four stages appear simultaneously on this week’s and this month’s boards.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">当下最强的信号不是「又一个 agent」,而是 <strong>「喂给 agent 什么上下文」本身成了赛道</strong>,且已分化成可识别的四种类型,每一种都有当周/当月的硬证据:(1) <strong>代码上下文</strong>——本月 <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a>(+34,542)与 <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a>(+28,289)、本周 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>(+7,592)三连发,都把代码索引成<strong>知识图谱</strong>,且都强调「100% 本地、更省 token」;(2) <strong>文档上下文</strong>——微软 <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">markitdown</a>(本月 +34,806)与 <a href="https://github.com/opendatalab/MinerU" target="_blank" rel="noopener">MinerU</a>(当日 +960)把文档转成 LLM 可读格式;(3) <strong>设计上下文</strong>——当日 #1 <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">design.md</a>(Google Labs)把设计系统标准化成 DESIGN.md 规范;(4) <strong>网络上下文</strong>——<a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a>(当日 +1,194、本周 +7,199)给 agent「看全网的眼睛」。与此同时 harness/技能层热度不减(mattpocock/skills 本周 +11,060、taste-skill 本月 +30,953、gstack 当日 +950)。</span><span lang="en" class="i18n-en">The strongest present-day signal isn’t “yet another agent” — it’s that <strong>“what context to feed the agent” has itself become the race</strong>, already splitting into four recognizable types, each with hard weekly/monthly evidence: (1) <strong>code context</strong> — this month’s <a href="https://github.com/Egonex-AI/Understand-Anything" target="_blank" rel="noopener">Understand-Anything</a> (+34,542) and <a href="https://github.com/colbymchenry/codegraph" target="_blank" rel="noopener">codegraph</a> (+28,289), plus this week’s <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a> (+7,592) all index code into a <strong>knowledge graph</strong>, all stressing “100% local, fewer tokens”; (2) <strong>document context</strong> — Microsoft’s <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">markitdown</a> (+34,806 this month) and <a href="https://github.com/opendatalab/MinerU" target="_blank" rel="noopener">MinerU</a> (+960 today) turn documents into LLM-readable formats; (3) <strong>design context</strong> — today’s #1 <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">design.md</a> (Google Labs) standardizes a design system into a DESIGN.md spec; (4) <strong>web context</strong> — <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> (+1,194 today, +7,199 this week) gives agents “eyes on the whole web.” Meanwhile the harness/skills layer stays hot (mattpocock/skills +11,060 this week, taste-skill +30,953 this month, gstack +950 today).</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:上下文格式标准化 + 本地代码图谱成标配</span><span lang="en" class="i18n-en">Future: context formats standardize + local code-graphs become default</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 各类「上下文」挂载到 agent</span><span lang="en" class="i18n-en">Animated · typed “context” mounting onto an agent</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">code-graph</span>
+                <span class="ght-chip">doc → md</span>
+                <span class="ght-chip">DESIGN.md</span>
+                <span class="ght-chip">web-context</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">AI Agent<br/>核心</span><span lang="en" class="i18n-en">AI Agent<br/>core</span></span>
+                <span class="ght-chip">MCP-memory</span>
+                <span class="ght-chip">…</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 不同类型的上下文像「技能」一样即插即用地挂到 agent 上——只不过这次挂的是结构化的「记忆/知识」,而非动作。</span><span lang="en" class="i18n-en">▶ Typed context plugs into the agent like “skills” did — except this time what’s mounted is structured “memory/knowledge,” not actions.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推,给出可证伪的预测:(1) <strong>上下文格式标准化(规范之战)</strong>——继 CLAUDE.md / AGENTS.md / skills / MCP 之后,DESIGN.md 也加入「命名规范文件」行列;预测未来一个季度,trending 上会出现更多 <code>*.md</code> 规范类与 MCP memory server 仓库。(2) <strong>本地代码知识图谱成为编码 agent 默认组件</strong>——三个 code-graph 仓库同期霸榜、且都主打「本地 + 省 token」,会被 IDE/CLI agent 直接内置;预测主流编码 agent 将默认附带本地 code-graph/记忆。(3) <strong>自主性前沿继续抬升</strong>——claw-code「无人工干预」与 openclaw「私人助手平台」预示更多「agent 自运营」的仓库。(4) <strong>垂直 agent 应用爆发</strong>——ai-berkshire(投资)、daily_stock_analysis(股票)、MoneyPrinterTurbo / OpenMontage(视频)显示「harness + 领域技能 + 上下文」会被打包成一个个垂直产品。可证伪:未来两周,「代码图谱 / 文档→上下文 / 记忆 MCP」类仓库在 trending 的占比将继续上升,而纯 prompt/技能合集占比回落。</span><span lang="en" class="i18n-en">Extrapolating from today’s signals, here are falsifiable predictions: (1) <strong>context formats standardize (a spec war)</strong> — after CLAUDE.md / AGENTS.md / skills / MCP, DESIGN.md joins the “named spec file” club; expect more <code>*.md</code> spec repos and MCP memory servers on trending over the next quarter. (2) <strong>local code knowledge-graphs become a default component of coding agents</strong> — three code-graph repos dominate the same period, all marketing “local + token-saving,” and will get embedded directly into IDE/CLI agents; expect mainstream coding agents to ship local code-graph/memory by default. (3) <strong>the autonomy frontier keeps rising</strong> — claw-code (“no human intervention”) and openclaw (“personal-assistant platform”) foreshadow more “agent-operated” repos. (4) <strong>vertical agent apps proliferate</strong> — ai-berkshire (investing), daily_stock_analysis (stocks), MoneyPrinterTurbo / OpenMontage (video) show “harness + domain skills + context” being packaged into vertical products. Falsifiable: over the next two weeks, “code-graph / docs→context / memory-MCP” repos rise as a share of trending, while pure prompt/skill collections recede.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(daily / weekly / monthly)+ GitHub Search API(created:&gt;=2025-12-27 与 created:&gt;=2025-06-27,sort=stars)+ GitHub REST API 校验总 star 数,抓取于 2026-06-27(UTC)。当天/一周/一月 = 窗口内新增 ★;半年/一年 = 该窗口新建仓库的总 ★(破圈新秀代理,非窗口新增)。图片为各仓库 owner 头像与 GitHub OpenGraph 社交卡。</em></span><span lang="en" class="i18n-en"><em>Sources: GitHub Trending (daily / weekly / monthly) + GitHub Search API (created:&gt;=2025-12-27 and created:&gt;=2025-06-27, sort=stars) + GitHub REST API (totals verified), captured 2026-06-27 (UTC). Today/week/month = ★ gained in-window; 6mo/year = total ★ of repos created in that window (a breakout-newcomer proxy, not in-window gain). Images are repo owner avatars and GitHub OpenGraph social cards.</em></span>
+            </p>
+
+            <hr />
+
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 
             <table>
