@@ -4,14 +4,12 @@
   GITHUB DAILY TRENDING — ACCUMULATING NOTE
   -------------------------------------------------------------------------
   This page is updated by a daily automation. Each run PREPENDS one new
-  <section class="daily-entry"> immediately after the marker:
+  daily entry immediately after the marker named DAILY-ENTRIES:START.
 
-        <!-- DAILY-ENTRIES:START -->
-
-  NEVER delete or overwrite older <section class="daily-entry"> blocks —
-  history (stars + analysis) must be preserved. Only add a new newest-first
-  entry at the top. Ranking = stars gained that day (GitHub Trending,
-  "stars today"), verified against the GitHub REST API for totals.
+  NEVER delete or overwrite older "section.daily-entry" blocks — history
+  (stars + analysis) must be preserved. Only add a new newest-first entry
+  at the top. Ranking = stars gained in the window (GitHub Trending), with
+  totals verified against the GitHub REST API.
   =========================================================================
 -->
 <html lang="zh-CN">
@@ -113,9 +111,40 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* ===== Multi-window illustrated avatar cards (图文) — added 2026-06-27 ===== */
+      .ght-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+      .ght-card { position: relative; display: grid; grid-template-columns: 24px 44px 1fr; gap: 10px; align-items: start; padding: 12px 13px 13px 13px; border: 1px solid var(--border); border-left: 3px solid var(--cat, var(--accent-1)); border-radius: 12px; background: var(--surface); transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+      .ght-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+      .ght-card-rank { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--cat, var(--accent-1)); line-height: 1.25; }
+      .ght-card-av { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface-strong); object-fit: cover; }
+      .ght-card-body { min-width: 0; }
+      .ght-card-nm { display: inline-block; font-family: var(--font-mono); font-size: 0.77rem; font-weight: 600; color: var(--text); text-decoration: none; word-break: break-word; }
+      .ght-card-nm:hover { color: var(--accent-1); text-decoration: underline; }
+      .ght-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 7px; }
+      .ght-pill { font-family: var(--font-mono); font-size: 0.62rem; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border-strong); white-space: nowrap; }
+      .ght-pill-gain { color: #06121f; background: var(--cat, #a855f7); border-color: transparent; font-weight: 600; }
+      .ght-pill-star { color: var(--text-muted); }
+      .ght-card-lang { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
+      .ght-card-intro { margin: 0; font-size: 0.735rem; line-height: 1.5; color: var(--text-muted); }
+
+      /* ===== OpenGraph social-card gallery (图) ===== */
+      .ght-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); gap: 12px; margin: 14px 0 4px; }
+      .ght-gcard { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); transition: transform .25s ease, box-shadow .25s ease; }
+      .ght-gcard:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+      .ght-gcard img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; background: var(--surface-strong); border-bottom: 1px solid var(--border); }
+      .ght-gcap { display: block; padding: 8px 11px 10px; font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); }
+
+      /* ===== Escalating time-horizon bars (动图) ===== */
+      .ght-horizon { display: flex; flex-direction: column; gap: 9px; }
+      .ght-hz-row { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; }
+      .ght-hz-row .ght-hz-win { font-family: var(--font-mono); font-size: 0.67rem; color: var(--accent-2); }
+      .ght-hz-track { position: relative; height: 26px; border-radius: 7px; background: var(--surface-strong); overflow: hidden; }
+      .ght-hz-fill { height: 100%; border-radius: 7px; transform-origin: left center; transform: scaleX(0); animation: ght-grow 1.2s cubic-bezier(.2,.7,.2,1) forwards; }
+      .ght-hz-lab { position: absolute; top: 50%; left: 10px; transform: translateY(-50%); font-family: var(--font-mono); font-size: 0.64rem; color: #06121f; font-weight: 600; white-space: nowrap; }
+
       @media (prefers-reduced-motion: reduce) {
-        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
-        .ght-bar-fill, .ght-seg { transform: scaleX(1); }
+        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val, .ght-hz-fill { animation: none !important; }
+        .ght-bar-fill, .ght-seg, .ght-hz-fill { transform: scaleX(1); }
         .ght-stage { opacity: 1; }
         .ght-bar-val { opacity: 1; }
         .ght-pkt-move { display: none; }
@@ -160,8 +189,8 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-12</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Trend Analysis</span></span>
+            <span>2026-06-27</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Context Engineering</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
         </header>
