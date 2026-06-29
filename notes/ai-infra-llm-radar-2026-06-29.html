@@ -282,7 +282,7 @@
               <tr>
                 <td>1</td>
                 <td>DeepSeek DSpark / DeepSpec: speculative decoding 进入开源工程化</td>
-                <td><a href="https://github.com/deepseek-ai/DeepSpec" target="_blank" rel="noopener">DeepSpec</a> 3,692 stars、6/29 push; <a href="https://venturebeat.com/orchestration/deepseek-open-sources-dspark-a-new-framework-to-speed-up-llm-inference-by-up-to-85" target="_blank" rel="noopener">VentureBeat</a>报道 DeepSeek 开源 MIT-licensed DSpark,生产测试中 V4-Flash / V4-Pro per-user generation 提升 60%-85% / 57%-78%。</td>
+                <td><a href="https://github.com/deepseek-ai/DeepSpec" target="_blank" rel="noopener">DeepSpec</a> 3,692 stars、6/29 push; <a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener">DSpark paper</a>报告生产测试中 V4-Flash / V4-Pro per-user generation 提升 60%-85% / 57%-78%; <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-DSpark" target="_blank" rel="noopener">Hugging Face model card</a>说明 DSpark 不是新模型,而是在相同 checkpoint 上附加 speculative decoding module。</td>
                 <td>解码阶段是长输出 agent 的持续成本;load-aware verification 说明未来推理调度会动态决定“猜几个 token”。</td>
               </tr>
               <tr>
@@ -433,7 +433,8 @@
           <h2>5. 证据清单</h2>
           <ul>
             <li><a href="https://github.com/deepseek-ai/DeepSpec" target="_blank" rel="noopener">deepseek-ai/DeepSpec GitHub repository</a></li>
-            <li><a href="https://venturebeat.com/orchestration/deepseek-open-sources-dspark-a-new-framework-to-speed-up-llm-inference-by-up-to-85" target="_blank" rel="noopener">VentureBeat: DeepSeek open sources DSpark</a></li>
+            <li><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener">DeepSpec DSpark paper</a></li>
+            <li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-DSpark" target="_blank" rel="noopener">DeepSeek-V4-Pro-DSpark Hugging Face model card</a></li>
             <li><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.14" target="_blank" rel="noopener">SGLang v0.5.14 release, 2026-06-26</a></li>
             <li><a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">vLLM v0.23.0 release, 2026-06-15</a></li>
             <li><a href="https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.0" target="_blank" rel="noopener">LMCache operator-v0.5.0 release, 2026-06-25</a></li>
