@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "ai-infra-llm-radar-2026-06-29",
+    title: {
+      zh: "AI Infra 与大模型趋势雷达: 2026-06-29",
+      en: "AI Infra & LLM Trend Radar: 2026-06-29",
+    },
+    summary: {
+      zh: "统计 AI Infra / 大模型当天、一周、1个月、半年、一年热点信号,整理 Top 10 信息源,并用多组动图分析 speculative decoding、KV cache、K8s serving 与 agent gateway 趋势。",
+      en: "Snapshot of AI Infra / LLM signals across day, week, month, half-year, and year windows, with Top 10 hot items and animated analysis of speculative decoding, KV cache, K8s serving, and agent gateway trends.",
+    },
+    date: "2026-06-29",
+    tags: ["AI Infra", "LLM", "Inference", "Agents", "Speculative Decoding", "Trend Analysis"],
+  },
+  {
     slug: "ai-infra-llm-radar-2026-06-22",
     title: {
       zh: "AI Infra 与大模型趋势雷达: 2026-06-22",
