@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "llm-leaderboard-2026-06-30",
+    title: {
+      zh: "全球大模型榜单:综合 / 知识 / 代码 三维排名",
+      en: "Global LLM Leaderboards: Overall / Knowledge / Code",
+    },
+    summary: {
+      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
+      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+    },
+    date: "2026-06-30",
+    tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
+  },
+  {
     slug: "ai-infra-llm-radar-2026-06-22",
     title: {
       zh: "AI Infra 与大模型趋势雷达: 2026-06-22",
