@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "llm-leaderboard-2026-06-30",
+    title: {
+      zh: "全球大模型榜单:综合 / 知识 / 代码 三维排名",
+      en: "Global LLM Leaderboards: Overall / Knowledge / Code",
+    },
+    summary: {
+      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
+      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+    },
+    date: "2026-06-30",
+    tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
+  },
+  {
     slug: "ai-infra-llm-radar-2026-06-22",
     title: {
       zh: "AI Infra 与大模型趋势雷达: 2026-06-22",
@@ -83,11 +96,11 @@ window.NOTES = [
       en: "GitHub Daily Top 10 Stars & Tech Trends",
     },
     summary: {
-      zh: "每日滚动记录 GitHub 当日新增 stars 前十仓库,一句话介绍,并分析技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A daily-rolling log of the top 10 repos by stars gained that day, with one-line intros and a trend analysis (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
+      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). History preserved.",
     },
-    date: "2026-06-12",
-    tags: ["GitHub", "Trending", "Agent Skills", "Trend Analysis"],
+    date: "2026-06-30",
+    tags: ["GitHub", "Trending", "Multi-window", "Vertical Agents", "Trend Analysis"],
   },
   {
     slug: "cuda-graph-vllm",

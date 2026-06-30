@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  GLOBAL LLM LEADERBOARDS — 2026-06-30 SNAPSHOT
+  -------------------------------------------------------------------------
+  A standalone note ranking the world's top large language models across
+  three axes (overall / knowledge / code), each with its sources cited,
+  plus a 10-year animated evolution. Numbers are a snapshot captured on
+  2026-06-30 (UTC) and shift daily — always check the linked source.
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      // Early language resolution (keep this — prevents a flash of the wrong language).
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="全球大模型榜单:综合 / 知识 / 代码 三维排名 — 庄宏" data-en="Global LLM Leaderboards: Overall / Knowledge / Code — Hong Zhuang">全球大模型榜单:综合 / 知识 / 代码 三维排名 — 庄宏</title>
+    <meta name="description" content="2026-06-30 快照:全球排名前十的大语言模型,按综合对话、综合知识、代码能力三类分别排名并标注来源,并用多组动图回顾十年演进。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ===== Scoped animated figures for the LLM-leaderboard note (动图) ===== */
+      .llm-fig { margin: 1.6rem 0; padding: 16px 16px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .llm-fig .llm-title { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent-1); margin-bottom: 14px; letter-spacing: 0.02em; }
+      .llm-fig .llm-cap { display: block; margin-top: 12px; font-size: 0.82rem; line-height: 1.55; color: var(--text-muted); }
+      .llm-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); }
+      .llm-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .llm-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+      /* --- Animated ranking bars (Elo / score) --- */
+      .llm-bars { display: flex; flex-direction: column; gap: 7px; }
+      .llm-bar-row { display: grid; grid-template-columns: 188px 1fr; gap: 10px; align-items: center; }
+      .llm-bar-row .nm { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .llm-bar-track { position: relative; height: 20px; }
+      .llm-bar-fill { height: 100%; border-radius: 6px; transform-origin: left center; transform: scaleX(0); animation: llm-grow 1.1s cubic-bezier(.2,.7,.2,1) forwards; }
+      .llm-bar-val { position: absolute; top: 50%; transform: translateY(-50%); left: calc(var(--w) + 8px); font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); opacity: 0; animation: llm-fadein .5s ease 1s forwards; white-space: nowrap; }
+      @keyframes llm-grow { to { transform: scaleX(1); } }
+      @keyframes llm-fadein { to { opacity: 1; } }
+
+      /* --- Stacked leadership relay --- */
+      .llm-stack { display: flex; height: 40px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-strong); }
+      .llm-seg { height: 100%; transform-origin: left center; transform: scaleX(0); animation: llm-grow 0.9s cubic-bezier(.2,.7,.2,1) forwards; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-mono); font-size: 0.6rem; color: #06121f; font-weight: 600; padding: 0 4px; }
+
+      /* --- Lab logo grid (图) --- */
+      .llm-labs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+      .llm-lab { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border: 1px solid var(--border); border-left: 3px solid var(--lab, var(--accent-1)); border-radius: 12px; background: var(--surface); transition: transform .25s ease, box-shadow .25s ease; }
+      .llm-lab:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+      .llm-lab-av { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border-strong); background: var(--surface-strong); object-fit: cover; flex: 0 0 auto; }
+      .llm-lab-body { min-width: 0; }
+      .llm-lab-nm { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; color: var(--text); }
+      .llm-lab-model { font-size: 0.66rem; color: var(--text-muted); margin-top: 2px; }
+
+      /* --- Ten-year timeline (stages light up in sequence) --- */
+      .llm-tl { display: flex; align-items: stretch; gap: 3px; flex-wrap: wrap; }
+      .llm-tl-stage { flex: 1 1 0; min-width: 92px; padding: 9px 7px; border-radius: 10px; border: 1px dashed var(--border); text-align: center; opacity: .42; animation: llm-light 13s ease-in-out infinite; }
+      .llm-tl-stage .yr { font-family: var(--font-mono); font-size: 0.66rem; color: var(--accent-2); }
+      .llm-tl-stage .lb { font-size: 0.7rem; color: var(--text); margin-top: 3px; line-height: 1.3; }
+      @keyframes llm-light { 0%,3% { opacity: .42; border-style: dashed; transform: translateY(0); } 7%,11% { opacity: 1; border-style: solid; border-color: var(--accent-2); transform: translateY(-3px); } 16%,100% { opacity: .42; border-style: dashed; transform: translateY(0); } }
+
+      /* --- Two-column compare (code: SWE-bench vs LiveCodeBench) --- */
+      .llm-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .llm-bar-fill, .llm-seg, .llm-tl-stage, .llm-bar-val { animation: none !important; }
+        .llm-bar-fill, .llm-seg { transform: scaleX(1); }
+        .llm-tl-stage { opacity: 1; }
+        .llm-bar-val { opacity: 1; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-06-30</span>
+            <span class="tags"><span>LLM</span><span>Leaderboard</span><span>Benchmarks</span><span>Coding</span><span>Trend Analysis</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">全球大模型榜单:综合 / 知识 / 代码 三维排名</span><span lang="en" class="i18n-en">Global LLM Leaderboards: Overall / Knowledge / Code</span></h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            <span lang="zh-CN" class="i18n-zh">这份笔记把「全球排名前十的大语言模型」拆成<strong>三类</strong>来看——<strong>综合对话能力</strong>、<strong>综合智力与知识</strong>、<strong>代码能力</strong>——每一类都<strong>标注排名所参考的来源</strong>。没有一个榜单是「唯一真理」:对话偏好榜(LMArena)测的是人类盲选,智力指数(Artificial Analysis)测的是综合基准,代码则要同时看「真实工程任务」与「竞赛算法」两种。最后用一组动图回顾<strong>十年来排名前列的模型变化</strong>。</span>
+            <span lang="en" class="i18n-en">This note splits “the world's top-ten LLMs” into <strong>three views</strong> — <strong>overall conversation</strong>, <strong>intelligence &amp; knowledge</strong>, and <strong>code</strong> — each with its <strong>ranking source cited</strong>. No single board is “the truth”: a preference board (LMArena) measures blind human votes, an intelligence index (Artificial Analysis) measures aggregate benchmarks, and code needs both “real engineering tasks” and “competitive algorithms.” It closes with animated charts reviewing how the leading models changed over ten years.</span>
+          </p>
+
+          <blockquote>
+            <span lang="zh-CN" class="i18n-zh"><strong>口径与免责声明:</strong>数值为 <strong>2026-06-30(UTC)快照</strong>,前沿每天都在变;分数四舍五入、版本名在前沿层略有出入。请以正文链接的官方榜单为准。</span>
+            <span lang="en" class="i18n-en"><strong>Scope &amp; disclaimer:</strong> figures are a <strong>2026-06-30 (UTC) snapshot</strong>; the frontier shifts daily. Scores are rounded and version names vary slightly at the frontier tier. Always defer to the official boards linked inline.</span>
+          </blockquote>
+
+          <h2><span lang="zh-CN" class="i18n-zh">概览:三张榜 + 十大厂商</span><span lang="en" class="i18n-en">Overview: three boards + the ten labs</span></h2>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">先给结论:<strong>2026 年年中的前沿被 Anthropic、OpenAI、Google 三家领跑,但身位前所未有地接近</strong>;开源/开放权重一侧由中国实验室(DeepSeek、Qwen、Moonshot、Zhipu)扛旗,并在「竞赛算法代码」上反超闭源。下面是当前主要厂商与其旗舰模型(头像取自各实验室 GitHub 组织)。</span>
+            <span lang="en" class="i18n-en">Bottom line first: <strong>at mid-2026 the frontier is led by Anthropic, OpenAI and Google — but clustered tighter than ever</strong>; the open-weights side is carried by Chinese labs (DeepSeek, Qwen, Moonshot, Zhipu), which actually overtake the closed frontier on “competitive-programming code.” Below are today's major labs and their flagships (logos from each lab's GitHub org).</span>
+          </p>
+
+          <div class="llm-labs">
+            <div class="llm-lab" style="--lab:#d97757"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/76263028?v=4&amp;s=96" alt="Anthropic logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Anthropic</div><div class="llm-lab-model">Claude Opus 4.8 · Fable 5</div></div></div>
+            <div class="llm-lab" style="--lab:#10a37f"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/14957082?v=4&amp;s=96" alt="OpenAI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">OpenAI</div><div class="llm-lab-model">GPT-5.5 · GPT-5.3 Codex</div></div></div>
+            <div class="llm-lab" style="--lab:#4285f4"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/8596759?v=4&amp;s=96" alt="Google DeepMind logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Google DeepMind</div><div class="llm-lab-model">Gemini 3.1 Pro · 3.5 Flash</div></div></div>
+            <div class="llm-lab" style="--lab:#ec4899"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/148330874?v=4&amp;s=96" alt="DeepSeek logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">DeepSeek</div><div class="llm-lab-model">DeepSeek V4 Pro / V4.1 Pro</div></div></div>
+            <div class="llm-lab" style="--lab:#9333ea"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/141221163?v=4&amp;s=96" alt="Qwen / Alibaba logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Alibaba · Qwen</div><div class="llm-lab-model">Qwen 3.7 Max</div></div></div>
+            <div class="llm-lab" style="--lab:#64748b"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/130314967?v=4&amp;s=96" alt="xAI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">xAI</div><div class="llm-lab-model">Grok 4.3</div></div></div>
+            <div class="llm-lab" style="--lab:#1d4ed8"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/153379578?v=4&amp;s=96" alt="Meta Llama logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Meta</div><div class="llm-lab-model">Llama 4.5 Maverick</div></div></div>
+            <div class="llm-lab" style="--lab:#f59e0b"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/132372032?v=4&amp;s=96" alt="Mistral AI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Mistral AI</div><div class="llm-lab-model">Mistral Large 3</div></div></div>
+            <div class="llm-lab" style="--lab:#06b6d4"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/223098841?v=4&amp;s=96" alt="Zhipu / GLM logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Zhipu · GLM</div><div class="llm-lab-model">GLM-5.2</div></div></div>
+            <div class="llm-lab" style="--lab:#22c55e"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/129152888?v=4&amp;s=96" alt="Moonshot AI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Moonshot · Kimi</div><div class="llm-lab-model">Kimi K2.6</div></div></div>
+          </div>
+          <p class="entry-source"><span lang="zh-CN" class="i18n-zh">图:十家主要实验室与旗舰模型;头像为各实验室 GitHub 组织头像。</span><span lang="en" class="i18n-en">Image: ten major labs and their flagships; avatars are each lab's GitHub org avatar.</span></p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">① 综合对话能力(LMArena Elo)</span><span lang="en" class="i18n-en">① Overall conversation (LMArena Elo)</span></h2>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">最广为引用的「综合」榜是 <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena</a>(前 LMSYS Chatbot Arena):用户对两个匿名模型的回答盲选,数百万次投票聚合成 Elo。它测的是<strong>人类对回答的整体偏好</strong>,而非某一项硬指标。</span>
+            <span lang="en" class="i18n-en">The most widely cited “overall” board is <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena</a> (formerly LMSYS Chatbot Arena): users blind-vote between two anonymous answers, and millions of votes aggregate into Elo. It measures <strong>overall human preference</strong> on answers, not any single hard metric.</span>
+          </p>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · LMArena 文本榜 Top 10(Arena Elo,越高越好)</span><span lang="en" class="i18n-en">Animated · LMArena text board Top 10 (Arena Elo, higher is better)</span></div>
+            <div class="llm-bars" aria-hidden="true">
+              <div class="llm-bar-row"><span class="nm">1 · Claude Opus 4.8 — Anthropic</span><div class="llm-bar-track" style="--w:100%"><div class="llm-bar-fill" style="width:100%;background:#d97757"></div><span class="llm-bar-val">≈1510</span></div></div>
+              <div class="llm-bar-row"><span class="nm">2 · GPT-5.5 Pro — OpenAI</span><div class="llm-bar-track" style="--w:99.2%"><div class="llm-bar-fill" style="width:99.2%;background:#10a37f"></div><span class="llm-bar-val">≈1509</span></div></div>
+              <div class="llm-bar-row"><span class="nm">3 · Gemini 3.1 Pro Preview — Google</span><div class="llm-bar-track" style="--w:96.9%"><div class="llm-bar-fill" style="width:96.9%;background:#4285f4"></div><span class="llm-bar-val">≈1506</span></div></div>
+              <div class="llm-bar-row"><span class="nm">4 · Claude Opus 4.7 — Anthropic</span><div class="llm-bar-track" style="--w:95.4%"><div class="llm-bar-fill" style="width:95.4%;background:#d97757"></div><span class="llm-bar-val">≈1504</span></div></div>
+              <div class="llm-bar-row"><span class="nm">5 · GPT-5.5 — OpenAI</span><div class="llm-bar-track" style="--w:93.8%"><div class="llm-bar-fill" style="width:93.8%;background:#10a37f"></div><span class="llm-bar-val">≈1502</span></div></div>
+              <div class="llm-bar-row"><span class="nm">6 · Grok 4.3 — xAI</span><div class="llm-bar-track" style="--w:89.2%"><div class="llm-bar-fill" style="width:89.2%;background:#64748b"></div><span class="llm-bar-val">≈1496</span></div></div>
+              <div class="llm-bar-row"><span class="nm">7 · Claude Opus 4.6 — Anthropic</span><div class="llm-bar-track" style="--w:84.6%"><div class="llm-bar-fill" style="width:84.6%;background:#d97757"></div><span class="llm-bar-val">≈1490</span></div></div>
+              <div class="llm-bar-row"><span class="nm">8 · Qwen 3.7 Max — Alibaba</span><div class="llm-bar-track" style="--w:83.1%"><div class="llm-bar-fill" style="width:83.1%;background:#9333ea"></div><span class="llm-bar-val">≈1488</span></div></div>
+              <div class="llm-bar-row"><span class="nm">9 · Gemini 3.1 Flash — Google</span><div class="llm-bar-track" style="--w:71.5%"><div class="llm-bar-fill" style="width:71.5%;background:#4285f4"></div><span class="llm-bar-val">≈1473</span></div></div>
+              <div class="llm-bar-row"><span class="nm">10 · DeepSeek V4.1 Pro — DeepSeek</span><div class="llm-bar-track" style="--w:23.1%"><div class="llm-bar-fill" style="width:23.1%;background:#ec4899"></div><span class="llm-bar-val">≈1410 · 开放权重</span></div></div>
+            </div>
+            <div class="llm-legend">
+              <span><i style="background:#d97757"></i>Anthropic</span>
+              <span><i style="background:#10a37f"></i>OpenAI</span>
+              <span><i style="background:#4285f4"></i>Google</span>
+              <span><i style="background:#64748b"></i>xAI</span>
+              <span><i style="background:#9333ea"></i>Alibaba</span>
+              <span><i style="background:#ec4899"></i>DeepSeek</span>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 前 8 名挤在 <strong>≈55 Elo</strong> 内,是有记录以来最窄的身位(条形以 1380 为基线放大差异)。<strong>DeepSeek V4.1 Pro</strong> 是最强开放权重模型,落后榜首约百分位 Elo,但仍碾压绝大多数闭源。来源:<a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">lmarena.ai</a>(文本榜,2026-06 快照)。</span><span lang="en" class="i18n-en">▶ The top 8 are packed within <strong>≈55 Elo</strong> — the tightest spread on record (bars use a 1380 baseline to magnify differences). <strong>DeepSeek V4.1 Pro</strong> is the strongest open-weights model, trailing the leader by ~100 Elo yet still beating most closed models. Source: <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">lmarena.ai</a> (text board, 2026-06 snapshot).</span></span>
+          </figure>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">注:Anthropic 新发布的 <strong>Claude Fable 5</strong> 在多个榜单登顶,但发布初期可用性受限(常回退到 Opus 4.8),因此「可日常使用」的综合榜首通常落在 <strong>Claude Opus 4.8 / GPT-5.5 Pro</strong>。</span>
+            <span lang="en" class="i18n-en">Note: Anthropic's newly released <strong>Claude Fable 5</strong> tops several boards, but availability is limited at launch (it frequently falls back to Opus 4.8), so the “daily-usable” overall #1 is usually <strong>Claude Opus 4.8 / GPT-5.5 Pro</strong>.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">② 综合智力与知识(Artificial Analysis)</span><span lang="en" class="i18n-en">② Intelligence &amp; knowledge (Artificial Analysis)</span></h2>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">「综合知识/智力」最常用的复合指标是 <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a>(v4.1),它把 10 个硬基准(含知识类的 <strong>GPQA Diamond</strong>、<strong>Humanity's Last Exam</strong>、知识与幻觉的 <strong>AA-Omniscience</strong>,以及 GDPval-AA 等 agentic 任务)加权成一个分数。</span>
+            <span lang="en" class="i18n-en">The most-used composite for “intelligence/knowledge” is the <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a> (v4.1), weighting 10 hard benchmarks — including knowledge ones (<strong>GPQA Diamond</strong>, <strong>Humanity's Last Exam</strong>, the knowledge-and-hallucination <strong>AA-Omniscience</strong>) and agentic tasks like GDPval-AA — into a single score.</span>
+          </p>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · Artificial Analysis 智力指数 Top 10(分数越高越聪明)</span><span lang="en" class="i18n-en">Animated · Artificial Analysis Intelligence Index Top 10 (higher = smarter)</span></div>
+            <div class="llm-bars" aria-hidden="true">
+              <div class="llm-bar-row"><span class="nm">1 · Claude Fable 5 — Anthropic</span><div class="llm-bar-track" style="--w:100%"><div class="llm-bar-fill" style="width:100%;background:#d97757"></div><span class="llm-bar-val">60 · 可用性受限</span></div></div>
+              <div class="llm-bar-row"><span class="nm">2 · Claude Opus 4.8 (max) — Anthropic</span><div class="llm-bar-track" style="--w:80%"><div class="llm-bar-fill" style="width:80%;background:#d97757"></div><span class="llm-bar-val">56 · 可用最强</span></div></div>
+              <div class="llm-bar-row"><span class="nm">3 · GPT-5.5 (xhigh) — OpenAI</span><div class="llm-bar-track" style="--w:75%"><div class="llm-bar-fill" style="width:75%;background:#10a37f"></div><span class="llm-bar-val">55</span></div></div>
+              <div class="llm-bar-row"><span class="nm">4 · Claude Opus 4.7 (max) — Anthropic</span><div class="llm-bar-track" style="--w:70%"><div class="llm-bar-fill" style="width:70%;background:#d97757"></div><span class="llm-bar-val">54</span></div></div>
+              <div class="llm-bar-row"><span class="nm">5 · GPT-5.5 (high) — OpenAI</span><div class="llm-bar-track" style="--w:65%"><div class="llm-bar-fill" style="width:65%;background:#10a37f"></div><span class="llm-bar-val">53</span></div></div>
+              <div class="llm-bar-row"><span class="nm">6 · GLM-5.2 (max) — Zhipu</span><div class="llm-bar-track" style="--w:60%"><div class="llm-bar-fill" style="width:60%;background:#06b6d4"></div><span class="llm-bar-val">≈52</span></div></div>
+              <div class="llm-bar-row"><span class="nm">7 · Gemini 3.5 Flash — Google</span><div class="llm-bar-track" style="--w:55%"><div class="llm-bar-fill" style="width:55%;background:#4285f4"></div><span class="llm-bar-val">≈51</span></div></div>
+              <div class="llm-bar-row"><span class="nm">8 · Claude Sonnet 4.6 (max) — Anthropic</span><div class="llm-bar-track" style="--w:50%"><div class="llm-bar-fill" style="width:50%;background:#d97757"></div><span class="llm-bar-val">≈50</span></div></div>
+              <div class="llm-bar-row"><span class="nm">9 · Gemini 3.1 Pro Preview — Google</span><div class="llm-bar-track" style="--w:45%"><div class="llm-bar-fill" style="width:45%;background:#4285f4"></div><span class="llm-bar-val">≈49</span></div></div>
+              <div class="llm-bar-row"><span class="nm">10 · DeepSeek V4 Pro (max) — DeepSeek</span><div class="llm-bar-track" style="--w:20%"><div class="llm-bar-fill" style="width:20%;background:#ec4899"></div><span class="llm-bar-val">44 · 开放权重最强</span></div></div>
+            </div>
+            <div class="llm-legend">
+              <span><i style="background:#d97757"></i>Anthropic</span>
+              <span><i style="background:#10a37f"></i>OpenAI</span>
+              <span><i style="background:#4285f4"></i>Google</span>
+              <span><i style="background:#06b6d4"></i>Zhipu</span>
+              <span><i style="background:#ec4899"></i>DeepSeek</span>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 智力指数榜单上 Anthropic 占据头部:<strong>Claude Fable 5(60)</strong>领先,但可用性受限;<strong>可日常使用的最强是 Claude Opus 4.8(56)</strong>,GPT-5.5(xhigh)以 55 紧随。开放权重一侧 <strong>DeepSeek V4 Pro(44)</strong>领跑(条形以 40 为基线)。来源:<a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1。</span><span lang="en" class="i18n-en">▶ Anthropic owns the head of the Intelligence Index: <strong>Claude Fable 5 (60)</strong> leads but is availability-limited; the <strong>strongest daily-usable model is Claude Opus 4.8 (56)</strong>, with GPT-5.5 (xhigh) close at 55. On open weights, <strong>DeepSeek V4 Pro (44)</strong> leads (bars use a baseline of 40). Source: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1.</span></span>
+          </figure>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh"><strong>单看「知识」</strong>:Artificial Analysis 的知识与幻觉基准 <strong>AA-Omniscience</strong> 由 <strong>Claude Fable 5(40 分)</strong>领跑,较前任领头羊 Gemini 3.1 Pro Preview(33)高出 7 分,且主要来自更高的正确率而非更低的幻觉。这与「研究生级科学问答」<strong>GPQA Diamond</strong> 和超难综合知识考 <strong>Humanity's Last Exam</strong> 的趋势一致——头部依旧是 Anthropic / OpenAI / Google 三家轮流刷新。</span>
+            <span lang="en" class="i18n-en"><strong>On knowledge alone:</strong> Artificial Analysis's knowledge-and-hallucination benchmark <strong>AA-Omniscience</strong> is led by <strong>Claude Fable 5 (40)</strong>, +7 over the previous leader Gemini 3.1 Pro Preview (33), driven mainly by higher accuracy rather than lower hallucination. That tracks with graduate-level science QA (<strong>GPQA Diamond</strong>) and the ultra-hard <strong>Humanity's Last Exam</strong> — the head is still Anthropic / OpenAI / Google trading record scores.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">③ 代码能力(SWE-bench × LiveCodeBench)</span><span lang="en" class="i18n-en">③ Code ability (SWE-bench × LiveCodeBench)</span></h2>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">代码不能只看一个数,要拆成两种:<strong>真实软件工程</strong>(给定一个真实仓库的 issue,让 agent 改对代码并通过测试)看 <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a>;<strong>竞赛/算法编程</strong>(防数据污染的新鲜题)看 <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a>。有趣的是:<strong>两边的冠军是不同阵营</strong>。</span>
+            <span lang="en" class="i18n-en">Code can't be a single number — split it in two: <strong>real software engineering</strong> (fix a real repo's issue so its tests pass) via <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a>, and <strong>competitive/algorithmic programming</strong> (fresh, contamination-free problems) via <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a>. The twist: <strong>the two winners come from different camps</strong>.</span>
+          </p>
+
+          <div class="llm-cols">
+            <figure class="llm-fig">
+              <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · SWE-bench Verified(真实工程,解决率%)</span><span lang="en" class="i18n-en">Animated · SWE-bench Verified (real SE, % resolved)</span></div>
+              <div class="llm-bars" aria-hidden="true">
+                <div class="llm-bar-row"><span class="nm">Claude Mythos 5 — Anthropic</span><div class="llm-bar-track" style="--w:100%"><div class="llm-bar-fill" style="width:100%;background:#d97757"></div><span class="llm-bar-val">95.5%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Claude Fable 5 — Anthropic</span><div class="llm-bar-track" style="--w:97.6%"><div class="llm-bar-fill" style="width:97.6%;background:#d97757"></div><span class="llm-bar-val">95.0%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Claude Opus 4.8 — Anthropic</span><div class="llm-bar-track" style="--w:66.3%"><div class="llm-bar-fill" style="width:66.3%;background:#d97757"></div><span class="llm-bar-val">88.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Claude Opus 4.7 — Anthropic</span><div class="llm-bar-track" style="--w:61.5%"><div class="llm-bar-fill" style="width:61.5%;background:#d97757"></div><span class="llm-bar-val">87.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">GPT-5.3 Codex — OpenAI</span><div class="llm-bar-track" style="--w:48.8%"><div class="llm-bar-fill" style="width:48.8%;background:#10a37f"></div><span class="llm-bar-val">85.0%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">DeepSeek V4 Pro (Max)</span><div class="llm-bar-track" style="--w:27.3%"><div class="llm-bar-fill" style="width:27.3%;background:#ec4899"></div><span class="llm-bar-val">80.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">MiniMax M3</span><div class="llm-bar-track" style="--w:26.8%"><div class="llm-bar-fill" style="width:26.8%;background:#a855f7"></div><span class="llm-bar-val">80.5%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Qwen3.7 Max — Alibaba</span><div class="llm-bar-track" style="--w:26.3%"><div class="llm-bar-fill" style="width:26.3%;background:#9333ea"></div><span class="llm-bar-val">80.4%</span></div></div>
+              </div>
+              <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ <strong>Anthropic 横扫真实工程</strong>:前 4 全是 Claude(Mythos 5 / Fable 5 / Opus 4.8 / 4.7),GPT-5.3 Codex 第 5。基线 75%。来源:<a href="https://www.swebench.com/verified" target="_blank" rel="noopener">swebench.com</a> + <a href="https://benchlm.ai/benchmarks/sweVerified" target="_blank" rel="noopener">BenchLM</a>(2026-06-29)。</span><span lang="en" class="i18n-en">▶ <strong>Anthropic sweeps real SE</strong>: the top 4 are all Claude (Mythos 5 / Fable 5 / Opus 4.8 / 4.7), with GPT-5.3 Codex 5th. Baseline 75%. Source: <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">swebench.com</a> + <a href="https://benchlm.ai/benchmarks/sweVerified" target="_blank" rel="noopener">BenchLM</a> (2026-06-29).</span></span>
+            </figure>
+
+            <figure class="llm-fig">
+              <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · LiveCodeBench(竞赛算法,通过率%)</span><span lang="en" class="i18n-en">Animated · LiveCodeBench (competitive algorithms, % pass)</span></div>
+              <div class="llm-bars" aria-hidden="true">
+                <div class="llm-bar-row"><span class="nm">DeepSeek V4 Pro (Max)</span><div class="llm-bar-track" style="--w:100%"><div class="llm-bar-fill" style="width:100%;background:#ec4899"></div><span class="llm-bar-val">93.5%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Qwen3.7 Max — Alibaba</span><div class="llm-bar-track" style="--w:83.5%"><div class="llm-bar-fill" style="width:83.5%;background:#9333ea"></div><span class="llm-bar-val">91.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">DeepSeek V4 Flash (Max)</span><div class="llm-bar-track" style="--w:83.5%"><div class="llm-bar-fill" style="width:83.5%;background:#ec4899"></div><span class="llm-bar-val">91.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">DeepSeek V4 Pro (High)</span><div class="llm-bar-track" style="--w:67.8%"><div class="llm-bar-fill" style="width:67.8%;background:#ec4899"></div><span class="llm-bar-val">89.8%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Qwen3.7 Plus — Alibaba</span><div class="llm-bar-track" style="--w:66.1%"><div class="llm-bar-fill" style="width:66.1%;background:#9333ea"></div><span class="llm-bar-val">89.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Kimi K2.6 — Moonshot</span><div class="llm-bar-track" style="--w:66.1%"><div class="llm-bar-fill" style="width:66.1%;background:#22c55e"></div><span class="llm-bar-val">89.6%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">Nemotron 3 Ultra — NVIDIA</span><div class="llm-bar-track" style="--w:60.9%"><div class="llm-bar-fill" style="width:60.9%;background:#76b900"></div><span class="llm-bar-val">89.0%</span></div></div>
+                <div class="llm-bar-row"><span class="nm">MAI-Thinking-1 — Microsoft</span><div class="llm-bar-track" style="--w:49.6%"><div class="llm-bar-fill" style="width:49.6%;background:#64748b"></div><span class="llm-bar-val">87.7%</span></div></div>
+              </div>
+              <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ <strong>开放权重(中国实验室)横扫竞赛算法</strong>:DeepSeek / Qwen / Moonshot 包揽前 6,闭源(Anthropic/OpenAI)在这张榜上罕见缺席头部。基线 82%。来源:<a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">BenchLM · LiveCodeBench</a>(2026-06-27)。</span><span lang="en" class="i18n-en">▶ <strong>Open weights (Chinese labs) sweep competitive algorithms</strong>: DeepSeek / Qwen / Moonshot take the top 6, with closed labs (Anthropic/OpenAI) notably absent from the head here. Baseline 82%. Source: <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">BenchLM · LiveCodeBench</a> (2026-06-27).</span></span>
+            </figure>
+          </div>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">这组对比是本笔记最有信息量的一张图:<strong>「会写算法」≠「会做工程」。</strong>Anthropic 的 Claude 在<strong>多步、要调工具、要读懂大仓库的真实工程任务</strong>上断层领先(SWE-bench 前四全是 Claude);而 DeepSeek、Qwen、Kimi 等<strong>开放权重模型在「干净的竞赛算法题」上反超闭源</strong>(LiveCodeBench 前六)。选型结论:做 <em>编码 agent / 真实仓库改动</em> 选 Claude 系;做 <em>竞赛/算法/可自托管且省钱</em> 选 DeepSeek / Qwen 系。</span>
+            <span lang="en" class="i18n-en">This pairing is the most informative chart here: <strong>“can do algorithms” ≠ “can do engineering.”</strong> Anthropic's Claude leads by a wide margin on <strong>multi-step, tool-using, large-repo real engineering</strong> (the SWE-bench top 4 are all Claude); while open-weights models like DeepSeek, Qwen and Kimi <strong>overtake the closed frontier on clean competitive problems</strong> (the LiveCodeBench top 6). Selection rule: for <em>coding agents / real-repo changes</em> pick the Claude family; for <em>contests/algorithms/self-hosted &amp; cheap</em> pick DeepSeek / Qwen.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">④ 十年演进(动图)</span><span lang="en" class="i18n-en">④ Ten-year evolution (animated)</span></h2>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">把镜头拉到十年尺度:从 2017 年的 Transformer 论文,到今天彼此咬合的前沿,「排名前列的模型」换了好几拨主角。下面第一张图是<strong>十年里程碑时间线</strong>(逐年点亮),第二张是<strong>「领跑者」更替的接力棒</strong>。</span>
+            <span lang="en" class="i18n-en">Zoom out to a decade: from the 2017 Transformer paper to today's interlocked frontier, the “leading models” changed protagonists several times. Below, the first chart is a <strong>ten-year milestone timeline</strong> (lighting up year by year), the second a <strong>leadership relay</strong> of who set the pace.</span>
+          </p>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年里程碑:每年的代表性模型(逐年点亮)</span><span lang="en" class="i18n-en">Animated · ten-year milestones: each year's defining model (lit in sequence)</span></div>
+            <div class="llm-tl" aria-hidden="true">
+              <div class="llm-tl-stage" style="animation-delay:0s"><div class="yr">2017</div><div class="lb">Transformer</div></div>
+              <div class="llm-tl-stage" style="animation-delay:1.1s"><div class="yr">2018</div><div class="lb">BERT · GPT-1</div></div>
+              <div class="llm-tl-stage" style="animation-delay:2.2s"><div class="yr">2019</div><div class="lb">GPT-2</div></div>
+              <div class="llm-tl-stage" style="animation-delay:3.3s"><div class="yr">2020</div><div class="lb">GPT-3 175B</div></div>
+              <div class="llm-tl-stage" style="animation-delay:4.4s"><div class="yr">2021</div><div class="lb">Codex</div></div>
+              <div class="llm-tl-stage" style="animation-delay:5.5s"><div class="yr">2022</div><div class="lb">ChatGPT · PaLM</div></div>
+              <div class="llm-tl-stage" style="animation-delay:6.6s"><div class="yr">2023</div><div class="lb">GPT-4 · LLaMA</div></div>
+              <div class="llm-tl-stage" style="animation-delay:7.7s"><div class="yr">2024</div><div class="lb">GPT-4o · Claude 3.5 · Gemini 1.5</div></div>
+              <div class="llm-tl-stage" style="animation-delay:8.8s"><div class="yr">2025</div><div class="lb">o3 · DeepSeek-R1 · GPT-5</div></div>
+              <div class="llm-tl-stage" style="animation-delay:9.9s"><div class="yr">2026</div><div class="lb">Opus 4.x · GPT-5.5 · Gemini 3 · DeepSeek V4</div></div>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 三个分水岭:<strong>2017 Transformer</strong>(架构)、<strong>2020 GPT-3</strong>(规模/few-shot)、<strong>2022 ChatGPT</strong>(对齐 + 产品化)。2025 起进入「推理(reasoning)+ 强开源」双轮,2026 走向「多家咬合的前沿」。</span><span lang="en" class="i18n-en">▶ Three watersheds: <strong>2017 Transformer</strong> (architecture), <strong>2020 GPT-3</strong> (scale/few-shot), <strong>2022 ChatGPT</strong> (alignment + productization). From 2025 it's a “reasoning + strong open-source” flywheel, reaching a “multi-lab interlocked frontier” by 2026.</span></span>
+          </figure>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年「领跑者」更替(按主导实验室着色)</span><span lang="en" class="i18n-en">Animated · the ten-year leadership relay (colored by leading lab)</span></div>
+            <div class="llm-stack" aria-hidden="true">
+              <div class="llm-seg" style="width:16%;background:#4285f4">2017–18<br/>Google</div>
+              <div class="llm-seg" style="width:32%;background:#10a37f;animation-delay:.16s">2019–22 · OpenAI<br/>GPT-2/3 → ChatGPT</div>
+              <div class="llm-seg" style="width:13%;background:#0e8c6c;animation-delay:.32s">2023<br/>GPT-4</div>
+              <div class="llm-seg" style="width:21%;background:#9333ea;animation-delay:.48s">2024–25 · 多极 + 推理<br/>Claude/Gemini/o1/R1</div>
+              <div class="llm-seg" style="width:18%;background:#d97757;animation-delay:.64s">2026<br/>Anthropic 领跑</div>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 接力棒的走向:<strong>Google(架构期)→ OpenAI(引爆与独大)→ 多极 + 推理革命 → 2026 Anthropic 领跑但身位极近</strong>。注意 2025 的 <strong>DeepSeek-R1</strong> 把「强开源 + 低成本推理」第一次推到与闭源同台。</span><span lang="en" class="i18n-en">▶ The baton's path: <strong>Google (architecture era) → OpenAI (the breakout &amp; dominance) → a multipolar + reasoning revolution → 2026 Anthropic-led but ultra-close</strong>. Note how 2025's <strong>DeepSeek-R1</strong> first put “strong open-source + cheap reasoning” on the same stage as closed models.</span></span>
+          </figure>
+
+          <p>
+            <span lang="zh-CN" class="i18n-zh">十年的两条主线很清楚:(1) <strong>能力的来源</strong>从「更大的预训练规模」(2020 GPT-3)迁移到「对齐与产品化」(2022 ChatGPT),再到「测试时计算 / 推理」(2024–25 的 o 系列、R1);(2) <strong>开源与闭源的差距</strong>持续缩小——2023 还是 GPT-4 一枝独秀,到 2026 开放权重(DeepSeek/Qwen)已在智力指数上进入前十、在竞赛代码上登顶。这意味着<strong>未来的「前十」会越来越像一张多极、按场景分工的榜,而不是单一霸主</strong>。</span>
+            <span lang="en" class="i18n-en">Two through-lines stand out over the decade: (1) the <strong>source of capability</strong> moved from “bigger pretraining scale” (2020 GPT-3) to “alignment &amp; productization” (2022 ChatGPT) to “test-time compute / reasoning” (the o-series and R1 in 2024–25); (2) the <strong>open-vs-closed gap</strong> keeps narrowing — GPT-4 stood alone in 2023, but by 2026 open weights (DeepSeek/Qwen) reach the intelligence top-10 and top the competitive-code board. That implies the future “top ten” looks <strong>increasingly multipolar and task-specialized, rather than one dominant model</strong>.</span>
+          </p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">怎么看榜 &amp; 来源</span><span lang="en" class="i18n-en">How to read these boards &amp; sources</span></h2>
+
+          <ul>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>没有「全场最佳」,只有「场景最佳」。</strong>对话偏好(LMArena)、综合智力(Artificial Analysis)、真实工程(SWE-bench)、竞赛算法(LiveCodeBench)四张榜的冠军并不相同。生产部署普遍采用「多模型路由」。</span><span lang="en" class="i18n-en"><strong>There is no “best overall,” only “best for the task.”</strong> Preference (LMArena), intelligence (Artificial Analysis), real SE (SWE-bench), and competitive algorithms (LiveCodeBench) crown different winners. Production deployments increasingly use multi-model routing.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>注意「可用性」与「版本」。</strong>榜首常是限量/预览版本(如 Claude Fable 5),日常可用的最强可能是次席。</span><span lang="en" class="i18n-en"><strong>Mind “availability” and “version.”</strong> The #1 is often a limited/preview variant (e.g. Claude Fable 5); the strongest daily-usable model may be the runner-up.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>警惕数据污染与刷分。</strong>静态基准(HumanEval、老版 SWE-bench)会被「针对性微调」刷高,因此本笔记优先采用<strong>防污染 / 滚动更新 / 人类盲选</strong>的榜单。</span><span lang="en" class="i18n-en"><strong>Beware contamination and benchmark gaming.</strong> Static benchmarks (HumanEval, old SWE-bench) can be gamed by targeted fine-tuning, so this note prefers <strong>contamination-free / rolling / blind-human</strong> boards.</span></li>
+          </ul>
+
+          <p class="entry-source">
+            <span lang="zh-CN" class="i18n-zh"><em>排名来源(均为 2026-06-30(UTC)前后快照,数值会每日变化):综合对话 = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena 文本榜</a>;综合智力与知识 = <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a>(含 GPQA Diamond / Humanity's Last Exam / AA-Omniscience);代码 = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> 与 <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a>(经 <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a> 汇总,2026-06-27/29)。厂商头像取自各实验室 GitHub 组织。分数为四舍五入近似值,条形图为放大可读性使用了非零基线(每图已标注)。</em></span>
+            <span lang="en" class="i18n-en"><em>Ranking sources (all snapshots around 2026-06-30 UTC; numbers shift daily): overall conversation = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena text board</a>; intelligence &amp; knowledge = <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a> (incl. GPQA Diamond / Humanity's Last Exam / AA-Omniscience); code = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> and <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a> (aggregated via <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a>, 2026-06-27/29). Lab avatars are from each lab's GitHub org. Scores are rounded approximations; bar charts use non-zero baselines for readability (noted per figure).</em></span>
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>

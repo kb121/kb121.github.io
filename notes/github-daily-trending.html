@@ -4,11 +4,10 @@
   GITHUB DAILY TRENDING — ACCUMULATING NOTE
   -------------------------------------------------------------------------
   This page is updated by a daily automation. Each run PREPENDS one new
-  <section class="daily-entry"> immediately after the marker:
+  "section.daily-entry" block immediately after the marker named
+  DAILY-ENTRIES:START (a standalone comment lower in this file).
 
-        <!-- DAILY-ENTRIES:START -->
-
-  NEVER delete or overwrite older <section class="daily-entry"> blocks —
+  NEVER delete or overwrite older "section.daily-entry" blocks —
   history (stars + analysis) must be preserved. Only add a new newest-first
   entry at the top. Ranking = stars gained that day (GitHub Trending,
   "stars today"), verified against the GitHub REST API for totals.
@@ -113,9 +112,40 @@
       .ght-pkt-move { animation: ght-travel 4s ease-in-out infinite; }
       @keyframes ght-travel { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(560px); opacity: 0; } }
 
+      /* ===== Multi-window illustrated avatar cards (图文) — added 2026-06-27 ===== */
+      .ght-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+      .ght-card { position: relative; display: grid; grid-template-columns: 24px 44px 1fr; gap: 10px; align-items: start; padding: 12px 13px 13px 13px; border: 1px solid var(--border); border-left: 3px solid var(--cat, var(--accent-1)); border-radius: 12px; background: var(--surface); transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+      .ght-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+      .ght-card-rank { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--cat, var(--accent-1)); line-height: 1.25; }
+      .ght-card-av { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface-strong); object-fit: cover; }
+      .ght-card-body { min-width: 0; }
+      .ght-card-nm { display: inline-block; font-family: var(--font-mono); font-size: 0.77rem; font-weight: 600; color: var(--text); text-decoration: none; word-break: break-word; }
+      .ght-card-nm:hover { color: var(--accent-1); text-decoration: underline; }
+      .ght-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 7px; }
+      .ght-pill { font-family: var(--font-mono); font-size: 0.62rem; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border-strong); white-space: nowrap; }
+      .ght-pill-gain { color: #06121f; background: var(--cat, #a855f7); border-color: transparent; font-weight: 600; }
+      .ght-pill-star { color: var(--text-muted); }
+      .ght-card-lang { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
+      .ght-card-intro { margin: 0; font-size: 0.735rem; line-height: 1.5; color: var(--text-muted); }
+
+      /* ===== OpenGraph social-card gallery (图) ===== */
+      .ght-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); gap: 12px; margin: 14px 0 4px; }
+      .ght-gcard { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); transition: transform .25s ease, box-shadow .25s ease; }
+      .ght-gcard:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+      .ght-gcard img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; background: var(--surface-strong); border-bottom: 1px solid var(--border); }
+      .ght-gcap { display: block; padding: 8px 11px 10px; font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); }
+
+      /* ===== Escalating time-horizon bars (动图) ===== */
+      .ght-horizon { display: flex; flex-direction: column; gap: 9px; }
+      .ght-hz-row { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; }
+      .ght-hz-row .ght-hz-win { font-family: var(--font-mono); font-size: 0.67rem; color: var(--accent-2); }
+      .ght-hz-track { position: relative; height: 26px; border-radius: 7px; background: var(--surface-strong); overflow: hidden; }
+      .ght-hz-fill { height: 100%; border-radius: 7px; transform-origin: left center; transform: scaleX(0); animation: ght-grow 1.2s cubic-bezier(.2,.7,.2,1) forwards; }
+      .ght-hz-lab { position: absolute; top: 50%; left: 10px; transform: translateY(-50%); font-family: var(--font-mono); font-size: 0.64rem; color: #06121f; font-weight: 600; white-space: nowrap; }
+
       @media (prefers-reduced-motion: reduce) {
-        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val { animation: none !important; }
-        .ght-bar-fill, .ght-seg { transform: scaleX(1); }
+        .ght-bar-fill, .ght-seg, .ght-core, .ght-chip, .ght-stage, .ght-flow, .ght-pkt-move, .ght-bar-val, .ght-hz-fill { animation: none !important; }
+        .ght-bar-fill, .ght-seg, .ght-hz-fill { transform: scaleX(1); }
         .ght-stage { opacity: 1; }
         .ght-bar-val { opacity: 1; }
         .ght-pkt-move { display: none; }
@@ -160,8 +190,8 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-12</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Agent Skills</span><span>Trend Analysis</span></span>
+            <span>2026-06-30</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Vertical Agents</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
         </header>
@@ -179,6 +209,450 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-06-30 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-06-30 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">用更立体的视角看 GitHub:同时抓取当天、一周、一月的 <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> 榜(按各窗口内新增 stars 排序),再用 GitHub Search API 取「半年内 / 一年内新建、且总 star 最高」的仓库作为「破圈新秀」代理,给出各窗口<strong>前 5</strong> 的图文卡片;并对<strong>当日前 10</strong> 做方向归类与趋势分析(历史 / 当下 / 未来,带证据)。两类指标不同:当天/一周/一月是<strong>窗口内新增 ★</strong>,半年/一年是<strong>该窗口新建仓库的总 ★</strong>,卡片上分别标注。</span><span lang="en" class="i18n-en">A more three-dimensional view of GitHub: I capture the <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> boards for today, this week and this month (ranked by stars gained within each window), then use the GitHub Search API for the highest-starred repos <em>created</em> within the last 6 months / 1 year as a “breakout-newcomer” proxy — giving illustrated top-5 cards per window, plus a direction &amp; trend analysis of the <strong>daily top 10</strong> (history / present / future, with evidence). Two metrics differ: today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of repos created in that window</strong> — each labeled on the cards.</span>
+            </p>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五窗口 · 各前 5 名(图文卡片)</span><span lang="en" class="i18n-en">Five windows · top 5 each (illustrated cards)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 窗口越长,头部仓库的体量越大</span><span lang="en" class="i18n-en">Animated · the longer the window, the larger the headline repo</span></div>
+              <div class="ght-horizon" aria-hidden="true">
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">today</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:8%;background:#22c55e"></div><span class="ght-hz-lab" style="color:var(--text)">free-for-dev · +1,935</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">week</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:24%;background:#f59e0b;animation-delay:.12s"></div><span class="ght-hz-lab">OpenMontage · +17,483</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">month</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:45%;background:#a855f7;animation-delay:.24s"></div><span class="ght-hz-lab">markitdown · +32,813</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">6 mo</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:73%;background:#06b6d4;animation-delay:.36s"></div><span class="ght-hz-lab">ECC · 223.6k★</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">year</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:100%;background:#f59e0b;animation-delay:.48s"></div><span class="ght-hz-lab">openclaw · 381.1k★</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当天/一周/一月为<strong>窗口内新增 ★</strong>,半年/一年为<strong>新建仓库总 ★</strong>(指标不同,仅示意体量级差)。每跨一个量级,主角从「单日话题」过渡到「沉淀下来的平台级项目」。</span><span lang="en" class="i18n-en">▶ today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of newly-created repos</strong> (different metrics, magnitude only). As the window widens, the protagonist shifts from a “one-day topic” to a “settled, platform-scale project.”</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当天 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">Today · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(daily),按当日新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (daily), ranked by ★ gained today.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#22c55e">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/82342?v=4&amp;s=96" alt="ripienaar avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ripienaar/free-for-dev" target="_blank" rel="noopener">ripienaar/free-for-dev</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,935</span><span class="ght-pill ght-pill-star">★ 127k</span><span class="ght-card-lang">HTML</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">常青资源清单:汇总对开发者/独立开发者有用、带「免费额度」的 SaaS / PaaS / IaaS 服务。</span><span lang="en" class="i18n-en">An evergreen resource list of SaaS / PaaS / IaaS services with free tiers useful to developers and indie hackers.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/59927747?v=4&amp;s=96" alt="simplex-chat avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/simplex-chat/simplex-chat" target="_blank" rel="noopener">simplex-chat/simplex-chat</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,607</span><span class="ght-pill ght-pill-star">★ 17.1k</span><span class="ght-card-lang">Haskell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「全球首个没有任何用户标识符」的消息网络:连随机 ID 都没有,隐私优先、可自托管。</span><span lang="en" class="i18n-en">“The first messaging network with no user identifiers at all” — not even random IDs; privacy-first and self-hostable.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/1972242?v=4&amp;s=96" alt="msitarzewski avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,425</span><span class="ght-pill ght-pill-star">★ 119.6k</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一整套「AI 代理公司」:从前端工程师到红队、社区运营,每个 agent 都是带人设与流程的专家。</span><span lang="en" class="i18n-en">A complete “AI agency”: each agent — from frontend wizard to red-teamer to community ops — is a specialized expert with its own persona and process.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6993203?v=4&amp;s=96" alt="xbtlin avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">xbtlin/ai-berkshire</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,386</span><span class="ght-pill ght-pill-star">★ 7.1k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「AI 时代的伯克希尔」:基于 Claude Code / Codex 的价值投资研究框架,内置巴菲特·芒格·段永平·李录四套方法论 + 多 agent 并行研究。</span><span lang="en" class="i18n-en">“AI-era Berkshire”: a value-investing research framework on Claude Code / Codex, packing four masters’ methodologies plus multi-agent parallel research.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/192012301?v=4&amp;s=96" alt="browser-use avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/browser-use/video-use" target="_blank" rel="noopener">browser-use/video-use</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+967</span><span class="ght-pill ght-pill-star">★ 12.2k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">来自 browser-use 团队:用编码 agent 来剪辑视频——把「会用工具的 agent」从浏览器扩展到视频。</span><span lang="en" class="i18n-en">From the browser-use team: edit videos with coding agents — extending “tool-using agents” from the browser to video.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一周 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This week · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(weekly),按本周新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (weekly), ranked by ★ gained this week.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+17,483</span><span class="ght-pill ght-pill-star">★ 29.2k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">号称「全球首个开源 agentic 视频生产系统」:12 条流水线、52 个工具、500+ 技能,把 AI 编码助手变成完整视频工作室。</span><span lang="en" class="i18n-en">Claims to be the “world’s first open-source agentic video production system”: 12 pipelines, 52 tools, 500+ skills that turn an AI coding assistant into a full video studio.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/81762164?v=4&amp;s=96" alt="DeusData avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+9,899</span><span class="ght-pill ght-pill-star">★ 22.0k</span><span class="ght-card-lang">C</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">高性能代码情报 MCP 服务:把代码库索引成持久知识图谱,省 token、亚毫秒查询、单静态二进制零依赖。</span><span lang="en" class="i18n-en">A high-performance code-intelligence MCP server: indexes a codebase into a persistent knowledge graph — token-saving, sub-ms queries, single static binary.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,928</span><span class="ght-pill ght-pill-star">★ 46.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「一双看全网的眼睛」:一个 CLI 读取/搜索 Twitter、Reddit、YouTube、GitHub、B 站、小红书,零 API 费用。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads &amp; searches Twitter, Reddit, YouTube, GitHub, Bilibili, Xiaohongshu — zero API fees.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/161364575?v=4&amp;s=96" alt="google-labs-code avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">google-labs-code/design.md</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,104</span><span class="ght-pill ght-pill-star">★ 23.4k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Google Labs 的 DESIGN.md 规范:把「视觉设计系统」写成结构化文件喂给编码 agent,让它持续理解你的设计语言。</span><span lang="en" class="i18n-en">Google Labs’ DESIGN.md spec: write your visual design system as a structured file so coding agents persistently understand your design language.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/125468716?v=4&amp;s=96" alt="topoteretes avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/topoteretes/cognee" target="_blank" rel="noopener">topoteretes/cognee</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+6,335</span><span class="ght-pill ght-pill-star">★ 25.8k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">面向 agent 的开源「AI 记忆平台」:把数据沉淀成可自托管的知识图谱,给 agent 长期记忆。</span><span lang="en" class="i18n-en">An open-source “AI memory platform” for agents: turns data into a self-hostable knowledge graph to give agents long-term memory.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一月 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This month · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(monthly),按本月新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (monthly), ranked by ★ gained this month.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6154722?v=4&amp;s=96" alt="microsoft avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">microsoft/markitdown</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+32,813</span><span class="ght-pill ght-pill-star">★ 161.5k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">微软出品:把各种文件与 Office 文档转换成 Markdown 的 Python 工具(喂给 LLM 的标准预处理器)。</span><span lang="en" class="i18n-en">Microsoft’s Python tool that converts files and Office docs to Markdown — a standard preprocessor for feeding LLMs.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/4928832?v=4&amp;s=96" alt="harry0703 avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">harry0703/MoneyPrinterTurbo</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+26,117</span><span class="ght-pill ght-pill-star">★ 94.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">利用 AI 大模型,一键生成高清短视频。</span><span lang="en" class="i18n-en">Generate HD short videos with one click using AI LLMs.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/219127460?v=4&amp;s=96" alt="Leonxlnx avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">Leonxlnx/taste-skill</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+25,764</span><span class="ght-pill ght-pill-star">★ 53.5k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「品味技能」:给 AI 注入审美,阻止它生成无聊、模板化的内容。</span><span lang="en" class="i18n-en">“Taste-Skill” — gives your AI good taste so it stops producing boring, generic slop.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+25,059</span><span class="ght-pill ght-pill-star">★ 46.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「一双看全网的眼睛」:一个 CLI 读取/搜索主流社交与视频平台,零 API 费用。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads &amp; searches major social/video platforms — zero API fees.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+24,187</span><span class="ght-pill ght-pill-star">★ 29.2k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 agentic 视频生产系统,一月内同时登上周榜与月榜——视频生成是当前最热的垂直场景之一。</span><span lang="en" class="i18n-en">An open-source agentic video-production system charting on both the weekly and monthly boards — video generation is one of the hottest verticals right now.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">半年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">6 months · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-12-30,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-12-30, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 223.6k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:为 Claude Code、Codex、Opencode、Cursor 等提供技能、直觉、记忆、安全与研究优先的开发范式。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: skills, instincts, memory, security and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.5k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「由 agent 自主运营的项目」,用 Rust 构建,全程几乎无人工干预地开发与维护——自主性前沿的代表作。</span><span lang="en" class="i18n-en">An “agent-operated project” built in Rust, developed and maintained with almost no human intervention — a poster child for the autonomy frontier.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/254743058?v=4&amp;s=96" alt="multica-ai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 184.9k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">Markdown</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个 CLAUDE.md 文件,源自 Andrej Karpathy 对 LLM 编码常见坑的观察,用来改进编码 agent 行为。</span><span lang="en" class="i18n-en">A single CLAUDE.md, derived from Andrej Karpathy’s notes on LLM coding pitfalls, to improve coding-agent behavior.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/28293365?v=4&amp;s=96" alt="mattpocock avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 151.0k</span><span class="ght-pill ght-pill-gain">建于 2026-02</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接开放自己 .claude 目录里的「给真正工程师用的技能」。</span><span lang="en" class="i18n-en">Matt Pocock’s “.claude directory” opened up — “skills for real engineers.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/19957?v=4&amp;s=96" alt="garrytan avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 118.2k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">直接复用 Garry Tan 的 Claude Code 配置:23 个有主见的工具,分别扮演 CEO、设计师、工程经理、发布经理、文档与 QA。</span><span lang="en" class="i18n-en">Use Garry Tan’s exact Claude Code setup: 23 opinionated tools acting as CEO, Designer, Eng Manager, Release Manager, Doc Engineer, and QA.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">1 year · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-06-30,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-06-30, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/252820863?v=4&amp;s=96" alt="openclaw avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 381.1k</span><span class="ght-pill ght-pill-gain">建于 2025-11</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">你的私人 AI 助手平台,任意操作系统、任意平台——一年窗口的总星王。</span><span lang="en" class="i18n-en">Your own personal AI-assistant platform — any OS, any platform — the total-stars king of the 1-year window.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/45416?v=4&amp;s=96" alt="obra avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 241.9k</span><span class="ght-pill ght-pill-gain">建于 2025-10</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「真正能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology that actually works.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 223.6k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:把技能、记忆、安全打包成一套面向编码 agent 的开发范式。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: packages skills, memory and security into one development paradigm for coding agents.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/134168893?v=4&amp;s=96" alt="NousResearch avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 206.0k</span><span class="ght-pill ght-pill-gain">建于 2025-07</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Nous Research 的「会与你一起成长」的 agent——强调记忆与个性化。</span><span lang="en" class="i18n-en">Nous Research’s “agent that grows with you” — emphasizing memory and personalization.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.5k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「由 agent 自主运营」的 Rust 项目,几乎无人工干预——自主性前沿。</span><span lang="en" class="i18n-en">An “agent-operated” Rust project with almost no human intervention — the autonomy frontier.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h3><span lang="zh-CN" class="i18n-zh">当日 Top 10 · 新增 stars 榜</span><span lang="en" class="i18n-en">Daily Top 10 · stars-gained board</span></h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/ripienaar/free-for-dev" target="_blank" rel="noopener">ripienaar/free-for-dev</a></td><td>HTML</td><td>1,935</td><td>127k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/simplex-chat/simplex-chat" target="_blank" rel="noopener">simplex-chat/simplex-chat</a></td><td>Haskell</td><td>1,607</td><td>17.1k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a></td><td>Shell</td><td>1,425</td><td>119.6k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">xbtlin/ai-berkshire</a></td><td>Python</td><td>1,386</td><td>7.1k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/browser-use/video-use" target="_blank" rel="noopener">browser-use/video-use</a></td><td>Python</td><td>967</td><td>12.2k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">HKUDS/Vibe-Trading</a></td><td>Python</td><td>839</td><td>15.4k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/altic-dev/FluidVoice" target="_blank" rel="noopener">altic-dev/FluidVoice</a></td><td>Swift</td><td>830</td><td>4.6k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/commaai/openpilot" target="_blank" rel="noopener">commaai/openpilot</a></td><td>Python</td><td>458</td><td>62.9k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/cupy/cupy" target="_blank" rel="noopener">cupy/cupy</a></td><td>Python</td><td>352</td><td>11.9k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/0xNyk/council-of-high-intelligence" target="_blank" rel="noopener">0xNyk/council-of-high-intelligence</a></td><td>Shell</td><td>331</td><td>2.2k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">free-for-dev</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#22c55e"></div><span class="ght-bar-val">1,935</span></div></div>
+                <div class="ght-bar-row"><span class="nm">simplex-chat</span><div class="ght-bar-track" style="--w:83%"><div class="ght-bar-fill" style="width:83.0%;background:#06b6d4"></div><span class="ght-bar-val">1,607</span></div></div>
+                <div class="ght-bar-row"><span class="nm">agency-agents</span><div class="ght-bar-track" style="--w:73.6%"><div class="ght-bar-fill" style="width:73.6%;background:#f59e0b"></div><span class="ght-bar-val">1,425</span></div></div>
+                <div class="ght-bar-row"><span class="nm">ai-berkshire</span><div class="ght-bar-track" style="--w:71.6%"><div class="ght-bar-fill" style="width:71.6%;background:#f59e0b"></div><span class="ght-bar-val">1,386</span></div></div>
+                <div class="ght-bar-row"><span class="nm">video-use</span><div class="ght-bar-track" style="--w:50%"><div class="ght-bar-fill" style="width:50.0%;background:#f59e0b"></div><span class="ght-bar-val">967</span></div></div>
+                <div class="ght-bar-row"><span class="nm">Vibe-Trading</span><div class="ght-bar-track" style="--w:43.4%"><div class="ght-bar-fill" style="width:43.4%;background:#f59e0b"></div><span class="ght-bar-val">839</span></div></div>
+                <div class="ght-bar-row"><span class="nm">FluidVoice</span><div class="ght-bar-track" style="--w:42.9%"><div class="ght-bar-fill" style="width:42.9%;background:#06b6d4"></div><span class="ght-bar-val">830</span></div></div>
+                <div class="ght-bar-row"><span class="nm">openpilot</span><div class="ght-bar-track" style="--w:23.7%"><div class="ght-bar-fill" style="width:23.7%;background:#a855f7"></div><span class="ght-bar-val">458</span></div></div>
+                <div class="ght-bar-row"><span class="nm">cupy</span><div class="ght-bar-track" style="--w:18.2%"><div class="ght-bar-fill" style="width:18.2%;background:#ec4899"></div><span class="ght-bar-val">352</span></div></div>
+                <div class="ght-bar-row"><span class="nm">council-of-high-intelligence</span><div class="ght-bar-track" style="--w:17.1%"><div class="ght-bar-fill" style="width:17.1%;background:#f59e0b"></div><span class="ght-bar-val">331</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">Agent 应用/垂直</span><span lang="en" class="i18n-en">Agent apps/verticals</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">本地优先/隐私</span><span lang="en" class="i18n-en">Local-first/privacy</span></span>
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">机器人/具身</span><span lang="en" class="i18n-en">Robotics/embodied</span></span>
+                <span><i style="background:#ec4899"></i><span lang="zh-CN" class="i18n-zh">GPU/数值基建</span><span lang="en" class="i18n-en">GPU/numeric infra</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">常青开发资源</span><span lang="en" class="i18n-en">Evergreen dev resource</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日前 10 中 <strong>5 个是 Agent 垂直应用/多智能体</strong>(agency-agents、ai-berkshire、video-use、Vibe-Trading、council),合计占当日前十新增 ★ 的 <strong>≈ 49%</strong>;其中 3 个直接服务「决策」(投资、交易、多模型议会)。同时 #1 free-for-dev(常青)与 #2 simplex-chat / #7 FluidVoice(本地优先/隐私)构成明显的反云端副线。</span><span lang="en" class="i18n-en">▶ Of today's top 10, <strong>5 are vertical agent apps / multi-agent systems</strong> (agency-agents, ai-berkshire, video-use, Vibe-Trading, council), together ≈ <strong>49%</strong> of the top-10 stars gained today; 3 of them directly serve “decisions” (investing, trading, multi-model deliberation). Meanwhile #1 free-for-dev (evergreen) and #2 simplex-chat / #7 FluidVoice (local-first/privacy) form a clear anti-cloud side-thread.</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">图 · 当日 Top 6 仓库社交卡片(GitHub OpenGraph)</span><span lang="en" class="i18n-en">Images · today's Top 6 social cards (GitHub OpenGraph)</span></div>
+              <div class="ght-gallery">
+                <a class="ght-gcard" href="https://github.com/ripienaar/free-for-dev" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/ripienaar/free-for-dev" alt="ripienaar/free-for-dev social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">ripienaar/free-for-dev · +1,935 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/simplex-chat/simplex-chat" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/simplex-chat/simplex-chat" alt="simplex-chat/simplex-chat social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">simplex-chat/simplex-chat · +1,607 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/msitarzewski/agency-agents" alt="msitarzewski/agency-agents social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">msitarzewski/agency-agents · +1,425 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/xbtlin/ai-berkshire" alt="xbtlin/ai-berkshire social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">xbtlin/ai-berkshire · +1,386 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/browser-use/video-use" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/browser-use/video-use" alt="browser-use/video-use social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">browser-use/video-use · +967 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260630/HKUDS/Vibe-Trading" alt="HKUDS/Vibe-Trading social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">HKUDS/Vibe-Trading · +839 ★</span>
+                </a>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 社交预览卡直观展示了「垂直智能体应用」(代理公司 / 投资 / 视频 / 交易)与「本地优先」(simplex-chat)如何同日并存。</span><span lang="en" class="i18n-en">▶ The social-preview cards make it visually clear how “vertical agent apps” (agency / investing / video / trading) coexist with “local-first” (simplex-chat) on the same day.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类(当日前 10)</span><span lang="en" class="i18n-en">Direction breakdown (daily top 10)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 Top 10 方向占比</span><span lang="en" class="i18n-en">Animated · today's Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:50%;background:#f59e0b">5 · <span lang="zh-CN" class="i18n-zh">垂直应用</span><span lang="en" class="i18n-en">verticals</span></div>
+                <div class="ght-seg" style="width:20%;background:#06b6d4;animation-delay:.16s">2 · <span lang="zh-CN" class="i18n-zh">本地</span><span lang="en" class="i18n-en">local</span></div>
+                <div class="ght-seg" style="width:10%;background:#a855f7;animation-delay:.32s">1</div>
+                <div class="ght-seg" style="width:10%;background:#ec4899;animation-delay:.48s">1</div>
+                <div class="ght-seg" style="width:10%;background:#22c55e;animation-delay:.64s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ Agent 垂直应用/多智能体 <strong>5/10</strong>、本地优先/隐私 <strong>2/10</strong>、机器人/具身、GPU/数值基建、常青开发资源各 <strong>1/10</strong>。</span><span lang="en" class="i18n-en">▶ Vertical agent apps / multi-agent <strong>5/10</strong>, local-first/privacy <strong>2/10</strong>, plus robotics/embodied, GPU/numeric infra, and evergreen dev resource at <strong>1/10</strong> each.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 垂直应用 / 多智能体 (5/10)</strong>:agency-agents(整建制代理公司)、ai-berkshire(价值投资研究)、video-use(视频剪辑)、Vibe-Trading(个人交易 agent)、council-of-high-intelligence(18 个人设跨多家 LLM 议事)。共同点是把「harness + 领域知识 + 上下文」打包成会<em>产出成果、甚至给出决策</em>的垂直产品——其中投资 / 交易 / 议会三家直指「高风险决策」。</span><span lang="en" class="i18n-en"><strong>Vertical agent apps / multi-agent (5/10)</strong>: agency-agents (a full agent “agency”), ai-berkshire (value-investing research), video-use (video editing), Vibe-Trading (personal trading agent), council-of-high-intelligence (18 personas deliberating across multiple LLMs). The common thread: packaging “harness + domain knowledge + context” into vertical products that <em>produce artifacts and even make decisions</em> — investing / trading / deliberation all aim squarely at high-stakes decisions.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>本地优先 / 隐私 (2/10)</strong>:simplex-chat(无任何用户标识符的消息网络)、FluidVoice(完全离线的 macOS 听写)。在云端 agent 高歌猛进的同时,「数据不出本地」是一条清晰的反向副线。</span><span lang="en" class="i18n-en"><strong>Local-first / privacy (2/10)</strong>: simplex-chat (a messaging network with no user identifiers) and FluidVoice (fully-offline macOS dictation). As cloud agents surge, “data never leaves the device” is a clear counter-current.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>机器人 / 具身 (1/10)</strong>:openpilot(comma.ai 的开源驾驶辅助 / 机器人操作系统)——「让 AI 在物理世界里做决策」的代表,且大量计算在车端本地完成。</span><span lang="en" class="i18n-en"><strong>Robotics / embodied (1/10)</strong>: openpilot (comma.ai's open-source driver-assistance / robotics OS) — the flagship for “AI making decisions in the physical world,” with much of the compute running on-device in the car.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>GPU / 数值基建 (1/10)</strong>:cupy(GPU 版 NumPy/SciPy)——提醒底层数值/加速库始终是 AI 浪潮的「水电煤」。</span><span lang="en" class="i18n-en"><strong>GPU / numeric infra (1/10)</strong>: cupy (NumPy/SciPy for GPU) — a reminder that low-level numeric/acceleration libraries are the perennial “utilities” underneath the AI wave.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>常青开发资源 (1/10)</strong>:free-for-dev(免费额度服务清单)——当日 #1,说明经典「开发者实用清单」依然有最强的长期吸星能力。</span><span lang="en" class="i18n-en"><strong>Evergreen dev resource (1/10)</strong>: free-for-dev (a list of free-tier services) — today's #1, proving the classic “useful-list-for-developers” still has the strongest long-tail star-pull.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 应用 → 技能/harness → 上下文/记忆 → 垂直智能体</span><span lang="en" class="i18n-en">History: models → frameworks → apps → skills/harness → context/memory → vertical agents</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的多次迁移</span><span lang="en" class="i18n-en">Animated · the shifting protagonist of GitHub trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编排框架</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 技能</span><span lang="en" class="i18n-en">Coding agents / skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 H1</div><div class="lb"><span lang="zh-CN" class="i18n-zh">上下文 / 记忆</span><span lang="en" class="i18n-en">Context / memory</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">垂直智能体 / 决策</span><span lang="en" class="i18n-en">Vertical agents / decisions</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 沿着同一条弧线再走一格:分发单元从模型权重 → 框架 → 应用 → 技能/harness → 上下文/记忆,如今主角上移到「会做决策的垂直智能体」。</span><span lang="en" class="i18n-en">▶ One more step along the same arc: the unit of distribution went model weights → frameworks → apps → skills/harness → context/memory, and now the protagonist moves up to “vertical agents that make decisions.”</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">长窗口给出最稳的历史证据。<strong>一年榜</strong>前 5 几乎是一部「agent 基础设施进化史」:<a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a>(私人助手平台,381.1k★,2025-11 新建)、<a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a>(技能框架 + 方法论,241.9k★,2025-10)、<a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a>(harness 优化系统,223.6k★,2026-01)、<a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a>(强调记忆的 agent,206.0k★,2025-07)、<a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a>(几乎无人工干预的自运营项目,194.5k★,2026-03)。这条线把「平台 → 技能框架 → harness → 记忆 → 自主」铺成了基础设施。本 log 6-12 记录的主旋律还是「agent 技能供应链(发现→扫描→沙箱→观测)」;两周多后的今天,这套基础设施已经长出了一层<strong>会做事、会决策的垂直应用</strong>——当日前 10 里就有 agency-agents、ai-berkshire、video-use、Vibe-Trading、council 五个。</span><span lang="en" class="i18n-en">The long windows give the steadiest historical evidence. The <strong>year board</strong>'s top 5 is almost a history of agent <em>infrastructure</em>: <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a> (personal-assistant platform, 381.1k★, created 2025-11), <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a> (skills framework + methodology, 241.9k★, 2025-10), <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a> (harness optimization, 223.6k★, 2026-01), <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> (memory-centric agent, 206.0k★, 2025-07), and <a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a> (a near-autonomous self-running project, 194.5k★, 2026-03) — laying down “platform → skills framework → harness → memory → autonomy” as infrastructure. This log's 6-12 entry was still about the “agent-skills supply chain (discover→scan→sandbox→observe)”; two-plus weeks later, that infrastructure has grown a layer of <strong>vertical apps that do things and make decisions</strong> — today's top 10 alone has five (agency-agents, ai-berkshire, video-use, Vibe-Trading, council).</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:智能体走向垂直,并开始「做决策」;本地优先成反向副线</span><span lang="en" class="i18n-en">Present: agents go vertical and start “making decisions”; local-first as a counter-current</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 从基础设施到「决策」的垂直智能体价值链</span><span lang="en" class="i18n-en">Animated · the vertical-agent value chain, from infra to “decision”</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="vertical agent value chain">
+                <rect class="ght-box" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="64" text-anchor="middle">Substrate</text><text class="ght-ssub" x="54" y="79" text-anchor="middle">skills/harness</text>
+                <rect class="ght-box" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="64" text-anchor="middle">Context</text><text class="ght-ssub" x="202" y="79" text-anchor="middle">memory/docs</text>
+                <rect class="ght-box hot" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="64" text-anchor="middle">Vertical</text><text class="ght-ssub" x="350" y="79" text-anchor="middle">domain agent</text>
+                <rect class="ght-box" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="64" text-anchor="middle">Decision</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">invest/trade/drive</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#06b6d4" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#f59e0b" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#f59e0b">task</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 基础设施(技能/harness)+ 上下文/记忆 → 打包成垂直领域智能体 → 最终落在「决策/产出」上。当日榜上 ai-berkshire(投资)、Vibe-Trading(交易)、openpilot(驾驶)、council(议会)正好把最后一段做实。</span><span lang="en" class="i18n-en">▶ Infrastructure (skills/harness) + context/memory → packaged into a vertical domain agent → ending in “decision/output.” Today's board makes that last stage concrete: ai-berkshire (investing), Vibe-Trading (trading), openpilot (driving), council (deliberation).</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">当下最强的信号不是「又一个 harness / 又一份技能」,而是 <strong>智能体开始在具体领域里产出成果、甚至做出有后果的决策</strong>,且证据横跨多窗口:(1) <strong>金融决策</strong>——当日 <a href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">ai-berkshire</a>(+1,386,价值投资研究框架)与 <a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">Vibe-Trading</a>(+839,个人交易 agent),把巴菲特/芒格式方法论交给 agent 执行;(2) <strong>多模型议会</strong>——<a href="https://github.com/0xNyk/council-of-high-intelligence" target="_blank" rel="noopener">council-of-high-intelligence</a>(+331)用 18 个人设跨多家 LLM 互相质询,专治高风险决策里的幻觉;(3) <strong>创意生产</strong>——<a href="https://github.com/browser-use/video-use" target="_blank" rel="noopener">video-use</a>(+967)、本月 <a href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">MoneyPrinterTurbo</a>(+26,117)与周/月双榜的 <a href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">OpenMontage</a> 把视频生产 agent 化;(4) <strong>支撑这些垂直应用的上下文/记忆层</strong>仍在高位:本周 <a href="https://github.com/topoteretes/cognee" target="_blank" rel="noopener">cognee</a>(AI 记忆平台,+6,335)、<a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>(+9,899)、<a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a>(+7,928)、<a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">design.md</a>(+7,104)。与此同时出现一条明显的<strong>反向副线——本地优先</strong>:<a href="https://github.com/simplex-chat/simplex-chat" target="_blank" rel="noopener">simplex-chat</a>(#2,无任何用户标识符)、<a href="https://github.com/altic-dev/FluidVoice" target="_blank" rel="noopener">FluidVoice</a>(#7,完全离线听写)与 <a href="https://github.com/commaai/openpilot" target="_blank" rel="noopener">openpilot</a>(#8,车端本地计算)同日在榜。</span><span lang="en" class="i18n-en">The strongest present-day signal isn't “yet another harness / yet another skill pack” — it's that <strong>agents are starting to produce outputs and even make consequential decisions in specific domains</strong>, with evidence spanning windows: (1) <strong>financial decisions</strong> — today's <a href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">ai-berkshire</a> (+1,386, value-investing research) and <a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">Vibe-Trading</a> (+839, personal trading agent) hand Buffett/Munger-style methodology to an agent; (2) <strong>multi-model deliberation</strong> — <a href="https://github.com/0xNyk/council-of-high-intelligence" target="_blank" rel="noopener">council-of-high-intelligence</a> (+331) has 18 personas cross-examine each other across multiple LLMs to fight hallucination in high-stakes calls; (3) <strong>creative production</strong> — <a href="https://github.com/browser-use/video-use" target="_blank" rel="noopener">video-use</a> (+967), this month's <a href="https://github.com/harry0703/MoneyPrinterTurbo" target="_blank" rel="noopener">MoneyPrinterTurbo</a> (+26,117) and the week/month dual-charting <a href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">OpenMontage</a> turn video production agentic; (4) <strong>the context/memory layer feeding these verticals</strong> stays high: this week's <a href="https://github.com/topoteretes/cognee" target="_blank" rel="noopener">cognee</a> (AI memory platform, +6,335), <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a> (+9,899), <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> (+7,928), <a href="https://github.com/google-labs-code/design.md" target="_blank" rel="noopener">design.md</a> (+7,104). At the same time, a clear <strong>counter-current — local-first</strong> — shows up on the same day: <a href="https://github.com/simplex-chat/simplex-chat" target="_blank" rel="noopener">simplex-chat</a> (#2, no user identifiers), <a href="https://github.com/altic-dev/FluidVoice" target="_blank" rel="noopener">FluidVoice</a> (#7, fully-offline dictation), and <a href="https://github.com/commaai/openpilot" target="_blank" rel="noopener">openpilot</a> (#8, on-device compute).</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:垂直智能体需要「可验证战绩」;本地优先继续抬升</span><span lang="en" class="i18n-en">Future: vertical agents need verifiable track records; local-first keeps rising</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 各领域「垂直智能体」挂载到核心</span><span lang="en" class="i18n-en">Animated · vertical agents mounting onto the core</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">finance</span>
+                <span class="ght-chip">trading</span>
+                <span class="ght-chip">video</span>
+                <span class="ght-chip">council</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">AI Agent<br/>核心</span><span lang="en" class="i18n-en">AI Agent<br/>core</span></span>
+                <span class="ght-chip">on-device</span>
+                <span class="ght-chip">…</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 同一个 agent 核心,挂上不同领域的「角色 + 数据 + 决策回路」,就成了金融 / 交易 / 视频 / 议会等垂直产品;而「on-device」提示下一段会更多发生在本地。</span><span lang="en" class="i18n-en">▶ The same agent core, fitted with a domain's “role + data + decision loop,” becomes a finance / trading / video / council vertical product; the “on-device” chip hints the next stretch increasingly runs locally.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推,给出可证伪的预测:(1) <strong>垂直决策 agent 需要「可验证战绩」</strong>——投资/交易类 agent(ai-berkshire、Vibe-Trading)只有公开回测、实盘曲线与风控才能站稳;预测未来一个季度,trending 上会出现更多「agent + 回测 / 评测 / 审计」类仓库,光有方法论的会快速退潮。(2) <strong>多智能体「议会 / 辩论」成为高风险决策标配</strong>——council 这类「多模型互相质询」的模式会被嵌入投资、医疗、法务等场景以压制幻觉。(3) <strong>本地优先 / 端侧 AI 持续抬升</strong>——隐私与成本双重压力下,simplex-chat、FluidVoice、openpilot 这类「数据不出本地」的项目会更频繁登榜;预测两周内日榜至少再出现 1 个端侧/离线 AI 应用。(4) <strong>基础设施层(技能/harness/记忆)走向「水电煤」</strong>——superpowers、ECC、cognee、codebase-memory-mcp 这些会沉淀为被默认依赖的底座,价值与注意力上移到垂直应用与专有领域数据。可证伪:未来两周,「垂直 agent 应用(尤其金融/创意)+ 本地优先」在日榜的占比继续上升,而纯技能/prompt 合集继续从 #1 退场。</span><span lang="en" class="i18n-en">Extrapolating from today's signals, here are falsifiable predictions: (1) <strong>vertical decision agents will need “verifiable track records”</strong> — investing/trading agents (ai-berkshire, Vibe-Trading) only hold up with public backtests, live-equity curves and risk controls; expect more “agent + backtest / eval / audit” repos next quarter, while methodology-only ones fade fast. (2) <strong>multi-agent “council / debate” becomes standard for high-stakes decisions</strong> — patterns like council (models cross-examining each other) get embedded into investing, healthcare and legal to suppress hallucination. (3) <strong>local-first / on-device AI keeps rising</strong> — under privacy and cost pressure, “data never leaves the device” projects like simplex-chat, FluidVoice and openpilot chart more often; predict at least one more on-device/offline AI app on the daily board within two weeks. (4) <strong>the infrastructure layer (skills/harness/memory) becomes “utilities”</strong> — superpowers, ECC, cognee, codebase-memory-mcp settle into a default-depended substrate, while value and attention move up to vertical apps and proprietary domain data. Falsifiable: over the next two weeks, “vertical agent apps (esp. finance/creative) + local-first” rise as a share of the daily board, while pure skill/prompt collections keep leaving the #1 spot.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(daily / weekly / monthly)+ GitHub Search API(created:&gt;=2025-12-30 与 created:&gt;=2025-06-30,sort=stars)+ GitHub REST API 校验总 star 数,抓取于 2026-06-30(UTC)。当天/一周/一月 = 窗口内新增 ★;半年/一年 = 该窗口新建仓库的总 ★(破圈新秀代理,非窗口新增)。图片为各仓库 owner 头像与 GitHub OpenGraph 社交卡。</em></span><span lang="en" class="i18n-en"><em>Sources: GitHub Trending (daily / weekly / monthly) + GitHub Search API (created:&gt;=2025-12-30 and created:&gt;=2025-06-30, sort=stars) + GitHub REST API (totals verified), captured 2026-06-30 (UTC). Today/week/month = ★ gained in-window; 6mo/year = total ★ of repos created in that window (a breakout-newcomer proxy, not in-window gain). Images are repo owner avatars and GitHub OpenGraph social cards.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-12 — 当日 Top 10</span><span lang="en" class="i18n-en">2026-06-12 — Top 10 of the day</span></h2>
 
