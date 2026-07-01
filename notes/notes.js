@@ -40,14 +40,14 @@ window.NOTES = [
   {
     slug: "ai-infra-llm-radar-2026-06-22",
     title: {
-      zh: "AI Infra 与大模型趋势雷达: 2026-06-22",
-      en: "AI Infra & LLM Trend Radar: 2026-06-22",
+      zh: "AI Infra 与大模型趋势雷达: 2026-07-01",
+      en: "AI Infra & LLM Trend Radar: 2026-07-01",
     },
     summary: {
-      zh: "统计 AI Infra / 大模型当天、一周、1个月、半年、一年热点信号,整理 Top 10 信息源,并用多组动图分析历史、当下与未来趋势。",
-      en: "Snapshot of AI Infra / LLM signals across day, week, month, half-year, and year windows, with Top 10 hot items and animated trend analysis.",
+      zh: "2026-07-01 快照:统计 AI Infra / 大模型当天、一周、1个月、半年、一年热点信号,整理 Top 10 信息源,并用多组动图分析历史、当下与未来趋势。",
+      en: "2026-07-01 snapshot of AI Infra / LLM signals across day, week, month, half-year, and year windows, with Top 10 hot items and animated trend analysis.",
     },
-    date: "2026-06-22",
+    date: "2026-07-01",
     tags: ["AI Infra", "LLM", "Inference", "Agents", "Trend Analysis"],
   },
   {
