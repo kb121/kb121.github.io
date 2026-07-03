@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="vLLM 的 gpu-memory-utilization 到底管什么(v0.24) — 庄宏" data-en="What gpu-memory-utilization Actually Controls in vLLM (v0.24) — Hong Zhuang">vLLM 的 gpu-memory-utilization 到底管什么(v0.24) — 庄宏</title>
+    <meta name="description" content="基于 vLLM v0.24.0 源码,图文拆解 gpu-memory-utilization 是什么、预算给谁、以及运行时怎么一步步算出 KV cache 的可用显存和 block 数。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* 本篇专用:显存条形图 */
+      .mem-bar {
+        display: flex;
+        width: 100%;
+        height: 46px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+      }
+      .mem-bar .seg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        text-align: center;
+        padding: 0 4px;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .mem-bar .seg.weights { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); }
+      .mem-bar .seg.act { background: color-mix(in srgb, var(--accent-2) 78%, #000); }
+      .mem-bar .seg.nontorch { background: color-mix(in srgb, var(--accent-3) 80%, #000); }
+      .mem-bar .seg.cgraph { background: #f59e0b; color: #201400; }
+      .mem-bar .seg.kv { background: #22c55e; color: #04210f; font-weight: 600; }
+      .mem-bar .seg.free {
+        background: repeating-linear-gradient(45deg, transparent, transparent 6px, color-mix(in srgb, var(--border-strong) 60%, transparent) 6px, color-mix(in srgb, var(--border-strong) 60%, transparent) 12px);
+        color: var(--text-muted);
+      }
+      .mem-legend { display: flex; flex-wrap: wrap; gap: 12px 18px; margin-top: 14px; font-size: 0.8rem; color: var(--text-muted); }
+      .mem-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .mem-legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+      .brk-w { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); }
+      .brk-a { background: color-mix(in srgb, var(--accent-2) 78%, #000); }
+      .brk-n { background: color-mix(in srgb, var(--accent-3) 80%, #000); }
+      .brk-c { background: #f59e0b; }
+      .brk-k { background: #22c55e; }
+      .brk-f { border: 1px dashed var(--border-strong); }
+      .util-bracket {
+        display: flex;
+        margin-top: 8px;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--accent-2);
+      }
+      .util-bracket .u-in { border-top: 2px solid var(--accent-2); border-left: 2px solid var(--accent-2); border-right: 2px solid var(--accent-2); padding: 4px 0 2px; text-align: center; border-radius: 6px 6px 0 0; margin-top: -2px; }
+      .util-bracket .u-out { text-align: center; color: var(--text-dim); padding-top: 6px; }
+      .eq {
+        font-family: var(--font-mono);
+        background: var(--surface-strong);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        font-size: 0.92rem;
+        line-height: 1.7;
+        overflow-x: auto;
+      }
+      .eq .hl { color: var(--accent-2); font-weight: 600; }
+      .eq .hl-k { color: #22c55e; font-weight: 600; }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-07-03</span>
+            <span class="tags"><span>vLLM</span><span>KV Cache</span><span>Memory</span><span>Inference</span></span>
+          </div>
+          <h1>vLLM 的 <code>gpu-memory-utilization</code> 到底管什么(基于 v0.24)</h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            这篇笔记基于 vLLM <strong>releases/v0.24.0</strong> 源码,图文讲清三件事:<strong>① <code>gpu-memory-utilization</code> 到底是什么</strong>;<strong>② 这笔"显存预算"是给谁的</strong>;<strong>③ 运行时是怎么一步步用它算出 KV cache 大小的</strong>。文中公式与结论都对应到具体源码位置。
+          </p>
+
+          <div class="callout key">
+            <strong>一句话总览:</strong> <code>gpu-memory-utilization</code>(v0.24 默认 <strong>0.92</strong>)= <em>整卡总显存 × 比例</em> 得到的一笔<strong>单实例显存预算</strong>。这笔预算要覆盖 <strong>模型权重 + 激活峰值 + 非-torch buffer(NCCL 等) + CUDA Graph</strong>,<strong>剩下的余额才是 KV cache</strong>。分母是<u>总显存</u>而不是"空闲显存"。
+          </div>
+
+          <h2>0 · 三个最常见的误解</h2>
+          <div class="cols2">
+            <div class="col-card bad">
+              <h4>❌ 常见误解</h4>
+              <ul>
+                <li>"它是拿<strong>空闲</strong>显存的百分比" —— 错,分母是<strong>整卡总显存</strong>。</li>
+                <li>"这块显存<strong>全给 KV cache</strong>" —— 错,权重/激活/CUDA Graph 都从里面扣。</li>
+                <li>"两个实例共卡,vLLM 会自己协调" —— 错,它是<strong>per-instance</strong> 上限,各设各的。</li>
+              </ul>
+            </div>
+            <div class="col-card good">
+              <h4>✅ 正确理解</h4>
+              <ul>
+                <li>预算 = <code>total_memory × util</code>,一个绝对字节数。</li>
+                <li>KV cache = 预算 − 其它所有开销后的<strong>余额</strong>。</li>
+                <li>调大 util ≈ <strong>把余额几乎全喂给 KV cache</strong>(并发/上下文更大,但更易 OOM)。</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2>1 · 它是什么:一笔"按比例"的显存预算</h2>
+          <p>
+            参数定义在 <code>vllm/config/cache.py</code> 的 <code>CacheConfig</code> 里,取值范围 <code>(0, 1]</code>,v0.24 默认 <strong>0.92</strong>(很多人记得的 0.9 在这个版本已经变成 0.92):
+          </p>
+          <pre><code># vllm/config/cache.py
+gpu_memory_utilization: float = Field(default=0.92, gt=0, le=1)
+"""The fraction of GPU memory to be used for the model executor ...
+This is a per-instance limit, and only applies to the current vLLM
+instance. ... if you have two vLLM instances running on the same GPU,
+you can set the GPU memory utilization to 0.5 for each instance."""</code></pre>
+
+          <p>Worker 初始化时,把这个比例乘上<strong>整卡总显存</strong>,得到一笔以字节为单位的预算 <code>requested_memory</code>:</p>
+
+          <figure class="fig">
+            <div class="fig-title">图 1 · 预算 = 总显存 × util</div>
+            <div class="mem-bar" aria-hidden="true">
+              <div class="seg weights" style="flex:92">util 部分 = 预算 requested_memory(0.92)</div>
+              <div class="seg free" style="flex:8">留白(0.08)</div>
+            </div>
+            <div class="util-bracket" aria-hidden="true">
+              <div class="u-in" style="flex:92">↑ 这一整块交给当前 vLLM 实例</div>
+              <div class="u-out" style="flex:8">系统/驱动/别的进程</div>
+            </div>
+            <div class="eq" style="margin-top:16px">
+              requested_memory = ceil( <span class="hl">total_memory</span> &times; gpu_memory_utilization )
+            </div>
+            <div class="mem-legend">
+              <span><i class="brk-w"></i> 预算(交给本实例)</span>
+              <span><i class="brk-f"></i> 有意留白,防止占满整卡</span>
+            </div>
+            <span class="fig-cap">对应 vllm/v1/worker/utils.py: request_memory()</span>
+          </figure>
+
+          <pre><code># vllm/v1/worker/utils.py — request_memory()
+requested_memory = math.ceil(
+    init_snapshot.total_memory * cache_config.gpu_memory_utilization
+)
+# 启动即校验:当前空闲显存不够这笔预算就直接报错
+if init_snapshot.free_memory < requested_memory:
+    raise ValueError("... Decrease GPU memory utilization ...")</code></pre>
+
+          <div class="callout info">
+            <strong>为什么分母是"总显存"而不是"空闲显存"?</strong> 因为 vLLM 要给一个<strong>确定的、可预测的</strong>上限;总显存是常量,而空闲量随其它进程波动。留白的 <code>1 − util</code> 就是给驱动 context、其它进程、以及测量误差的安全垫。
+          </div>
+
+          <h2>2 · 预算给谁:一张图看懂内部拆解</h2>
+          <p>
+            这笔预算<strong>不是全给 KV cache</strong>。它要先养活整个实例的固定开销,剩下的才轮到 KV cache。vLLM 把非-KV-cache 的开销分成三类(见 <code>memory_profiling</code> 注释):权重、激活峰值、以及非-torch 部分(NCCL、部分 attention backend 的 buffer)。再加上 CUDA Graph 捕获的显存:
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">图 2 · 预算内部:KV cache 只是"最后的余额"</div>
+            <div class="mem-bar" aria-hidden="true">
+              <div class="seg weights" style="flex:26">模型权重</div>
+              <div class="seg act" style="flex:16">激活峰值</div>
+              <div class="seg nontorch" style="flex:8">非-torch</div>
+              <div class="seg cgraph" style="flex:10">CUDA&nbsp;Graph</div>
+              <div class="seg kv" style="flex:40">KV cache = 余额</div>
+            </div>
+            <div class="mem-legend">
+              <span><i class="brk-w"></i> 模型权重 weights_memory</span>
+              <span><i class="brk-a"></i> 前向激活峰值 torch_peak</span>
+              <span><i class="brk-n"></i> 非-torch(NCCL / attn buffer)</span>
+              <span><i class="brk-c"></i> CUDA Graph(v0.21+ 默认预扣)</span>
+              <span><i class="brk-k"></i> KV cache 可用</span>
+            </div>
+            <span class="fig-cap">各段宽度仅为示意 · 真实比例取决于模型大小、并行度与 batch 设置</span>
+          </figure>
+
+          <p>Worker 用一次 dummy 前向做 profiling,测出前三项相加为 <code>non_kv_cache_memory</code>,然后从预算里减掉它和 CUDA Graph 的估算,得到 KV cache 可用显存:</p>
+
+          <pre><code># vllm/v1/worker/gpu_worker.py — determine_available_memory()
+profile_result.non_kv_cache_memory = (
+    profile_result.non_torch_increase      # 非-torch(NCCL 等)
+    + profile_result.torch_peak_increase   # 激活峰值
+    + profile_result.weights_memory        # 模型权重
+)
+
+self.available_kv_cache_memory_bytes = (
+    self.requested_memory                  # 预算 = total × util
+    - profile_result.non_kv_cache_memory   # 减去固定开销
+    - cudagraph_memory_estimate_applied    # 减去 CUDA Graph
+)</code></pre>
+
+          <div class="eq">
+            KV_cache 可用 = <span class="hl">total_memory &times; util</span>
+            &minus; ( weights + activation_peak + non_torch )
+            &minus; cuda_graph
+            = <span class="hl-k">available_kv_cache_memory_bytes</span>
+          </div>
+
+          <h2>3 · 怎么用的:从比例到 KV block 的四步</h2>
+          <p>从一个 <code>0~1</code> 的比例,到最终"能放多少个 KV block、支持多大并发",中间是这样一条流水线:</p>
+
+          <div class="flow">
+            <div class="flow-step">
+              <span class="s-n">STEP 1</span>
+              <div class="s-h">算预算 &amp; 校验</div>
+              <div class="s-d"><code>total × util</code> 得预算;空闲不足直接报错。</div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">STEP 2</span>
+              <div class="s-h">Profiling</div>
+              <div class="s-d">跑一次假前向,测权重 / 激活峰值 / 非-torch。</div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">STEP 3</span>
+              <div class="s-h">扣减</div>
+              <div class="s-d">预算 − 固定开销 − CUDA Graph = KV cache 余额。</div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">STEP 4</span>
+              <div class="s-h">换算 block</div>
+              <div class="s-d">余额 ÷ page_size ÷ 层数 = GPU KV block 数。</div>
+            </div>
+          </div>
+
+          <p>最后一步在 <code>kv_cache_utils.py</code>,把可用字节数换成 block 数,直接决定最大并发与最长上下文:</p>
+          <pre><code># vllm/v1/core/kv_cache_utils.py — get_num_blocks()
+num_blocks = int(available_memory // page_size // num_layers)
+num_blocks = max(num_blocks, 0)
+# 若算出 <= 0,会提示 "Try increasing gpu_memory_utilization ..."</code></pre>
+
+          <h2>4 · 四个必须知道的行为(v0.24)</h2>
+
+          <div class="callout warn">
+            <strong>① CUDA Graph 显存默认从预算里"预扣"(v0.21 起)。</strong> 这意味着同一个 util 数值,比老版本留给 KV cache 的更少。日志甚至会告诉你:当前 util 等效于关闭 CUDA Graph profiling 时的多少 util、想维持同样 KV cache 该调到多少。可用环境变量 <code>VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0</code> 关掉这个预扣。
+          </div>
+
+          <div class="callout info">
+            <strong>② <code>kv_cache_memory_bytes</code> / <code>--kv-cache-memory</code> 会直接绕过 util。</strong> 一旦显式指定 KV cache 字节数,vLLM 跳过 profiling 分配逻辑、<u>忽略 gpu_memory_utilization</u>,给你精确控制。vLLM 还会在日志里帮你算好一个建议值,方便从"比例模式"切到"精确字节模式"。
+          </div>
+
+          <div class="callout tip">
+            <strong>③ 它是 per-instance 上限,不做全卡协调。</strong> 同卡跑两个实例就各设 <code>0.5</code>;vLLM 不会感知另一个实例占了多少。
+          </div>
+
+          <div class="callout key">
+            <strong>④ 它不影响编译图结构。</strong> 源码把 <code>gpu_memory_utilization</code> 明确列为"不影响 compiled graph 的运行期旋钮"(<code>ignored_factors</code>),所以调它不会让 torch.compile / CUDA Graph 的编译缓存失效。
+          </div>
+
+          <h2>5 · 实操建议</h2>
+          <ul>
+            <li><strong>想要更大并发 / 更长上下文</strong> → 调大 util(如 0.95),前提是没有别的进程抢显存。</li>
+            <li><strong>同卡多实例 / 要给别的服务留显存</strong> → 调小 util,并按实例数分配。</li>
+            <li><strong>频繁踩线 OOM 或想要可复现的显存占用</strong> → 改用 <code>--kv-cache-memory</code> 精确指定,直接照 vLLM 日志给的建议值填。</li>
+            <li><strong>从旧版本升级发现 KV cache 变小了</strong> → 多半是 CUDA Graph 预扣所致,按日志提示适当上调 util,或关掉预扣。</li>
+          </ul>
+
+          <div class="callout info">
+            <strong>速查公式</strong>
+            <div class="eq" style="margin-top:10px">
+              blocks = <span class="hl-k">[ total_mem &times; util &minus; (weights + act_peak + non_torch) &minus; cuda_graph ]</span> ÷ page_size ÷ num_layers
+            </div>
+          </div>
+
+          <hr />
+          <p style="color:var(--text-dim);font-size:0.9rem">
+            源码位置(vLLM v0.24.0):<code>vllm/config/cache.py</code> · <code>vllm/v1/worker/utils.py</code> · <code>vllm/v1/worker/gpu_worker.py</code> · <code>vllm/utils/mem_utils.py</code> · <code>vllm/v1/core/kv_cache_utils.py</code>。
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>

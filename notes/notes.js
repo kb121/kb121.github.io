@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "vllm-gpu-memory-utilization",
+    title: {
+      zh: "vLLM 的 gpu-memory-utilization 到底管什么(v0.24)",
+      en: "What gpu-memory-utilization Actually Controls in vLLM (v0.24)",
+    },
+    summary: {
+      zh: "基于 vLLM v0.24.0 源码图文拆解:gpu-memory-utilization 是什么、这笔显存预算给谁,以及运行时怎么一步步算出 KV cache 可用显存和 block 数。",
+      en: "An illustrated walkthrough of vLLM v0.24.0 source: what gpu-memory-utilization is, who the memory budget is for, and how the KV cache size and block count are computed at runtime.",
+    },
+    date: "2026-07-03",
+    tags: ["vLLM", "KV Cache", "Memory", "Inference"],
+  },
+  {
     slug: "llm-leaderboard-2026-06-30",
     title: {
       zh: "全球大模型榜单:综合 / 知识 / 代码 三维排名",
