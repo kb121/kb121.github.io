@@ -21,7 +21,7 @@
       })();
     </script>
 
-    <title data-zh="AI Infra 与大模型趋势雷达 2026-06-22 — 庄宏" data-en="AI Infra &amp; LLM Trend Radar 2026-06-22 — Hong Zhuang">AI Infra 与大模型趋势雷达 2026-06-22 — 庄宏</title>
+    <title data-zh="AI Infra 与大模型趋势雷达 2026-07-03 — 庄宏" data-en="AI Infra &amp; LLM Trend Radar 2026-07-03 — Hong Zhuang">AI Infra 与大模型趋势雷达 2026-07-03 — 庄宏</title>
     <meta name="description" content="AI Infra 与大模型热点统计:当天、一周、1个月、半年、一年窗口,Top 10 信息源,以及带证据的历史、当下、未来技术趋势分析。" />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -155,31 +155,32 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-22</span>
+            <span>2026-07-03</span>
             <span class="tags"><span>AI Infra</span><span>LLM</span><span>Inference</span><span>Agents</span><span>Trend Analysis</span></span>
           </div>
-          <h1><span lang="zh-CN" class="i18n-zh">AI Infra 与大模型趋势雷达: 2026-06-22</span><span lang="en" class="i18n-en">AI Infra &amp; LLM Trend Radar: 2026-06-22</span></h1>
+          <h1><span lang="zh-CN" class="i18n-zh">AI Infra 与大模型趋势雷达: 2026-07-03</span><span lang="en" class="i18n-en">AI Infra &amp; LLM Trend Radar: 2026-07-03</span></h1>
         </header>
 
         <div class="prose">
           <p>
-            这是一份面向个人站点的 AI Infra / 大模型技术雷达快照,统计时间为 <strong>2026-06-22 22:02 UTC</strong>。证据来自 GitHub API 快照、GitHub release、官方文档/技术博客和公开新闻报道;热度排序综合了<strong>新鲜度、开源活跃度、生产影响、对推理成本与平台容量的影响</strong>。
+            这是一份面向个人站点的 AI Infra / 大模型技术雷达快照,统计时间为 <strong>2026-07-03 22:00 UTC</strong>。它更新在原有
+            <code>ai-infra-llm-radar-2026-06-22.html</code> 页面中,证据来自 GitHub API 快照、GitHub release、官方文档/技术博客和公开新闻报道;热度排序综合了<strong>新鲜度、开源活跃度、生产影响、对推理成本与平台容量的影响</strong>。
           </p>
 
           <div class="callout info">
-            <strong>总判断:</strong> AI Infra 的主战场正在从“模型 API”迁移到“agent workload 操作层”。上层 agent 拉高 PR、CI、工具调用和长上下文需求;下层系统用 vLLM/SGLang、KV cache、FP8/FP4、disaggregated serving、Kubernetes inference routing 和审计治理来吸收压力。
+            <strong>总判断:</strong> 过去两周的信号比“又发了几个模型”更系统性:agentic coding 把开发平台和推理平台一起推到容量边界;推理侧用 vLLM/SGLang、KV cache、prefill/decode 分离、低精度和 Kubernetes-native router 降成本;模型侧则继续向“更会用工具、更长上下文、更低单位 token 成本”演进。
           </div>
 
           <figure class="air-fig">
             <div class="air-title">Animated radar · five time windows</div>
             <div class="air-window-grid" aria-hidden="true">
-              <div class="air-window" style="--d:0s"><b>当天</b><span>14 个核心 repo 中 11 个在 6/22 有 push; llama.cpp 当天发布 b9763。</span></div>
-              <div class="air-window" style="--d:.25s"><b>一周</b><span>OpenAI Agents 0.17.6、LangGraph 1.2.6、Ollama 0.30.10、Kueue 0.18.1、vLLM 0.23 集中发布。</span></div>
-              <div class="air-window" style="--d:.5s"><b>1个月</b><span>vLLM / SGLang / LMCache / Dynamo / TensorRT-LLM 持续迭代,推理与调度进入生产节奏。</span></div>
-              <div class="air-window" style="--d:.75s"><b>半年</b><span>TGI 维护模式、MCP 生产化、GAIE/llm-d 把 serving 从 engine 推向平台。</span></div>
-              <div class="air-window" style="--d:1s"><b>一年</b><span>从“单模型 API”扩展到“模型 + cache + router + tools + governance”的 agent OS。</span></div>
+              <div class="air-window" style="--d:0s"><b>当天</b><span>16 个核心 repo 中 9 个在 7/03 有 push; llama.cpp 当天发布 b9870。</span></div>
+              <div class="air-window" style="--d:.25s"><b>一周</b><span>vLLM 0.24.0、Ollama 0.31.1、LangGraph 1.2.7、llama.cpp 多个 build、Claude Sonnet 5 集中出现。</span></div>
+              <div class="air-window" style="--d:.5s"><b>1个月</b><span>SGLang 0.5.14、LMCache operator 0.5.0、llm-d 0.8.1、Kueue 0.18.2、OpenAI Agents 0.17.7 继续迭代。</span></div>
+              <div class="air-window" style="--d:.75s"><b>半年</b><span>GitHub 从 10x 容量计划改到 30x; TGI 归档; MCP、GAIE、llm-d 从实验走向平台接口。</span></div>
+              <div class="air-window" style="--d:1s"><b>一年</b><span>从 chat API 走向 agent workload:长上下文、工具调用、PR/CI、KV cache 和审计治理一起成为系统边界。</span></div>
             </div>
-            <figcaption class="air-cap">动图 1: 五个窗口代表不同观察粒度:短期看 release 和 push,长期看工程范式和系统边界迁移。</figcaption>
+            <figcaption class="air-cap">动图 1: 五个窗口代表不同观察粒度:当天看 push/release,一周看版本节奏,一月看工程收敛,半年和一年看架构边界迁移。</figcaption>
           </figure>
 
           <h2>1. 时间窗口统计</h2>
@@ -195,52 +196,52 @@
             <tbody>
               <tr>
                 <td>当天</td>
-                <td>vLLM、SGLang、LMCache、TensorRT-LLM、Dynamo、llm-d、Kueue、Ollama、llama.cpp、LangGraph、OpenAI Agents SDK 均在 2026-06-22 有 push; llama.cpp 发布 b9763。</td>
-                <td>GitHub API 快照: Ollama 174,736 stars; llama.cpp 117,693; vLLM 83,572; SGLang 29,535; LMCache 9,615。</td>
-                <td>推理 engine、cache、runtime、agent orchestration 不是“成熟后静止”,而是在生产压力下日更/周更。</td>
+                <td>vLLM、SGLang、LMCache、TensorRT-LLM、Dynamo、llm-d、Kueue、Ollama、llama.cpp 在 2026-07-03 UTC 有 push; llama.cpp 发布 b9870。</td>
+                <td>GitHub API 快照: Ollama 175,394 stars; llama.cpp 119,163; vLLM 85,285; SGLang 29,878; TensorRT-LLM 14,023; LMCache 10,040。</td>
+                <td>推理 engine、runtime、cache、Kubernetes 调度和本地执行层都保持日更级活跃,说明瓶颈仍在快速移动。</td>
               </tr>
               <tr>
                 <td>一周</td>
-                <td>OpenAI Agents SDK v0.17.6(6/19)、LangGraph 1.2.6(6/18)、Ollama v0.30.10(6/17)、vLLM v0.23.0(6/15)、Kueue v0.18.1(6/12)、Dynamo v1.2.1(6/13)集中发布。</td>
-                <td><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.6" target="_blank" rel="noopener">OpenAI Agents SDK</a>; <a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.6" target="_blank" rel="noopener">LangGraph</a>; <a href="https://github.com/ollama/ollama/releases/tag/v0.30.10" target="_blank" rel="noopener">Ollama</a>; <a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">vLLM</a>。</td>
-                <td>一周级别最明显的是“agent runtime + inference runtime”同步加速:上层 agent 能力提升会立刻传导到底层推理和平台。</td>
+                <td>vLLM v0.24.0(6/29)、Ollama v0.31.1(6/30)、LangGraph 1.2.7(6/30)、llama.cpp b9870(7/03)发布; Claude Sonnet 5(6/30)和 Kimi K2.7 Code 进入 Copilot(7/01)强化 agent/coding 需求。</td>
+                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.24.0" target="_blank" rel="noopener">vLLM release</a>; <a href="https://github.com/ollama/ollama/releases/tag/v0.31.1" target="_blank" rel="noopener">Ollama release</a>; <a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.7" target="_blank" rel="noopener">LangGraph release</a>; <a href="https://www.anthropic.com/news/claude-sonnet-5" target="_blank" rel="noopener">Anthropic</a>。</td>
+                <td>上层模型更 agentic,下层 serving 必须更 cache-aware、router-aware、tool-aware。</td>
               </tr>
               <tr>
                 <td>1个月</td>
-                <td>SGLang v0.5.13、LMCache v0.4.7 / 0.4.8rc、TensorRT-LLM v1.3.0rc18、Kueue v0.18.x、Dynamo v1.2.1 连续发布; GitHub 5 月可用性报告明确将增长归因于 AI-assisted / agentic workflows。</td>
-                <td><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.13" target="_blank" rel="noopener">SGLang</a>; <a href="https://github.com/LMCache/LMCache/releases" target="_blank" rel="noopener">LMCache releases</a>; <a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.3.0rc18" target="_blank" rel="noopener">TensorRT-LLM</a>; <a href="https://github.blog/news-insights/company-news/github-availability-report-may-2026/" target="_blank" rel="noopener">GitHub availability report</a>。</td>
-                <td>1个月窗口显示“可服务性”成为核心:推理性能、agent 持久化、平台容量、GPU 调度必须一起设计。</td>
+                <td>vLLM 在 6 月至少经历 0.22.1、0.23.0、0.24.0 三个版本; SGLang v0.5.14、LMCache operator-v0.5.0、llm-d v0.8.1、Kueue v0.18.2、OpenAI Agents SDK v0.17.7、Dynamo v1.2.1 均在 6 月下旬前后发布。</td>
+                <td><a href="https://pypi.org/project/vllm/" target="_blank" rel="noopener">PyPI vLLM history</a>; <a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.14" target="_blank" rel="noopener">SGLang</a>; <a href="https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.0" target="_blank" rel="noopener">LMCache</a>; <a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.7" target="_blank" rel="noopener">OpenAI Agents SDK</a>。</td>
+                <td>一个月窗口显示“可服务性”成为主线:KV 复用、分离式 serving、agent state、Kubernetes queueing 和模型低成本选择同时收敛。</td>
               </tr>
               <tr>
                 <td>半年</td>
-                <td>Hugging Face TGI 进入维护模式并推荐 vLLM/SGLang; MCP reference servers 2026.1 release; OpenAI Agents SDK 加入 MCP、sessions、sandbox / resumable execution; GAIE/llm-d 成为 Kubernetes-native inference 代表。</td>
-                <td><a href="https://huggingface.co/docs/text-generation-inference/en/index" target="_blank" rel="noopener">HF TGI docs</a>; <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">MCP</a>; <a href="https://openai.github.io/openai-agents-python/" target="_blank" rel="noopener">OpenAI Agents SDK docs</a>; <a href="https://gateway-api-inference-extension.sigs.k8s.io/concepts/api-overview/" target="_blank" rel="noopener">GAIE docs</a>。</td>
-                <td>第一代 serving 的重点是把模型跑起来;新一代重点是分离 prefill/decode、复用 cache、管理工具、安全隔离和可恢复执行。</td>
+                <td>GitHub 官方称 AI-assisted / agentic workflows 是流量增长主因,容量计划从 10x 升为 30x; Hugging Face text-generation-inference 已归档/维护; GAIE、llm-d、Kueue、MCP 逐步形成平台层。</td>
+                <td><a href="https://github.blog/news-insights/company-news/an-update-on-github-availability/" target="_blank" rel="noopener">GitHub availability update</a>; <a href="https://github.blog/news-insights/company-news/github-availability-report-may-2026/" target="_blank" rel="noopener">May report</a>; <a href="https://huggingface.co/docs/text-generation-inference/en/index" target="_blank" rel="noopener">TGI docs</a>; <a href="https://github.com/cncf/sandbox/issues/462" target="_blank" rel="noopener">CNCF llm-d sandbox issue</a>。</td>
+                <td>AI Infra 的核心不只是 GPU server,而是能把 agent 流量隔离、排队、路由、恢复、审计的完整平台。</td>
               </tr>
               <tr>
                 <td>一年</td>
-                <td>过去一年 AI agent 让 commits、PR、Actions、webhook、索引和制品系统承受机器速度;本地 runtime 与生产 serving 分工更加明确。</td>
-                <td>GitHub 报告称流量快速增长由 AI-assisted / agentic workflows 驱动;The Register 报道 GitHub 曾将容量计划从 10x 提升到 30x,且 2026-06 仍有可用性压力。</td>
-                <td>AI Infra 的边界从 GPU serving 扩大到开发平台、状态协议、权限审计、可观测性和多云弹性。</td>
+                <td>2025 下半年到 2026 年中,agentic development 使 repo、PR、Actions、API、artifact、搜索索引和推理服务同时承压; open-weight / local runtime 与 frontier API 并行扩张。</td>
+                <td>The Register 报道 GitHub 受 AI coding traffic 影响且 6 月仍有可用性压力; Business Insider 报道 GitHub 为容量探索多云; Ollama / llama.cpp stars 分别超过 175k / 119k。</td>
+                <td>长期趋势是“模型能力商品化 + 系统闭环稀缺化”:谁能把模型、工具、缓存、调度和治理做成稳定闭环,谁获得基础设施优势。</td>
               </tr>
             </tbody>
           </table>
 
           <h2>2. 热点信息 Top 10</h2>
-          <p class="air-note">热度分是 1-10 的雷达分,不是投资建议。GitHub stars / push / release 为 2026-06-22 运行时 API 快照。</p>
+          <p class="air-note">热度分是 1-10 的雷达分,不是投资建议。GitHub stars / push / release 为 2026-07-03 22:00 UTC 附近 API 快照。</p>
 
           <figure class="air-fig">
             <div class="air-title">Animated bars · hotness score</div>
             <div class="air-bars" aria-hidden="true">
               <div class="air-row"><span class="nm">Agent platform load</span><div class="air-track"><div class="air-fill" style="width:100%;--c:#f59e0b;--d:0s"></div></div><span class="air-val" style="--d:0s">10.0</span></div>
-              <div class="air-row"><span class="nm">vLLM engine</span><div class="air-track"><div class="air-fill" style="width:96%;--c:#a855f7;--d:.08s"></div></div><span class="air-val" style="--d:.08s">9.6</span></div>
-              <div class="air-row"><span class="nm">KV cache layer</span><div class="air-track"><div class="air-fill" style="width:94%;--c:#06b6d4;--d:.16s"></div></div><span class="air-val" style="--d:.16s">9.4</span></div>
-              <div class="air-row"><span class="nm">SGLang serving</span><div class="air-track"><div class="air-fill" style="width:90%;--c:#22c55e;--d:.24s"></div></div><span class="air-val" style="--d:.24s">9.0</span></div>
-              <div class="air-row"><span class="nm">Disaggregated</span><div class="air-track"><div class="air-fill" style="width:88%;--c:#84cc16;--d:.32s"></div></div><span class="air-val" style="--d:.32s">8.8</span></div>
-              <div class="air-row"><span class="nm">K8s inference</span><div class="air-track"><div class="air-fill" style="width:86%;--c:#14b8a6;--d:.40s"></div></div><span class="air-val" style="--d:.40s">8.6</span></div>
-              <div class="air-row"><span class="nm">FP8/FP4</span><div class="air-track"><div class="air-fill" style="width:84%;--c:#ec4899;--d:.48s"></div></div><span class="air-val" style="--d:.48s">8.4</span></div>
-              <div class="air-row"><span class="nm">Local runtime</span><div class="air-track"><div class="air-fill" style="width:82%;--c:#ec4899;--d:.56s"></div></div><span class="air-val" style="--d:.56s">8.2</span></div>
-              <div class="air-row"><span class="nm">MCP/agents</span><div class="air-track"><div class="air-fill" style="width:80%;--c:#a855f7;--d:.64s"></div></div><span class="air-val" style="--d:.64s">8.0</span></div>
+              <div class="air-row"><span class="nm">vLLM 0.24</span><div class="air-track"><div class="air-fill" style="width:97%;--c:#a855f7;--d:.08s"></div></div><span class="air-val" style="--d:.08s">9.7</span></div>
+              <div class="air-row"><span class="nm">KV cache layer</span><div class="air-track"><div class="air-fill" style="width:95%;--c:#06b6d4;--d:.16s"></div></div><span class="air-val" style="--d:.16s">9.5</span></div>
+              <div class="air-row"><span class="nm">K8s inference</span><div class="air-track"><div class="air-fill" style="width:92%;--c:#22c55e;--d:.24s"></div></div><span class="air-val" style="--d:.24s">9.2</span></div>
+              <div class="air-row"><span class="nm">SGLang serving</span><div class="air-track"><div class="air-fill" style="width:90%;--c:#84cc16;--d:.32s"></div></div><span class="air-val" style="--d:.32s">9.0</span></div>
+              <div class="air-row"><span class="nm">Low precision</span><div class="air-track"><div class="air-fill" style="width:88%;--c:#ec4899;--d:.40s"></div></div><span class="air-val" style="--d:.40s">8.8</span></div>
+              <div class="air-row"><span class="nm">Local runtime</span><div class="air-track"><div class="air-fill" style="width:86%;--c:#14b8a6;--d:.48s"></div></div><span class="air-val" style="--d:.48s">8.6</span></div>
+              <div class="air-row"><span class="nm">Agent runtime</span><div class="air-track"><div class="air-fill" style="width:84%;--c:#a855f7;--d:.56s"></div></div><span class="air-val" style="--d:.56s">8.4</span></div>
+              <div class="air-row"><span class="nm">Model releases</span><div class="air-track"><div class="air-fill" style="width:82%;--c:#f97316;--d:.64s"></div></div><span class="air-val" style="--d:.64s">8.2</span></div>
               <div class="air-row"><span class="nm">TGI migration</span><div class="air-track"><div class="air-fill" style="width:74%;--c:#64748b;--d:.72s"></div></div><span class="air-val" style="--d:.72s">7.4</span></div>
             </div>
             <figcaption class="air-cap">动图 2: 热度不是单看 stars,而是把 release 新鲜度、生产影响和系统重排力度合并观察。</figcaption>
@@ -259,62 +260,62 @@
               <tr>
                 <td>1</td>
                 <td>Agentic development 改写平台容量曲线</td>
-                <td><a href="https://github.blog/news-insights/company-news/github-availability-report-may-2026/" target="_blank" rel="noopener">GitHub 5 月可用性报告</a>称流量快速增长主要由 AI-assisted / agentic workflows 驱动; <a href="https://www.theregister.com/software/2026/06/12/github-outages-persist-as-ai-coding-drives-traffic-surge/5255125" target="_blank" rel="noopener">The Register</a>报道 GitHub 将容量扩张目标从 10x 提到 30x。</td>
-                <td>AI Infra 不再只等于 GPU 集群;PR、CI、merge queue、webhook、search、artifact 和权限系统也会被 agent 放大。</td>
+                <td><a href="https://github.blog/news-insights/company-news/github-availability-report-may-2026/" target="_blank" rel="noopener">GitHub 5 月报告</a>称流量快速增长主要由 AI-assisted / agentic workflows 驱动,并已把 40% monolith traffic 放到 Azure; <a href="https://github.blog/news-insights/company-news/an-update-on-github-availability/" target="_blank" rel="noopener">GitHub availability update</a>称容量目标从 10x 升为 30x。</td>
+                <td>AI Infra 不再只等于模型 serving;PR、CI、git、Actions、搜索、artifact、权限和数据库隔离都被 agent 放大。</td>
               </tr>
               <tr>
                 <td>2</td>
-                <td>vLLM v0.23.0: 开源推理 engine 仍是默认生产底座</td>
-                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">6/15 release</a>; GitHub API: 83,572 stars、18,328 forks、6/22 21:54Z push。</td>
-                <td>vLLM 已从单机 serving 进化为承载多后端、KV connector、分布式 serving、OpenAI-compatible API 的核心执行层。</td>
+                <td>vLLM v0.24.0: KV cache / 分布式 serving 继续成为默认底座</td>
+                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.24.0" target="_blank" rel="noopener">6/29 release</a>; GitHub API: 85,285 stars、18,901 forks、7/03 21:27Z push。Release note 明确包含 KV-cache watermark、cross-group prefix-cache two-phase allocation、NIXL prefill-to-decode KV push、Mooncake pipeline-parallel P/D support。</td>
+                <td>vLLM 从“高吞吐 engine”走向“KV/cache/scheduler/router 接口中心”,是很多上层平台的事实执行层。</td>
               </tr>
               <tr>
                 <td>3</td>
                 <td>LMCache / KV cache: prefill-once, reuse-everywhere</td>
-                <td>GitHub API: <a href="https://github.com/LMCache/LMCache" target="_blank" rel="noopener">LMCache</a> 9,615 stars、6/22 push; release page 显示 v0.4.7 与 v0.4.8rc 系列,新增 MP coordinator、quota、SHM transfer、CacheBlend token-level matching 等能力。</td>
-                <td>长上下文、RAG、多轮 agent 的成本主要在重复 prefill;KV cache 正从 engine 内部状态变成跨请求、跨节点、跨 engine 的基础设施资源。</td>
+                <td>GitHub API: <a href="https://github.com/LMCache/LMCache" target="_blank" rel="noopener">LMCache</a> 10,040 stars、7/03 push、operator-v0.5.0(6/25); NVIDIA Dynamo 文档描述 LMCache 让 KV cache 可跨 serving engine / node 持久化复用。</td>
+                <td>长上下文、RAG、多轮 agent 的主要浪费在重复 prefill;KV cache 正从 engine 内部状态变成可配额、可迁移、可观测的共享资源。</td>
               </tr>
               <tr>
                 <td>4</td>
-                <td>SGLang v0.5.13: 结构化生成与高性能 serving 并进</td>
-                <td><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.13" target="_blank" rel="noopener">6/13 release</a>; GitHub API: 29,535 stars、6,659 forks、6/22 21:59Z push。</td>
-                <td>SGLang 与 vLLM 形成 open serving 双核心:一个偏通用吞吐,一个强调复杂生成程序、prefix/cache 和 agentic 场景。</td>
+                <td>llm-d / GAIE / Kueue: Kubernetes-native inference 平台化</td>
+                <td><a href="https://github.com/llm-d/llm-d" target="_blank" rel="noopener">llm-d</a> 3,682 stars、v0.8.1(6/26); <a href="https://github.com/llm-d/llm-d-router" target="_blank" rel="noopener">llm-d-router</a> v0.9.0(6/23); <a href="https://gateway-api-inference-extension.sigs.k8s.io/concepts/api-overview/" target="_blank" rel="noopener">GAIE</a>提供 InferencePool / InferenceModel; Kueue v0.18.2(6/26)。</td>
+                <td>LLM serving 正从“启动模型 server”变成“模型感知 routing + queue + quota + topology scheduling + autoscaling”。</td>
               </tr>
               <tr>
                 <td>5</td>
-                <td>Dynamo / disaggregated serving: prefill 与 decode 分离</td>
-                <td>GitHub API: <a href="https://github.com/ai-dynamo/dynamo" target="_blank" rel="noopener">ai-dynamo/dynamo</a> 7,316 stars、v1.2.1(6/13)、6/22 push; <a href="https://docs.dynamo.nvidia.com/dynamo/dev/user-guides/disaggregated-serving" target="_blank" rel="noopener">Dynamo docs</a>提示无 RDMA 时 disaggregated KV transfer 可能让 TTFT 从 355ms 增至 10s+。</td>
-                <td>分离 prefill/decode 能提高资源利用率,但也把 RDMA、NIXL、KV transfer、router placement 变成推理系统的关键路径。</td>
+                <td>SGLang v0.5.14: 复杂生成程序与高性能 serving 并进</td>
+                <td><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.14" target="_blank" rel="noopener">6/26 release</a>; GitHub API: 29,878 stars、6,899 forks、7/03 21:40Z push。</td>
+                <td>SGLang 与 vLLM 形成 open serving 双核心:一个偏通用吞吐和 ecosystem,一个强调结构化生成、复杂 decoding、prefix/cache 和 agentic 场景。</td>
               </tr>
               <tr>
                 <td>6</td>
-                <td>llm-d / GAIE / Kueue: Kubernetes-native inference 平台化</td>
-                <td><a href="https://github.com/llm-d/llm-d" target="_blank" rel="noopener">llm-d</a> 3,423 stars、6/22 push; <a href="https://gateway-api-inference-extension.sigs.k8s.io/concepts/api-overview/" target="_blank" rel="noopener">GAIE docs</a>强调 InferencePool / InferenceModel; <a href="https://arxiv.org/html/2602.04900v3" target="_blank" rel="noopener">GenAI on Kubernetes 论文</a>报告 GAIE+llm-d 在高负载下 tail TTFT 最多改善 90%。</td>
-                <td>LLM serving 正在从“启动一个模型 server”变成“Kubernetes 上的模型感知 routing + quota + autoscaling + topology scheduling”。</td>
+                <td>TensorRT-LLM FP8/FP4: 低精度成为成本控制默认项</td>
+                <td><a href="https://nvidia.github.io/TensorRT-LLM/latest/overview.html" target="_blank" rel="noopener">TensorRT-LLM overview</a>称 H100+ FP8 可相对 16-bit double performance、halve memory; <a href="https://nvidia.github.io/TensorRT-LLM/features/quantization.html" target="_blank" rel="noopener">quantization docs</a>列出 FP8 KV cache、NVFP4 KV cache、Blackwell / Hopper 支持。GitHub API: 14,023 stars、7/03 push。</td>
+                <td>模型能力趋同后,单位 token 成本来自 FP8/FP4、KV cache、kernel fusion、CUDA graph、MoE kernels 和硬件特化。</td>
               </tr>
               <tr>
                 <td>7</td>
-                <td>TensorRT-LLM FP8/FP4: 低精度成为成本控制默认选项</td>
-                <td><a href="https://nvidia.github.io/TensorRT-LLM/latest/overview.html" target="_blank" rel="noopener">TensorRT-LLM docs</a>称 H100+ FP8 可相对 16-bit double performance、halve memory; GitHub API: 13,940 stars、6/22 push; v1.3.0rc18 支持 Nemotron-H NVFP4、Qwen image、Step-3.7-Flash 等模型。</td>
-                <td>模型能力趋同后,服务成本优势来自 FP8/FP4、FP8 KV cache、kernel fusion、CUDA graph 和硬件特化。</td>
-              </tr>
-              <tr>
-                <td>8</td>
                 <td>Ollama + llama.cpp: 本地/边缘 runtime 继续扩张</td>
-                <td>GitHub API: <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener">Ollama</a> 174,736 stars、v0.30.10(6/17); <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> 117,693 stars、b9763(6/22)。</td>
+                <td>GitHub API: <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener">Ollama</a> 175,394 stars、v0.31.1(6/30); <a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">llama.cpp</a> 119,163 stars、b9870(7/03)。Ollama release 提到更新 llama.cpp 到 build 9840 并提升 Gemma 4 MTP 性能。</td>
                 <td>云端高吞吐与本地低延迟/隐私会长期共存;Ollama 偏体验层,llama.cpp/GGUF 偏可移植执行层。</td>
               </tr>
               <tr>
-                <td>9</td>
+                <td>8</td>
                 <td>MCP + LangGraph + OpenAI Agents SDK: agent runtime 工程化</td>
-                <td>GitHub API: <a href="https://github.com/modelcontextprotocol/servers" target="_blank" rel="noopener">MCP servers</a> 87,559 stars; <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener">LangGraph</a> 35,452 stars、1.2.6(6/18); <a href="https://github.com/openai/openai-agents-python" target="_blank" rel="noopener">OpenAI Agents SDK</a> 27,340 stars、0.17.6(6/19)。</td>
+                <td>GitHub API: <a href="https://github.com/modelcontextprotocol/servers" target="_blank" rel="noopener">MCP servers</a> 88,021 stars; <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener">LangGraph</a> 36,415 stars、1.2.7(6/30); <a href="https://github.com/openai/openai-agents-python" target="_blank" rel="noopener">OpenAI Agents SDK</a> 27,628 stars、0.17.7(6/24)。</td>
                 <td>可靠 agent 需要协议、状态机、checkpoint、trace、sandbox、human-in-the-loop 和安全输出处理,不是 while-loop 调模型。</td>
               </tr>
               <tr>
+                <td>9</td>
+                <td>大模型发布进入“agentic + low-cost + governance”阶段</td>
+                <td><a href="https://openai.com/index/previewing-gpt-5-6-sol/" target="_blank" rel="noopener">OpenAI GPT-5.6 preview</a>强调 Terra 比 GPT-5.5 便宜 2x、Luna 是低成本模型; <a href="https://www.anthropic.com/news/claude-sonnet-5" target="_blank" rel="noopener">Claude Sonnet 5</a>定位为更 agentic 的 Sonnet; <a href="https://www.techtimes.com/articles/319556/20260702/open-weight-ai-enters-github-copilot-kimi-k27-code-costs-less-audits-differently.htm" target="_blank" rel="noopener">Kimi K2.7 Code 进入 Copilot</a>; <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash" target="_blank" rel="noopener">DeepSeek-V4-Flash</a>显示 1M context 与 FP4/FP8 mixed。</td>
+                <td>模型竞争不只拼榜单分,也拼 agent 工具能力、上下文长度、供应链/合规属性和可服务成本。</td>
+              </tr>
+              <tr>
                 <td>10</td>
-                <td>TGI 维护模式: serving 代际切换成为事实</td>
-                <td><a href="https://huggingface.co/docs/text-generation-inference/en/index" target="_blank" rel="noopener">Hugging Face docs</a>标注 text-generation-inference maintenance mode,并推荐 vLLM、SGLang、llama.cpp、MLX; GitHub API 显示 <a href="https://github.com/huggingface/text-generation-inference" target="_blank" rel="noopener">TGI</a> archived。</td>
-                <td>早期 serving 的经验被继承,但新生产系统更偏向长上下文、agent workload、多后端和推理感知调度。</td>
+                <td>TGI 归档/维护: serving 代际切换成为事实</td>
+                <td><a href="https://huggingface.co/docs/text-generation-inference/en/index" target="_blank" rel="noopener">Hugging Face docs</a>标注 text-generation-inference maintenance mode,并推荐 vLLM、SGLang、llama.cpp、MLX; GitHub API 显示 <a href="https://github.com/huggingface/text-generation-inference" target="_blank" rel="noopener">TGI</a> archived、最新 release 为 v3.3.7(2025-12-19)。</td>
+                <td>早期 serving 的经验被继承,但生产重心已经迁移到长上下文、agent workload、多后端、KV cache 和推理感知调度。</td>
               </tr>
             </tbody>
           </table>
@@ -324,6 +325,9 @@
           <h3>3.1 历史: 从“能跑模型”到“能服务模型”</h3>
           <p>
             2022-2024 的 AI Infra 主线是把 Transformer 变成 API:FlashAttention、PagedAttention、连续批处理、tensor parallel、token streaming、OpenAI-compatible endpoint。TGI、vLLM、TensorRT-LLM、llama.cpp、Ollama 分别从生产服务、吞吐、硬件优化、本地可移植和开发体验切入。这个阶段的核心指标是 <strong>tokens/sec、TTFT、显存占用、batch size、模型兼容性</strong>。
+          </p>
+          <p>
+            到 2025-2026,历史主线开始分岔:模型更像“可替换能力层”,基础设施却更复杂。GitHub 的 10x 到 30x 容量修正说明 agent workload 的平台外溢是真实压力;TGI 归档说明第一代 serving 不再覆盖新需求;vLLM / SGLang / Dynamo / llm-d / LMCache 的活跃说明系统开始围绕 KV、router、scheduler 和 tool state 重组。
           </p>
 
           <figure class="air-fig">
@@ -358,10 +362,11 @@
           </figure>
 
           <ul>
-            <li><strong>证据 1:</strong> GitHub 5 月可用性报告直接把流量增长归因于 AI-assisted / agentic workflows,并说明正在迁移 Azure、拆分 monolith、隔离服务。</li>
-            <li><strong>证据 2:</strong> LMCache release 与 README 都把 KV cache 描述为可持久化、可复用、可观测的 AI-native knowledge。</li>
-            <li><strong>证据 3:</strong> TensorRT-LLM 文档把 FP8/FP4、FP8 KV cache、Hopper/Blackwell 支持作为性能和内存效率主轴。</li>
-            <li><strong>证据 4:</strong> GAIE / llm-d / Kueue 说明 Kubernetes 已开始围绕 LLM 的“长连接、状态、KV cache、SLO”做模型感知调度。</li>
+            <li><strong>证据 1:</strong> GitHub 5 月可用性报告直接把流量增长归因于 AI-assisted / agentic workflows,并说明正在迁移 Azure、拆分 monolith、隔离用户/认证/授权域。</li>
+            <li><strong>证据 2:</strong> vLLM 0.24.0 把 KV cache watermark、cross-group prefix-cache hit allocation、NIXL KV push、Mooncake P/D support 写进 release note。</li>
+            <li><strong>证据 3:</strong> LMCache / Dynamo 文档把 KV cache 描述为可持久化、跨 engine / node 复用、可观测的基础设施资源。</li>
+            <li><strong>证据 4:</strong> TensorRT-LLM 文档把 FP8/FP4、FP8/NVFP4 KV cache、Hopper/Blackwell 支持作为性能和内存效率主轴。</li>
+            <li><strong>证据 5:</strong> GAIE / llm-d / Kueue 说明 Kubernetes 已开始围绕 LLM 的队列、KV cache、SLO、prefill/decode 角色做模型感知调度。</li>
           </ul>
 
           <figure class="air-fig">
@@ -369,7 +374,7 @@
             <div class="air-route" aria-hidden="true">
               <div class="air-route-card"><strong>Gateway / EPP</strong><span>Inference-aware routing: queue depth、KV state、criticality、latency profile。</span></div>
               <div class="air-router">Model-aware<br />Router</div>
-              <div class="air-route-card"><strong>vLLM Pods</strong><span>Prefill / decode workers, KV cache transfer, autoscaling, topology-aware placement。</span></div>
+              <div class="air-route-card"><strong>vLLM / SGLang Pods</strong><span>Prefill / decode workers, KV cache transfer, autoscaling, topology-aware placement。</span></div>
             </div>
             <figcaption class="air-cap">动图 5: Kubernetes 里的 LLM serving 不适合普通 round-robin,需要按模型状态、KV 命中和延迟目标路由。</figcaption>
           </figure>
@@ -380,12 +385,12 @@
           </p>
 
           <ol>
-            <li><strong>模型层:</strong> frontier model 承接复杂推理,open-weight / local model 承接低延迟、隐私、成本敏感任务。</li>
+            <li><strong>模型层:</strong> frontier model 承接复杂推理,open-weight / local model 承接低延迟、隐私、成本敏感任务;模型发布会更强调 agentic、coding、long-context、低价档。</li>
             <li><strong>推理层:</strong> vLLM / SGLang / TensorRT-LLM / llama.cpp 分别服务云端高吞吐、复杂生成、NVIDIA 极致优化和边缘/本地可移植。</li>
-            <li><strong>缓存层:</strong> KV cache 变成可配额、可压缩、可迁移、可观测的共享资源。</li>
+            <li><strong>缓存层:</strong> KV cache 变成可配额、可压缩、可迁移、可观测的共享资源,并进入 router 和 autoscaler 的决策输入。</li>
             <li><strong>协议层:</strong> MCP 这类工具协议会像 HTTP/gRPC 之于微服务一样,成为 agent 接入外部世界的标准边界。</li>
             <li><strong>调度层:</strong> Gateway API Inference Extension、llm-d、Kueue 会把 LLM 流量特征带进 Kubernetes 调度。</li>
-            <li><strong>治理层:</strong> prompt/response hash、tool-call audit、PII 处理、sandbox 隔离和 policy enforcement 会成为企业默认项。</li>
+            <li><strong>治理层:</strong> prompt/response hash、tool-call audit、PII 处理、sandbox 隔离、policy enforcement 和模型供应链审计会成为企业默认项。</li>
           </ol>
 
           <figure class="air-fig">
@@ -404,30 +409,39 @@
 
           <h2>4. 一句话结论</h2>
           <blockquote>
-            2026 年中期的 AI Infra 关键词是 <strong>agentic pressure</strong>:agent 把推理成本、上下文复用、低精度硬件、工具协议、Kubernetes 调度、开发平台容量和合规审计同时推到前台。过去拼模型调用,现在拼系统闭环;未来拼的是能否把模型能力稳定、便宜、可恢复、可审计地接入真实工作流。
+            2026 年 7 月初的 AI Infra 关键词是 <strong>agentic pressure</strong>:agent 把推理成本、上下文复用、低精度硬件、工具协议、Kubernetes 调度、开发平台容量和合规审计同时推到前台。过去拼模型调用,现在拼系统闭环;未来拼的是能否把模型能力稳定、便宜、可恢复、可审计地接入真实工作流。
           </blockquote>
 
           <h2>5. 证据清单</h2>
           <ul>
+            <li><a href="https://github.blog/news-insights/company-news/an-update-on-github-availability/" target="_blank" rel="noopener">GitHub: An update on GitHub availability</a></li>
             <li><a href="https://github.blog/news-insights/company-news/github-availability-report-may-2026/" target="_blank" rel="noopener">GitHub availability report: May 2026</a></li>
             <li><a href="https://www.theregister.com/software/2026/06/12/github-outages-persist-as-ai-coding-drives-traffic-surge/5255125" target="_blank" rel="noopener">The Register: GitHub outages persist as AI coding drives traffic surge</a></li>
-            <li><a href="https://github.com/vllm-project/vllm/releases/tag/v0.23.0" target="_blank" rel="noopener">vLLM v0.23.0 release, 2026-06-15</a></li>
-            <li><a href="https://github.com/LMCache/LMCache/releases" target="_blank" rel="noopener">LMCache releases</a></li>
-            <li><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.13" target="_blank" rel="noopener">SGLang v0.5.13 release, 2026-06-13</a></li>
-            <li><a href="https://docs.dynamo.nvidia.com/dynamo/dev/user-guides/disaggregated-serving" target="_blank" rel="noopener">NVIDIA Dynamo docs: disaggregated serving</a></li>
+            <li><a href="https://africa.businessinsider.com/news/microsoft-turns-to-amazon-for-help-with-githubs-ai-driven-capacity-issues/jgqllj4" target="_blank" rel="noopener">Business Insider Africa: Microsoft turns to Amazon for GitHub capacity</a></li>
+            <li><a href="https://github.com/vllm-project/vllm/releases/tag/v0.24.0" target="_blank" rel="noopener">vLLM v0.24.0 release, 2026-06-29</a></li>
+            <li><a href="https://docs.vllm.ai/en/stable/features/disagg_prefill/" target="_blank" rel="noopener">vLLM docs: Disaggregated Prefilling</a></li>
+            <li><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.14" target="_blank" rel="noopener">SGLang v0.5.14 release, 2026-06-26</a></li>
+            <li><a href="https://github.com/LMCache/LMCache/releases/tag/operator-v0.5.0" target="_blank" rel="noopener">LMCache operator-v0.5.0 release</a></li>
+            <li><a href="https://docs.nvidia.com/dynamo/latest/integrations/lm-cache" target="_blank" rel="noopener">NVIDIA Dynamo docs: LMCache Integration</a></li>
             <li><a href="https://github.com/ai-dynamo/dynamo" target="_blank" rel="noopener">ai-dynamo/dynamo GitHub repository</a></li>
             <li><a href="https://github.com/llm-d/llm-d" target="_blank" rel="noopener">llm-d GitHub repository</a></li>
+            <li><a href="https://github.com/llm-d/llm-d-router" target="_blank" rel="noopener">llm-d-router GitHub repository</a></li>
             <li><a href="https://gateway-api-inference-extension.sigs.k8s.io/concepts/api-overview/" target="_blank" rel="noopener">Gateway API Inference Extension overview</a></li>
             <li><a href="https://kueue.sigs.k8s.io/docs/overview/" target="_blank" rel="noopener">Kueue overview</a></li>
-            <li><a href="https://arxiv.org/html/2602.04900v3" target="_blank" rel="noopener">Evaluating Kubernetes Performance for GenAI Inference</a></li>
+            <li><a href="https://github.com/cncf/sandbox/issues/462" target="_blank" rel="noopener">CNCF sandbox issue: llm-d</a></li>
             <li><a href="https://nvidia.github.io/TensorRT-LLM/latest/overview.html" target="_blank" rel="noopener">TensorRT-LLM overview</a></li>
-            <li><a href="https://github.com/NVIDIA/TensorRT-LLM/releases/tag/v1.3.0rc18" target="_blank" rel="noopener">TensorRT-LLM v1.3.0rc18 release</a></li>
-            <li><a href="https://github.com/ollama/ollama" target="_blank" rel="noopener">ollama/ollama GitHub repository</a></li>
-            <li><a href="https://github.com/ggml-org/llama.cpp" target="_blank" rel="noopener">ggml-org/llama.cpp GitHub repository</a></li>
+            <li><a href="https://nvidia.github.io/TensorRT-LLM/features/quantization.html" target="_blank" rel="noopener">TensorRT-LLM quantization docs</a></li>
+            <li><a href="https://github.com/ollama/ollama/releases/tag/v0.31.1" target="_blank" rel="noopener">Ollama v0.31.1 release, 2026-06-30</a></li>
+            <li><a href="https://github.com/ggml-org/llama.cpp/releases/tag/b9870" target="_blank" rel="noopener">llama.cpp b9870 release, 2026-07-03</a></li>
             <li><a href="https://github.com/modelcontextprotocol/servers" target="_blank" rel="noopener">modelcontextprotocol/servers GitHub repository</a></li>
-            <li><a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.6" target="_blank" rel="noopener">LangGraph 1.2.6 release, 2026-06-18</a></li>
-            <li><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.6" target="_blank" rel="noopener">OpenAI Agents SDK v0.17.6 release, 2026-06-19</a></li>
-            <li><a href="https://openai.github.io/openai-agents-python/" target="_blank" rel="noopener">OpenAI Agents SDK docs</a></li>
+            <li><a href="https://github.com/langchain-ai/langgraph/releases/tag/1.2.7" target="_blank" rel="noopener">LangGraph 1.2.7 release, 2026-06-30</a></li>
+            <li><a href="https://github.com/langchain-ai/langchain-mcp-adapters/releases/tag/langchain-mcp-adapters%3D%3D0.3.0" target="_blank" rel="noopener">langchain-mcp-adapters 0.3.0 release</a></li>
+            <li><a href="https://github.com/openai/openai-agents-python/releases/tag/v0.17.7" target="_blank" rel="noopener">OpenAI Agents SDK v0.17.7 release, 2026-06-24</a></li>
+            <li><a href="https://openai.github.io/openai-agents-python/mcp/" target="_blank" rel="noopener">OpenAI Agents SDK docs: MCP</a></li>
+            <li><a href="https://openai.com/index/previewing-gpt-5-6-sol/" target="_blank" rel="noopener">OpenAI: Previewing GPT-5.6 Sol</a></li>
+            <li><a href="https://www.anthropic.com/news/claude-sonnet-5" target="_blank" rel="noopener">Anthropic: Introducing Claude Sonnet 5</a></li>
+            <li><a href="https://www.techtimes.com/articles/319556/20260702/open-weight-ai-enters-github-copilot-kimi-k27-code-costs-less-audits-differently.htm" target="_blank" rel="noopener">TechTimes: Kimi K2.7 Code in GitHub Copilot</a></li>
+            <li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash" target="_blank" rel="noopener">DeepSeek-V4-Flash model card</a></li>
             <li><a href="https://huggingface.co/docs/text-generation-inference/en/index" target="_blank" rel="noopener">Hugging Face TGI docs: maintenance mode notice</a></li>
           </ul>
         </div>
