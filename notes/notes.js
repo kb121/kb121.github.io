@@ -96,11 +96,11 @@ window.NOTES = [
       en: "GitHub Daily Top 10 Stars & Tech Trends",
     },
     summary: {
-      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。最新 2026-07-03:编码 agent OS(Claude Code/Codex)基建收敛 + 垂直扩散到安全/金融/职业。历史全部保留。",
+      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). Latest 2026-07-03: coding-agent OS (Claude Code/Codex) infra consolidates + verticals fan out into security/finance/careers. History preserved.",
     },
-    date: "2026-06-30",
-    tags: ["GitHub", "Trending", "Multi-window", "Vertical Agents", "Trend Analysis"],
+    date: "2026-07-03",
+    tags: ["GitHub", "Trending", "Multi-window", "Coding-Agent OS", "Vertical Agents", "Trend Analysis"],
   },
   {
     slug: "cuda-graph-vllm",
