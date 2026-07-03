@@ -318,7 +318,120 @@ num_blocks = max(num_blocks, 0)
             <strong>④ 它不影响编译图结构。</strong> 源码把 <code>gpu_memory_utilization</code> 明确列为"不影响 compiled graph 的运行期旋钮"(<code>ignored_factors</code>),所以调它不会让 torch.compile / CUDA Graph 的编译缓存失效。
           </div>
 
-          <h2>5 · 实操建议</h2>
+          <h2>5 · 起服务 → 发请求:不同阶段 OOM 怎么调 util</h2>
+          <p>
+            这是最容易踩坑的地方:<strong>不是所有 OOM 都靠"降 util"解决,有的反而要"升 util",有的 util 根本帮不上忙。</strong> 关键要看 OOM 发生在<strong>「分配 KV cache 之前」还是「之后」</strong>。下面按启动到收请求的时间线把每个 OOM 点拆开。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">图 3 · 一次 vLLM 起服务的显存时间线(每一步都可能 OOM)</div>
+            <div class="flow">
+              <div class="flow-step">
+                <span class="s-n">① 加载权重</span>
+                <div class="s-h">load_model</div>
+                <div class="s-d">权重进显存。放不下 → OOM。</div>
+              </div>
+              <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+              <div class="flow-step">
+                <span class="s-n">② 校验预算</span>
+                <div class="s-h">request_memory</div>
+                <div class="s-d">空闲 &lt; 预算 → 直接报错。</div>
+              </div>
+              <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+              <div class="flow-step">
+                <span class="s-n">③ Profiling</span>
+                <div class="s-h">profile_run</div>
+                <div class="s-d">假前向,激活峰值撑爆 → OOM。</div>
+              </div>
+              <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+              <div class="flow-step">
+                <span class="s-n">④ 捕获图</span>
+                <div class="s-h">CUDA Graph</div>
+                <div class="s-d">graph 池占满 → OOM。</div>
+              </div>
+              <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+              <div class="flow-step" style="border-color:#22c55e">
+                <span class="s-n">⑤ 分配 KV</span>
+                <div class="s-h">num_blocks</div>
+                <div class="s-d">余额放不下 1 条 → 报错。</div>
+              </div>
+              <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+              <div class="flow-step" style="border-color:var(--accent-1)">
+                <span class="s-n">⑥ 收请求</span>
+                <div class="s-h">运行时</div>
+                <div class="s-d">跑着跑着 OOM。</div>
+              </div>
+            </div>
+            <span class="fig-cap">分界线:① ~ ④ 是"分配 KV cache 之前",⑤ 之后 KV cache 已定型</span>
+          </figure>
+
+          <div class="callout key">
+            <strong>一句话判断:</strong> 报错里叫你 <code>increase gpu_memory_utilization</code> → <strong>升</strong>;报错叫你 <code>decrease</code> 或崩在"占满整卡" → <strong>降</strong>;崩在"权重/激活本身太大" → util <strong>帮不上</strong>,得动 batch / 并行 / 量化。
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>阶段</th><th>典型报错 / 现象</th><th>根因</th><th>util 怎么调</th><th>更有效的手段</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>① 加载权重</strong></td>
+                <td><code>CUDA out of memory</code>(还没跑 profiling 就崩)</td>
+                <td>模型权重本身就放不下</td>
+                <td>⚠️ <strong>无用</strong></td>
+                <td>加大 TP/PP、量化(fp8/awq/gptq)、<code>cpu_offload_gb</code>、换小模型</td>
+              </tr>
+              <tr>
+                <td><strong>② 校验预算</strong></td>
+                <td>"Free memory … is less than desired GPU memory utilization … <strong>Decrease</strong> GPU memory utilization"</td>
+                <td>空闲显存 &lt; <code>total×util</code>(常是别的进程占了卡)</td>
+                <td>⬇️ <strong>降 util</strong></td>
+                <td>清理/隔离其它进程、独占容器</td>
+              </tr>
+              <tr>
+                <td><strong>③ Profiling 前向</strong></td>
+                <td>profile_run 时 CUDA OOM</td>
+                <td>激活峰值撑爆<u>物理</u>显存</td>
+                <td>⚠️ 降 util <strong>基本无用</strong>*</td>
+                <td>降 <code>max-num-batched-tokens</code> / <code>max-num-seqs</code> / <code>max-model-len</code>;开启 chunked prefill</td>
+              </tr>
+              <tr>
+                <td><strong>④ CUDA Graph 捕获</strong></td>
+                <td>capture 阶段 OOM</td>
+                <td>graph 池 + 激活一起占满</td>
+                <td>⬇️ <strong>降 util</strong> 留余量</td>
+                <td>减少 capture 尺寸、<code>--enforce-eager</code>、关 full cudagraph</td>
+              </tr>
+              <tr>
+                <td><strong>⑤ 分配 KV cache</strong></td>
+                <td>"No available memory for the cache blocks" / "estimated maximum model length is N … <strong>Try increasing</strong> gpu_memory_utilization"</td>
+                <td>扣完固定开销后余额太小,放不下 1 条 <code>max_model_len</code></td>
+                <td>⬆️ <strong>升 util</strong></td>
+                <td>降 <code>max-model-len</code>;若被 CUDA Graph 预扣吃掉可关掉预扣</td>
+              </tr>
+              <tr>
+                <td><strong>⑥ 收请求(运行时)</strong></td>
+                <td>服务跑一段时间后 CUDA OOM</td>
+                <td>长 prompt / 大 prefill 激活超过 profiling 峰值、碎片、别的进程运行中抢显存</td>
+                <td>⬇️ <strong>降 util</strong> 留安全垫</td>
+                <td>降 <code>max-num-batched-tokens</code>、开 chunked prefill、隔离进程</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout info">
+            <strong>* 为什么 profiling OOM 降 util 没用?</strong> util 只决定"预算这个上限数字",而 <code>profile_run</code> 真正分配的激活张量大小由 <strong>batch(max-num-batched-tokens / max-num-seqs)</strong> 决定,和 util 无关。物理显存放不下这批激活,降 util 只会把预算数字改小,张量该多大还多大。所以要动的是 batch,不是 util。
+          </div>
+
+          <div class="callout tip">
+            <strong>关于第 ⑥ 步:KV cache 用尽通常<u>不会</u>让服务崩。</strong> vLLM V1 里 KV block 是启动时一次性预分配好的;并发请求把 block 抢光时,调度器会走<strong>抢占 / 重算 / 排队</strong>(吞吐下降、延迟升高),而不是抛 CUDA OOM。所以运行时真的抛 OOM,基本不是 KV 不够,而是<strong>激活 / 碎片 / 外部进程</strong>——这些要靠"降 util 留余量 + 降 batch"来救。
+          </div>
+
+          <div class="callout warn">
+            <strong>最反直觉的一对:</strong> 同样是启动 OOM,<strong>②④⑥ 要降 util</strong>(给物理显存留余量),而 <strong>⑤ 要升 util</strong>(把余额做大好放下 KV cache)。区分点就是——OOM 到底发生在<strong>「分配 KV cache 之前」(降)还是抱怨「KV cache 放不下」(升)</strong>。
+          </div>
+
+          <h2>6 · 实操建议</h2>
           <ul>
             <li><strong>想要更大并发 / 更长上下文</strong> → 调大 util(如 0.95),前提是没有别的进程抢显存。</li>
             <li><strong>同卡多实例 / 要给别的服务留显存</strong> → 调小 util,并按实例数分配。</li>
