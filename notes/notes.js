@@ -109,11 +109,11 @@ window.NOTES = [
       en: "GitHub Daily Top 10 Stars & Tech Trends",
     },
     summary: {
-      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。2026-07-05:编码 agent「长出感官」(感知/记忆/品味)+ 安全垂直冲顶。历史全部保留。",
+      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). 2026-07-05: coding agents “grow senses” (perception/memory/taste) + a security vertical tops the day. History preserved.",
     },
-    date: "2026-06-30",
-    tags: ["GitHub", "Trending", "Multi-window", "Vertical Agents", "Trend Analysis"],
+    date: "2026-07-05",
+    tags: ["GitHub", "Trending", "Multi-window", "Agent Senses", "Trend Analysis"],
   },
   {
     slug: "cuda-graph-vllm",
