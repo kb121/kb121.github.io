@@ -90,11 +90,23 @@
       /* --- Two-column compare (code: SWE-bench vs LiveCodeBench) --- */
       .llm-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 
+      /* --- Ten-year Top-10 rank ladder (bump chart, draws in) --- */
+      .llm-bump { width: 100%; max-width: 960px; height: auto; display: block; margin: 4px auto 0; overflow: visible; }
+      .llm-bump-grid { stroke: var(--border); stroke-width: 1; }
+      .llm-bump-axis { fill: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+      .llm-bump-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2200; stroke-dashoffset: 2200; animation: llm-bump-draw 3s cubic-bezier(.4,.1,.2,1) forwards; }
+      .llm-bump-dot { opacity: 0; animation: llm-bump-in .4s ease forwards; }
+      .llm-bump-end { opacity: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 600; animation: llm-bump-in .5s ease forwards; }
+      @keyframes llm-bump-draw { to { stroke-dashoffset: 0; } }
+      @keyframes llm-bump-in { to { opacity: 1; } }
+
       @media (prefers-reduced-motion: reduce) {
         .llm-bar-fill, .llm-seg, .llm-tl-stage, .llm-bar-val { animation: none !important; }
         .llm-bar-fill, .llm-seg { transform: scaleX(1); }
         .llm-tl-stage { opacity: 1; }
         .llm-bar-val { opacity: 1; }
+        .llm-bump-line { stroke-dashoffset: 0 !important; animation: none !important; }
+        .llm-bump-dot, .llm-bump-end { opacity: 1 !important; animation: none !important; }
       }
     </style>
   </head>
@@ -136,7 +148,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-30</span>
+            <span>2026-06-30 · <span lang="zh-CN" class="i18n-zh">复核 2026-07-05</span><span lang="en" class="i18n-en">re-checked 2026-07-05</span></span>
             <span class="tags"><span>LLM</span><span>Leaderboard</span><span>Benchmarks</span><span>Coding</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">全球大模型榜单:综合 / 知识 / 代码 三维排名</span><span lang="en" class="i18n-en">Global LLM Leaderboards: Overall / Knowledge / Code</span></h1>
@@ -149,8 +161,8 @@
           </p>
 
           <blockquote>
-            <span lang="zh-CN" class="i18n-zh"><strong>口径与免责声明:</strong>数值为 <strong>2026-06-30(UTC)快照</strong>,前沿每天都在变;分数四舍五入、版本名在前沿层略有出入。请以正文链接的官方榜单为准。</span>
-            <span lang="en" class="i18n-en"><strong>Scope &amp; disclaimer:</strong> figures are a <strong>2026-06-30 (UTC) snapshot</strong>; the frontier shifts daily. Scores are rounded and version names vary slightly at the frontier tier. Always defer to the official boards linked inline.</span>
+            <span lang="zh-CN" class="i18n-zh"><strong>口径与免责声明:</strong>数值为 <strong>2026-06-30(UTC)初次快照</strong>,并于 <strong>2026-07-05 复核</strong>。<strong>复核结论:三张榜的头部格局较 06-30 基本无实质变化</strong>;唯一更新是知识/智力榜(②)——新发布的 <strong>Claude Sonnet 5(53)</strong>空降 #5、取代 Sonnet 4.6。此外<strong>新增一张「十年 Top-10 排名阶梯」动图</strong>(见 ④)。前沿每天都在变,分数四舍五入、版本名略有出入,请以正文链接的官方榜单为准。</span>
+            <span lang="en" class="i18n-en"><strong>Scope &amp; disclaimer:</strong> figures are an <strong>initial 2026-06-30 (UTC) snapshot</strong>, <strong>re-checked on 2026-07-05</strong>. <strong>Re-check result: the head of all three boards is essentially unchanged vs 06-30</strong>; the only update is the knowledge/intelligence board (②) — the newly released <strong>Claude Sonnet 5 (53)</strong> debuts at #5, replacing Sonnet 4.6. A <strong>new “ten-year Top-10 rank ladder” animation</strong> was also added (see ④). The frontier shifts daily; scores are rounded and version names vary at the frontier tier, so always defer to the official boards linked inline.</span>
           </blockquote>
 
           <h2><span lang="zh-CN" class="i18n-zh">概览:三张榜 + 十大厂商</span><span lang="en" class="i18n-en">Overview: three boards + the ten labs</span></h2>
@@ -225,10 +237,10 @@
               <div class="llm-bar-row"><span class="nm">2 · Claude Opus 4.8 (max) — Anthropic</span><div class="llm-bar-track" style="--w:80%"><div class="llm-bar-fill" style="width:80%;background:#d97757"></div><span class="llm-bar-val">56 · 可用最强</span></div></div>
               <div class="llm-bar-row"><span class="nm">3 · GPT-5.5 (xhigh) — OpenAI</span><div class="llm-bar-track" style="--w:75%"><div class="llm-bar-fill" style="width:75%;background:#10a37f"></div><span class="llm-bar-val">55</span></div></div>
               <div class="llm-bar-row"><span class="nm">4 · Claude Opus 4.7 (max) — Anthropic</span><div class="llm-bar-track" style="--w:70%"><div class="llm-bar-fill" style="width:70%;background:#d97757"></div><span class="llm-bar-val">54</span></div></div>
-              <div class="llm-bar-row"><span class="nm">5 · GPT-5.5 (high) — OpenAI</span><div class="llm-bar-track" style="--w:65%"><div class="llm-bar-fill" style="width:65%;background:#10a37f"></div><span class="llm-bar-val">53</span></div></div>
-              <div class="llm-bar-row"><span class="nm">6 · GLM-5.2 (max) — Zhipu</span><div class="llm-bar-track" style="--w:60%"><div class="llm-bar-fill" style="width:60%;background:#06b6d4"></div><span class="llm-bar-val">≈52</span></div></div>
-              <div class="llm-bar-row"><span class="nm">7 · Gemini 3.5 Flash — Google</span><div class="llm-bar-track" style="--w:55%"><div class="llm-bar-fill" style="width:55%;background:#4285f4"></div><span class="llm-bar-val">≈51</span></div></div>
-              <div class="llm-bar-row"><span class="nm">8 · Claude Sonnet 4.6 (max) — Anthropic</span><div class="llm-bar-track" style="--w:50%"><div class="llm-bar-fill" style="width:50%;background:#d97757"></div><span class="llm-bar-val">≈50</span></div></div>
+              <div class="llm-bar-row"><span class="nm">5 · Claude Sonnet 5 (max) — Anthropic</span><div class="llm-bar-track" style="--w:65%"><div class="llm-bar-fill" style="width:65%;background:#d97757"></div><span class="llm-bar-val">53 · 新上榜</span></div></div>
+              <div class="llm-bar-row"><span class="nm">6 · GPT-5.5 (high) — OpenAI</span><div class="llm-bar-track" style="--w:65%"><div class="llm-bar-fill" style="width:65%;background:#10a37f"></div><span class="llm-bar-val">53</span></div></div>
+              <div class="llm-bar-row"><span class="nm">7 · GLM-5.2 (max) — Zhipu</span><div class="llm-bar-track" style="--w:60%"><div class="llm-bar-fill" style="width:60%;background:#06b6d4"></div><span class="llm-bar-val">≈52</span></div></div>
+              <div class="llm-bar-row"><span class="nm">8 · Gemini 3.5 Flash — Google</span><div class="llm-bar-track" style="--w:55%"><div class="llm-bar-fill" style="width:55%;background:#4285f4"></div><span class="llm-bar-val">≈51</span></div></div>
               <div class="llm-bar-row"><span class="nm">9 · Gemini 3.1 Pro Preview — Google</span><div class="llm-bar-track" style="--w:45%"><div class="llm-bar-fill" style="width:45%;background:#4285f4"></div><span class="llm-bar-val">≈49</span></div></div>
               <div class="llm-bar-row"><span class="nm">10 · DeepSeek V4 Pro (max) — DeepSeek</span><div class="llm-bar-track" style="--w:20%"><div class="llm-bar-fill" style="width:20%;background:#ec4899"></div><span class="llm-bar-val">44 · 开放权重最强</span></div></div>
             </div>
@@ -239,7 +251,7 @@
               <span><i style="background:#06b6d4"></i>Zhipu</span>
               <span><i style="background:#ec4899"></i>DeepSeek</span>
             </div>
-            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 智力指数榜单上 Anthropic 占据头部:<strong>Claude Fable 5(60)</strong>领先,但可用性受限;<strong>可日常使用的最强是 Claude Opus 4.8(56)</strong>,GPT-5.5(xhigh)以 55 紧随。开放权重一侧 <strong>DeepSeek V4 Pro(44)</strong>领跑(条形以 40 为基线)。来源:<a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1。</span><span lang="en" class="i18n-en">▶ Anthropic owns the head of the Intelligence Index: <strong>Claude Fable 5 (60)</strong> leads but is availability-limited; the <strong>strongest daily-usable model is Claude Opus 4.8 (56)</strong>, with GPT-5.5 (xhigh) close at 55. On open weights, <strong>DeepSeek V4 Pro (44)</strong> leads (bars use a baseline of 40). Source: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1.</span></span>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 智力指数榜单上 Anthropic 占据头部:<strong>Claude Fable 5(60)</strong>领先,但可用性受限;<strong>可日常使用的最强是 Claude Opus 4.8(56)</strong>,GPT-5.5(xhigh)以 55 紧随。<strong>07-05 复核更新:新发布的 Claude Sonnet 5 以 53 分空降 #5</strong>(较 Sonnet 4.6 提升 6 分、与 GPT-5.5 high 同分,取代其进入前十)。开放权重一侧 <strong>DeepSeek V4 Pro(44)</strong>领跑(条形以 40 为基线)。来源:<a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1。</span><span lang="en" class="i18n-en">▶ Anthropic owns the head of the Intelligence Index: <strong>Claude Fable 5 (60)</strong> leads but is availability-limited; the <strong>strongest daily-usable model is Claude Opus 4.8 (56)</strong>, with GPT-5.5 (xhigh) close at 55. <strong>07-05 re-check update: the newly released Claude Sonnet 5 debuts at #5 with 53</strong> (+6 over Sonnet 4.6, tying GPT-5.5 high, taking its top-10 slot). On open weights, <strong>DeepSeek V4 Pro (44)</strong> leads (bars use a baseline of 40). Source: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1.</span></span>
           </figure>
 
           <p>
@@ -294,9 +306,58 @@
           <h2><span lang="zh-CN" class="i18n-zh">④ 十年演进(动图)</span><span lang="en" class="i18n-en">④ Ten-year evolution (animated)</span></h2>
 
           <p>
-            <span lang="zh-CN" class="i18n-zh">把镜头拉到十年尺度:从 2017 年的 Transformer 论文,到今天彼此咬合的前沿,「排名前列的模型」换了好几拨主角。下面第一张图是<strong>十年里程碑时间线</strong>(逐年点亮),第二张是<strong>「领跑者」更替的接力棒</strong>。</span>
-            <span lang="en" class="i18n-en">Zoom out to a decade: from the 2017 Transformer paper to today's interlocked frontier, the “leading models” changed protagonists several times. Below, the first chart is a <strong>ten-year milestone timeline</strong> (lighting up year by year), the second a <strong>leadership relay</strong> of who set the pace.</span>
+            <span lang="zh-CN" class="i18n-zh">把镜头拉到十年尺度:从 2017 年的 Transformer 论文,到今天彼此咬合的前沿,「排名前列的模型」换了好几拨主角。下面三张图:第一张是<strong>十年 Top-10 排名阶梯(动图,逐条画出)</strong>,直接展示「排名前十」的主角如何更替;第二张是<strong>十年里程碑时间线</strong>(逐年点亮);第三张是<strong>「领跑者」更替的接力棒</strong>。</span>
+            <span lang="en" class="i18n-en">Zoom out to a decade: from the 2017 Transformer paper to today's interlocked frontier, the “leading models” changed protagonists several times. Three charts below: first a <strong>ten-year Top-10 rank ladder (animated, drawn line by line)</strong> showing directly how the “top ten” protagonists shifted; second a <strong>ten-year milestone timeline</strong> (lit year by year); third a <strong>leadership relay</strong> of who set the pace.</span>
           </p>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年「排名前十」阶梯:各家实验室的名次轨迹(2017→2026)</span><span lang="en" class="i18n-en">Animated · ten-year Top-10 ladder: each lab's rank trajectory (2017→2026)</span></div>
+            <svg class="llm-bump" viewBox="0 0 960 430" role="img" aria-label="ten-year top-10 model rank ladder">
+              <line class="llm-bump-grid" x1="70" y1="44.0" x2="784" y2="44.0" /><text class="llm-bump-axis" x="60" y="47.0" text-anchor="end">#1</text>
+              <line class="llm-bump-grid" x1="70" y1="82.7" x2="784" y2="82.7" /><text class="llm-bump-axis" x="60" y="85.7" text-anchor="end">#2</text>
+              <line class="llm-bump-grid" x1="70" y1="121.3" x2="784" y2="121.3" /><text class="llm-bump-axis" x="60" y="124.3" text-anchor="end">#3</text>
+              <line class="llm-bump-grid" x1="70" y1="160.0" x2="784" y2="160.0" /><text class="llm-bump-axis" x="60" y="163.0" text-anchor="end">#4</text>
+              <line class="llm-bump-grid" x1="70" y1="198.7" x2="784" y2="198.7" /><text class="llm-bump-axis" x="60" y="201.7" text-anchor="end">#5</text>
+              <line class="llm-bump-grid" x1="70" y1="237.3" x2="784" y2="237.3" /><text class="llm-bump-axis" x="60" y="240.3" text-anchor="end">#6</text>
+              <line class="llm-bump-grid" x1="70" y1="276.0" x2="784" y2="276.0" /><text class="llm-bump-axis" x="60" y="279.0" text-anchor="end">#7</text>
+              <line class="llm-bump-grid" x1="70" y1="314.7" x2="784" y2="314.7" /><text class="llm-bump-axis" x="60" y="317.7" text-anchor="end">#8</text>
+              <line class="llm-bump-grid" x1="70" y1="353.3" x2="784" y2="353.3" /><text class="llm-bump-axis" x="60" y="356.3" text-anchor="end">#9</text>
+              <line class="llm-bump-grid" x1="70" y1="392.0" x2="784" y2="392.0" /><text class="llm-bump-axis" x="60" y="395.0" text-anchor="end">#10</text>
+              <text class="llm-bump-axis" x="70.0" y="414" text-anchor="middle">2017</text>
+              <text class="llm-bump-axis" x="149.3" y="414" text-anchor="middle">2018</text>
+              <text class="llm-bump-axis" x="228.7" y="414" text-anchor="middle">2019</text>
+              <text class="llm-bump-axis" x="308.0" y="414" text-anchor="middle">2020</text>
+              <text class="llm-bump-axis" x="387.3" y="414" text-anchor="middle">2021</text>
+              <text class="llm-bump-axis" x="466.7" y="414" text-anchor="middle">2022</text>
+              <text class="llm-bump-axis" x="546.0" y="414" text-anchor="middle">2023</text>
+              <text class="llm-bump-axis" x="625.3" y="414" text-anchor="middle">2024</text>
+              <text class="llm-bump-axis" x="704.7" y="414" text-anchor="middle">2025</text>
+              <text class="llm-bump-axis" x="784.0" y="414" text-anchor="middle">2026</text>
+              <polyline class="llm-bump-line" points="70.0,44.0 149.3,44.0 228.7,82.7 308.0,121.3 387.3,82.7 466.7,82.7 546.0,121.3 625.3,121.3 704.7,121.3 784.0,121.3" stroke="#4285f4" style="animation-delay:0.0s" />
+              <polyline class="llm-bump-line" points="149.3,121.3 228.7,44.0 308.0,44.0 387.3,44.0 466.7,44.0 546.0,44.0 625.3,44.0 704.7,82.7 784.0,82.7" stroke="#10a37f" style="animation-delay:0.3s" />
+              <polyline class="llm-bump-line" points="546.0,160.0 625.3,82.7 704.7,44.0 784.0,44.0" stroke="#d97757" style="animation-delay:0.7s" />
+              <polyline class="llm-bump-line" points="704.7,121.3 784.0,276.0" stroke="#ec4899" style="animation-delay:1.0s" />
+              <polyline class="llm-bump-line" points="546.0,198.7 625.3,160.0 704.7,198.7 784.0,353.3" stroke="#64748b" style="animation-delay:1.4s" />
+              <circle class="llm-bump-dot" cx="70.0" cy="44.0" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="149.3" cy="44.0" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="228.7" cy="82.7" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="308.0" cy="121.3" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="387.3" cy="82.7" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="466.7" cy="82.7" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="546.0" cy="121.3" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="625.3" cy="121.3" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="704.7" cy="121.3" r="4" fill="#4285f4" style="animation-delay:2.4s" /><circle class="llm-bump-dot" cx="784.0" cy="121.3" r="4" fill="#4285f4" style="animation-delay:2.4s" />
+              <circle class="llm-bump-dot" cx="149.3" cy="121.3" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="228.7" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="308.0" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="387.3" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="466.7" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="546.0" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="625.3" cy="44.0" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="704.7" cy="82.7" r="4" fill="#10a37f" style="animation-delay:2.8s" /><circle class="llm-bump-dot" cx="784.0" cy="82.7" r="4" fill="#10a37f" style="animation-delay:2.8s" />
+              <circle class="llm-bump-dot" cx="546.0" cy="160.0" r="4" fill="#d97757" style="animation-delay:3.1s" /><circle class="llm-bump-dot" cx="625.3" cy="82.7" r="4" fill="#d97757" style="animation-delay:3.1s" /><circle class="llm-bump-dot" cx="704.7" cy="44.0" r="4" fill="#d97757" style="animation-delay:3.1s" /><circle class="llm-bump-dot" cx="784.0" cy="44.0" r="4" fill="#d97757" style="animation-delay:3.1s" />
+              <circle class="llm-bump-dot" cx="704.7" cy="121.3" r="4" fill="#ec4899" style="animation-delay:3.4s" /><circle class="llm-bump-dot" cx="784.0" cy="276.0" r="4" fill="#ec4899" style="animation-delay:3.4s" />
+              <circle class="llm-bump-dot" cx="546.0" cy="198.7" r="4" fill="#64748b" style="animation-delay:3.8s" /><circle class="llm-bump-dot" cx="625.3" cy="160.0" r="4" fill="#64748b" style="animation-delay:3.8s" /><circle class="llm-bump-dot" cx="704.7" cy="198.7" r="4" fill="#64748b" style="animation-delay:3.8s" /><circle class="llm-bump-dot" cx="784.0" cy="353.3" r="4" fill="#64748b" style="animation-delay:3.8s" />
+              <text class="llm-bump-end" x="794.0" y="124.3" fill="#4285f4" style="animation-delay:2.6s">Google</text>
+              <text class="llm-bump-end" x="794.0" y="85.7" fill="#10a37f" style="animation-delay:3.0s">OpenAI</text>
+              <text class="llm-bump-end" x="794.0" y="47.0" fill="#d97757" style="animation-delay:3.3s">Anthropic</text>
+              <text class="llm-bump-end" x="794.0" y="279.0" fill="#ec4899" style="animation-delay:3.6s">DeepSeek</text>
+              <text class="llm-bump-end" x="794.0" y="356.3" fill="#64748b" style="animation-delay:4.0s">Meta·Llama</text>
+            </svg>
+            <div class="llm-legend">
+              <span><i style="background:#4285f4"></i>Google (Transformer/BERT/Gemini)</span>
+              <span><i style="background:#10a37f"></i>OpenAI (GPT)</span>
+              <span><i style="background:#d97757"></i>Anthropic (Claude)</span>
+              <span><i style="background:#ec4899"></i>DeepSeek</span>
+              <span><i style="background:#64748b"></i>Meta (Llama)</span>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 名次接力棒一目了然:<strong>Google 领跑架构期(2017–18)→ OpenAI 独占 #1(2019–2024)→ Anthropic 登顶(2025–2026)</strong>。开放权重的 <strong>DeepSeek 2025 年以 R1 空降 #3</strong>,2026 年随前沿变密回落到 #7;Meta·Llama 从 2023 的 #5 一路下滑。<em>说明:2023 年(ChatGPT / LMArena 出现)之前并无公开众测榜,早期名次为按能力与影响力的示意排位,非实时榜单。</em></span><span lang="en" class="i18n-en">▶ The rank relay is clear at a glance: <strong>Google leads the architecture era (2017–18) → OpenAI owns #1 (2019–2024) → Anthropic takes the top (2025–2026)</strong>. On open weights, <strong>DeepSeek parachutes to #3 with R1 in 2025</strong>, easing to #7 in 2026 as the frontier thickens; Meta·Llama slides from #5 in 2023. <em>Note: before 2023 (the arrival of ChatGPT / LMArena) there was no public crowd leaderboard, so early ranks are an illustrative capability/impact ordering, not a live board.</em></span></span>
+          </figure>
 
           <figure class="llm-fig">
             <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年里程碑:每年的代表性模型(逐年点亮)</span><span lang="en" class="i18n-en">Animated · ten-year milestones: each year's defining model (lit in sequence)</span></div>

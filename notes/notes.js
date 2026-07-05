@@ -44,10 +44,10 @@ window.NOTES = [
       en: "Global LLM Leaderboards: Overall / Knowledge / Code",
     },
     summary: {
-      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
-      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+      zh: "全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench)。06-30 初次快照,07-05 复核:头部基本不变,新增 Claude Sonnet 5(#5),并新增一张「十年 Top-10 排名阶梯」动图。",
+      en: "The world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench). 06-30 initial snapshot, re-checked 07-05: head unchanged, Claude Sonnet 5 added (#5), plus a new ten-year Top-10 rank-ladder animation.",
     },
-    date: "2026-06-30",
+    date: "2026-07-05",
     tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
   },
   {
