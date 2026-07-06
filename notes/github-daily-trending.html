@@ -190,8 +190,8 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-30</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Vertical Agents</span><span>Trend Analysis</span></span>
+            <span>2026-07-06</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Interop</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
         </header>
@@ -209,6 +209,461 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-07-06 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-07-06 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">用更立体的视角看 GitHub:同时抓取当天、一周、一月的 <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> 榜(按各窗口内新增 stars 排序),再用 GitHub Search API 取「半年内 / 一年内新建、且总 star 最高」的仓库作为「破圈新秀」代理,给出各窗口<strong>前 5</strong> 的图文卡片;并对<strong>当日前 10</strong> 做方向归类与趋势分析(历史 / 当下 / 未来,带证据)。两类指标不同:当天/一周/一月是<strong>窗口内新增 ★</strong>,半年/一年是<strong>该窗口新建仓库的总 ★</strong>,卡片上分别标注。</span><span lang="en" class="i18n-en">A more three-dimensional view of GitHub: I capture the <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> boards for today, this week and this month (ranked by stars gained within each window), then use the GitHub Search API for the highest-starred repos <em>created</em> within the last 6 months / 1 year as a “breakout-newcomer” proxy — giving illustrated top-5 cards per window, plus a direction &amp; trend analysis of the <strong>daily top 10</strong> (history / present / future, with evidence). Two metrics differ: today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of repos created in that window</strong> — each labeled on the cards.</span>
+            </p>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh"><strong>今日一句话:</strong>当日 #1 是 <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a>——「在 Claude Code 里调用 Codex」,一个编码 agent 直接指挥另一个编码 agent。叠加本周的 <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">OmniRoute</a>(一个端点接 231+ 家模型),主旋律从上一阶段的「长出感官(感知/记忆/品味)」转向<strong>「互联互通」——编码 agent 从各自为战,走向跨厂商的协作网</strong>。</span><span lang="en" class="i18n-en"><strong>Today in one line:</strong> the day's #1 is <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a> — “call Codex from inside Claude Code,” one coding agent directly commanding another. Together with this week's <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">OmniRoute</a> (one endpoint fronting 231+ models), the theme shifts from last stretch's “growing senses (perception/memory/taste)” to <strong>interconnection — coding agents move from silos to a cross-vendor collaboration mesh</strong>.</span>
+            </p>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五窗口 · 各前 5 名(图文卡片)</span><span lang="en" class="i18n-en">Five windows · top 5 each (illustrated cards)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 窗口越长,头部仓库的体量越大</span><span lang="en" class="i18n-en">Animated · the longer the window, the larger the headline repo</span></div>
+              <div class="ght-horizon" aria-hidden="true">
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">today</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:7%;background:#22c55e"></div><span class="ght-hz-lab" style="color:var(--text)">codex-plugin-cc · +1,532</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">week</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:22%;background:#f59e0b;animation-delay:.12s"></div><span class="ght-hz-lab">agency-agents · +10,637</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">month</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:44%;background:#a855f7;animation-delay:.24s"></div><span class="ght-hz-lab">Agent-Reach · +30,017</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">6 mo</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:72%;background:#06b6d4;animation-delay:.36s"></div><span class="ght-hz-lab">ECC · 226.3k★</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">year</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:100%;background:#f59e0b;animation-delay:.48s"></div><span class="ght-hz-lab">openclaw · 381.8k★</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当天/一周/一月为<strong>窗口内新增 ★</strong>,半年/一年为<strong>新建仓库总 ★</strong>(指标不同,仅示意体量级差)。每跨一个量级,主角从「单日话题」过渡到「沉淀下来的平台级项目」。</span><span lang="en" class="i18n-en">▶ today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of newly-created repos</strong> (different metrics, magnitude only). As the window widens, the protagonist shifts from a “one-day topic” to a “settled, platform-scale project.”</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当天 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">Today · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(daily),按当日新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (daily), ranked by ★ gained today.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#22c55e">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/14957082?v=4&amp;s=96" alt="openai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">openai/codex-plugin-cc</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,532</span><span class="ght-pill ght-pill-star">★ 25.4k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">OpenAI 官方出品:在 Claude Code 里调用 Codex 来审查代码或委派任务——一个编码 agent 直接指挥另一个,跨厂商互联的标志性一步。</span><span lang="en" class="i18n-en">Official from OpenAI: call Codex from inside Claude Code to review code or delegate tasks — one coding agent directing another, a landmark step toward cross-vendor interop.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/82556810?v=4&amp;s=96" alt="Zackriya-Solutions avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">Zackriya-Solutions/meetily</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,409</span><span class="ght-pill ght-pill-star">★ 16.9k</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">隐私优先的 AI 会议助手:Parakeet/Whisper 实时转写 + 说话人分离 + Ollama 摘要,<strong>100% 本地处理、无需云端</strong>。</span><span lang="en" class="i18n-en">A privacy-first AI meeting assistant: Parakeet/Whisper live transcription + speaker diarization + Ollama summaries, <strong>100% local, no cloud required</strong>.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ef4444">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/187630752?v=4&amp;s=96" alt="usestrix avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/usestrix/strix" target="_blank" rel="noopener">usestrix/strix</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,114</span><span class="ght-pill ght-pill-star">★ 37.1k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 AI 渗透测试工具:自动发现并帮助修复应用漏洞——「安全」正在成为编码 agent 的新垂直场景。</span><span lang="en" class="i18n-en">An open-source AI penetration-testing tool that finds and helps fix your app's vulnerabilities — “security” is becoming a new vertical for coding agents.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/104168679?v=4&amp;s=96" alt="JuliusBrussee avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/JuliusBrussee/caveman" target="_blank" rel="noopener">JuliusBrussee/caveman</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+1,052</span><span class="ght-pill ght-pill-star">★ 84.8k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">🪨「能用少 token 就不用多 token」:让 Claude Code 用「原始人语气」说话,省下约 65% 的 token——极致省钱的技能。</span><span lang="en" class="i18n-en">🪨 “why use many token when few token do trick” — a Claude Code skill that cuts ~65% of tokens by talking like a caveman; peak cost-thrift as a skill.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ec4899">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/27446620?v=4&amp;s=96" alt="asgeirtj avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">asgeirtj/system_prompts_leaks</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+981</span><span class="ght-pill ght-pill-star">★ 49.9k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">抓取整理各家产品的系统提示词:Anthropic(Claude Fable 5 / Opus 4.8 / Claude Code)、OpenAI(ChatGPT 5.5 / Codex)、Google、xAI 等——「提示词透明」的社区档案。</span><span lang="en" class="i18n-en">A community archive of extracted system prompts across vendors: Anthropic (Claude Fable 5 / Opus 4.8 / Claude Code), OpenAI (ChatGPT 5.5 / Codex), Google, xAI and more — “prompt transparency.”</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一周 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This week · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(weekly),按本周新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (weekly), ranked by ★ gained this week.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/1972242?v=4&amp;s=96" alt="msitarzewski avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">msitarzewski/agency-agents</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+10,637</span><span class="ght-pill ght-pill-star">★ 127.5k</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一整套「AI 代理公司」:从前端工程师到红队、社区运营,每个 agent 都是带人设与流程的专家——多智能体协作的代表作。</span><span lang="en" class="i18n-en">A complete “AI agency”: each agent — from frontend wizard to red-teamer to community ops — is a specialized expert with its own persona and process; a poster child for multi-agent collaboration.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ef4444">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/187630752?v=4&amp;s=96" alt="usestrix avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/usestrix/strix" target="_blank" rel="noopener">usestrix/strix</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+10,338</span><span class="ght-pill ght-pill-star">★ 37.1k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 AI 渗透测试工具,同时登上日榜与周榜——安全垂直的强势信号。</span><span lang="en" class="i18n-en">The open-source AI pen-testing tool, charting on both the daily and weekly boards — a strong signal for the security vertical.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/81762164?v=4&amp;s=96" alt="DeusData avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,945</span><span class="ght-pill ght-pill-star">★ 26.7k</span><span class="ght-card-lang">C</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">高性能代码情报 MCP 服务:把代码库索引成持久知识图谱,158 种语言、亚毫秒查询、省 99% token、单静态二进制零依赖——agent 的「记忆」层。</span><span lang="en" class="i18n-en">A high-performance code-intelligence MCP server: indexes a codebase into a persistent knowledge graph — 158 languages, sub-ms queries, 99% fewer tokens, single static binary; the agent “memory” layer.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,353</span><span class="ght-pill ght-pill-star">★ 33.6k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">号称「全球首个开源 agentic 视频生产系统」:12 条流水线、52 个工具、500+ 技能,把 AI 编码助手变成完整视频工作室——创意垂直。</span><span lang="en" class="i18n-en">Claims to be the “world's first open-source agentic video production system”: 12 pipelines, 52 tools, 500+ skills turning an AI coding assistant into a full video studio — a creative vertical.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6993203?v=4&amp;s=96" alt="xbtlin avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/xbtlin/ai-berkshire" target="_blank" rel="noopener">xbtlin/ai-berkshire</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+5,038</span><span class="ght-pill ght-pill-star">★ 10.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「AI 时代的伯克希尔」:基于 Claude Code / Codex 的价值投资研究框架,内置巴菲特·芒格·段永平·李录四套方法论 + 多 agent 对抗式分析——金融决策垂直。</span><span lang="en" class="i18n-en">“AI-era Berkshire”: a value-investing research framework on Claude Code / Codex, packing four masters' methodologies plus multi-agent adversarial analysis — a finance-decision vertical.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一月 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This month · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(monthly),按本月新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (monthly), ranked by ★ gained this month.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+30,017</span><span class="ght-pill ght-pill-star">★ 51.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「一双看全网的眼睛」:一个 CLI 读取/搜索 Twitter、Reddit、YouTube、GitHub、B 站、小红书,零 API 费用——月榜第一,「感知」层的爆款。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads &amp; searches Twitter, Reddit, YouTube, GitHub, Bilibili, Xiaohongshu — zero API fees; month's #1, the perception-layer hit.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+29,179</span><span class="ght-pill ght-pill-star">★ 33.6k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 agentic 视频生产系统,一月内同时登上周榜与月榜——视频生成是当前最热的垂直场景之一。</span><span lang="en" class="i18n-en">An open-source agentic video-production system charting on both the weekly and monthly boards — video generation is one of the hottest verticals right now.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/81762164?v=4&amp;s=96" alt="DeusData avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+23,591</span><span class="ght-pill ght-pill-star">★ 26.7k</span><span class="ght-card-lang">C</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">代码情报 MCP,周/月双榜——把「记忆」做成基础设施:持久知识图谱 + 亚毫秒查询。</span><span lang="en" class="i18n-en">The code-intelligence MCP on both the weekly and monthly boards — turning “memory” into infrastructure: a persistent knowledge graph with sub-ms queries.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/455140?v=4&amp;s=96" alt="mvanhorn avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mvanhorn/last30days-skill" target="_blank" rel="noopener">mvanhorn/last30days-skill</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+21,367</span><span class="ght-pill ght-pill-star">★ 49.2k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">AI agent 技能:跨 Reddit、X、YouTube、HN、Polymarket 与全网检索某个主题,再综合出有据可查的摘要——「感知 + 研究」。</span><span lang="en" class="i18n-en">An AI-agent skill that researches a topic across Reddit, X, YouTube, HN, Polymarket and the web, then synthesizes a grounded summary — “perception + research.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ec4899">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/10639145?v=4&amp;s=96" alt="apple avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/apple/container" target="_blank" rel="noopener">apple/container</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+19,954</span><span class="ght-pill ght-pill-star">★ 46.6k</span><span class="ght-card-lang">Swift</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Apple 出品:用轻量虚拟机在 Mac 上创建并运行 Linux 容器,用 Swift 写就、针对 Apple 芯片优化——提醒开发基础工具始终是刚需。</span><span lang="en" class="i18n-en">From Apple: create and run Linux containers on a Mac via lightweight VMs, written in Swift and optimized for Apple silicon — a reminder that core dev tooling is always in demand.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">半年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">6 months · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2026-01-06,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2026-01-06, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 226.3k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:为 Claude Code、Codex、Opencode、Cursor 等提供技能、直觉、记忆、安全与研究优先的开发范式。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: skills, instincts, memory, security and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.6k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「由 agent 自主运营的项目」,用 Rust 构建,全程几乎无人工干预地开发与维护——自主性前沿的代表作。</span><span lang="en" class="i18n-en">An “agent-operated project” built in Rust, developed and maintained with almost no human intervention — a poster child for the autonomy frontier.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/254743058?v=4&amp;s=96" alt="multica-ai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 188.0k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">Markdown</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个 CLAUDE.md 文件,源自 Andrej Karpathy 对 LLM 编码常见坑的观察,用来改进编码 agent 行为。</span><span lang="en" class="i18n-en">A single CLAUDE.md, derived from Andrej Karpathy's notes on LLM coding pitfalls, to improve coding-agent behavior.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/28293365?v=4&amp;s=96" alt="mattpocock avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 157.4k</span><span class="ght-pill ght-pill-gain">建于 2026-02</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接开放自己 .claude 目录里的「给真正工程师用的技能」。</span><span lang="en" class="i18n-en">Matt Pocock's “.claude directory” opened up — “skills for real engineers.”</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/19957?v=4&amp;s=96" alt="garrytan avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/garrytan/gstack" target="_blank" rel="noopener">garrytan/gstack</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 119.7k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">直接复用 Garry Tan 的 Claude Code 配置:23 个有主见的工具,分别扮演 CEO、设计师、工程经理、发布经理、文档与 QA。</span><span lang="en" class="i18n-en">Use Garry Tan's exact Claude Code setup: 23 opinionated tools acting as CEO, Designer, Eng Manager, Release Manager, Doc Engineer, and QA.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">1 year · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-07-06,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-07-06, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/252820863?v=4&amp;s=96" alt="openclaw avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 381.8k</span><span class="ght-pill ght-pill-gain">建于 2025-11</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">你的私人 AI 助手平台,任意操作系统、任意平台——一年窗口的总星王。</span><span lang="en" class="i18n-en">Your own personal AI-assistant platform — any OS, any platform — the total-stars king of the 1-year window.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/45416?v=4&amp;s=96" alt="obra avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 246.8k</span><span class="ght-pill ght-pill-gain">建于 2025-10</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「真正能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework &amp; software-development methodology that actually works.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 226.3k</span><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:把技能、记忆、安全打包成一套面向编码 agent 的开发范式。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: packages skills, memory and security into one development paradigm for coding agents.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/134168893?v=4&amp;s=96" alt="NousResearch avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 209.7k</span><span class="ght-pill ght-pill-gain">建于 2025-07</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Nous Research 的「会与你一起成长」的 agent——强调记忆与个性化。</span><span lang="en" class="i18n-en">Nous Research's “agent that grows with you” — emphasizing memory and personalization.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-star">★ 194.6k</span><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「由 agent 自主运营」的 Rust 项目,几乎无人工干预——自主性前沿。</span><span lang="en" class="i18n-en">An “agent-operated” Rust project with almost no human intervention — the autonomy frontier.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h3><span lang="zh-CN" class="i18n-zh">当日 Top 10 · 新增 stars 榜</span><span lang="en" class="i18n-en">Daily Top 10 · stars-gained board</span></h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">openai/codex-plugin-cc</a></td><td>JavaScript</td><td>1,532</td><td>25.4k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">Zackriya-Solutions/meetily</a></td><td>Rust</td><td>1,409</td><td>16.9k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/usestrix/strix" target="_blank" rel="noopener">usestrix/strix</a></td><td>Python</td><td>1,114</td><td>37.1k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/JuliusBrussee/caveman" target="_blank" rel="noopener">JuliusBrussee/caveman</a></td><td>JavaScript</td><td>1,052</td><td>84.8k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">asgeirtj/system_prompts_leaks</a></td><td>JavaScript</td><td>981</td><td>49.9k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">Leonxlnx/taste-skill</a></td><td>JavaScript</td><td>863</td><td>57.4k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/alibaba/page-agent" target="_blank" rel="noopener">alibaba/page-agent</a></td><td>TypeScript</td><td>805</td><td>23.8k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/ogulcancelik/herdr" target="_blank" rel="noopener">ogulcancelik/herdr</a></td><td>Rust</td><td>651</td><td>12.0k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/facebook/astryx" target="_blank" rel="noopener">facebook/astryx</a></td><td>TypeScript</td><td>522</td><td>5.9k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/immich-app/immich" target="_blank" rel="noopener">immich-app/immich</a></td><td>TypeScript</td><td>470</td><td>106.1k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">codex-plugin-cc</span><div class="ght-bar-track" style="--w:100%"><div class="ght-bar-fill" style="width:100%;background:#22c55e"></div><span class="ght-bar-val">1,532</span></div></div>
+                <div class="ght-bar-row"><span class="nm">meetily</span><div class="ght-bar-track" style="--w:92%"><div class="ght-bar-fill" style="width:92.0%;background:#06b6d4"></div><span class="ght-bar-val">1,409</span></div></div>
+                <div class="ght-bar-row"><span class="nm">strix</span><div class="ght-bar-track" style="--w:72.7%"><div class="ght-bar-fill" style="width:72.7%;background:#ef4444"></div><span class="ght-bar-val">1,114</span></div></div>
+                <div class="ght-bar-row"><span class="nm">caveman</span><div class="ght-bar-track" style="--w:68.7%"><div class="ght-bar-fill" style="width:68.7%;background:#f59e0b"></div><span class="ght-bar-val">1,052</span></div></div>
+                <div class="ght-bar-row"><span class="nm">system_prompts_leaks</span><div class="ght-bar-track" style="--w:64%"><div class="ght-bar-fill" style="width:64.0%;background:#ec4899"></div><span class="ght-bar-val">981</span></div></div>
+                <div class="ght-bar-row"><span class="nm">taste-skill</span><div class="ght-bar-track" style="--w:56.3%"><div class="ght-bar-fill" style="width:56.3%;background:#a855f7"></div><span class="ght-bar-val">863</span></div></div>
+                <div class="ght-bar-row"><span class="nm">page-agent</span><div class="ght-bar-track" style="--w:52.5%"><div class="ght-bar-fill" style="width:52.5%;background:#a855f7"></div><span class="ght-bar-val">805</span></div></div>
+                <div class="ght-bar-row"><span class="nm">herdr</span><div class="ght-bar-track" style="--w:42.5%"><div class="ght-bar-fill" style="width:42.5%;background:#f59e0b"></div><span class="ght-bar-val">651</span></div></div>
+                <div class="ght-bar-row"><span class="nm">astryx</span><div class="ght-bar-track" style="--w:34.1%"><div class="ght-bar-fill" style="width:34.1%;background:#f59e0b"></div><span class="ght-bar-val">522</span></div></div>
+                <div class="ght-bar-row"><span class="nm">immich</span><div class="ght-bar-track" style="--w:30.7%"><div class="ght-bar-fill" style="width:30.7%;background:#06b6d4"></div><span class="ght-bar-val">470</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">编码 agent OS / 技能</span><span lang="en" class="i18n-en">Coding-agent OS / skills</span></span>
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">感官(感知/记忆/品味)</span><span lang="en" class="i18n-en">Senses (perceive/memory/taste)</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">本地优先/自托管</span><span lang="en" class="i18n-en">Local-first/self-hosted</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">跨 agent 互联</span><span lang="en" class="i18n-en">Cross-agent interop</span></span>
+                <span><i style="background:#ef4444"></i><span lang="zh-CN" class="i18n-zh">安全</span><span lang="en" class="i18n-en">Security</span></span>
+                <span><i style="background:#ec4899"></i><span lang="zh-CN" class="i18n-zh">提示/透明</span><span lang="en" class="i18n-en">Prompts/transparency</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日前 10 里,<strong>编码 agent OS/技能 3 个</strong>(caveman、herdr、astryx)、<strong>感官层 2 个</strong>(taste-skill、page-agent)、<strong>本地优先 2 个</strong>(meetily、immich),再加互联(codex-plugin-cc,#1)、安全(strix)、透明(system_prompts_leaks)各 1 个。#1 首次由「跨 agent 互联」拿下。</span><span lang="en" class="i18n-en">▶ Of today's top 10: <strong>3 coding-agent-OS/skills</strong> (caveman, herdr, astryx), <strong>2 senses</strong> (taste-skill, page-agent), <strong>2 local-first</strong> (meetily, immich), plus interop (codex-plugin-cc, #1), security (strix) and transparency (system_prompts_leaks) at one each. For the first time, #1 is taken by “cross-agent interop.”</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">图 · 当日 Top 6 仓库社交卡片(GitHub OpenGraph)</span><span lang="en" class="i18n-en">Images · today's Top 6 social cards (GitHub OpenGraph)</span></div>
+              <div class="ght-gallery">
+                <a class="ght-gcard" href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/openai/codex-plugin-cc" alt="openai/codex-plugin-cc social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">openai/codex-plugin-cc · +1,532 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/Zackriya-Solutions/meetily" alt="Zackriya-Solutions/meetily social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">Zackriya-Solutions/meetily · +1,409 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/usestrix/strix" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/usestrix/strix" alt="usestrix/strix social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">usestrix/strix · +1,114 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/JuliusBrussee/caveman" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/JuliusBrussee/caveman" alt="JuliusBrussee/caveman social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">JuliusBrussee/caveman · +1,052 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/asgeirtj/system_prompts_leaks" alt="asgeirtj/system_prompts_leaks social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">asgeirtj/system_prompts_leaks · +981 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260706/Leonxlnx/taste-skill" alt="Leonxlnx/taste-skill social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">Leonxlnx/taste-skill · +863 ★</span>
+                </a>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 社交预览卡直观呈现当日主题:跨 agent 互联(codex-plugin-cc)、本地优先(meetily)、安全(strix)、省 token 技能(caveman)、提示透明(system_prompts_leaks)与品味(taste-skill)同日并存。</span><span lang="en" class="i18n-en">▶ The social-preview cards make today's mix visually clear: cross-agent interop (codex-plugin-cc), local-first (meetily), security (strix), token-thrift skill (caveman), prompt transparency (system_prompts_leaks) and taste (taste-skill) coexisting on the same day.</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类(当日前 10)</span><span lang="en" class="i18n-en">Direction breakdown (daily top 10)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 Top 10 方向占比</span><span lang="en" class="i18n-en">Animated · today's Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:30%;background:#f59e0b">3 · <span lang="zh-CN" class="i18n-zh">编码 OS</span><span lang="en" class="i18n-en">coding OS</span></div>
+                <div class="ght-seg" style="width:20%;background:#a855f7;animation-delay:.14s">2 · <span lang="zh-CN" class="i18n-zh">感官</span><span lang="en" class="i18n-en">senses</span></div>
+                <div class="ght-seg" style="width:20%;background:#06b6d4;animation-delay:.28s">2 · <span lang="zh-CN" class="i18n-zh">本地</span><span lang="en" class="i18n-en">local</span></div>
+                <div class="ght-seg" style="width:10%;background:#22c55e;animation-delay:.42s">1</div>
+                <div class="ght-seg" style="width:10%;background:#ef4444;animation-delay:.56s">1</div>
+                <div class="ght-seg" style="width:10%;background:#ec4899;animation-delay:.70s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 编码 agent OS/技能 <strong>3/10</strong>、感官(感知/品味)<strong>2/10</strong>、本地优先/自托管 <strong>2/10</strong>,跨 agent 互联、安全、提示透明各 <strong>1/10</strong>。方向比 6-30 更分散,但「互联」直接拿下 #1。</span><span lang="en" class="i18n-en">▶ Coding-agent OS/skills <strong>3/10</strong>, senses (perceive/taste) <strong>2/10</strong>, local-first/self-hosted <strong>2/10</strong>, with cross-agent interop, security and prompt-transparency at <strong>1/10</strong> each. More spread out than 6-30, yet “interop” grabs #1.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>编码 agent OS / 技能 (3/10)</strong>:caveman(省 65% token 的技能)、herdr(终端里的 agent 多路复用器)、astryx(agent-ready 的开源设计系统)。它们都是让「编码 agent 更好用」的底座与技能。</span><span lang="en" class="i18n-en"><strong>Coding-agent OS / skills (3/10)</strong>: caveman (a skill that cuts 65% of tokens), herdr (an in-terminal agent multiplexer), astryx (an agent-ready open-source design system) — all substrates/skills that make coding agents work better.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>感官:感知 / 品味 (2/10)</strong>:page-agent(页内 GUI agent,用自然语言操控网页——「看得见、点得到」)、taste-skill(给 AI 注入审美,阻止套路化输出)。延续上一阶段「agent 长出感官」的主线。</span><span lang="en" class="i18n-en"><strong>Senses: perception / taste (2/10)</strong>: page-agent (an in-page GUI agent controlling web UIs via natural language — “see &amp; click”) and taste-skill (injecting aesthetics to stop generic output). Continues the “agents grow senses” thread from the prior stretch.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>本地优先 / 自托管 (2/10)</strong>:meetily(100% 本地的 AI 会议助手)、immich(自托管照片/视频管理)。云端 agent 高歌猛进的同时,「数据不出本地」是一条清晰的反向副线。</span><span lang="en" class="i18n-en"><strong>Local-first / self-hosted (2/10)</strong>: meetily (a 100%-local AI meeting assistant) and immich (self-hosted photo/video management). As cloud agents surge, “data never leaves the device” is a clear counter-current.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>跨 agent 互联 (1/10,#1)</strong>:codex-plugin-cc(在 Claude Code 里调用 Codex)——一个编码 agent 直接指挥另一个,标志「互联互通」上升为主角。</span><span lang="en" class="i18n-en"><strong>Cross-agent interop (1/10, the #1)</strong>: codex-plugin-cc (call Codex from Claude Code) — one coding agent directly commanding another, marking “interconnection” rising to the lead role.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>安全 (1/10)</strong>:strix(开源 AI 渗透测试)——安全从「合规文档」走向「能实际找漏洞的 agent」,是正在成型的新垂直。</span><span lang="en" class="i18n-en"><strong>Security (1/10)</strong>: strix (open-source AI pen-testing) — security moving from “compliance docs” to “an agent that actually finds bugs,” an emerging new vertical.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>提示 / 透明 (1/10)</strong>:system_prompts_leaks(各家系统提示词档案)——反映社区对「模型到底被怎么指挥」的强烈好奇与透明诉求。</span><span lang="en" class="i18n-en"><strong>Prompts / transparency (1/10)</strong>: system_prompts_leaks (an archive of vendors' system prompts) — reflecting strong community curiosity and a push for transparency about “how models are actually instructed.”</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:模型 → 框架 → 编码 agent → 记忆/感官 → 互联互通</span><span lang="en" class="i18n-en">History: models → frameworks → coding agents → memory/senses → interconnection</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · GitHub trending 主角的多次迁移</span><span lang="en" class="i18n-en">Animated · the shifting protagonist of GitHub trending</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2022–23</div><div class="lb"><span lang="zh-CN" class="i18n-zh">模型 / AutoGPT</span><span lang="en" class="i18n-en">Models / AutoGPT</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2023–24</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编排框架</span><span lang="en" class="i18n-en">Frameworks</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 技能</span><span lang="en" class="i18n-en">Coding agents / skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 H1</div><div class="lb"><span lang="zh-CN" class="i18n-zh">记忆 / 感官</span><span lang="en" class="i18n-en">Memory / senses</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">互联互通 / 跨 agent</span><span lang="en" class="i18n-en">Interop / cross-agent</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 沿着同一条弧线再走一格:分发单元从模型权重 → 框架 → 应用 → 技能/harness → 上下文/记忆/感官,如今主角上移到「让 agent 之间互相调用、互相路由」的互联层。</span><span lang="en" class="i18n-en">▶ One more step along the same arc: the unit of distribution went model weights → frameworks → apps → skills/harness → context/memory/senses, and now the protagonist moves up to an interconnection layer where agents call and route to each other.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">长窗口给出最稳的历史证据。<strong>一年榜</strong>前 5 几乎是一部「agent 基础设施进化史」:<a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a>(私人助手平台,381.8k★,2025-11 新建)、<a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a>(技能框架 + 方法论,246.8k★,2025-10)、<a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a>(harness 优化系统,226.3k★,2026-01)、<a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a>(强调记忆的 agent,209.7k★,2025-07)、<a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a>(几乎无人工干预的自运营项目,194.6k★,2026-03)。这条线把「平台 → 技能框架 → harness → 记忆 → 自主」铺成了基础设施。本 log 的 6-30 记录还停留在「垂直智能体 / 做决策」;不到一周后的今天,当这些独立的 agent 都足够强,新的稀缺就变成了<strong>让它们互相协作</strong>——当日 #1 <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a> 让 Claude Code 直接调用 Codex,正是这条弧线再进一格。</span><span lang="en" class="i18n-en">The long windows give the steadiest historical evidence. The <strong>year board</strong>'s top 5 is almost a history of agent <em>infrastructure</em>: <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a> (personal-assistant platform, 381.8k★, created 2025-11), <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a> (skills framework + methodology, 246.8k★, 2025-10), <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a> (harness optimization, 226.3k★, 2026-01), <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> (memory-centric agent, 209.7k★, 2025-07), and <a href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">claw-code</a> (a near-autonomous self-running project, 194.6k★, 2026-03) — laying down “platform → skills framework → harness → memory → autonomy” as infrastructure. This log's 6-30 entry was still about “vertical agents / making decisions”; less than a week later, once these individual agents are strong enough, the new scarcity becomes <strong>getting them to collaborate</strong> — today's #1 <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a> letting Claude Code call Codex directly is exactly one more step along that arc.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:编码 agent 开始互联互通;感官层继续加厚;安全成新垂直</span><span lang="en" class="i18n-en">Present: coding agents interconnect; the senses layer thickens; security as a new vertical</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 从「各自为战」到「跨厂商协作网」</span><span lang="en" class="i18n-en">Animated · from silos to a cross-vendor mesh</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="cross-agent interop mesh">
+                <rect class="ght-box" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="64" text-anchor="middle">Silo</text><text class="ght-ssub" x="54" y="79" text-anchor="middle">one vendor</text>
+                <rect class="ght-box hot" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="64" text-anchor="middle">Bridge</text><text class="ght-ssub" x="202" y="79" text-anchor="middle">cc-codex</text>
+                <rect class="ght-box hot" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="64" text-anchor="middle">Gateway</text><text class="ght-ssub" x="350" y="79" text-anchor="middle">231 routes</text>
+                <rect class="ght-box" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="64" text-anchor="middle">Mesh</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">any-to-any</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#22c55e" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#f59e0b" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#a855f7" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#22c55e">call</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 单厂商孤岛 → 点对点桥接(codex-plugin-cc 让 CC 调 Codex)→ 统一网关(OmniRoute 一端点接 231+ 家)→ 任意 agent 互相调用的协作网。「互联」正在成为 agent 栈的新一层。</span><span lang="en" class="i18n-en">▶ Single-vendor silo → point-to-point bridge (codex-plugin-cc lets CC call Codex) → unified gateway (OmniRoute fronts 231+ providers from one endpoint) → an any-to-any collaboration mesh. “Interop” is becoming a new layer of the agent stack.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">当下最强的新信号是 <strong>编码 agent 从「各自为战」走向「互联互通」</strong>,证据横跨多窗口:(1) <strong>跨 agent 互联</strong>——当日 #1 <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a>(+1,532,OpenAI 官方,让 Claude Code 调用 Codex)与本周 <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">OmniRoute</a>(+4,411,一端点接 231+ 家模型)一起,把「agent 互相调用 / 统一路由」推上台面。(2) <strong>感官层继续加厚</strong>——月榜 #1 <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a>(+30,017,给 agent「看全网的眼睛」)、当日 <a href="https://github.com/alibaba/page-agent" target="_blank" rel="noopener">page-agent</a>(+805,页内 GUI 感知)、周/月双榜 <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a>(记忆)、当日 <a href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">taste-skill</a>(+863,品味)构成「感知 + 记忆 + 品味」组合。(3) <strong>安全成新垂直</strong>——<a href="https://github.com/usestrix/strix" target="_blank" rel="noopener">strix</a> 同时登上日榜(#3,+1,114)、周榜(#2,+10,338)、月榜(#7),月榜还有 Anthropic-Cybersecurity-Skills(817 条安全技能)。(4) <strong>本地优先反向副线</strong>——当日 <a href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">meetily</a>(#2,100% 本地)与 <a href="https://github.com/immich-app/immich" target="_blank" rel="noopener">immich</a>(#10,自托管)同日在榜。</span><span lang="en" class="i18n-en">The strongest new present-day signal is that <strong>coding agents move from silos to interconnection</strong>, with evidence across windows: (1) <strong>cross-agent interop</strong> — today's #1 <a href="https://github.com/openai/codex-plugin-cc" target="_blank" rel="noopener">codex-plugin-cc</a> (+1,532, official OpenAI, letting Claude Code call Codex) plus this week's <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">OmniRoute</a> (+4,411, one endpoint fronting 231+ models) push “agents calling each other / unified routing” to center stage. (2) <strong>the senses layer keeps thickening</strong> — month's #1 <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> (+30,017, “eyes on the whole internet”), today's <a href="https://github.com/alibaba/page-agent" target="_blank" rel="noopener">page-agent</a> (+805, in-page GUI perception), the week/month dual-charting <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">codebase-memory-mcp</a> (memory), and today's <a href="https://github.com/Leonxlnx/taste-skill" target="_blank" rel="noopener">taste-skill</a> (+863, taste) form a “perception + memory + taste” bundle. (3) <strong>security as a new vertical</strong> — <a href="https://github.com/usestrix/strix" target="_blank" rel="noopener">strix</a> charts on the daily (#3, +1,114), weekly (#2, +10,338) and monthly (#7) boards at once, with Anthropic-Cybersecurity-Skills (817 security skills) also on the month board. (4) <strong>a local-first counter-current</strong> — today's <a href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">meetily</a> (#2, 100% local) and <a href="https://github.com/immich-app/immich" target="_blank" rel="noopener">immich</a> (#10, self-hosted) chart on the same day.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:互联走向标准化;安全垂直要「可验证产出」;感官打包为标准插件</span><span lang="en" class="i18n-en">Future: interop standardizes; security verticals need verifiable outputs; senses bundle into standard plug-ins</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 各能力挂载到 agent 核心</span><span lang="en" class="i18n-en">Animated · capabilities mounting onto the agent core</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">interop</span>
+                <span class="ght-chip">security</span>
+                <span class="ght-chip">perception</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">AI Agent<br/>核心</span><span lang="en" class="i18n-en">AI Agent<br/>core</span></span>
+                <span class="ght-chip">memory</span>
+                <span class="ght-chip">taste</span>
+                <span class="ght-chip">on-device</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 同一个 agent 核心,挂上互联、安全、感知、记忆、品味、端侧等模块——下一段的竞争在于哪些模块能标准化成「即插即用」的插件 / MCP。</span><span lang="en" class="i18n-en">▶ The same agent core, fitted with interop, security, perception, memory, taste and on-device modules — the next stretch's contest is which modules standardize into plug-and-play plug-ins / MCPs.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh"><strong>先给 6-30 预测打个诚实分</strong>(逐条对照当日证据):① 「多智能体议会/协作成标配」——✅ 本周 <a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a>(#1,整建制代理公司)+ ai-berkshire(多 agent 对抗式);② 「本地优先继续抬升」——✅ 当日 meetily(#2)、immich(#10)双双在榜;③ 「基础设施走向水电煤」——✅ codebase-memory-mcp(记忆)、OmniRoute(网关)、codex-plugin-cc(互联管道)都在把底座做成默认依赖;④ 「垂直决策 agent 需要可验证战绩」——⚠️ 仍偏早,榜上还没出现「agent + 回测/评测/审计」的爆款。此外 6-30 <strong>低估</strong>了两点:安全垂直(strix 三榜齐登)与跨厂商互联(codex-plugin-cc 直接拿下 #1)。</span><span lang="en" class="i18n-en"><strong>First, an honest scorecard on the 6-30 predictions</strong> (checked line-by-line against today's evidence): ① “multi-agent council/collaboration becomes standard” — ✅ this week's <a href="https://github.com/msitarzewski/agency-agents" target="_blank" rel="noopener">agency-agents</a> (#1, a full agent agency) + ai-berkshire (multi-agent adversarial); ② “local-first keeps rising” — ✅ today's meetily (#2) and immich (#10) both chart; ③ “infrastructure becomes utilities” — ✅ codebase-memory-mcp (memory), OmniRoute (gateway) and codex-plugin-cc (interop plumbing) are all turning the substrate into default dependencies; ④ “vertical decision agents need verifiable track records” — ⚠️ still early, no “agent + backtest/eval/audit” hit on the board yet. 6-30 also <strong>under-weighted</strong> two things: the security vertical (strix charting on all three boards) and cross-vendor interop (codex-plugin-cc taking the outright #1).</span>
+            </p>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">从今天的信号外推,给出可证伪的预测:(1) <strong>跨 agent 互联走向标准化</strong>——继 codex-plugin-cc、OmniRoute 之后,会出现更多「A 调 B」的桥接与统一网关 / MCP 注册表(Codex ↔ Claude Code ↔ Cursor ↔ Gemini);预测两周内日榜至少再出现 1 个互联 / 网关类仓库。(2) <strong>安全垂直需要「可验证产出」</strong>——strix 这类工具要靠可复现的漏洞 PoC、基准分数站稳,只讲方法论的安全清单会快速退潮。(3) <strong>感官(感知/记忆/品味)打包为标准插件</strong>——Agent-Reach、codebase-memory-mcp、taste-skill 会收敛成一组可即插即用的 MCP / 技能包。(4) <strong>本地优先继续抬升</strong>——meetily、immich 这类「数据不出本地」的项目会更频繁登榜;预测两周内日榜至少再出现 1 个端侧/离线 AI 应用。可证伪:未来两周,「互联 + 安全 + 感官」在日榜占比继续上升,而纯提示词/技能合集(如 system_prompts_leaks 类)难以守住 #1。</span><span lang="en" class="i18n-en">Extrapolating from today's signals, here are falsifiable predictions: (1) <strong>cross-agent interop standardizes</strong> — after codex-plugin-cc and OmniRoute, expect more “A calls B” bridges and unified gateways / MCP registries (Codex ↔ Claude Code ↔ Cursor ↔ Gemini); predict at least one more interop/gateway repo on the daily board within two weeks. (2) <strong>security verticals need “verifiable outputs”</strong> — tools like strix will hold up only with reproducible vuln PoCs and benchmark scores, while methodology-only security lists fade fast. (3) <strong>senses (perception/memory/taste) bundle into standard plug-ins</strong> — Agent-Reach, codebase-memory-mcp and taste-skill converge into a plug-and-play set of MCPs / skill packs. (4) <strong>local-first keeps rising</strong> — “data never leaves the device” projects like meetily and immich chart more often; predict at least one more on-device/offline AI app on the daily board within two weeks. Falsifiable: over the next two weeks, “interop + security + senses” rise as a share of the daily board, while pure prompt/skill collections (e.g. system_prompts_leaks-style) struggle to hold #1.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(daily / weekly / monthly)+ GitHub Search API(created:&gt;=2026-01-06 与 created:&gt;=2025-07-06,sort=stars)+ GitHub REST API 校验总 star 数,抓取于 2026-07-06(UTC)。当天/一周/一月 = 窗口内新增 ★;半年/一年 = 该窗口新建仓库的总 ★(破圈新秀代理,非窗口新增)。图片为各仓库 owner 头像与 GitHub OpenGraph 社交卡。</em></span><span lang="en" class="i18n-en"><em>Sources: GitHub Trending (daily / weekly / monthly) + GitHub Search API (created:&gt;=2026-01-06 and created:&gt;=2025-07-06, sort=stars) + GitHub REST API (totals verified), captured 2026-07-06 (UTC). Today/week/month = ★ gained in-window; 6mo/year = total ★ of repos created in that window (a breakout-newcomer proxy, not in-window gain). Images are repo owner avatars and GitHub OpenGraph social cards.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-30 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-06-30 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
 
