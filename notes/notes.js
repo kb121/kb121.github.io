@@ -44,10 +44,10 @@ window.NOTES = [
       en: "Global LLM Leaderboards: Overall / Knowledge / Code",
     },
     summary: {
-      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
-      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+      zh: "2026-06-30 快照(2026-07-09 复核):全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用含 bump 名次图在内的多组动图回顾十年演进。本次变化:Claude Sonnet 5 首次进入智力指数前五。",
+      en: "2026-06-30 snapshot (re-checked 2026-07-09): the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts (incl. a rank bump chart) reviewing a decade of evolution. Change: Claude Sonnet 5 debuts in the intelligence-index top 5.",
     },
-    date: "2026-06-30",
+    date: "2026-07-09",
     tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
   },
   {
