@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "ai-infra-llm-radar-2026-06-22",
+    title: {
+      zh: "AI Infra 与大模型雷达:多窗口热点与趋势",
+      en: "AI Infra & LLM Radar: Multi-window Signals and Trends",
+    },
+    summary: {
+      zh: "2026-07-11 快照:统计 AI Infra 与大模型当天/一周/一月/半年/一年热点,覆盖 vLLM v0.25.0、SGLang v0.5.15、llama.cpp b9966、推理内核、KV cache、agent runtime、控制面和 AI factory 趋势,并用多组 CSS 动图分析历史、当下与未来。",
+      en: "2026-07-11 snapshot: AI Infra and LLM hotspots across day/week/month/half-year/year windows, covering vLLM v0.25.0, SGLang v0.5.15, llama.cpp b9966, inference kernels, KV cache, agent runtimes, control planes, and AI factory trends with animated CSS visuals.",
+    },
+    date: "2026-07-11",
+    tags: ["AI Infra", "LLM", "Inference", "Agent", "Trend Analysis"],
+  },
+  {
     slug: "vllm-gpu-memory-utilization",
     title: {
       zh: "vLLM 的 gpu-memory-utilization 到底管什么(v0.24)",
