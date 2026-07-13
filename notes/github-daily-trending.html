@@ -190,8 +190,8 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-30</span>
-            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Vertical Agents</span><span>Trend Analysis</span></span>
+            <span>2026-07-13</span>
+            <span class="tags"><span>GitHub</span><span>Trending</span><span>Multi-window</span><span>Agent Safety</span><span>Runtime Guardrails</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">GitHub 每日 Top 10 Stars 与技术趋势</span><span lang="en" class="i18n-en">GitHub Daily Top 10 Stars &amp; Tech Trends</span></h1>
         </header>
@@ -209,6 +209,450 @@
             the <h2>/<h3> headings. One day = <h2> date + content + a closing
             <hr>. Never delete older entries.
           -->
+
+            <h2><span lang="zh-CN" class="i18n-zh">2026-07-13 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-07-13 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">用更立体的视角看 GitHub:同时抓取当天、一周、一月的 <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> 榜(按各窗口内新增 stars 排序),再用 GitHub Search API 取「半年内 / 一年内新建、且总 star 最高」的仓库作为「破圈新秀」代理,给出各窗口<strong>前 5</strong> 的图文卡片;并对<strong>当日前 10</strong> 做方向归类与趋势分析(历史 / 当下 / 未来,带证据)。两类指标不同:当天/一周/一月是<strong>窗口内新增 ★</strong>,半年/一年是<strong>该窗口新建仓库的总 ★</strong>,卡片上分别标注。</span><span lang="en" class="i18n-en">A more three-dimensional view of GitHub: I capture the <a href="https://github.com/trending" target="_blank" rel="noopener">Trending</a> boards for today, this week and this month (ranked by stars gained within each window), then use the GitHub Search API for the highest-starred repos <em>created</em> within the last 6 months / 1 year as a “breakout-newcomer” proxy — giving illustrated top-5 cards per window, plus a direction &amp; trend analysis of the <strong>daily top 10</strong> (history / present / future, with evidence). Two metrics differ: today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of repos created in that window</strong> — each labeled on the cards.</span>
+            </p>
+
+            <h3><span lang="zh-CN" class="i18n-zh">五窗口 · 各前 5 名(图文卡片)</span><span lang="en" class="i18n-en">Five windows · top 5 each (illustrated cards)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 窗口越长,头部仓库的体量越大</span><span lang="en" class="i18n-en">Animated · the longer the window, the larger the headline repo</span></div>
+              <div class="ght-horizon" aria-hidden="true">
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">当天</span><span lang="en" class="i18n-en">today</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:4%;background:#22c55e"></div><span class="ght-hz-lab" style="color:var(--text)">Vibe-Trading · +768</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一周</span><span lang="en" class="i18n-en">week</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:14%;background:#f59e0b;animation-delay:.12s"></div><span class="ght-hz-lab">meetily · +7,440</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一月</span><span lang="en" class="i18n-en">month</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:34%;background:#a855f7;animation-delay:.24s"></div><span class="ght-hz-lab">OpenMontage · +32,911</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">半年</span><span lang="en" class="i18n-en">6 mo</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:100%;background:#06b6d4;animation-delay:.36s"></div><span class="ght-hz-lab">LibreCode · 483.2k★</span></div></div>
+                <div class="ght-hz-row"><span class="ght-hz-win"><span lang="zh-CN" class="i18n-zh">一年</span><span lang="en" class="i18n-en">year</span></span><div class="ght-hz-track"><div class="ght-hz-fill" style="width:100%;background:#f59e0b;animation-delay:.48s"></div><span class="ght-hz-lab">LibreCode · 483.2k★</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当天/一周/一月为<strong>窗口内新增 ★</strong>,半年/一年为<strong>新建仓库总 ★</strong>(指标不同,仅示意体量级差)。今天半年榜与一年榜的头名同为 <a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a>(本地 Ollama 编码器),说明「本地优先」的项目正沉淀为跨窗口的头部。</span><span lang="en" class="i18n-en">▶ today/week/month are <strong>★ gained in-window</strong>; 6mo/year are <strong>total ★ of newly-created repos</strong> (different metrics, magnitude only). Today the 6-month and 1-year leaders are the same repo — <a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a> (a local Ollama coder) — showing “local-first” settling into a cross-window headliner.</span></span>
+            </figure>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当天 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">Today · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(daily),按当日新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (daily), ranked by ★ gained today.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/118165258?v=4&amp;s=96" alt="HKUDS avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">HKUDS/Vibe-Trading</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+768</span><span class="ght-pill ght-pill-star">★ 20.5k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「Vibe-Trading」个人交易 agent:把交易策略研究与执行交给智能体的垂直金融应用。</span><span lang="en" class="i18n-en">“Vibe-Trading,” a personal trading agent — a vertical-finance app that hands strategy research and execution to an agent.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#22c55e">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/96521396?v=4&amp;s=96" alt="k1tbyte avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/k1tbyte/Wand-Enhancer" target="_blank" rel="noopener">k1tbyte/Wand-Enhancer</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+609</span><span class="ght-pill ght-pill-star">★ 6.9k</span><span class="ght-card-lang">C#</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">为 Wand(WeMod)桌面应用做的 UX 与互操作增强扩展——经典桌面工具向的常青项目。</span><span lang="en" class="i18n-en">A UX & interoperability enhancer extension for the Wand (WeMod) desktop app — an evergreen desktop-tooling project.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#22c55e">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/6210567?v=4&amp;s=96" alt="malisper avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/malisper/pgrust" target="_blank" rel="noopener">malisper/pgrust</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+518</span><span class="ght-pill ght-pill-star">★ 2.4k</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">用 Rust 重写 Postgres,现已 100% 通过 Postgres 回归测试——系统级常青基建。</span><span lang="en" class="i18n-en">Postgres rewritten in Rust, now passing 100% of the Postgres regression tests — systems-level evergreen infra.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/76263028?v=4&amp;s=96" alt="anthropics avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/anthropics/claude-cookbooks" target="_blank" rel="noopener">anthropics/claude-cookbooks</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+459</span><span class="ght-pill ght-pill-star">★ 48.4k</span><span class="ght-card-lang">Jupyter Notebook</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Anthropic 官方 Claude 用法示例集合(notebooks / recipes)——harness 与技能的「配方书」。</span><span lang="en" class="i18n-en">Anthropic’s official collection of Claude notebooks/recipes — the “cookbook” for harnesses and skills.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ef4444">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/35050222?v=4&amp;s=96" alt="Dicklesworthstone avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">Dicklesworthstone/destructive_command_guard</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+444</span><span class="ght-pill ght-pill-star">★ 2.8k</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「破坏性命令守卫」(dcg):在运行时拦截 agent 要执行的危险 git / shell 命令——今日主角。</span><span lang="en" class="i18n-en">The Destructive Command Guard (dcg): a runtime interceptor that blocks dangerous git/shell commands from being executed by agents — today’s protagonist.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一周 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This week · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(weekly),按本周新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (weekly), ranked by ★ gained this week.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/82556810?v=4&amp;s=96" alt="Zackriya-Solutions avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">Zackriya-Solutions/meetily</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,440</span><span class="ght-pill ght-pill-star">★ 23.6k</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">隐私优先的本地 AI 会议助手:4x 更快转录、说话人分离、Ollama 摘要,100% 本地处理、无需上云。</span><span lang="en" class="i18n-en">A privacy-first, local AI meeting assistant: 4× faster transcription, speaker diarization, Ollama summarization — 100% local, no cloud.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ef4444">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/27446620?v=4&amp;s=96" alt="asgeirtj avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">asgeirtj/system_prompts_leaks</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+7,155</span><span class="ght-pill ght-pill-star">★ 56.7k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">从各大厂商提取的系统提示词合集(Claude / ChatGPT / Gemini / Grok 等),持续更新——彻底透明化。</span><span lang="en" class="i18n-en">Extracted system prompts from major vendors (Claude / ChatGPT / Gemini / Grok…), updated regularly — radical transparency.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/145246968?v=4&amp;s=96" alt="iOfficeAI avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/iOfficeAI/OfficeCLI" target="_blank" rel="noopener">iOfficeAI/OfficeCLI</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+6,978</span><span class="ght-pill ght-pill-star">★ 15.4k</span><span class="ght-card-lang">C#</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">首个面向 AI agent 的 Office 套件:读写与自动化 Word / Excel / PPT,单二进制、无需安装 Office——给 agent 装上「办公室的手」。</span><span lang="en" class="i18n-en">The first Office suite built for AI agents: read/edit/automate Word/Excel/PPT, single binary, no Office install — “hands” for the office.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/8016841?v=4&amp;s=96" alt="diegosouzapw avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">diegosouzapw/OmniRoute</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+4,506</span><span class="ght-pill ght-pill-star">★ 16.2k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">免费 AI 网关:一个端点接 231+ 供应商,连接 Claude Code / Codex / Cursor,压缩省 15–95% token、自动回退。</span><span lang="en" class="i18n-en">A free AI gateway: one endpoint to 231+ providers, connects Claude Code / Codex / Cursor, saves 15–95% tokens with auto-fallback.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/127256420?v=4&amp;s=96" alt="stablyai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/stablyai/orca" target="_blank" rel="noopener">stablyai/orca</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+4,481</span><span class="ght-pill ght-pill-star">★ 16.9k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">并行 agent 舰队的 ADE:用你自己的订阅运行任意编码 agent,桌面与移动端可用。</span><span lang="en" class="i18n-en">The ADE for a fleet of parallel agents: run any coding agent on your own subscription, on desktop and mobile.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一月 · 新增 ★ Top 5</span><span lang="en" class="i18n-en">This month · top 5 by ★ gained</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Trending(monthly),按本月新增 ★ 排序。</span><span lang="en" class="i18n-en">Source: GitHub Trending (monthly), ranked by ★ gained this month.</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/213189893?v=4&amp;s=96" alt="calesthio avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/calesthio/OpenMontage" target="_blank" rel="noopener">calesthio/OpenMontage</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+32,911</span><span class="ght-pill ght-pill-star">★ 37.5k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 agentic 视频生产系统:12 条流水线、52 个工具、500+ 技能,把 AI 编码助手变成视频工作室。</span><span lang="en" class="i18n-en">Open-source agentic video-production system: 12 pipelines, 52 tools, 500+ skills — turning an AI coding assistant into a video studio.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/73925474?v=4&amp;s=96" alt="Panniantong avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Panniantong/Agent-Reach</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+28,973</span><span class="ght-pill ght-pill-star">★ 55.3k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">给 AI agent「看全网的眼睛」:一个 CLI 读取/搜索 Twitter、Reddit、YouTube、GitHub、B 站、小红书,零 API 费用。</span><span lang="en" class="i18n-en">Gives your AI agent “eyes on the whole internet”: one CLI reads/searches Twitter, Reddit, YouTube, GitHub, Bilibili, Xiaohongshu — zero API fees.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/81762164?v=4&amp;s=96" alt="DeusData avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/DeusData/codebase-memory-mcp" target="_blank" rel="noopener">DeusData/codebase-memory-mcp</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+27,178</span><span class="ght-pill ght-pill-star">★ 30.6k</span><span class="ght-card-lang">C</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">高性能代码情报 MCP:把代码库索引成持久知识图谱,毫秒级、158 语言、亚毫秒查询、省 99% token。</span><span lang="en" class="i18n-en">A high-performance code-intelligence MCP: indexes a codebase into a persistent knowledge graph — 158 languages, sub-ms queries, 99% fewer tokens.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#22c55e">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/55937028?v=4&amp;s=96" alt="iptv-org avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org/iptv</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+15,178</span><span class="ght-pill ght-pill-star">★ 132.6k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">全球公开 IPTV 频道合集——与 AI 无关的常青实用清单,月榜稳居前列。</span><span lang="en" class="i18n-en">A collection of publicly-available IPTV channels worldwide — a non-AI evergreen utility list holding high on the monthly board.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#ef4444">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/187630752?v=4&amp;s=96" alt="usestrix avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/usestrix/strix" target="_blank" rel="noopener">usestrix/strix</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">+14,993</span><span class="ght-pill ght-pill-star">★ 40.8k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">开源 AI 渗透测试工具:自动发现并<strong>修复</strong>应用漏洞——安全侧的「找到并修好」。</span><span lang="en" class="i18n-en">An open-source AI penetration-testing tool that finds and <strong>fixes</strong> your app’s vulnerabilities — the “find-and-fix” of the safety side.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">半年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">6 months · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2026-01-13,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2026-01-13, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/261392337?v=4&amp;s=96" alt="re4 avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">re4/LibreCode</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-04</span><span class="ght-pill ght-pill-star">★ 483.2k</span><span class="ght-card-lang">C#</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">本地 Ollama 版、类 Cursor 的编码 / 逆向界面——半年窗口的总星王,主打「本地可跑」。</span><span lang="en" class="i18n-en">A local Ollama-powered, Cursor-like coding/reversing interface — the total-star king of the 6-month window, all local.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-pill ght-pill-star">★ 228.9k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:为 Claude Code / Codex / Cursor 提供技能、直觉、记忆、安全与研究优先开发。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: skills, instincts, memory, security & research-first development for Claude Code / Codex / Cursor.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/272961631?v=4&amp;s=96" alt="ultraworkers avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/ultraworkers/claw-code" target="_blank" rel="noopener">ultraworkers/claw-code</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-03</span><span class="ght-pill ght-pill-star">★ 194.7k</span><span class="ght-card-lang">Rust</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「由 agent 自主运营」的 Rust 项目,几乎无人工干预地开发与维护——自主性前沿。</span><span lang="en" class="i18n-en">An “agent-operated” Rust project, developed and maintained with almost no human intervention — the autonomy frontier.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/254743058?v=4&amp;s=96" alt="multica-ai avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">multica-ai/andrej-karpathy-skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-pill ght-pill-star">★ 191.2k</span><span class="ght-card-lang">Markdown</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个 CLAUDE.md 文件,源自 Andrej Karpathy 对 LLM 编码常见坑的观察,用来改进编码 agent 行为。</span><span lang="en" class="i18n-en">A single CLAUDE.md, derived from Andrej Karpathy’s notes on LLM coding pitfalls, to improve coding-agent behavior.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/28293365?v=4&amp;s=96" alt="mattpocock avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">mattpocock/skills</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-02</span><span class="ght-pill ght-pill-star">★ 166.8k</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Matt Pocock 直接开放自己 .claude 目录里「给真正工程师用的技能」。</span><span lang="en" class="i18n-en">Matt Pocock’s “.claude directory” opened up — “skills for real engineers.”</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h4><span lang="zh-CN" class="i18n-zh">一年 · 新建仓库总 ★ Top 5</span><span lang="en" class="i18n-en">1 year · top 5 by total ★ (created in window)</span></h4>
+            <p class="entry-source"><span lang="zh-CN" class="i18n-zh">数据:GitHub Search:created:&gt;=2025-07-13,按总 ★ 排序(破圈新秀代理)。</span><span lang="en" class="i18n-en">Source: GitHub Search: created:&gt;=2025-07-13, sorted by total ★ (breakout-newcomer proxy).</span></p>
+              <div class="ght-cards">
+                <article class="ght-card" style="--cat:#06b6d4">
+                  <span class="ght-card-rank">1</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/261392337?v=4&amp;s=96" alt="re4 avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">re4/LibreCode</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-04</span><span class="ght-pill ght-pill-star">★ 483.2k</span><span class="ght-card-lang">C#</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">本地 Ollama 版、类 Cursor 的编码 / 逆向界面——一年窗口同样登顶,「本地优先」的代表。</span><span lang="en" class="i18n-en">A local Ollama-powered, Cursor-like coding/reversing interface — also #1 in the 1-year window, a local-first flagship.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#f59e0b">
+                  <span class="ght-card-rank">2</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/252820863?v=4&amp;s=96" alt="openclaw avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw/openclaw</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2025-11</span><span class="ght-pill ght-pill-star">★ 382.7k</span><span class="ght-card-lang">TypeScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">你的私人 AI 助手,任意 OS、任意平台——平台级 agent 的代表作。</span><span lang="en" class="i18n-en">Your own personal AI assistant — any OS, any platform — a platform-scale agent flagship.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">3</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/45416?v=4&amp;s=96" alt="obra avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/obra/superpowers" target="_blank" rel="noopener">obra/superpowers</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2025-10</span><span class="ght-pill ght-pill-star">★ 253.0k</span><span class="ght-card-lang">Shell</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">一个「真正能落地」的 agentic 技能框架 + 软件开发方法论。</span><span lang="en" class="i18n-en">An agentic skills framework & software-development methodology that actually works.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">4</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/124439313?v=4&amp;s=96" alt="affaan-m avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2026-01</span><span class="ght-pill ght-pill-star">★ 228.9k</span><span class="ght-card-lang">JavaScript</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">「agent harness 性能优化系统」:把技能、记忆、安全打包成面向编码 agent 的开发范式。</span><span lang="en" class="i18n-en">“The agent-harness performance-optimization system”: packages skills, memory and security into a development paradigm for coding agents.</span></p>
+                  </div>
+                </article>
+                <article class="ght-card" style="--cat:#a855f7">
+                  <span class="ght-card-rank">5</span>
+                  <img class="ght-card-av" src="https://avatars.githubusercontent.com/u/134168893?v=4&amp;s=96" alt="NousResearch avatar" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <div class="ght-card-body">
+                    <a class="ght-card-nm" href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">NousResearch/hermes-agent</a>
+                    <div class="ght-card-meta"><span class="ght-pill ght-pill-gain">建于 2025-07</span><span class="ght-pill ght-pill-star">★ 213.7k</span><span class="ght-card-lang">Python</span></div>
+                    <p class="ght-card-intro"><span lang="zh-CN" class="i18n-zh">Nous Research 的「会与你一起成长」的 agent——强调记忆与个性化。</span><span lang="en" class="i18n-en">Nous Research’s “agent that grows with you” — emphasizing memory and personalization.</span></p>
+                  </div>
+                </article>
+              </div>
+
+            <h3><span lang="zh-CN" class="i18n-zh">当日 Top 10 · 新增 stars 榜</span><span lang="en" class="i18n-en">Daily Top 10 · stars-gained board</span></h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th><span lang="zh-CN" class="i18n-zh">仓库</span><span lang="en" class="i18n-en">Repo</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">语言</span><span lang="en" class="i18n-en">Lang</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">当日 ★</span><span lang="en" class="i18n-en">★ today</span></th>
+                  <th><span lang="zh-CN" class="i18n-zh">总 ★</span><span lang="en" class="i18n-en">★ total</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">HKUDS/Vibe-Trading</a></td><td>Python</td><td>768</td><td>20.5k</td></tr>
+                <tr><td>2</td><td><a href="https://github.com/k1tbyte/Wand-Enhancer" target="_blank" rel="noopener">k1tbyte/Wand-Enhancer</a></td><td>C#</td><td>609</td><td>6.9k</td></tr>
+                <tr><td>3</td><td><a href="https://github.com/malisper/pgrust" target="_blank" rel="noopener">malisper/pgrust</a></td><td>Rust</td><td>518</td><td>2.4k</td></tr>
+                <tr><td>4</td><td><a href="https://github.com/anthropics/claude-cookbooks" target="_blank" rel="noopener">anthropics/claude-cookbooks</a></td><td>Jupyter Notebook</td><td>459</td><td>48.4k</td></tr>
+                <tr><td>5</td><td><a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">Dicklesworthstone/destructive_command_guard</a></td><td>Rust</td><td>444</td><td>2.8k</td></tr>
+                <tr><td>6</td><td><a href="https://github.com/Shubhamsaboo/awesome-llm-apps" target="_blank" rel="noopener">Shubhamsaboo/awesome-llm-apps</a></td><td>Python</td><td>408</td><td>118.5k</td></tr>
+                <tr><td>7</td><td><a href="https://github.com/home-assistant/core" target="_blank" rel="noopener">home-assistant/core</a></td><td>Python</td><td>400</td><td>89.0k</td></tr>
+                <tr><td>8</td><td><a href="https://github.com/par274/sharpemu" target="_blank" rel="noopener">par274/sharpemu</a></td><td>C#</td><td>314</td><td>1.2k</td></tr>
+                <tr><td>9</td><td><a href="https://github.com/davila7/claude-code-templates" target="_blank" rel="noopener">davila7/claude-code-templates</a></td><td>Python</td><td>274</td><td>29.2k</td></tr>
+                <tr><td>10</td><td><a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">wonderwhy-er/DesktopCommanderMCP</a></td><td>TypeScript</td><td>210</td><td>8.0k</td></tr>
+              </tbody>
+            </table>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日新增 stars 排行(按方向着色)</span><span lang="en" class="i18n-en">Animated · stars gained today (colored by direction)</span></div>
+              <div class="ght-bars" aria-hidden="true">
+                <div class="ght-bar-row"><span class="nm">Vibe-Trading</span><div class="ght-bar-track" style="--w:100.0%"><div class="ght-bar-fill" style="width:100.0%;background:#f59e0b"></div><span class="ght-bar-val">768</span></div></div>
+                <div class="ght-bar-row"><span class="nm">Wand-Enhancer</span><div class="ght-bar-track" style="--w:79.3%"><div class="ght-bar-fill" style="width:79.3%;background:#22c55e"></div><span class="ght-bar-val">609</span></div></div>
+                <div class="ght-bar-row"><span class="nm">pgrust</span><div class="ght-bar-track" style="--w:67.4%"><div class="ght-bar-fill" style="width:67.4%;background:#22c55e"></div><span class="ght-bar-val">518</span></div></div>
+                <div class="ght-bar-row"><span class="nm">claude-cookbooks</span><div class="ght-bar-track" style="--w:59.8%"><div class="ght-bar-fill" style="width:59.8%;background:#f59e0b"></div><span class="ght-bar-val">459</span></div></div>
+                <div class="ght-bar-row"><span class="nm">destructive_command_guard</span><div class="ght-bar-track" style="--w:57.8%"><div class="ght-bar-fill" style="width:57.8%;background:#ef4444"></div><span class="ght-bar-val">444</span></div></div>
+                <div class="ght-bar-row"><span class="nm">awesome-llm-apps</span><div class="ght-bar-track" style="--w:53.1%"><div class="ght-bar-fill" style="width:53.1%;background:#f59e0b"></div><span class="ght-bar-val">408</span></div></div>
+                <div class="ght-bar-row"><span class="nm">home-assistant/core</span><div class="ght-bar-track" style="--w:52.1%"><div class="ght-bar-fill" style="width:52.1%;background:#06b6d4"></div><span class="ght-bar-val">400</span></div></div>
+                <div class="ght-bar-row"><span class="nm">sharpemu</span><div class="ght-bar-track" style="--w:40.9%"><div class="ght-bar-fill" style="width:40.9%;background:#22c55e"></div><span class="ght-bar-val">314</span></div></div>
+                <div class="ght-bar-row"><span class="nm">claude-code-templates</span><div class="ght-bar-track" style="--w:35.7%"><div class="ght-bar-fill" style="width:35.7%;background:#f59e0b"></div><span class="ght-bar-val">274</span></div></div>
+                <div class="ght-bar-row"><span class="nm">DesktopCommanderMCP</span><div class="ght-bar-track" style="--w:27.3%"><div class="ght-bar-fill" style="width:27.3%;background:#a855f7"></div><span class="ght-bar-val">210</span></div></div>
+              </div>
+              <div class="ght-legend">
+                <span><i style="background:#ef4444"></i><span lang="zh-CN" class="i18n-zh">Agent 安全/护栏</span><span lang="en" class="i18n-en">Agent safety/guardrails</span></span>
+                <span><i style="background:#f59e0b"></i><span lang="zh-CN" class="i18n-zh">AI 应用/配方/配置</span><span lang="en" class="i18n-en">AI apps/recipes/config</span></span>
+                <span><i style="background:#a855f7"></i><span lang="zh-CN" class="i18n-zh">Actuation / MCP</span><span lang="en" class="i18n-en">Actuation / MCP</span></span>
+                <span><i style="background:#06b6d4"></i><span lang="zh-CN" class="i18n-zh">本地优先/隐私</span><span lang="en" class="i18n-en">Local-first/privacy</span></span>
+                <span><i style="background:#22c55e"></i><span lang="zh-CN" class="i18n-zh">常青基建/工具</span><span lang="en" class="i18n-en">Evergreen infra/tooling</span></span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 当日前 10 中,<strong>6 个与 AI/agent 相关</strong>(Vibe-Trading、claude-cookbooks、destructive_command_guard、awesome-llm-apps、claude-code-templates、DesktopCommanderMCP),<strong>4 个是与 AI 无关的常青基建/工具</strong>(pgrust、Wand-Enhancer、home-assistant、sharpemu)——「AI vs 常青」几乎五五开。而今天最值得注意的是 #5 <a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a>:一个专门在<strong>运行时</strong>拦截 agent 危险命令的护栏,与 #10 <a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a>(给 agent 终端控制的「手」)同日在榜——「手」和「断路器」一起出现。</span><span lang="en" class="i18n-en">▶ Of today's top 10, <strong>6 are AI/agent-related</strong> (Vibe-Trading, claude-cookbooks, destructive_command_guard, awesome-llm-apps, claude-code-templates, DesktopCommanderMCP) and <strong>4 are non-AI evergreen infra/tooling</strong> (pgrust, Wand-Enhancer, home-assistant, sharpemu) — roughly a 50/50 AI-vs-evergreen split. The standout is #5 <a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a>: a guardrail that intercepts an agent's dangerous commands at <strong>runtime</strong>, charting the same day as #10 <a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a> (the “hands” that give an agent terminal control) — the “hands” and the “circuit-breaker” arriving together.</span></span>
+            </figure>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">图 · 当日 Top 6 仓库社交卡片(GitHub OpenGraph)</span><span lang="en" class="i18n-en">Images · today's Top 6 social cards (GitHub OpenGraph)</span></div>
+              <div class="ght-gallery">
+                <a class="ght-gcard" href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/HKUDS/Vibe-Trading" alt="HKUDS/Vibe-Trading social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">HKUDS/Vibe-Trading · +768 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/k1tbyte/Wand-Enhancer" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/k1tbyte/Wand-Enhancer" alt="k1tbyte/Wand-Enhancer social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">k1tbyte/Wand-Enhancer · +609 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/malisper/pgrust" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/malisper/pgrust" alt="malisper/pgrust social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">malisper/pgrust · +518 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/anthropics/claude-cookbooks" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/anthropics/claude-cookbooks" alt="anthropics/claude-cookbooks social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">anthropics/claude-cookbooks · +459 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/Dicklesworthstone/destructive_command_guard" alt="Dicklesworthstone/destructive_command_guard social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">Dicklesworthstone/destructive_command_guard · +444 ★</span>
+                </a>
+                <a class="ght-gcard" href="https://github.com/Shubhamsaboo/awesome-llm-apps" target="_blank" rel="noopener">
+                  <img src="https://opengraph.githubassets.com/hz20260713/Shubhamsaboo/awesome-llm-apps" alt="Shubhamsaboo/awesome-llm-apps social preview" width="640" height="320" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  <span class="ght-gcap">Shubhamsaboo/awesome-llm-apps · +408 ★</span>
+                </a>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 社交预览卡直观展示了同一天的两条主线:AI/agent 侧(交易 agent / Claude 配方 / 命令护栏 / LLM 应用集)与常青系统侧(Rust 版 Postgres / 桌面工具)。</span><span lang="en" class="i18n-en">▶ The social-preview cards visualize the day's two threads side by side: the AI/agent side (a trading agent / Claude recipes / a command guard / an LLM-apps catalog) and the evergreen-systems side (Postgres-in-Rust / desktop tooling).</span></span>
+            </figure>
+
+            <h3><span lang="zh-CN" class="i18n-zh">技术方向归类(当日前 10)</span><span lang="en" class="i18n-en">Direction breakdown (daily top 10)</span></h3>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 当日 Top 10 方向占比</span><span lang="en" class="i18n-en">Animated · today's Top 10 by direction</span></div>
+              <div class="ght-stack" aria-hidden="true">
+                <div class="ght-seg" style="width:40%;background:#f59e0b">4 · <span lang="zh-CN" class="i18n-zh">AI 应用</span><span lang="en" class="i18n-en">AI apps</span></div>
+                <div class="ght-seg" style="width:30%;background:#22c55e;animation-delay:.16s">3 · <span lang="zh-CN" class="i18n-zh">常青</span><span lang="en" class="i18n-en">evergreen</span></div>
+                <div class="ght-seg" style="width:10%;background:#ef4444;animation-delay:.32s">1</div>
+                <div class="ght-seg" style="width:10%;background:#a855f7;animation-delay:.48s">1</div>
+                <div class="ght-seg" style="width:10%;background:#06b6d4;animation-delay:.64s">1</div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ AI 应用/配方/配置 <strong>4/10</strong>、常青基建/工具 <strong>3/10</strong>、Agent 安全/护栏、Actuation/MCP、本地优先/隐私各 <strong>1/10</strong>。若把安全 + actuation + AI 应用合并看「AI/agent 生态」,则占 <strong>6/10</strong>。</span><span lang="en" class="i18n-en">▶ AI apps/recipes/config <strong>4/10</strong>, evergreen infra/tooling <strong>3/10</strong>, plus agent safety/guardrails, actuation/MCP, and local-first/privacy at <strong>1/10</strong> each. Fold safety + actuation + AI apps into one “AI/agent ecosystem” and it's <strong>6/10</strong>.</span></span>
+            </figure>
+
+            <ul>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Agent 安全 / 护栏 (1/10)</strong>:<a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a>(+444,Rust)——在 agent 真正执行前拦截危险 git / shell 命令的<em>运行时</em>护栏。这是本 log 6-30→今天最关键的新方向:安全从「静态扫描技能」走到了「运行时拦截动作」。</span><span lang="en" class="i18n-en"><strong>Agent safety / guardrails (1/10)</strong>: <a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a> (+444, Rust) — a <em>runtime</em> guard that intercepts dangerous git/shell commands before an agent actually runs them. This is the key new direction since the 6-30 entry: safety moved from “statically scanning skills” to “intercepting actions at runtime.”</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>AI 应用 / 配方 / 配置 (4/10)</strong>:<a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">Vibe-Trading</a>(交易 agent)、<a href="https://github.com/anthropics/claude-cookbooks" target="_blank" rel="noopener">claude-cookbooks</a>(官方配方)、<a href="https://github.com/Shubhamsaboo/awesome-llm-apps" target="_blank" rel="noopener">awesome-llm-apps</a>(100+ 可跑应用)、<a href="https://github.com/davila7/claude-code-templates" target="_blank" rel="noopener">claude-code-templates</a>(配置/监控 CLI)。从垂直应用到「配方 + 配置」的 harness 生态一应俱全。</span><span lang="en" class="i18n-en"><strong>AI apps / recipes / config (4/10)</strong>: <a href="https://github.com/HKUDS/Vibe-Trading" target="_blank" rel="noopener">Vibe-Trading</a> (a trading agent), <a href="https://github.com/anthropics/claude-cookbooks" target="_blank" rel="noopener">claude-cookbooks</a> (official recipes), <a href="https://github.com/Shubhamsaboo/awesome-llm-apps" target="_blank" rel="noopener">awesome-llm-apps</a> (100+ runnable apps), <a href="https://github.com/davila7/claude-code-templates" target="_blank" rel="noopener">claude-code-templates</a> (config/monitoring CLI) — the full harness stack from vertical apps to “recipes + config.”</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>Actuation / MCP (1/10)</strong>:<a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a>(+210,TypeScript)——给 Claude 终端控制、文件搜索与 diff 编辑能力的 MCP server,即 agent 的「手」。它正是 #5 护栏所要保护的对象。</span><span lang="en" class="i18n-en"><strong>Actuation / MCP (1/10)</strong>: <a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a> (+210, TypeScript) — an MCP server giving Claude terminal control, file search and diff editing, i.e. an agent's “hands.” It is exactly what #5's guardrail is built to protect.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>本地优先 / 隐私 (1/10)</strong>:<a href="https://github.com/home-assistant/core" target="_blank" rel="noopener">home-assistant/core</a>(+400,Python)——「本地控制、隐私优先」的开源家庭自动化;把数据留在本地本身就是一种安全策略。</span><span lang="en" class="i18n-en"><strong>Local-first / privacy (1/10)</strong>: <a href="https://github.com/home-assistant/core" target="_blank" rel="noopener">home-assistant/core</a> (+400, Python) — open-source home automation that “puts local control and privacy first”; keeping data on-device is itself a safety strategy.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>常青基建 / 工具 (3/10)</strong>:<a href="https://github.com/malisper/pgrust" target="_blank" rel="noopener">pgrust</a>(Rust 重写 Postgres,过 100% 回归)、<a href="https://github.com/par274/sharpemu" target="_blank" rel="noopener">sharpemu</a>(PS5 模拟器)、<a href="https://github.com/k1tbyte/Wand-Enhancer" target="_blank" rel="noopener">Wand-Enhancer</a>(桌面应用增强)——与 AI 无关的系统/工具类项目依旧占稳约三成。</span><span lang="en" class="i18n-en"><strong>Evergreen infra / tooling (3/10)</strong>: <a href="https://github.com/malisper/pgrust" target="_blank" rel="noopener">pgrust</a> (Postgres-in-Rust passing 100% regressions), <a href="https://github.com/par274/sharpemu" target="_blank" rel="noopener">sharpemu</a> (a PS5 emulator), <a href="https://github.com/k1tbyte/Wand-Enhancer" target="_blank" rel="noopener">Wand-Enhancer</a> (desktop-app enhancer) — non-AI systems/tooling still holds a steady ~30%.</span></li>
+            </ul>
+
+            <h3><span lang="zh-CN" class="i18n-zh">趋势分析(带证据)</span><span lang="en" class="i18n-en">Trend analysis (with evidence)</span></h3>
+
+            <h4><span lang="zh-CN" class="i18n-zh">历史:分发单元不断收缩 → 技能包 → 供应链免疫系统(静态)</span><span lang="en" class="i18n-en">History: the shrinking unit of distribution → skill packs → a supply-chain immune system (static)</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 从「编码 agent」到「运行时护栏」的迁移</span><span lang="en" class="i18n-en">Animated · from “coding agents” to “runtime guardrails”</span></div>
+              <div class="ght-timeline" aria-hidden="true">
+                <div class="ght-stage"><div class="yr">2024–25</div><div class="lb"><span lang="zh-CN" class="i18n-zh">编码 agent / 技能</span><span lang="en" class="i18n-en">Coding agents / skills</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 H1</div><div class="lb"><span lang="zh-CN" class="i18n-zh">技能包 = 分发单元</span><span lang="en" class="i18n-en">Skill pack = unit</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 年中</div><div class="lb"><span lang="zh-CN" class="i18n-zh">静态免疫(扫描/溯源)</span><span lang="en" class="i18n-en">Static immunity</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026-07</div><div class="lb"><span lang="zh-CN" class="i18n-zh">运行时护栏</span><span lang="en" class="i18n-en">Runtime guardrail</span></div></div>
+                <div class="ght-tarrow">→</div>
+                <div class="ght-stage"><div class="yr">2026 →</div><div class="lb"><span lang="zh-CN" class="i18n-zh">策略 / 能力令牌</span><span lang="en" class="i18n-en">Policy / capability</span></div></div>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 沿同一条弧线再走一格:分发单元一路收缩到「技能包」,随后 6 月长出「静态免疫系统」(扫描 / 溯源),如今免疫系统上线到<strong>运行时</strong>——在 agent 动手的一刻拦截危险动作。</span><span lang="en" class="i18n-en">▶ One more step along the same arc: the unit of distribution shrank to the “skill pack,” then in June grew a “static immune system” (scan / provenance), and now that immune system goes <strong>runtime</strong> — intercepting dangerous actions the moment an agent acts.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">长窗口给出最稳的历史证据。<strong>一年榜</strong>前 5 仍是一部「agent 基础设施进化史」:<a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a>(本地编码器,483.2k★)、<a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a>(私人助手平台,382.7k★)、<a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a>(技能框架,253.0k★)、<a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a>(harness 优化系统,228.9k★)、<a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a>(记忆型 agent,213.7k★)。半年榜里 <a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">skills</a>、<a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">andrej-karpathy-skills</a> 更是把「技能包 = 分发单元」坐实。本 log 6-30 的主旋律还是「垂直智能体 / 决策」,而 6 月底至 7 月初这套技能生态开始长出一层<strong>安全/供应链免疫</strong>——ECC 明确把「security」列为支柱,strix 做「找到并修复漏洞」(本月 #5、本周 #7)。这就是今天运行时护栏的直接前身。</span><span lang="en" class="i18n-en">The long windows give the steadiest historical evidence. The <strong>year board</strong>'s top 5 remains a history of agent <em>infrastructure</em>: <a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a> (local coder, 483.2k★), <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener">openclaw</a> (personal-assistant platform, 382.7k★), <a href="https://github.com/obra/superpowers" target="_blank" rel="noopener">superpowers</a> (skills framework, 253.0k★), <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">ECC</a> (harness optimization, 228.9k★), <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener">hermes-agent</a> (memory-centric agent, 213.7k★). On the 6-month board, <a href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">skills</a> and <a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank" rel="noopener">andrej-karpathy-skills</a> cement “skill pack = unit of distribution.” This log's 6-30 theme was still “vertical agents / decisions”; from late June into early July, that skill ecosystem grew a <strong>safety / supply-chain immune</strong> layer — ECC lists “security” as a pillar, and strix does “find and fix vulnerabilities” (month #5, week #7). That is the direct ancestor of today's runtime guardrail.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">当下:agent 长出「手」,于是有人给它接上「断路器」</span><span lang="en" class="i18n-en">Present: agents grow “hands,” so someone bolts on a “circuit-breaker”</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 技能 → 静态扫描 → 运行时护栏 → 动手执行</span><span lang="en" class="i18n-en">Animated · skill → static scan → runtime guard → act</span></div>
+              <svg class="ght-svg" viewBox="0 0 600 130" role="img" aria-label="skill to runtime guardrail chain">
+                <rect class="ght-box" x="2" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="54" y="64" text-anchor="middle">Skill</text><text class="ght-ssub" x="54" y="79" text-anchor="middle">pack</text>
+                <rect class="ght-box" x="150" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="202" y="64" text-anchor="middle">Scan</text><text class="ght-ssub" x="202" y="79" text-anchor="middle">static</text>
+                <rect class="ght-box hot" x="298" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="350" y="64" text-anchor="middle">Guard</text><text class="ght-ssub" x="350" y="79" text-anchor="middle">runtime</text>
+                <rect class="ght-box hot" x="446" y="44" width="104" height="46" rx="9" /><text class="ght-stxt" x="498" y="64" text-anchor="middle">Act</text><text class="ght-ssub" x="498" y="79" text-anchor="middle">with hands</text>
+                <line class="ght-flow" x1="106" y1="67" x2="150" y2="67" stroke="#06b6d4" />
+                <line class="ght-flow" x1="254" y1="67" x2="298" y2="67" stroke="#a855f7" />
+                <line class="ght-flow" x1="402" y1="67" x2="446" y2="67" stroke="#ef4444" />
+                <g class="ght-pkt-move"><circle class="ght-pkt" cx="120" cy="22" r="7" /><text class="ght-ssub" x="120" y="14" text-anchor="middle" fill="#ef4444">cmd</text></g>
+              </svg>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 技能包被分发 → 静态扫描/溯源(6 月)→ 现在多了一道<strong>运行时护栏</strong>拦住危险命令 → 才允许 agent「动手」。护栏(Guard)与动手(Act)是今天的两个热点。</span><span lang="en" class="i18n-en">▶ Skill packs get distributed → statically scanned/attested (June) → now a <strong>runtime guardrail</strong> intercepts dangerous commands → only then does the agent “act.” Guard and Act are today's two hotspots.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">当下最强的信号是:<strong>随着 agent 拿到越来越多「手」,一层运行时安全护栏正在同步长出来</strong>,证据横跨多窗口:(1) <strong>运行时护栏</strong>——当日 #5 <a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a>(+444)明确「在 agent 执行前拦截危险 git/shell 命令」,这与 6 月的<em>静态</em>扫描(SkillSpector 一类)不同,是<em>运行时</em>的断路器。(2) <strong>agent 的「手」在变多</strong>——当日 #10 <a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a>(终端控制)、本周 #3 <a href="https://github.com/iOfficeAI/OfficeCLI" target="_blank" rel="noopener">OfficeCLI</a>(自动化 Office)、本月 #2 <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a>(看全网的眼睛)——手越多,越需要护栏。(3) <strong>透明化与找漏洞</strong>——本周 #2 <a href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">system_prompts_leaks</a>(56.7k★,系统提示词全公开)、本月 #5 <a href="https://github.com/usestrix/strix" target="_blank" rel="noopener">strix</a>(找到并修复漏洞)。(4) <strong>本地优先 = 另一种安全</strong>——本周 #1 <a href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">meetily</a>(100% 本地会议助手)、当日 #7 <a href="https://github.com/home-assistant/core" target="_blank" rel="noopener">home-assistant</a>、半年/一年双榜首 <a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a>(本地 Ollama)。与此同时,常青基建并未退场:当日前 10 有 pgrust、sharpemu、Wand-Enhancer、外加月榜的 iptv,与 AI 侧几乎五五开。</span><span lang="en" class="i18n-en">The strongest present-day signal: <strong>as agents gain more “hands,” a runtime safety guardrail is growing in lockstep</strong>, with evidence across windows: (1) <strong>runtime guardrails</strong> — today's #5 <a href="https://github.com/Dicklesworthstone/destructive_command_guard" target="_blank" rel="noopener">destructive_command_guard</a> (+444) explicitly “blocks dangerous git/shell commands before an agent runs them,” which — unlike June's <em>static</em> scanning (SkillSpector-style) — is a <em>runtime</em> circuit-breaker. (2) <strong>agents' “hands” are multiplying</strong> — today's #10 <a href="https://github.com/wonderwhy-er/DesktopCommanderMCP" target="_blank" rel="noopener">DesktopCommanderMCP</a> (terminal control), this week's #3 <a href="https://github.com/iOfficeAI/OfficeCLI" target="_blank" rel="noopener">OfficeCLI</a> (office automation), this month's #2 <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener">Agent-Reach</a> (eyes on the web) — more hands demand more guardrails. (3) <strong>transparency &amp; vuln-finding</strong> — this week's #2 <a href="https://github.com/asgeirtj/system_prompts_leaks" target="_blank" rel="noopener">system_prompts_leaks</a> (56.7k★, system prompts fully exposed) and this month's #5 <a href="https://github.com/usestrix/strix" target="_blank" rel="noopener">strix</a> (find and fix vulnerabilities). (4) <strong>local-first = another kind of safety</strong> — this week's #1 <a href="https://github.com/Zackriya-Solutions/meetily" target="_blank" rel="noopener">meetily</a> (100% local meeting assistant), today's #7 <a href="https://github.com/home-assistant/core" target="_blank" rel="noopener">home-assistant</a>, and the 6mo/1yr co-leader <a href="https://github.com/re4/LibreCode" target="_blank" rel="noopener">LibreCode</a> (local Ollama). Meanwhile evergreen infra hasn't left: today's top 10 has pgrust, sharpemu, Wand-Enhancer, plus iptv on the monthly board — nearly 50/50 with the AI side.</span>
+            </p>
+
+            <h4><span lang="zh-CN" class="i18n-zh">未来:运行时护栏成为「手」的标配;安全再向「策略/能力令牌」演进</span><span lang="en" class="i18n-en">Future: runtime guardrails become standard next to “hands”; safety advances toward “policy / capability tokens”</span></h4>
+
+            <figure class="ght-fig">
+              <div class="ght-title"><span lang="zh-CN" class="i18n-zh">动图 · 各类安全能力挂载到「可信执行的 agent 核心」</span><span lang="en" class="i18n-en">Animated · safety capabilities mounting onto a “trusted-execution agent core”</span></div>
+              <div class="ght-mount" aria-hidden="true">
+                <span class="ght-chip">guardrail</span>
+                <span class="ght-chip">allow-list</span>
+                <span class="ght-chip">sandbox</span>
+                <span class="ght-core"><span lang="zh-CN" class="i18n-zh">可信执行<br/>agent 核心</span><span lang="en" class="i18n-en">Trusted-exec<br/>agent core</span></span>
+                <span class="ght-chip">policy</span>
+                <span class="ght-chip">audit</span>
+                <span class="ght-chip">kill-switch</span>
+              </div>
+              <span class="ght-cap"><span lang="zh-CN" class="i18n-zh">▶ 同一个 agent 核心,挂上护栏 / 白名单 / 沙箱 / 策略 / 审计 / 急停,就成了「可信执行」的底座;destructive_command_guard 是这一圈里最先跑出来的那块。</span><span lang="en" class="i18n-en">▶ The same agent core, fitted with a guardrail / allow-list / sandbox / policy / audit / kill-switch, becomes a “trusted-execution” substrate; destructive_command_guard is the first piece of that ring to break out.</span></span>
+            </figure>
+
+            <p>
+              <span lang="zh-CN" class="i18n-zh">先给 6-30 预测打个诚实的分:(1)「垂直决策 agent 需要可验证战绩」——<strong>✅ 部分兑现并转向安全</strong>:战绩问题正被「安全/可控」话题接管,strix「找到并修复」、destructive_command_guard「拦住危险动作」都是「让 agent 可被信任」的证据;(2)「多智能体议会成标配」——<strong>⚠️ 偏弱</strong>,当日榜未见议会类;(3)「本地优先继续抬升」——<strong>✅ 兑现</strong>:meetily 周榜第一、home-assistant 日榜、LibreCode 半年/一年双榜首;(4)「基础设施走向水电煤」——<strong>✅ 兑现</strong>:pgrust / codebase-memory-mcp / DesktopCommanderMCP 都在做底座。据此外推,给出新的可证伪预测:(1) <strong>运行时护栏成为「手」的标配</strong>——每个 actuation 工具(MCP / CLI / 桌面)旁边都会配一个 guard / allow-list / sandbox,trending 上会出现更多「MCP + 护栏」「命令白名单」「急停」类仓库。(2) <strong>安全从「运行时拦截」再往「策略 / 能力令牌」走</strong>——出现给 agent 动作签名、下发能力令牌、可审计策略的项目。(3) <strong>本地优先作为安全策略继续抬升</strong>(meetily / home-assistant / LibreCode 一脉)。(4) <strong>常青基建稳占日榜约四成</strong>(Postgres/Rust、模拟器、IPTV、家庭自动化)。可证伪:未来两周,日榜持续出现 <strong>≥1 个 agent 安全/护栏</strong> + <strong>≥1 个 actuation(MCP/CLI/桌面)</strong> + <strong>≥2 个与 AI 无关的常青基建</strong>。</span><span lang="en" class="i18n-en">First, an honest scorecard on the 6-30 predictions: (1) “vertical decision agents need verifiable track records” — <strong>✅ partially, pivoting to safety</strong>: the track-record question is being taken over by “safe/controllable,” with strix's “find-and-fix” and destructive_command_guard's “block dangerous actions” both being evidence for “make the agent trustworthy”; (2) “multi-agent councils become standard” — <strong>⚠️ weak</strong>, no council on the daily board; (3) “local-first keeps rising” — <strong>✅ delivered</strong>: meetily #1 weekly, home-assistant on the daily, LibreCode co-leading 6mo/1yr; (4) “infrastructure becomes utilities” — <strong>✅ delivered</strong>: pgrust / codebase-memory-mcp / DesktopCommanderMCP are all substrate. Extrapolating, new falsifiable predictions: (1) <strong>runtime guardrails become standard next to “hands”</strong> — every actuation tool (MCP / CLI / desktop) gets a paired guard / allow-list / sandbox, and more “MCP + guardrail,” “command allow-list” and “kill-switch” repos appear. (2) <strong>safety advances from “runtime interception” toward “policy / capability tokens”</strong> — projects that sign agent actions, issue capability tokens and enforce auditable policy. (3) <strong>local-first keeps rising as a safety strategy</strong> (the meetily / home-assistant / LibreCode lineage). (4) <strong>evergreen infra holds ~40% of the daily board</strong> (Postgres/Rust, emulators, IPTV, home automation). Falsifiable: over the next two weeks the daily board keeps showing <strong>≥1 agent safety/guardrail</strong> + <strong>≥1 actuation (MCP/CLI/desktop)</strong> + <strong>≥2 non-AI evergreen infra</strong>.</span>
+            </p>
+
+            <p class="entry-source">
+              <span lang="zh-CN" class="i18n-zh"><em>数据来源:GitHub Trending(daily / weekly / monthly)+ GitHub Search API(created:&gt;=2026-01-13 与 created:&gt;=2025-07-13,sort=stars)+ GitHub REST API 校验总 star 数,抓取于 2026-07-13(UTC)。当天/一周/一月 = 窗口内新增 ★;半年/一年 = 该窗口新建仓库的总 ★(破圈新秀代理,非窗口新增)。图片为各仓库 owner 头像与 GitHub OpenGraph 社交卡。</em></span><span lang="en" class="i18n-en"><em>Sources: GitHub Trending (daily / weekly / monthly) + GitHub Search API (created:&gt;=2026-01-13 and created:&gt;=2025-07-13, sort=stars) + GitHub REST API (totals verified), captured 2026-07-13 (UTC). Today/week/month = ★ gained in-window; 6mo/year = total ★ of repos created in that window (a breakout-newcomer proxy, not in-window gain). Images are repo owner avatars and GitHub OpenGraph social cards.</em></span>
+            </p>
+
+            <hr />
 
             <h2><span lang="zh-CN" class="i18n-zh">2026-06-30 — 多窗口榜单(当天 / 一周 / 一月 / 半年 / 一年)</span><span lang="en" class="i18n-en">2026-06-30 — Multi-window boards (today / week / month / 6mo / year)</span></h2>
 
