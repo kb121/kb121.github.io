@@ -44,10 +44,10 @@ window.NOTES = [
       en: "Global LLM Leaderboards: Overall / Knowledge / Code",
     },
     summary: {
-      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
-      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+      zh: "全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),含十年「前十名次」变迁动图。2026-07-13 复核:GPT-5.6 Sol/Terra 上线,智力榜重排、代码分叉赛道。",
+      en: "The world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus a 10-year rank-change animation. Re-checked 2026-07-13: GPT-5.6 Sol/Terra land, re-ranking the intelligence board and forking the code race.",
     },
-    date: "2026-06-30",
+    date: "2026-07-13",
     tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
   },
   {

@@ -32,7 +32,7 @@
     </script>
 
     <title data-zh="全球大模型榜单:综合 / 知识 / 代码 三维排名 — 庄宏" data-en="Global LLM Leaderboards: Overall / Knowledge / Code — Hong Zhuang">全球大模型榜单:综合 / 知识 / 代码 三维排名 — 庄宏</title>
-    <meta name="description" content="2026-06-30 快照:全球排名前十的大语言模型,按综合对话、综合知识、代码能力三类分别排名并标注来源,并用多组动图回顾十年演进。" />
+    <meta name="description" content="2026-06-30 基线、2026-07-13 复核:全球排名前十的大语言模型,按综合对话、综合知识、代码能力三类分别排名并标注来源;含十年「前十名次」变迁动图,GPT-5.6 Sol 上线后重排智力榜。" />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
 
@@ -87,6 +87,16 @@
       .llm-tl-stage .lb { font-size: 0.7rem; color: var(--text); margin-top: 3px; line-height: 1.3; }
       @keyframes llm-light { 0%,3% { opacity: .42; border-style: dashed; transform: translateY(0); } 7%,11% { opacity: 1; border-style: solid; border-color: var(--accent-2); transform: translateY(-3px); } 16%,100% { opacity: .42; border-style: dashed; transform: translateY(0); } }
 
+      /* --- Ten-year rank "bump" chart (SVG polylines drawing in) --- */
+      .llm-bump-svg { width: 100%; max-width: 960px; height: auto; display: block; margin: 4px auto 0; }
+      .llm-bump-grid line { stroke: var(--border); stroke-width: 1; }
+      .llm-bump-axis { font-family: var(--font-mono); font-size: 12px; fill: var(--text-muted); }
+      .llm-bump-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2200; stroke-dashoffset: 2200; animation: llm-bump-draw 2.4s ease forwards; }
+      @keyframes llm-bump-draw { to { stroke-dashoffset: 0; } }
+      .llm-bump-dot { opacity: 0; animation: llm-bump-in .01s linear forwards; }
+      @keyframes llm-bump-in { to { opacity: 1; } }
+      .llm-bump-end { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; }
+
       /* --- Two-column compare (code: SWE-bench vs LiveCodeBench) --- */
       .llm-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 
@@ -95,6 +105,8 @@
         .llm-bar-fill, .llm-seg { transform: scaleX(1); }
         .llm-tl-stage { opacity: 1; }
         .llm-bar-val { opacity: 1; }
+        .llm-bump-line { stroke-dashoffset: 0 !important; animation: none !important; }
+        .llm-bump-dot, .llm-bump-end { opacity: 1 !important; animation: none !important; }
       }
     </style>
   </head>
@@ -136,7 +148,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-06-30</span>
+            <span>2026-07-13</span>
             <span class="tags"><span>LLM</span><span>Leaderboard</span><span>Benchmarks</span><span>Coding</span><span>Trend Analysis</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">全球大模型榜单:综合 / 知识 / 代码 三维排名</span><span lang="en" class="i18n-en">Global LLM Leaderboards: Overall / Knowledge / Code</span></h1>
@@ -149,8 +161,8 @@
           </p>
 
           <blockquote>
-            <span lang="zh-CN" class="i18n-zh"><strong>口径与免责声明:</strong>数值为 <strong>2026-06-30(UTC)快照</strong>,前沿每天都在变;分数四舍五入、版本名在前沿层略有出入。请以正文链接的官方榜单为准。</span>
-            <span lang="en" class="i18n-en"><strong>Scope &amp; disclaimer:</strong> figures are a <strong>2026-06-30 (UTC) snapshot</strong>; the frontier shifts daily. Scores are rounded and version names vary slightly at the frontier tier. Always defer to the official boards linked inline.</span>
+            <span lang="zh-CN" class="i18n-zh"><strong>口径与免责声明:</strong>本笔记以 <strong>2026-06-30(UTC)</strong> 为基线,并于 <strong>2026-07-13 复核</strong>。本次唯一的实质变化在 <strong>② 综合智力与知识</strong>——<strong>GPT-5.6 Sol / Terra</strong> 已上线并占据榜单前列,该榜已重排;<strong>① 综合对话</strong> 与 <strong>③ 代码</strong> 维持 06-30 主图,并各加一段 <strong>2026-07-13 增补</strong>(附最新来源)。前沿每天都在变、分数四舍五入、版本名在前沿层略有出入,请以正文链接的官方榜单为准。</span>
+            <span lang="en" class="i18n-en"><strong>Scope &amp; disclaimer:</strong> this note uses a <strong>2026-06-30 (UTC)</strong> baseline, <strong>re-checked on 2026-07-13</strong>. The only substantive change this time is in <strong>② intelligence &amp; knowledge</strong> — <strong>GPT-5.6 Sol / Terra</strong> have landed and now occupy the top of that board, which is re-ranked; <strong>① overall conversation</strong> and <strong>③ code</strong> keep their 06-30 main charts, each with a short <strong>2026-07-13 addendum</strong> (with the latest sources). The frontier shifts daily, scores are rounded, and version names vary slightly at the frontier tier — always defer to the official boards linked inline.</span>
           </blockquote>
 
           <h2><span lang="zh-CN" class="i18n-zh">概览:三张榜 + 十大厂商</span><span lang="en" class="i18n-en">Overview: three boards + the ten labs</span></h2>
@@ -162,7 +174,7 @@
 
           <div class="llm-labs">
             <div class="llm-lab" style="--lab:#d97757"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/76263028?v=4&amp;s=96" alt="Anthropic logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Anthropic</div><div class="llm-lab-model">Claude Opus 4.8 · Fable 5</div></div></div>
-            <div class="llm-lab" style="--lab:#10a37f"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/14957082?v=4&amp;s=96" alt="OpenAI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">OpenAI</div><div class="llm-lab-model">GPT-5.5 · GPT-5.3 Codex</div></div></div>
+            <div class="llm-lab" style="--lab:#10a37f"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/14957082?v=4&amp;s=96" alt="OpenAI logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">OpenAI</div><div class="llm-lab-model">GPT-5.6 Sol · GPT-5.3 Codex</div></div></div>
             <div class="llm-lab" style="--lab:#4285f4"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/8596759?v=4&amp;s=96" alt="Google DeepMind logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Google DeepMind</div><div class="llm-lab-model">Gemini 3.1 Pro · 3.5 Flash</div></div></div>
             <div class="llm-lab" style="--lab:#ec4899"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/148330874?v=4&amp;s=96" alt="DeepSeek logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">DeepSeek</div><div class="llm-lab-model">DeepSeek V4 Pro / V4.1 Pro</div></div></div>
             <div class="llm-lab" style="--lab:#9333ea"><img class="llm-lab-av" src="https://avatars.githubusercontent.com/u/141221163?v=4&amp;s=96" alt="Qwen / Alibaba logo" width="38" height="38" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><div class="llm-lab-body"><div class="llm-lab-nm">Alibaba · Qwen</div><div class="llm-lab-model">Qwen 3.7 Max</div></div></div>
@@ -211,25 +223,30 @@
             <span lang="en" class="i18n-en">Note: Anthropic's newly released <strong>Claude Fable 5</strong> tops several boards, but availability is limited at launch (it frequently falls back to Opus 4.8), so the “daily-usable” overall #1 is usually <strong>Claude Opus 4.8 / GPT-5.5 Pro</strong>.</span>
           </p>
 
+          <blockquote>
+            <span lang="zh-CN" class="i18n-zh"><strong>2026-07-13 增补:</strong>最新的 <a href="https://arena.ai/leaderboard/text" target="_blank" rel="noopener">arena.ai 文本榜</a>(2026-07-10 快照,374 个模型)已由 <strong>Claude Fable 5(1509)</strong> 登顶,其后是一串 <strong>Claude Opus 4.6/4.7</strong>(1494–1504);新面孔包括 <strong>Meta muse-spark</strong>(≈1488,预备名次)、<strong>Gemini 3.1 Pro Preview / 3-pro</strong>(≈1486)与 <strong>GPT-5.6 Sol (xhigh)</strong>(1486),GPT-5.5 (high) 收尾于第 10(1481)。第 1 到第 10 仅差 ≈28 Elo,仍是「同一档、按场景与成本选型」。不同镜像口径互有出入(如 <a href="https://www.swfte.com/lmarena" target="_blank" rel="noopener">swfte.com</a> 给出 GPT-5.6 New ≈1514、Gemini 3.2 Pro ≈1508),以官方 <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">lmarena.ai</a> 为准。</span>
+            <span lang="en" class="i18n-en"><strong>2026-07-13 addendum:</strong> the latest <a href="https://arena.ai/leaderboard/text" target="_blank" rel="noopener">arena.ai text board</a> (2026-07-10 snapshot, 374 models) is now led by <strong>Claude Fable 5 (1509)</strong>, trailed by a run of <strong>Claude Opus 4.6/4.7</strong> (1494–1504); new faces include <strong>Meta muse-spark</strong> (≈1488, preliminary), <strong>Gemini 3.1 Pro Preview / 3-pro</strong> (≈1486) and <strong>GPT-5.6 Sol (xhigh)</strong> (1486), with GPT-5.5 (high) closing the top 10 at 1481. The #1→#10 gap is just ≈28 Elo — still “one tier, pick by task and cost.” Mirrors disagree (e.g. <a href="https://www.swfte.com/lmarena" target="_blank" rel="noopener">swfte.com</a> lists GPT-5.6 New ≈1514, Gemini 3.2 Pro ≈1508); defer to the official <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">lmarena.ai</a>.</span>
+          </blockquote>
+
           <h2><span lang="zh-CN" class="i18n-zh">② 综合智力与知识(Artificial Analysis)</span><span lang="en" class="i18n-en">② Intelligence &amp; knowledge (Artificial Analysis)</span></h2>
 
           <p>
-            <span lang="zh-CN" class="i18n-zh">「综合知识/智力」最常用的复合指标是 <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a>(v4.1),它把 10 个硬基准(含知识类的 <strong>GPQA Diamond</strong>、<strong>Humanity's Last Exam</strong>、知识与幻觉的 <strong>AA-Omniscience</strong>,以及 GDPval-AA 等 agentic 任务)加权成一个分数。</span>
-            <span lang="en" class="i18n-en">The most-used composite for “intelligence/knowledge” is the <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a> (v4.1), weighting 10 hard benchmarks — including knowledge ones (<strong>GPQA Diamond</strong>, <strong>Humanity's Last Exam</strong>, the knowledge-and-hallucination <strong>AA-Omniscience</strong>) and agentic tasks like GDPval-AA — into a single score.</span>
+            <span lang="zh-CN" class="i18n-zh">「综合知识/智力」最常用的复合指标是 <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a>(v4.1),它把 9 个硬基准(GDPval-AA v2、𝜏³-Banking、Terminal-Bench v2.1、SciCode、<strong>Humanity's Last Exam</strong>、<strong>GPQA Diamond</strong>、CritPt、知识与幻觉的 <strong>AA-Omniscience</strong>、AA-LCR)加权成一个分数。</span>
+            <span lang="en" class="i18n-en">The most-used composite for “intelligence/knowledge” is the <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index</a> (v4.1), weighting 9 hard benchmarks (GDPval-AA v2, 𝜏³-Banking, Terminal-Bench v2.1, SciCode, <strong>Humanity's Last Exam</strong>, <strong>GPQA Diamond</strong>, CritPt, the knowledge-and-hallucination <strong>AA-Omniscience</strong>, AA-LCR) into a single score.</span>
           </p>
 
           <figure class="llm-fig">
-            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · Artificial Analysis 智力指数 Top 10(分数越高越聪明)</span><span lang="en" class="i18n-en">Animated · Artificial Analysis Intelligence Index Top 10 (higher = smarter)</span></div>
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · Artificial Analysis 智力指数 Top 10(2026-07-13 重排,分数越高越聪明)</span><span lang="en" class="i18n-en">Animated · Artificial Analysis Intelligence Index Top 10 (re-ranked 2026-07-13, higher = smarter)</span></div>
             <div class="llm-bars" aria-hidden="true">
               <div class="llm-bar-row"><span class="nm">1 · Claude Fable 5 — Anthropic</span><div class="llm-bar-track" style="--w:100%"><div class="llm-bar-fill" style="width:100%;background:#d97757"></div><span class="llm-bar-val">60 · 可用性受限</span></div></div>
-              <div class="llm-bar-row"><span class="nm">2 · Claude Opus 4.8 (max) — Anthropic</span><div class="llm-bar-track" style="--w:80%"><div class="llm-bar-fill" style="width:80%;background:#d97757"></div><span class="llm-bar-val">56 · 可用最强</span></div></div>
-              <div class="llm-bar-row"><span class="nm">3 · GPT-5.5 (xhigh) — OpenAI</span><div class="llm-bar-track" style="--w:75%"><div class="llm-bar-fill" style="width:75%;background:#10a37f"></div><span class="llm-bar-val">55</span></div></div>
-              <div class="llm-bar-row"><span class="nm">4 · Claude Opus 4.7 (max) — Anthropic</span><div class="llm-bar-track" style="--w:70%"><div class="llm-bar-fill" style="width:70%;background:#d97757"></div><span class="llm-bar-val">54</span></div></div>
-              <div class="llm-bar-row"><span class="nm">5 · GPT-5.5 (high) — OpenAI</span><div class="llm-bar-track" style="--w:65%"><div class="llm-bar-fill" style="width:65%;background:#10a37f"></div><span class="llm-bar-val">53</span></div></div>
-              <div class="llm-bar-row"><span class="nm">6 · GLM-5.2 (max) — Zhipu</span><div class="llm-bar-track" style="--w:60%"><div class="llm-bar-fill" style="width:60%;background:#06b6d4"></div><span class="llm-bar-val">≈52</span></div></div>
-              <div class="llm-bar-row"><span class="nm">7 · Gemini 3.5 Flash — Google</span><div class="llm-bar-track" style="--w:55%"><div class="llm-bar-fill" style="width:55%;background:#4285f4"></div><span class="llm-bar-val">≈51</span></div></div>
-              <div class="llm-bar-row"><span class="nm">8 · Claude Sonnet 4.6 (max) — Anthropic</span><div class="llm-bar-track" style="--w:50%"><div class="llm-bar-fill" style="width:50%;background:#d97757"></div><span class="llm-bar-val">≈50</span></div></div>
-              <div class="llm-bar-row"><span class="nm">9 · Gemini 3.1 Pro Preview — Google</span><div class="llm-bar-track" style="--w:45%"><div class="llm-bar-fill" style="width:45%;background:#4285f4"></div><span class="llm-bar-val">≈49</span></div></div>
+              <div class="llm-bar-row"><span class="nm">2 · GPT-5.6 Sol (max) — OpenAI</span><div class="llm-bar-track" style="--w:95%"><div class="llm-bar-fill" style="width:95%;background:#10a37f"></div><span class="llm-bar-val">59 · 可用最强·约1/3成本·新</span></div></div>
+              <div class="llm-bar-row"><span class="nm">3 · GPT-5.6 Sol (xhigh) — OpenAI</span><div class="llm-bar-track" style="--w:90%"><div class="llm-bar-fill" style="width:90%;background:#10a37f"></div><span class="llm-bar-val">58 · 新</span></div></div>
+              <div class="llm-bar-row"><span class="nm">4 · GPT-5.6 Sol (high) — OpenAI</span><div class="llm-bar-track" style="--w:80%"><div class="llm-bar-fill" style="width:80%;background:#10a37f"></div><span class="llm-bar-val">56 · 新</span></div></div>
+              <div class="llm-bar-row"><span class="nm">5 · Claude Opus 4.8 (max) — Anthropic</span><div class="llm-bar-track" style="--w:80%"><div class="llm-bar-fill" style="width:80%;background:#d97757"></div><span class="llm-bar-val">56</span></div></div>
+              <div class="llm-bar-row"><span class="nm">6 · GPT-5.6 Terra (max) — OpenAI</span><div class="llm-bar-track" style="--w:75%"><div class="llm-bar-fill" style="width:75%;background:#10a37f"></div><span class="llm-bar-val">55 · 新</span></div></div>
+              <div class="llm-bar-row"><span class="nm">7 · GPT-5.5 (xhigh) — OpenAI</span><div class="llm-bar-track" style="--w:75%"><div class="llm-bar-fill" style="width:75%;background:#10a37f"></div><span class="llm-bar-val">55</span></div></div>
+              <div class="llm-bar-row"><span class="nm">8 · GLM-5.2 (max) — Zhipu</span><div class="llm-bar-track" style="--w:60%"><div class="llm-bar-fill" style="width:60%;background:#06b6d4"></div><span class="llm-bar-val">≈52</span></div></div>
+              <div class="llm-bar-row"><span class="nm">9 · Gemini 3.5 Flash — Google</span><div class="llm-bar-track" style="--w:50%"><div class="llm-bar-fill" style="width:50%;background:#4285f4"></div><span class="llm-bar-val">≈50</span></div></div>
               <div class="llm-bar-row"><span class="nm">10 · DeepSeek V4 Pro (max) — DeepSeek</span><div class="llm-bar-track" style="--w:20%"><div class="llm-bar-fill" style="width:20%;background:#ec4899"></div><span class="llm-bar-val">44 · 开放权重最强</span></div></div>
             </div>
             <div class="llm-legend">
@@ -239,12 +256,12 @@
               <span><i style="background:#06b6d4"></i>Zhipu</span>
               <span><i style="background:#ec4899"></i>DeepSeek</span>
             </div>
-            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 智力指数榜单上 Anthropic 占据头部:<strong>Claude Fable 5(60)</strong>领先,但可用性受限;<strong>可日常使用的最强是 Claude Opus 4.8(56)</strong>,GPT-5.5(xhigh)以 55 紧随。开放权重一侧 <strong>DeepSeek V4 Pro(44)</strong>领跑(条形以 40 为基线)。来源:<a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1。</span><span lang="en" class="i18n-en">▶ Anthropic owns the head of the Intelligence Index: <strong>Claude Fable 5 (60)</strong> leads but is availability-limited; the <strong>strongest daily-usable model is Claude Opus 4.8 (56)</strong>, with GPT-5.5 (xhigh) close at 55. On open weights, <strong>DeepSeek V4 Pro (44)</strong> leads (bars use a baseline of 40). Source: <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1.</span></span>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ <strong>GPT-5.6 Sol 上线后大洗牌</strong>:<strong>Claude Fable 5(60)</strong>仍居榜首但可用性受限;<strong>可日常使用的最强变成 GPT-5.6 Sol (max)(59),且成本约为 Fable 5 的 1/3</strong>。OpenAI 一口气占据前 7 名里的 5 席(Sol max/xhigh/high + Terra + GPT-5.5)。开放权重一侧 <strong>DeepSeek V4 Pro(44)</strong>领跑(条形以 40 为基线)。来源:<a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1 +<a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener"> the-decoder</a>(2026-07-13)。</span><span lang="en" class="i18n-en">▶ <strong>A big reshuffle after GPT-5.6 Sol landed</strong>: <strong>Claude Fable 5 (60)</strong> still leads but is availability-limited; the <strong>strongest daily-usable model is now GPT-5.6 Sol (max) (59), at roughly one-third of Fable 5's cost</strong>. OpenAI takes 5 of the top 7 (Sol max/xhigh/high + Terra + GPT-5.5). On open weights, <strong>DeepSeek V4 Pro (44)</strong> leads (bars use a baseline of 40). Sources: <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index" target="_blank" rel="noopener">artificialanalysis.ai</a> Intelligence Index v4.1 +<a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener"> the-decoder</a> (2026-07-13).</span></span>
           </figure>
 
           <p>
-            <span lang="zh-CN" class="i18n-zh"><strong>单看「知识」</strong>:Artificial Analysis 的知识与幻觉基准 <strong>AA-Omniscience</strong> 由 <strong>Claude Fable 5(40 分)</strong>领跑,较前任领头羊 Gemini 3.1 Pro Preview(33)高出 7 分,且主要来自更高的正确率而非更低的幻觉。这与「研究生级科学问答」<strong>GPQA Diamond</strong> 和超难综合知识考 <strong>Humanity's Last Exam</strong> 的趋势一致——头部依旧是 Anthropic / OpenAI / Google 三家轮流刷新。</span>
-            <span lang="en" class="i18n-en"><strong>On knowledge alone:</strong> Artificial Analysis's knowledge-and-hallucination benchmark <strong>AA-Omniscience</strong> is led by <strong>Claude Fable 5 (40)</strong>, +7 over the previous leader Gemini 3.1 Pro Preview (33), driven mainly by higher accuracy rather than lower hallucination. That tracks with graduate-level science QA (<strong>GPQA Diamond</strong>) and the ultra-hard <strong>Humanity's Last Exam</strong> — the head is still Anthropic / OpenAI / Google trading record scores.</span>
+            <span lang="zh-CN" class="i18n-zh"><strong>单看「知识」</strong>:Artificial Analysis 的知识与幻觉基准 <strong>AA-Omniscience</strong> 仍由 <strong>Claude Fable 5(40 分)</strong>领跑,较前任领头羊 Gemini 3.1 Pro Preview(33)高出 7 分,且主要来自更高的正确率而非更低的幻觉。这与「研究生级科学问答」<strong>GPQA Diamond</strong> 和超难综合知识考 <strong>Humanity's Last Exam</strong> 的趋势一致——头部依旧是 Anthropic / OpenAI / Google 三家轮流刷新。值得注意的是:GPT-5.6 Sol 虽在<strong>综合</strong>智力上逼平 Fable 5(59 vs 60)且只花约 1/3 成本,但在<strong>纯知识</strong>这一分项上,Fable 5 仍保住头名——「综合最强」与「知识最强」正在再次分家。</span>
+            <span lang="en" class="i18n-en"><strong>On knowledge alone:</strong> Artificial Analysis's knowledge-and-hallucination benchmark <strong>AA-Omniscience</strong> is still led by <strong>Claude Fable 5 (40)</strong>, +7 over the previous leader Gemini 3.1 Pro Preview (33), driven mainly by higher accuracy rather than lower hallucination. That tracks with graduate-level science QA (<strong>GPQA Diamond</strong>) and the ultra-hard <strong>Humanity's Last Exam</strong> — the head is still Anthropic / OpenAI / Google trading record scores. Notably, while GPT-5.6 Sol ties Fable 5 on <strong>aggregate</strong> intelligence (59 vs 60) at ~⅓ the cost, Fable 5 keeps the crown on the <strong>pure-knowledge</strong> sub-score — “best overall” and “best on knowledge” are splitting apart again.</span>
           </p>
 
           <h2><span lang="zh-CN" class="i18n-zh">③ 代码能力(SWE-bench × LiveCodeBench)</span><span lang="en" class="i18n-en">③ Code ability (SWE-bench × LiveCodeBench)</span></h2>
@@ -291,12 +308,105 @@
             <span lang="en" class="i18n-en">This pairing is the most informative chart here: <strong>“can do algorithms” ≠ “can do engineering.”</strong> Anthropic's Claude leads by a wide margin on <strong>multi-step, tool-using, large-repo real engineering</strong> (the SWE-bench top 4 are all Claude); while open-weights models like DeepSeek, Qwen and Kimi <strong>overtake the closed frontier on clean competitive problems</strong> (the LiveCodeBench top 6). Selection rule: for <em>coding agents / real-repo changes</em> pick the Claude family; for <em>contests/algorithms/self-hosted &amp; cheap</em> pick DeepSeek / Qwen.</span>
           </p>
 
+          <blockquote>
+            <span lang="zh-CN" class="i18n-zh"><strong>2026-07-13 增补:</strong>代码这块出现「分叉赛道」。在 Artificial Analysis 新推出的 <strong>Coding Agent Index</strong> 上,<strong>GPT-5.6 Sol(在 OpenAI Codex 环境里)以 80 分登顶</strong>,领先 GPT-5.6 Terra(77)、Claude Fable 5(在 Claude Code 里,77)与 GPT-5.5(Codex,76);它在 <strong>Terminal-Bench v2.1</strong> 等「终端/agent 化」评测上也领先。<strong>但真实大仓库工程</strong>(SWE-bench Verified)仍由 <strong>Claude Fable 5(≈95%)</strong>把持。所以结论细化为:<em>终端 / agent 化编码</em> → GPT-5.6 Sol(Codex);<em>大仓库真实软件工程</em> → Claude 系;<em>竞赛算法</em> → DeepSeek / Qwen。来源:<a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener">the-decoder</a> 引 Artificial Analysis Coding Agent Index、<a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a>(2026-07-13)。</span>
+            <span lang="en" class="i18n-en"><strong>2026-07-13 addendum:</strong> code has forked into two tracks. On Artificial Analysis's new <strong>Coding Agent Index</strong>, <strong>GPT-5.6 Sol (in OpenAI's Codex harness) tops the chart at 80</strong>, ahead of GPT-5.6 Terra (77), Claude Fable 5 (in Claude Code, 77) and GPT-5.5 (Codex, 76); it also leads “terminal/agentic” evals like <strong>Terminal-Bench v2.1</strong>. <strong>But real large-repo engineering</strong> (SWE-bench Verified) is still held by <strong>Claude Fable 5 (≈95%)</strong>. So the rule sharpens: <em>terminal / agentic coding</em> → GPT-5.6 Sol (Codex); <em>big-repo real software engineering</em> → the Claude family; <em>competitive algorithms</em> → DeepSeek / Qwen. Sources: <a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener">the-decoder</a> citing the Artificial Analysis Coding Agent Index, and <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> (2026-07-13).</span>
+          </blockquote>
+
           <h2><span lang="zh-CN" class="i18n-zh">④ 十年演进(动图)</span><span lang="en" class="i18n-en">④ Ten-year evolution (animated)</span></h2>
 
           <p>
-            <span lang="zh-CN" class="i18n-zh">把镜头拉到十年尺度:从 2017 年的 Transformer 论文,到今天彼此咬合的前沿,「排名前列的模型」换了好几拨主角。下面第一张图是<strong>十年里程碑时间线</strong>(逐年点亮),第二张是<strong>「领跑者」更替的接力棒</strong>。</span>
-            <span lang="en" class="i18n-en">Zoom out to a decade: from the 2017 Transformer paper to today's interlocked frontier, the “leading models” changed protagonists several times. Below, the first chart is a <strong>ten-year milestone timeline</strong> (lighting up year by year), the second a <strong>leadership relay</strong> of who set the pace.</span>
+            <span lang="zh-CN" class="i18n-zh">把镜头拉到十年尺度:从 2017 年的 Transformer 论文,到今天彼此咬合的前沿,「排名前列的模型」换了好几拨主角。这里用<strong>三张动图</strong>来看:第一张是<strong>「前十名次」的十年变迁图</strong>(各主导厂商逐年名次的折线,边画边点亮),第二张是<strong>十年里程碑时间线</strong>(逐年点亮),第三张是<strong>「领跑者」更替的接力棒</strong>。</span>
+            <span lang="en" class="i18n-en">Zoom out to a decade: from the 2017 Transformer paper to today's interlocked frontier, the “leading models” changed protagonists several times. We use <strong>three animated charts</strong>: first a <strong>ten-year rank-change (“bump”) chart</strong> of each leading lab's year-by-year position (polylines that draw and light up), second a <strong>ten-year milestone timeline</strong> (lighting up year by year), and third a <strong>leadership relay</strong> of who set the pace.</span>
           </p>
+
+          <figure class="llm-fig">
+            <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年「前十名次」变迁:主导厂商逐年排名(折线边画边点亮)</span><span lang="en" class="i18n-en">Animated · ten-year rank changes of the leading labs (polylines drawing &amp; lighting up)</span></div>
+              <svg class="llm-bump-svg" viewBox="0 0 960 430" role="img" aria-label="ten-year rank changes of top model families">
+                <g class="llm-bump-grid">
+                  <line x1="70" y1="44.0" x2="784" y2="44.0" />
+                  <line x1="70" y1="82.7" x2="784" y2="82.7" />
+                  <line x1="70" y1="121.3" x2="784" y2="121.3" />
+                  <line x1="70" y1="160.0" x2="784" y2="160.0" />
+                  <line x1="70" y1="198.7" x2="784" y2="198.7" />
+                  <line x1="70" y1="237.4" x2="784" y2="237.4" />
+                  <line x1="70" y1="276.0" x2="784" y2="276.0" />
+                  <line x1="70" y1="314.7" x2="784" y2="314.7" />
+                  <line x1="70" y1="353.4" x2="784" y2="353.4" />
+                  <line x1="70" y1="392.0" x2="784" y2="392.0" />
+                </g>
+                <text class="llm-bump-axis" x="56" y="48.0" text-anchor="end">#1</text>
+                <text class="llm-bump-axis" x="56" y="86.7" text-anchor="end">#2</text>
+                <text class="llm-bump-axis" x="56" y="125.3" text-anchor="end">#3</text>
+                <text class="llm-bump-axis" x="56" y="164.0" text-anchor="end">#4</text>
+                <text class="llm-bump-axis" x="56" y="202.7" text-anchor="end">#5</text>
+                <text class="llm-bump-axis" x="56" y="241.4" text-anchor="end">#6</text>
+                <text class="llm-bump-axis" x="56" y="280.0" text-anchor="end">#7</text>
+                <text class="llm-bump-axis" x="56" y="318.7" text-anchor="end">#8</text>
+                <text class="llm-bump-axis" x="56" y="357.4" text-anchor="end">#9</text>
+                <text class="llm-bump-axis" x="56" y="396.0" text-anchor="end">#10</text>
+                <text class="llm-bump-axis" x="70.0" y="418" text-anchor="middle">2017</text>
+                <text class="llm-bump-axis" x="149.3" y="418" text-anchor="middle">2018</text>
+                <text class="llm-bump-axis" x="228.7" y="418" text-anchor="middle">2019</text>
+                <text class="llm-bump-axis" x="308.0" y="418" text-anchor="middle">2020</text>
+                <text class="llm-bump-axis" x="387.3" y="418" text-anchor="middle">2021</text>
+                <text class="llm-bump-axis" x="466.6" y="418" text-anchor="middle">2022</text>
+                <text class="llm-bump-axis" x="546.0" y="418" text-anchor="middle">2023</text>
+                <text class="llm-bump-axis" x="625.3" y="418" text-anchor="middle">2024</text>
+                <text class="llm-bump-axis" x="704.6" y="418" text-anchor="middle">2025</text>
+                <text class="llm-bump-axis" x="784.0" y="418" text-anchor="middle">2026</text>
+                <polyline class="llm-bump-line" points="70.0,44.0 149.3,44.0 228.7,82.7 308.0,82.7 387.3,82.7 466.6,82.7 546.0,121.3 625.3,121.3 704.6,160.0 784.0,160.0" stroke="#4285f4" />
+                <polyline class="llm-bump-line" points="149.3,82.7 228.7,44.0 308.0,44.0 387.3,44.0 466.6,44.0 546.0,44.0 625.3,44.0 704.6,82.7 784.0,82.7" stroke="#10a37f" />
+                <polyline class="llm-bump-line" points="387.3,121.3 466.6,121.3 546.0,82.7 625.3,82.7 704.6,44.0 784.0,44.0" stroke="#d97757" />
+                <polyline class="llm-bump-line" points="625.3,237.4 704.6,121.3 784.0,276.0" stroke="#ec4899" />
+                <polyline class="llm-bump-line" points="546.0,198.7 625.3,198.7 704.6,237.4 784.0,353.4" stroke="#0866ff" />
+                <circle class="llm-bump-dot" cx="70.0" cy="44.0" r="4.5" fill="#4285f4" style="animation-delay:2.4s" />
+                <circle class="llm-bump-dot" cx="149.3" cy="44.0" r="4.5" fill="#4285f4" style="animation-delay:2.45s" />
+                <circle class="llm-bump-dot" cx="228.7" cy="82.7" r="4.5" fill="#4285f4" style="animation-delay:2.5s" />
+                <circle class="llm-bump-dot" cx="308.0" cy="82.7" r="4.5" fill="#4285f4" style="animation-delay:2.55s" />
+                <circle class="llm-bump-dot" cx="387.3" cy="82.7" r="4.5" fill="#4285f4" style="animation-delay:2.6s" />
+                <circle class="llm-bump-dot" cx="466.6" cy="82.7" r="4.5" fill="#4285f4" style="animation-delay:2.65s" />
+                <circle class="llm-bump-dot" cx="546.0" cy="121.3" r="4.5" fill="#4285f4" style="animation-delay:2.7s" />
+                <circle class="llm-bump-dot" cx="625.3" cy="121.3" r="4.5" fill="#4285f4" style="animation-delay:2.75s" />
+                <circle class="llm-bump-dot" cx="704.6" cy="160.0" r="4.5" fill="#4285f4" style="animation-delay:2.8s" />
+                <circle class="llm-bump-dot" cx="784.0" cy="160.0" r="4.5" fill="#4285f4" style="animation-delay:2.85s" />
+                <circle class="llm-bump-dot" cx="149.3" cy="82.7" r="4.5" fill="#10a37f" style="animation-delay:2.9s" />
+                <circle class="llm-bump-dot" cx="228.7" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:2.95s" />
+                <circle class="llm-bump-dot" cx="308.0" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:3.0s" />
+                <circle class="llm-bump-dot" cx="387.3" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:3.05s" />
+                <circle class="llm-bump-dot" cx="466.6" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:3.1s" />
+                <circle class="llm-bump-dot" cx="546.0" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:3.15s" />
+                <circle class="llm-bump-dot" cx="625.3" cy="44.0" r="4.5" fill="#10a37f" style="animation-delay:3.2s" />
+                <circle class="llm-bump-dot" cx="704.6" cy="82.7" r="4.5" fill="#10a37f" style="animation-delay:3.25s" />
+                <circle class="llm-bump-dot" cx="784.0" cy="82.7" r="4.5" fill="#10a37f" style="animation-delay:3.3s" />
+                <circle class="llm-bump-dot" cx="387.3" cy="121.3" r="4.5" fill="#d97757" style="animation-delay:3.35s" />
+                <circle class="llm-bump-dot" cx="466.6" cy="121.3" r="4.5" fill="#d97757" style="animation-delay:3.4s" />
+                <circle class="llm-bump-dot" cx="546.0" cy="82.7" r="4.5" fill="#d97757" style="animation-delay:3.45s" />
+                <circle class="llm-bump-dot" cx="625.3" cy="82.7" r="4.5" fill="#d97757" style="animation-delay:3.5s" />
+                <circle class="llm-bump-dot" cx="704.6" cy="44.0" r="4.5" fill="#d97757" style="animation-delay:3.55s" />
+                <circle class="llm-bump-dot" cx="784.0" cy="44.0" r="4.5" fill="#d97757" style="animation-delay:3.6s" />
+                <circle class="llm-bump-dot" cx="625.3" cy="237.4" r="4.5" fill="#ec4899" style="animation-delay:3.65s" />
+                <circle class="llm-bump-dot" cx="704.6" cy="121.3" r="4.5" fill="#ec4899" style="animation-delay:3.7s" />
+                <circle class="llm-bump-dot" cx="784.0" cy="276.0" r="4.5" fill="#ec4899" style="animation-delay:3.75s" />
+                <circle class="llm-bump-dot" cx="546.0" cy="198.7" r="4.5" fill="#0866ff" style="animation-delay:3.8s" />
+                <circle class="llm-bump-dot" cx="625.3" cy="198.7" r="4.5" fill="#0866ff" style="animation-delay:3.85s" />
+                <circle class="llm-bump-dot" cx="704.6" cy="237.4" r="4.5" fill="#0866ff" style="animation-delay:3.9s" />
+                <circle class="llm-bump-dot" cx="784.0" cy="353.4" r="4.5" fill="#0866ff" style="animation-delay:3.95s" />
+                <text class="llm-bump-end llm-bump-dot" x="794" y="164.0" fill="#4285f4" style="animation-delay:2.4s">Google</text>
+                <text class="llm-bump-end llm-bump-dot" x="794" y="86.7" fill="#10a37f" style="animation-delay:2.4s">OpenAI</text>
+                <text class="llm-bump-end llm-bump-dot" x="794" y="48.0" fill="#d97757" style="animation-delay:2.4s">Anthropic</text>
+                <text class="llm-bump-end llm-bump-dot" x="794" y="280.0" fill="#ec4899" style="animation-delay:2.4s">DeepSeek</text>
+                <text class="llm-bump-end llm-bump-dot" x="794" y="357.4" fill="#0866ff" style="animation-delay:2.4s">Meta</text>
+              </svg>
+            <div class="llm-legend">
+              <span><i style="background:#4285f4"></i>Google</span>
+              <span><i style="background:#10a37f"></i>OpenAI</span>
+              <span><i style="background:#d97757"></i>Anthropic</span>
+              <span><i style="background:#ec4899"></i>DeepSeek</span>
+              <span><i style="background:#0866ff"></i>Meta</span>
+            </div>
+            <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 纵轴为「当年综合前十」中的名次(越靠上越强)。可以清楚看到接力:<strong>Google</strong>(2017–18 架构期领跑)→ <strong>OpenAI</strong>(2019 起凭 GPT-2/3 → ChatGPT 长期霸榜)→ <strong>Anthropic</strong>(2021 入场,2025–26 登顶)。<strong>DeepSeek</strong> 2024 首次进前十、2025 冲到第 3(R1),<strong>Meta</strong> 自 2023 起稳定在中游。2017–22 尚无「众包对话榜」,名次为按能力/影响力的示意排名。</span><span lang="en" class="i18n-en">▶ The vertical axis is each year's rank inside the “overall top 10” (higher = stronger). The relay is clear: <strong>Google</strong> (leads the 2017–18 architecture era) → <strong>OpenAI</strong> (dominates from 2019 via GPT-2/3 → ChatGPT) → <strong>Anthropic</strong> (enters 2021, tops the board in 2025–26). <strong>DeepSeek</strong> first cracks the top 10 in 2024 and reaches #3 in 2025 (R1); <strong>Meta</strong> holds the mid-pack from 2023. No crowd-sourced chat board existed in 2017–22, so those ranks are an illustrative capability/impact ordering.</span></span>
+          </figure>
 
           <figure class="llm-fig">
             <div class="llm-title"><span lang="zh-CN" class="i18n-zh">动图 · 十年里程碑:每年的代表性模型(逐年点亮)</span><span lang="en" class="i18n-en">Animated · ten-year milestones: each year's defining model (lit in sequence)</span></div>
@@ -310,7 +420,7 @@
               <div class="llm-tl-stage" style="animation-delay:6.6s"><div class="yr">2023</div><div class="lb">GPT-4 · LLaMA</div></div>
               <div class="llm-tl-stage" style="animation-delay:7.7s"><div class="yr">2024</div><div class="lb">GPT-4o · Claude 3.5 · Gemini 1.5</div></div>
               <div class="llm-tl-stage" style="animation-delay:8.8s"><div class="yr">2025</div><div class="lb">o3 · DeepSeek-R1 · GPT-5</div></div>
-              <div class="llm-tl-stage" style="animation-delay:9.9s"><div class="yr">2026</div><div class="lb">Opus 4.x · GPT-5.5 · Gemini 3 · DeepSeek V4</div></div>
+              <div class="llm-tl-stage" style="animation-delay:9.9s"><div class="yr">2026</div><div class="lb">Fable 5 · GPT-5.6 Sol · Gemini 3.x · DeepSeek V4</div></div>
             </div>
             <span class="llm-cap"><span lang="zh-CN" class="i18n-zh">▶ 三个分水岭:<strong>2017 Transformer</strong>(架构)、<strong>2020 GPT-3</strong>(规模/few-shot)、<strong>2022 ChatGPT</strong>(对齐 + 产品化)。2025 起进入「推理(reasoning)+ 强开源」双轮,2026 走向「多家咬合的前沿」。</span><span lang="en" class="i18n-en">▶ Three watersheds: <strong>2017 Transformer</strong> (architecture), <strong>2020 GPT-3</strong> (scale/few-shot), <strong>2022 ChatGPT</strong> (alignment + productization). From 2025 it's a “reasoning + strong open-source” flywheel, reaching a “multi-lab interlocked frontier” by 2026.</span></span>
           </figure>
@@ -341,8 +451,8 @@
           </ul>
 
           <p class="entry-source">
-            <span lang="zh-CN" class="i18n-zh"><em>排名来源(均为 2026-06-30(UTC)前后快照,数值会每日变化):综合对话 = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena 文本榜</a>;综合智力与知识 = <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a>(含 GPQA Diamond / Humanity's Last Exam / AA-Omniscience);代码 = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> 与 <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a>(经 <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a> 汇总,2026-06-27/29)。厂商头像取自各实验室 GitHub 组织。分数为四舍五入近似值,条形图为放大可读性使用了非零基线(每图已标注)。</em></span>
-            <span lang="en" class="i18n-en"><em>Ranking sources (all snapshots around 2026-06-30 UTC; numbers shift daily): overall conversation = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena text board</a>; intelligence &amp; knowledge = <a href="https://artificialanalysis.ai/leaderboards/models" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a> (incl. GPQA Diamond / Humanity's Last Exam / AA-Omniscience); code = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> and <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a> (aggregated via <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a>, 2026-06-27/29). Lab avatars are from each lab's GitHub org. Scores are rounded approximations; bar charts use non-zero baselines for readability (noted per figure).</em></span>
+            <span lang="zh-CN" class="i18n-zh"><em>排名来源(06-30 基线,2026-07-13(UTC)复核;数值会每日变化):综合对话 = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena 文本榜</a>(07-13 增补引 <a href="https://arena.ai/leaderboard/text" target="_blank" rel="noopener">arena.ai</a> 2026-07-10 快照);综合智力与知识 = <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a>(07-13 重排,GPT-5.6 Sol/Terra 上线,佐证 <a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener">the-decoder</a>);代码 = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> 与 <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a>(经 <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a> 汇总,2026-06-27/29;07-13 增补 Artificial Analysis Coding Agent Index)。厂商头像取自各实验室 GitHub 组织。分数为四舍五入近似值,条形图为放大可读性使用了非零基线(每图已标注)。</em></span>
+            <span lang="en" class="i18n-en"><em>Ranking sources (06-30 baseline, re-checked 2026-07-13 UTC; numbers shift daily): overall conversation = <a href="https://lmarena.ai/leaderboard" target="_blank" rel="noopener">LMArena text board</a> (07-13 addendum cites the <a href="https://arena.ai/leaderboard/text" target="_blank" rel="noopener">arena.ai</a> 2026-07-10 snapshot); intelligence &amp; knowledge = <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index" target="_blank" rel="noopener">Artificial Analysis Intelligence Index v4.1</a> (re-ranked 07-13 as GPT-5.6 Sol/Terra landed, corroborated by <a href="https://the-decoder.com/gpt-5-6-sol-nearly-matches-fable-5-on-aggregated-benchmarks-at-one-third-the-cost/" target="_blank" rel="noopener">the-decoder</a>); code = <a href="https://www.swebench.com/verified" target="_blank" rel="noopener">SWE-bench Verified</a> and <a href="https://benchlm.ai/benchmarks/liveCodeBench" target="_blank" rel="noopener">LiveCodeBench</a> (aggregated via <a href="https://benchlm.ai/coding" target="_blank" rel="noopener">BenchLM</a>, 2026-06-27/29; 07-13 addendum adds the Artificial Analysis Coding Agent Index). Lab avatars are from each lab's GitHub org. Scores are rounded approximations; bar charts use non-zero baselines for readability (noted per figure).</em></span>
           </p>
         </div>
       </article>
