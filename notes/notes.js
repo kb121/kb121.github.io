@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "ai-accelerator-ranking-2026-07-27",
+    title: {
+      zh: "商用 AI 加速卡统计与排名:以 NVIDIA H20 为基线",
+      en: "Commercial AI Accelerator Board & Ranking, with NVIDIA H20 as the Baseline",
+    },
+    summary: {
+      zh: "统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 十家厂商最新各 3 款卡,按显存、算力、算力带宽比(roofline 山脊点)、数值格式原生支持、Scale-up 超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU 十维加权排名,H20 = 100 基线,含 9 张动图与全部数据来源链接。",
+      en: "Latest three accelerators from each of ten vendors (NVIDIA, AMD, Ascend, TPU, Trainium, Intel, Kunlunxin, Cambricon, Moore Threads, MetaX), ranked on ten weighted dimensions — memory, compute, FLOP/byte ridge point, native numeric formats, scale-up superpod domain, on-chip SRAM/L2, TDP and mandatory liquid cooling, plus software-stack maturity and measured MFU — normalized to H20 = 100, with 9 animated figures and every source linked.",
+    },
+    date: "2026-07-27",
+    tags: ["GPU", "NPU", "Hardware", "Ranking", "Roofline", "MFU", "Trend Analysis"],
+  },
+  {
     slug: "ai-infra-llm-radar-2026-06-22",
     title: {
       zh: "AI Infra / 大模型雷达:多窗口热点与趋势",
