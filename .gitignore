@@ -21,3 +21,7 @@
 # OS / archive cruft
 Thumbs.db
 desktop.ini
+
+# Python scratch (one-off calculation scripts)
+__pycache__/
+*.py[cod]
