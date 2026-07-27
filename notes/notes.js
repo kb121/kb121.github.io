@@ -44,8 +44,8 @@ window.NOTES = [
       en: "AI Infra / LLM Radar: Multi-window Signals and Trends",
     },
     summary: {
-      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-07-27:推理栈收敛到 vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache,同时数据中心融资与电力成为新瓶颈。",
-      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-07-27: serving converges around vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache while data-center financing and power become the new bottleneck.",
+      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-07-27 20:02 UTC:vLLM 0.26 / Kimi K3 / SGLang / FlashInfer / LMCache / ROCm AIC 把推理栈推向 KV 数据平面,同时 MCP stateless、OpenAI/NVIDIA 10GW 融资和 AMD/Anthropic 2GW 说明资本与电力成为新瓶颈。",
+      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-07-27 20:02 UTC: vLLM 0.26 / Kimi K3 / SGLang / FlashInfer / LMCache / ROCm AIC push serving toward a KV data plane, while MCP stateless, OpenAI/NVIDIA 10GW financing, and AMD/Anthropic 2GW show capital and power as the new bottlenecks.",
     },
     date: "2026-07-27",
     tags: ["AI Infra", "LLM", "Inference", "KV Cache", "Agents", "Trend Analysis"],
