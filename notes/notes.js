@@ -44,10 +44,10 @@ window.NOTES = [
       en: "Global LLM Leaderboards: Overall / Knowledge / Code",
     },
     summary: {
-      zh: "2026-06-30 快照:全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),并用多组动图回顾十年演进。",
-      en: "2026-06-30 snapshot: the world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus animated charts reviewing a decade of evolution.",
+      zh: "全球前十大模型按综合对话、综合知识、代码能力三类分别排名并标注来源(LMArena / Artificial Analysis / SWE-bench / LiveCodeBench),含十年「前十名次」变迁动图。2026-07-13 复核:GPT-5.6 Sol/Terra 上线,智力榜重排、代码分叉赛道。",
+      en: "The world's top LLMs ranked across overall conversation, knowledge, and code — each with cited sources (LMArena / Artificial Analysis / SWE-bench / LiveCodeBench) — plus a 10-year rank-change animation. Re-checked 2026-07-13: GPT-5.6 Sol/Terra land, re-ranking the intelligence board and forking the code race.",
     },
-    date: "2026-06-30",
+    date: "2026-07-13",
     tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
   },
   {
@@ -70,11 +70,11 @@ window.NOTES = [
       en: "GitHub Daily Top 10 Stars & Tech Trends",
     },
     summary: {
-      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。历史全部保留。",
-      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). History preserved.",
+      zh: "滚动记录 GitHub 当天/一周/一月/半年/一年多窗口热门仓库(图文卡片 + 多动图),分析当日前十的技术方向与趋势(历史/当下/未来,带证据)。2026-07-13:agent 长出「手」,运行时安全护栏(断路器)成为新前线。历史全部保留。",
+      en: "A rolling log of GitHub hot repos across day/week/month/6mo/year windows (illustrated cards + animated charts), analyzing the daily top 10's directions and trend (history/present/future, with evidence). 2026-07-13: agents grow “hands,” and runtime safety guardrails (circuit-breakers) become the new frontier. History preserved.",
     },
-    date: "2026-06-30",
-    tags: ["GitHub", "Trending", "Multi-window", "Vertical Agents", "Trend Analysis"],
+    date: "2026-07-13",
+    tags: ["GitHub", "Trending", "Multi-window", "Agent Safety", "Runtime Guardrails", "Trend Analysis"],
   },
   {
     slug: "cuda-graph-vllm",
