@@ -1,6 +1,6 @@
 # hzhuang.org
 
-Personal website for **Hong Zhuang** &mdash; Machine Learning Engineer focused on multimodal LLM training, distributed systems, and model acceleration. Live at **[www.hzhuang.org](https://www.hzhuang.org)**.
+Personal website for **Hong Zhuang** &mdash; AI Infra Engineer focused on LLM training & inference acceleration, distributed systems, and AI infrastructure. Live at **[www.hzhuang.org](https://www.hzhuang.org)**.
 
 <p align="center">
   <img alt="hzhuang.org — dark theme preview" src="images/preview-dark.jpg" width="100%">
