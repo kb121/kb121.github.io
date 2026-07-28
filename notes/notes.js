@@ -31,10 +31,10 @@ window.NOTES = [
       en: "Commercial AI Accelerator Board & Ranking, with NVIDIA H20 as the Baseline",
     },
     summary: {
-      zh: "统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 共 19 家厂商最新各 3 款卡,按显存、算力、算力带宽比(roofline 山脊点)、数值格式原生支持、Scale-up 超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU 十维加权排名,H20 = 100 基线;另设一节讨论 SRAM 派 / LPDDR 派 / 晶圆级等非 HBM 路线。含 13 张动图与全部数据来源链接。",
-      en: "Latest three accelerators from each of 19 vendors (NVIDIA, AMD, Ascend, TPU, Trainium, Microsoft Maia, Meta MTIA, Qualcomm, Cerebras, Tenstorrent, Intel, Kunlunxin, Cambricon, Moore Threads, MetaX, Hygon, Biren, Enflame, Iluvatar), ranked on ten weighted dimensions — memory, compute, FLOP/byte ridge point, native numeric formats, scale-up superpod domain, on-chip SRAM/L2, TDP and mandatory liquid cooling, plus software-stack maturity and measured MFU — normalized to H20 = 100, with a dedicated section on the non-HBM routes (SRAM, LPDDR, wafer-scale), 13 animated figures, and every source linked.",
+      zh: "滚动更新的商用加速卡榜:NVIDIA / AMD / 昇腾 / TPU / Trainium / Maia / MTIA / 阿里平头哥真武 / Tesla / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 共 26 家厂商最新各 3 款卡,按显存、算力、算力带宽比(roofline 山脊点)、数值格式原生支持、Scale-up 超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU 十维加权排名,H20 = 100 基线,含 16 张动图与全部来源链接。2026-07-28 复核:Kimi K3(2.8T,官方要求 ≥64 卡超节点)开源把标尺从「单卡峰值」推到「一个域装不装得下」,新增逐卡装载校验、基线更替(B30A)与 6 张新卡进榜。",
+      en: "A rolling board of the latest three accelerators from each of 26 vendors (NVIDIA, AMD, Ascend, TPU, Trainium, Microsoft Maia, Meta MTIA, Alibaba T-Head Zhenwu, Tesla, SambaNova, d-Matrix, Etched, FuriosaAI, Rebellions, Qualcomm, Cerebras, Tenstorrent, Intel, Kunlunxin, Cambricon, Moore Threads, MetaX, Hygon, Biren, Enflame, Iluvatar), ranked on ten weighted dimensions — memory, compute, FLOP/byte ridge point, native numeric formats, scale-up superpod domain, on-chip SRAM/L2, TDP and liquid cooling, plus software-stack maturity and measured MFU — normalized to H20 = 100, with a section on non-HBM routes (SRAM, LPDDR, wafer-scale), 16 animated figures, and every source linked. Re-checked 2026-07-28: open-weight Kimi K3 (2.8T, officially needing a 64+ accelerator superpod) moves the yardstick from single-card peak to whether one scale-up domain can hold the model.",
     },
-    date: "2026-07-27",
+    date: "2026-07-28",
     tags: ["GPU", "NPU", "Hardware", "Ranking", "Roofline", "MFU", "Interconnect", "Trend Analysis"],
   },
   {
