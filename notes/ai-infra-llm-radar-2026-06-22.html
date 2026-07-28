@@ -29,7 +29,7 @@
     </script>
 
     <title data-zh="AI Infra / 大模型雷达:多窗口热点与趋势 — 庄宏" data-en="AI Infra / LLM Radar: Multi-window Signals and Trends — Hong Zhuang">AI Infra / 大模型雷达:多窗口热点与趋势 — 庄宏</title>
-    <meta name="description" content="2026-07-27 快照:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub 与新闻/官方发布证据,分析历史、当下与未来技术趋势。" />
+    <meta name="description" content="2026-07-28 快照:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub 与新闻/官方发布证据,分析历史、当下与未来技术趋势。" />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
 
@@ -108,6 +108,17 @@
       .stage .lb { margin-top: 4px; font-size: .74rem; color: var(--text); }
       @keyframes stage-light { 0%,9% { opacity: .45; transform: translateY(0); border-style: dashed; } 18%,27% { opacity: 1; transform: translateY(-3px); border-color: var(--accent-2); border-style: solid; } 40%,100% { opacity: .45; transform: translateY(0); border-style: dashed; } }
 
+      .supply-map { position: relative; min-height: 230px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; align-items: center; }
+      .supply-node { position: relative; z-index: 2; min-height: 86px; display: grid; place-items: center; text-align: center; padding: 10px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-strong); font-family: var(--font-mono); font-size: .72rem; color: var(--text); box-shadow: 0 12px 26px rgba(0,0,0,.18); animation: node-breathe 4s ease-in-out infinite; }
+      .supply-node:nth-child(2) { animation-delay: .55s; }
+      .supply-node:nth-child(3) { animation-delay: 1.1s; }
+      .supply-node:nth-child(4) { animation-delay: 1.65s; }
+      .supply-node b { display: block; color: var(--accent-1); font-size: .84rem; margin-bottom: 4px; }
+      .supply-line { position: absolute; left: 11%; right: 11%; top: 50%; height: 3px; background: linear-gradient(90deg, transparent, var(--infra), var(--cache), var(--kernel), transparent); opacity: .75; overflow: hidden; border-radius: 999px; }
+      .supply-line::after { content: ""; position: absolute; inset: 0; width: 30%; background: linear-gradient(90deg, transparent, #fff, transparent); animation: supply-flow 2.2s linear infinite; }
+      @keyframes supply-flow { from { transform: translateX(-120%); } to { transform: translateX(420%); } }
+      @keyframes node-breathe { 0%,100% { transform: translateY(0); border-color: var(--border); } 50% { transform: translateY(-4px); border-color: var(--accent-2); } }
+
       .mini-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .86rem; }
       .mini-table th, .mini-table td { border: 1px solid var(--border); padding: 8px 9px; vertical-align: top; }
       .mini-table th { background: var(--surface); font-family: var(--font-mono); font-size: .72rem; color: var(--accent-1); }
@@ -120,7 +131,7 @@
         .window-row .val { grid-column: 2; }
       }
       @media (prefers-reduced-motion: reduce) {
-        .pulse-ring, .pulse-core, .pulse-chip, .window-fill, .flow-line, .flow-dot, .stage { animation: none !important; }
+        .pulse-ring, .pulse-core, .pulse-chip, .window-fill, .flow-line, .flow-dot, .stage, .supply-node, .supply-line::after { animation: none !important; }
         .window-fill { transform: scaleX(1); }
         .stage { opacity: 1; }
       }
@@ -164,7 +175,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-07-27</span>
+            <span>2026-07-28</span>
             <span class="tags"><span>AI Infra</span><span>LLM</span><span>Inference</span><span>KV Cache</span><span>Agents</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">AI Infra / 大模型雷达:多窗口热点与趋势</span><span lang="en" class="i18n-en">AI Infra / LLM Radar: Multi-window Signals and Trends</span></h1>
@@ -172,14 +183,14 @@
 
         <div class="prose">
           <p class="radar-lede">
-            这是一份截至 <strong>2026-07-27 12:08 UTC</strong> 的 AI Infra / 大模型雷达。统计口径分两层:
+            这是一份截至 <strong>2026-07-28 20:00 UTC</strong> 的 AI Infra / 大模型雷达。统计口径分两层:
             <strong>GitHub/官方 release</strong>看推理引擎、kernel、KV cache、Agent runtime、MCP / gateway 的版本节奏;
             <strong>新闻与研究证据</strong>看数据中心融资、电力、Blackwell/FP4、开源权重模型带来的基础设施重排。下面按当天、一周、一个月、半年、一年五个窗口汇总,再给出 10 个热点和趋势判断。
           </p>
 
           <div class="radar-kpis">
             <div class="radar-kpi"><b>5</b><span>时间窗口:当天 / 周 / 月 / 半年 / 一年</span></div>
-            <div class="radar-kpi"><b>16</b><span>证据源:GitHub release、官方博客、新闻</span></div>
+            <div class="radar-kpi"><b>18</b><span>证据源:GitHub release、官方博客、新闻</span></div>
             <div class="radar-kpi"><b>10</b><span>本次人工复核热点</span></div>
             <div class="radar-kpi"><b>4</b><span>主趋势:推理 / KV / Agent / 资本电力</span></div>
           </div>
@@ -196,7 +207,7 @@
               <span class="pulse-chip">MCP / agents</span>
               <span class="pulse-chip">FlashInfer / Blackwell</span>
             </div>
-            <span class="fig-cap">读法:越靠近中心,越接近“生产推理路径”;外圈是工具生态和应用框架。今天的中心信号是 vLLM 0.26.0 + Blackwell/FP4 + KV 数据层,外圈信号是 MCP / Agent / gateway 进入版本化治理。</span>
+            <span class="fig-cap">读法:越靠近中心,越接近“生产推理路径”;外圈是工具生态和应用框架。今天的中心信号是 MCP 2026-07-28 规范正式发布与 Kimi K3/vLLM day-0 serving;近周中心仍是 vLLM 0.26.0、SGLang 0.5.16、FlashInfer、LMCache 组成的生产推理栈。</span>
           </div>
 
           <h2>一、多窗口统计</h2>
@@ -207,13 +218,13 @@
           <div class="radar-fig">
             <div class="fig-title">动态图 2:热点窗口强度</div>
             <div class="window-bars">
-              <div class="window-row"><span class="label">当天</span><span class="window-track"><span class="window-fill" style="--w: 88%; --cat: var(--hot)"></span></span><span class="val">release + financing</span></div>
-              <div class="window-row"><span class="label">一周</span><span class="window-track"><span class="window-fill" style="--w: 82%; --cat: var(--agent)"></span></span><span class="val">serving stack</span></div>
-              <div class="window-row"><span class="label">一月</span><span class="window-track"><span class="window-fill" style="--w: 78%; --cat: var(--infra)"></span></span><span class="val">MCP / gateway</span></div>
+              <div class="window-row"><span class="label">当天</span><span class="window-track"><span class="window-fill" style="--w: 92%; --cat: var(--hot)"></span></span><span class="val">MCP final + K3</span></div>
+              <div class="window-row"><span class="label">一周</span><span class="window-track"><span class="window-fill" style="--w: 88%; --cat: var(--agent)"></span></span><span class="val">serving stack</span></div>
+              <div class="window-row"><span class="label">一月</span><span class="window-track"><span class="window-fill" style="--w: 80%; --cat: var(--infra)"></span></span><span class="val">MCP / gateway</span></div>
               <div class="window-row"><span class="label">半年</span><span class="window-track"><span class="window-fill" style="--w: 92%; --cat: var(--cache)"></span></span><span class="val">KV + Blackwell</span></div>
               <div class="window-row"><span class="label">一年</span><span class="window-track"><span class="window-fill" style="--w: 100%; --cat: var(--kernel)"></span></span><span class="val">capex + open weights</span></div>
             </div>
-            <span class="fig-cap">动态图把“事件密度”映射到强度:当天有 vLLM 0.26.0 和 OpenAI/NVIDIA 数据中心融资报道;一周内推理栈连续 release;半年/一年窗口显示约束从 GPU 转向电力、资本与单位任务成本。</span>
+            <span class="fig-cap">动态图把“事件密度”映射到强度:当天 MCP 2026-07-28 规范发布并暴露 stateless/extension/Tasks 的正式接口;Kimi K3 权重公开后的 day-0 serving 仍在 24 小时窗口内发酵;半年/一年窗口显示约束从 GPU 转向电力、资本与单位任务成本。</span>
           </div>
 
           <table class="mini-table">
@@ -223,44 +234,44 @@
             <tbody>
               <tr>
                 <td><strong>当天</strong></td>
-                <td>推理主线没有降温。vLLM <strong>v0.26.0</strong> 在 2026-07-27 发布,release notes 把 Transformers 5.13、FlashInfer 0.6.14、NIXL 1.3.1、Blackwell/GB300、MoE router GEMM、KV connector 等放在同一张生产路径里。</td>
-                <td><a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0</a>; <a href="https://thenextweb.com/news/nvidia-openai-250bn-data-centre-financing-guarantee">NVIDIA / OpenAI financing report</a></td>
+                <td>当天最大变化是 Agent 协议层从 RC 进入正式版本。MCP <strong>2026-07-28</strong> 发布,规范页把 stateless、self-contained requests、per-request capability negotiation 写成 base protocol;release tracking PR 在 15:26 UTC merge,同时说明 Tasks 被重分到 extension、文档和 SDK 示例切到 v2 / Streamable HTTP。</td>
+                <td><a href="https://modelcontextprotocol.io/specification/2026-07-28">MCP 2026-07-28 spec</a>; <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2805">release tracking PR #2805</a></td>
               </tr>
               <tr>
                 <td><strong>一周</strong></td>
-                <td>一周内的重点是 serving stack 对齐:SGLang <strong>v0.5.16</strong> 删除实验性 QServe/FBGEMM 路径并要求 NVFP4 GEMM 走 FlashInfer;LMCache <strong>v0.5.2</strong> 明确要求 vLLM >= 0.26.0 使用该版本。</td>
-                <td><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.16">SGLang v0.5.16</a>, <a href="https://github.com/LMCache/LMCache/releases">LMCache releases</a>, <a href="https://newreleases.io/project/github/flashinfer-ai/flashinfer/release/v0.6.15">FlashInfer v0.6.15</a></td>
+                <td>一周内的重点是开源权重与 serving engine 的同步发布。Kimi K3 权重公开后,vLLM 给出 day-0 serving:2.8T MoE、16/896 experts、1M context、KDA + full-attention hybrid cache、DSpark speculative decoding;同时 vLLM 0.26.0、SGLang 0.5.16、FlashInfer 0.6.15、LMCache 0.5.2 对齐 Blackwell/FP4/MoE/KV 数据层。</td>
+                <td><a href="https://vllm.ai/blog/2026-07-27-k3">vLLM Kimi K3 day-0</a>, <a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0</a>, <a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.16">SGLang v0.5.16</a>, <a href="https://github.com/LMCache/LMCache/releases">LMCache releases</a></td>
               </tr>
               <tr>
                 <td><strong>一月</strong></td>
-                <td>一个月窗口里,Agent Infra 从“能接工具”进入“协议/凭证/回放/兼容性”。MCP servers 2026.7.10 版本化 filesystem/time/fetch/git;MCP 2026-07-28 RC 与 Python SDK v2 说明规范合规正在收口;LiteLLM 1.93.0 增加 client-forwarded MCP credentials 与 Codex/Claude Code 兼容修复。</td>
-                <td><a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.7.10">MCP servers 2026.7.10</a>, <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28-RC">MCP 2026-07-28 RC</a>, <a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a></td>
+                <td>一个月窗口里,Agent Infra 从“能接工具”进入“协议/凭证/回放/兼容性”。MCP servers 2026.7.10 版本化 filesystem/time/fetch/git;LiteLLM 1.93.0 增加 client-forwarded MCP credentials、true_passthrough、oauth_delegate、dcr_bridge 与 Codex/Claude Code 兼容修复;LangGraph 1.2.9 修 Postgres replay 元数据。</td>
+                <td><a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.7.10">MCP servers 2026.7.10</a>, <a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a>, <a href="https://github.com/langchain-ai/langgraph/releases">LangGraph releases</a></td>
               </tr>
               <tr>
                 <td><strong>半年</strong></td>
-                <td>半年窗口里的结构性变化是 Blackwell/FP4 与 KV 数据层相互绑定。vLLM 的 GB300 DeepSeek-V3.2 博客给出 NVFP4 + TP2 在 prefill 场景 7360 TGS;LMCache / llm-d 把 KV 从进程内缓存推进到跨副本、跨存储层复用。</td>
-                <td><a href="https://vllm.ai/blog/2026-02-13-gb300-deepseek">vLLM GB300 DeepSeek benchmark</a>, <a href="https://llm-d.ai/blog/native-kv-cache-offloading-to-any-file-system-with-llm-d">llm-d KV offload</a>, <a href="https://blog.lmcache.ai/en/2026/04/03/lmcaches-new-architecture-boosts-moe-inference-performance-by-10x/">LMCache MP benchmark</a></td>
+                <td>半年窗口里的结构性变化是 Blackwell/FP4 与 KV 数据层相互绑定。vLLM 的 GB300 DeepSeek-V3.2 benchmark 给出 NVFP4 + TP2 在 prefill 场景 7360 TGS;LMCache / llm-d 把 KV 从进程内缓存推进到跨副本、跨存储层复用;FlashInfer 则把 MoE EP、VSA、Blackwell B300 kernel 能力下沉成 shared substrate。</td>
+                <td><a href="https://vllm.ai/blog/2026-02-13-gb300-deepseek">vLLM GB300 DeepSeek benchmark</a>, <a href="https://llm-d.ai/blog/native-kv-cache-offloading-to-any-file-system-with-llm-d">llm-d KV offload</a>, <a href="https://newreleases.io/project/github/flashinfer-ai/flashinfer/release/v0.6.15">FlashInfer v0.6.15</a></td>
               </tr>
               <tr>
                 <td><strong>一年</strong></td>
-                <td>一年窗口显示两个反向拉力:一边是 gpt-oss / DeepSeek 这类开源权重模型把推理需求推向自托管;另一边是 hyperscaler capex、数据中心电力和融资把“谁能稳定供给算力”变成基础设施核心问题。</td>
-                <td><a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a>, <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek open-weight infra analysis</a>, <a href="https://alcapitaladvisory.com/research/intelligence/ai-infrastructure.html">$725B AI capex analysis</a></td>
+                <td>一年窗口显示两个反向拉力:一边是 gpt-oss / DeepSeek / Kimi K3 这类 open-weight frontier 模型把推理需求推向自托管;另一边是 hyperscaler capex、数据中心电力和融资把“谁能稳定供给算力”变成基础设施核心问题。NVIDIA / OpenAI 10GW Ohio 融资报道把这个矛盾金融化。</td>
+                <td><a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a>, <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek open-weight infra analysis</a>, <a href="https://www.cnbc.com/2026/07/27/nvidia-and-openai-in-talks-for-up-to-250-billion-dollar-ai-backstop.html">CNBC NVIDIA/OpenAI report</a></td>
               </tr>
             </tbody>
           </table>
 
           <h2>二、热点信息 Top 10</h2>
           <div class="radar-grid">
-            <div class="radar-card" style="--cat: var(--infra)"><span class="radar-rank">#1 Today · Inference engine</span><h4><a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0</a></h4><p>当天发布。依赖升级到 Transformers 5.13.0、FlashInfer 0.6.14、NIXL 1.3.1,同时继续推进 MRV2、KV connector、MoE router GEMM、Blackwell/GB300 优化。</p><div class="meta">published 2026-07-27 01:06 UTC</div></div>
-            <div class="radar-card" style="--cat: var(--infra)"><span class="radar-rank">#2 Week · Serving framework</span><h4><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.16">SGLang v0.5.16</a></h4><p>删除实验性 QServe/FBGEMM FP8 与 in-tree NVFP4 JIT 路径,把 NVFP4 GEMM 收敛到 FlashInfer,说明 serving engine 正在减少分叉实现、靠共享 kernel 底座提速。</p><div class="meta">released 2026-07-25</div></div>
-            <div class="radar-card" style="--cat: var(--kernel)"><span class="radar-rank">#3 Week · Kernel substrate</span><h4><a href="https://newreleases.io/project/github/flashinfer-ai/flashinfer/release/v0.6.15">FlashInfer v0.6.15</a></h4><p>Expert Parallelism 进入默认安装,扩展 TRTLLM-GEN MoE、Video Sparse Attention、CUDA-graph-safe FP8 all-reduce fusion,正在变成 vLLM/SGLang 共同依赖的 kernel 层。</p><div class="meta">MoE EP · VSA · Blackwell B300</div></div>
-            <div class="radar-card" style="--cat: var(--cache)"><span class="radar-rank">#4 Week · KV data layer</span><h4><a href="https://github.com/LMCache/LMCache/releases">LMCache v0.5.2</a></h4><p>release notes 明确 vLLM >= 0.26.0 需要 LMCache v0.5.2;CacheBlend 支持 vLLM HMA,并加入 Azure Blob、Valkey、Bigtable、SageMaker HyperPod 等 L2 后端。</p><div class="meta">nightly 2026-07-26 · vLLM 0.26 compatibility</div></div>
-            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#5 Month · Protocol</span><h4><a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28-RC">MCP 2026-07-28 RC</a></h4><p>MCP 规范候选版与 Python SDK v2 预发布同时推进,强调 version negotiation 与 conformance。Agent 工具调用开始像 API 协议一样需要版本协商和兼容矩阵。</p><div class="meta">RC published · stable target 2026-07-28</div></div>
-            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#6 Month · Gateway</span><h4><a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a></h4><p>增加 client-forwarded MCP credentials、Meta Model API、Codex CLI custom-tool round-trip、Claude Code apiKeyHelper。AI gateway 从“统一模型 API”变成“模型 + 工具 + 凭证”的控制面。</p><div class="meta">released 2026-07-19</div></div>
-            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#7 Month · Stateful agents</span><h4><a href="https://github.com/langchain-ai/langgraph/releases">LangGraph 1.2.9</a></h4><p>低层 Agent runtime 继续围绕 durable execution、checkpoint、time-travel debugging 打磨。长期运行的 Agent 不再只是 prompt orchestration,而是可恢复、可分叉、可审计的状态机。</p><div class="meta">latest 2026-07-10</div></div>
-            <div class="radar-card" style="--cat: var(--hot)"><span class="radar-rank">#8 Today · Financing</span><h4><a href="https://thenextweb.com/news/nvidia-openai-250bn-data-centre-financing-guarantee">NVIDIA / OpenAI $250B backstop</a></h4><p>WSJ 报道引发多家媒体跟进:NVIDIA 讨论为 OpenAI 10GW Ohio 数据中心租赁提供约 $250B 融资担保,另有最高 $350B 芯片采购融资讨论。算力约束正在金融化。</p><div class="meta">reported 2026-07-26 · unconfirmed talks</div></div>
-            <div class="radar-card" style="--cat: var(--hot)"><span class="radar-rank">#9 Month · Alternative accelerators</span><h4><a href="https://www.datacenterdynamics.com/en/news/amd-to-invest-5bn-in-anthropic-with-ai-company-to-deploy-2gw-of-instinct-mi450-gpus/">AMD / Anthropic MI450</a></h4><p>AMD 拟投资最高 $5B,Anthropic 计划部署最高 2GW Instinct MI450。大模型公司正在把供应链从单一 GPU 采购扩展到 rack-scale、网络、CPU、模型协同优化。</p><div class="meta">2GW deployment · first GW planned H1 2027</div></div>
-            <div class="radar-card" style="--cat: var(--kernel)"><span class="radar-rank">#10 Year · Open weights</span><h4><a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a> / <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek self-hosting</a></h4><p>gpt-oss-120b/20b 与 DeepSeek-R1 这类开源权重模型把推理栈推向自托管、量化、MoE、KV 复用和多硬件支持;模型开放性直接改变基础设施采购与运行形态。</p><div class="meta">Apache 2.0 gpt-oss · open-weight reasoning infra</div></div>
+            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#1 Today · Protocol</span><h4><a href="https://modelcontextprotocol.io/specification/2026-07-28">MCP 2026-07-28 正式规范</a></h4><p>正式规范把 stateless/self-contained request、per-request capability negotiation、Extensions、Tasks、Elicitation 写进协议面。Agent 工具调用正在从“库适配”进入“可版本化协议”。</p><div class="meta">PR #2805 merged 2026-07-28 15:26 UTC</div></div>
+            <div class="radar-card" style="--cat: var(--infra)"><span class="radar-rank">#2 24h · Open weights</span><h4><a href="https://vllm.ai/blog/2026-07-27-k3">Kimi K3 + vLLM day-0 serving</a></h4><p>Moonshot 权重公开后,vLLM 给出 KDA-aware hybrid cache、DSpark speculative decoding、tool/reasoning parser、NVIDIA B300 与 AMD MI355X 路径。2.8T MoE 的开放不只是模型事件,也是 serving 事件。</p><div class="meta">2.8T params · 1M context · 370 tok/s/user with DSpark</div></div>
+            <div class="radar-card" style="--cat: var(--infra)"><span class="radar-rank">#3 Week · Inference engine</span><h4><a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0</a></h4><p>411 commits / 212 contributors。亮点包括 Inkling full stack、DeepSeek-V4 routing kernel、per-KV-group attention backend、KV offloading metrics/object-store tier、Transformers 5.13 和 Blackwell image builds。</p><div class="meta">published 2026-07-27 01:06 UTC</div></div>
+            <div class="radar-card" style="--cat: var(--infra)"><span class="radar-rank">#4 Week · Serving framework</span><h4><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.16">SGLang v0.5.16</a></h4><p>删除实验性 QServe/FBGEMM FP8 与 in-tree NVFP4 JIT 路径,把 NVFP4 GEMM 收敛到 FlashInfer,说明 serving engine 正在减少分叉实现、靠共享 kernel 底座提速。</p><div class="meta">released 2026-07-25</div></div>
+            <div class="radar-card" style="--cat: var(--kernel)"><span class="radar-rank">#5 Week · Kernel substrate</span><h4><a href="https://newreleases.io/project/github/flashinfer-ai/flashinfer/release/v0.6.15">FlashInfer v0.6.15</a></h4><p>Expert Parallelism 进入默认安装,扩展 TRTLLM-GEN MoE、Video Sparse Attention、CUDA-graph-safe FP8 all-reduce fusion,正在变成 vLLM/SGLang 共同依赖的 kernel 层。</p><div class="meta">MoE EP · VSA · Blackwell B300</div></div>
+            <div class="radar-card" style="--cat: var(--cache)"><span class="radar-rank">#6 Week · KV data layer</span><h4><a href="https://github.com/LMCache/LMCache/releases">LMCache v0.5.2</a></h4><p>release notes 明确 vLLM >= 0.26.0 需要 LMCache v0.5.2;CacheBlend 支持 vLLM HMA,并加入 Azure Blob、Valkey、Bigtable、SageMaker HyperPod 等 L2 后端。</p><div class="meta">vLLM 0.26 compatibility · L2 storage backends</div></div>
+            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#7 Month · Gateway</span><h4><a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a></h4><p>增加 client-forwarded MCP credentials、true_passthrough、oauth_delegate、dcr_bridge、Codex CLI custom-tool round-trip、Claude Code apiKeyHelper。AI gateway 变成“模型 + 工具 + 凭证”的控制面。</p><div class="meta">released 2026-07-19</div></div>
+            <div class="radar-card" style="--cat: var(--agent)"><span class="radar-rank">#8 Month · Stateful agents</span><h4><a href="https://github.com/langchain-ai/langgraph/releases">LangGraph 1.2.9</a></h4><p>1.2.9 修复 Postgres replay 的 update_state delta channel counters/snapshot metadata。长期运行的 Agent 不再只是 prompt orchestration,而是可恢复、可分叉、可审计的状态机。</p><div class="meta">released 2026-07-10</div></div>
+            <div class="radar-card" style="--cat: var(--hot)"><span class="radar-rank">#9 Week · Financing</span><h4><a href="https://www.cnbc.com/2026/07/27/nvidia-and-openai-in-talks-for-up-to-250-billion-dollar-ai-backstop.html">NVIDIA / OpenAI $250B backstop</a></h4><p>多家媒体跟进:NVIDIA 讨论为 OpenAI 10GW Ohio 数据中心租赁和建设债务提供最高 $250B 担保,芯片采购另有最高 $350B 讨论。算力约束正在金融化。</p><div class="meta">reported 2026-07-27 · talks not final</div></div>
+            <div class="radar-card" style="--cat: var(--kernel)"><span class="radar-rank">#10 Year · Open weights + power</span><h4><a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a> / <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek self-hosting</a></h4><p>gpt-oss-120b/20b、DeepSeek、Kimi K3 把推理栈推向自托管、量化、MoE、KV 复用和多硬件支持;同时 $725B 级 capex 与电力瓶颈让“可供给算力”成为核心稀缺。</p><div class="meta">Apache 2.0 · self-hosting · power wall</div></div>
           </div>
 
           <h2>三、趋势分析:历史、当下、未来</h2>
@@ -272,9 +283,9 @@
               <div class="stage"><div class="yr">2024</div><div class="lb">状态复用<br />RadixAttention / LMCache</div></div>
               <div class="stage"><div class="yr">2025</div><div class="lb">Agent 化<br />MCP / coding agents</div></div>
               <div class="stage"><div class="yr">2026 H1</div><div class="lb">KV 数据层<br />shared cache / storage</div></div>
-              <div class="stage"><div class="yr">2026 Now</div><div class="lb">Blackwell + spec<br />kernel co-design</div></div>
+              <div class="stage"><div class="yr">2026 Now</div><div class="lb">协议 + open weights<br />system co-design</div></div>
             </div>
-            <span class="fig-cap">结论:历史上“如何训练更大模型”是主线;现在“如何把长上下文、多轮 Agent、开源权重和昂贵算力稳定服务出去”成为主线。</span>
+            <span class="fig-cap">结论:历史上“如何训练更大模型”是主线;现在“如何把长上下文、多轮 Agent、开源权重和昂贵算力稳定服务出去”成为主线。2026-07-28 的新增证据是 MCP 正式规范把工具调用协议化,Kimi K3 把模型开放与 serving day-0 绑定。</span>
           </div>
 
           <h3>历史:从模型训练优化到推理服务优化</h3>
@@ -284,10 +295,13 @@
 
           <h3>当下:推理引擎、KV cache、Agent runtime 同时收敛</h3>
           <p>
-            2026 年 7 月的证据很集中:vLLM 0.26.0 把 MRV2、KV connector、Blackwell、MoE router GEMM 和 FlashInfer 依赖放在同一条 release 主线;SGLang 0.5.16 删除实验性量化路径,把 NVFP4 GEMM 收敛到 FlashInfer;FlashInfer 0.6.15 则把 MoE Expert Parallelism、VSA、all-reduce fusion 下沉到 kernel substrate。这说明 serving engine 已经从“单点 kernel 优化”进入“调度器 + kernel substrate + 硬件量化格式”的协同优化。
+            2026 年 7 月的证据很集中:vLLM 0.26.0 把 per-KV-group attention backend、KV offloading metrics/object-store tier、Blackwell、MoE router GEMM 和 FlashInfer 依赖放在同一条 release 主线;SGLang 0.5.16 删除实验性量化路径,把 NVFP4 GEMM 收敛到 FlashInfer;FlashInfer 0.6.15 则把 MoE Expert Parallelism、VSA、all-reduce fusion 下沉到 kernel substrate。这说明 serving engine 已经从“单点 kernel 优化”进入“调度器 + kernel substrate + 硬件量化格式”的协同优化。
           </p>
           <p>
-            另一个当下变化是 KV cache 的身份变化。LMCache v0.5.2 为 vLLM 0.26.0 兼容而发布,并把 CacheBlend、HMA、L2 storage backend 写进 release;此前 LMCache MP mode benchmark 显示平均 TTFT 从 3.98s 降到 0.29s,p99 从 13.55s 降到 1.30s;llm-d 的 FS backend 则把 KV blocks 放入共享文件系统。也就是说,KV cache 不再只是 GPU 内存管理细节,而是新的“推理数据平面”。
+            另一个当下变化是 KV cache 的身份变化。LMCache v0.5.2 为 vLLM 0.26.0 兼容而发布,并把 CacheBlend、HMA、L2 storage backend 写进 release;Kimi K3 又把问题推进一步:KDA recurrent state 不能简单按 token 保存,vLLM 因此把物理 KDA state block 与 prefix match 粒度解耦,用 copy-on-write 注册细粒度缓存命中。也就是说,KV cache 不再只是 GPU 内存管理细节,而是新的“推理数据平面”。
+          </p>
+          <p>
+            Agent Infra 的当下信号同样清楚:MCP 2026-07-28 正式规范把 stateless request、capability negotiation、Extensions/Tasks 写成协议面;LiteLLM 1.93.0 把 MCP credential delegation、dcr_bridge、Codex/Claude Code 兼容放进 gateway;LangGraph 1.2.9 修 Postgres replay metadata。工具调用、凭证委托和 workflow replay 正在从应用逻辑下沉成基础设施控制面。
           </p>
 
           <div class="radar-fig">
@@ -319,18 +333,30 @@
             <li><strong>指标会从平均 tokens/s 转向 p99 TTFT、cache hit value、每任务成本和每瓦 tokens。</strong> 长上下文 Agent 的用户体验受尾延迟和重复 prefill 支配;数据中心侧的约束也从“有没有 GPU”扩展到“有没有电、有没有融资、有没有可持续利用率”。</li>
           </ol>
 
+          <div class="radar-fig">
+            <div class="fig-title">动态图 5:未来 AI Infra 供给飞轮</div>
+            <div class="supply-map" aria-label="AI infrastructure supply flywheel animation">
+              <div class="supply-line" aria-hidden="true"></div>
+              <div class="supply-node"><span><b>Open weights</b>gpt-oss / DeepSeek / Kimi</span></div>
+              <div class="supply-node"><span><b>Serving stack</b>vLLM / SGLang / FlashInfer</span></div>
+              <div class="supply-node"><span><b>State layer</b>KV / checkpoints / MCP</span></div>
+              <div class="supply-node"><span><b>Power + capital</b>10GW / $250B / capex</span></div>
+            </div>
+            <span class="fig-cap">未来不是单一模型竞争,而是“模型开放度 -> serving 可用性 -> 状态复用 -> 电力/资本供给”的飞轮。哪一环最慢,哪一环就成为 AI Infra 的真实瓶颈。</span>
+          </div>
+
           <h2>四、证据索引</h2>
           <ul class="source-list">
-            <li><a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0 release</a>:Transformers 5.13.0、FlashInfer 0.6.14、NIXL 1.3.1、KV connector、Blackwell、MoE router GEMM。</li>
+            <li><a href="https://modelcontextprotocol.io/specification/2026-07-28">MCP 2026-07-28 specification</a> 与 <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2805">release PR #2805</a>:stateless/self-contained requests、per-request capability negotiation、Extensions、Tasks、v2 SDK docs。</li>
+            <li><a href="https://vllm.ai/blog/2026-07-27-k3">vLLM Kimi K3 day-0 serving</a>:2.8T MoE、16/896 experts、1M context、KDA-aware hybrid cache、DSpark speculative decoding、B300/MI355X launch path。</li>
+            <li><a href="https://github.com/vllm-project/vllm/releases/tag/v0.26.0">vLLM v0.26.0 release</a>:411 commits、Inkling full stack、DeepSeek-V4 performance push、per-KV-group attention backend、KV offloading/object-store tier、Blackwell builds。</li>
             <li><a href="https://github.com/sgl-project/sglang/releases/tag/v0.5.16">SGLang v0.5.16 release</a>:删除 QServe/FBGEMM FP8 与 in-tree NVFP4 JIT,要求 NVFP4 GEMM 使用 FlashInfer。</li>
             <li><a href="https://newreleases.io/project/github/flashinfer-ai/flashinfer/release/v0.6.15">FlashInfer v0.6.15 release</a>:MoE Expert Parallelism、TRTLLM-GEN MoE、VSA、CUDA-graph-safe all-reduce fusion。</li>
             <li><a href="https://github.com/LMCache/LMCache/releases">LMCache releases</a>:v0.5.2,要求匹配 vLLM >= 0.26.0,CacheBlend under vLLM HMA,L2 storage backends。</li>
-            <li><a href="https://github.com/modelcontextprotocol/servers/releases/tag/2026.7.10">MCP servers 2026.7.10</a> 与 <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/releases/tag/2026-07-28-RC">MCP 2026-07-28 RC</a>:server 包版本化、spec release candidate、version negotiation。</li>
-            <li><a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a>:client-forwarded MCP credentials、Codex CLI custom-tool round-trip、Claude Code apiKeyHelper。</li>
-            <li><a href="https://github.com/langchain-ai/langgraph/releases">LangGraph releases</a>:1.2.9,stateful agents,durable execution,checkpoint,time-travel debugging。</li>
-            <li><a href="https://vllm.ai/blog/2026-02-13-gb300-deepseek">vLLM GB300 DeepSeek-V3.2 benchmark</a>:NVFP4 + TP2,prefill-only 7360 TGS,mixed-context 2816 TGS,FP4 MoE requires FlashInfer。</li>
-            <li><a href="https://thenextweb.com/news/nvidia-openai-250bn-data-centre-financing-guarantee">NVIDIA / OpenAI financing report</a> 与 <a href="https://www.datacenterdynamics.com/en/news/amd-to-invest-5bn-in-anthropic-with-ai-company-to-deploy-2gw-of-instinct-mi450-gpus/">AMD / Anthropic MI450 report</a>:10GW Ohio lease backstop、2GW MI450 deployment,算力供给金融化。</li>
-            <li><a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a>, <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek open-weight infrastructure analysis</a>, <a href="https://alcapitaladvisory.com/research/intelligence/ai-infrastructure.html">$725B AI capex analysis</a>:开源权重、自托管推理、capex 与电力瓶颈。</li>
+            <li><a href="https://github.com/BerriAI/litellm/releases/tag/v1.93.0">LiteLLM v1.93.0</a>:client-forwarded MCP credentials、true_passthrough、oauth_delegate、dcr_bridge、Codex CLI custom-tool round-trip、Claude Code apiKeyHelper。</li>
+            <li><a href="https://github.com/langchain-ai/langgraph/releases">LangGraph releases</a> 与 <a href="https://docs.langchain.com/oss/python/langgraph/checkpointers">LangGraph checkpointers docs</a>:1.2.9、Postgres replay metadata、checkpoint、time-travel debugging。</li>
+            <li><a href="https://vllm.ai/blog/2026-02-13-gb300-deepseek">vLLM GB300 DeepSeek-V3.2 benchmark</a> 与 <a href="https://llm-d.ai/blog/native-kv-cache-offloading-to-any-file-system-with-llm-d">llm-d KV offload</a>:NVFP4 + TP2,prefill-only 7360 TGS,KV blocks 进入共享文件系统。</li>
+            <li><a href="https://www.cnbc.com/2026/07/27/nvidia-and-openai-in-talks-for-up-to-250-billion-dollar-ai-backstop.html">CNBC NVIDIA / OpenAI report</a>, <a href="https://www.datacenterdynamics.com/en/news/nvidia-considers-250bn-backstop-for-openais-planned-10gw-ohio-data-center-report/">DCD follow-up</a>, <a href="https://openai.com/index/introducing-gpt-oss/">OpenAI gpt-oss</a>, <a href="https://www.frontiernews.ai/news/article/why-deepseeks-open-weight-models-are-forcing-enter-21ee8321">DeepSeek open-weight infrastructure analysis</a>:10GW Ohio backstop、open-weight self-hosting、capex 与电力瓶颈。</li>
           </ul>
         </div>
       </article>
