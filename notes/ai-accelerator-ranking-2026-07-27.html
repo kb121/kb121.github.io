@@ -178,7 +178,8 @@
       .pw-row { display: grid; grid-template-columns: 168px 1fr 118px; gap: 10px; align-items: center; }
       .pw-row .nm { font-size: .78rem; color: var(--text); }
       .pw-track { height: 20px; border-radius: 6px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 15%); overflow: hidden; }
-      .pw-fill { height: 100%; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #22c55e, #facc15 55%, #ef4444); animation: grow 1.2s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      /* display:block 是必需的:条形是 <span>,而 <span> 作为非替换 inline 元素会忽略 width/height/transform */
+      .pw-fill { display: block; height: 100%; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #22c55e, #facc15 55%, #ef4444); animation: grow 1.2s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
       .pw-row .tag { font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
       .pw-row .tag.liq { color: #38bdf8; }
       .pw-row .tag.liq::before { content: "≋ "; animation: wave 1.6s ease-in-out infinite; display: inline-block; }
@@ -243,12 +244,12 @@
       .d0-axis { position: absolute; left: 167px; right: 113px; bottom: 0; height: 15px; border-top: 1px dashed var(--border); }
       .d0-axis span { position: absolute; left: var(--p); top: 2px; transform: translateX(-50%); font-family: var(--font-mono); font-size: .6rem; color: var(--text-muted); white-space: nowrap; }
 
-      /* 动图 2:超节点域规模跳变(旧值为斜纹底,新值为实心) */
+      /* 动图 2:超节点域规模跳变(虚线标记 = 上一版位置,实心 = 本次重算) */
       .jump { display: grid; gap: 9px; }
-      .jump-row { display: grid; grid-template-columns: 154px 1fr 124px; gap: 9px; align-items: center; }
+      .jump-row { display: grid; grid-template-columns: 150px 1fr 142px; gap: 9px; align-items: center; }
       .jump-row .nm { font-size: .77rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .jump-track { position: relative; height: 20px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 15%); overflow: hidden; }
-      .jump-old { position: absolute; inset: 0 auto 0 0; width: var(--o); border-right: 1px dashed var(--base); background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--base), transparent 62%) 0 5px, transparent 5px 10px); }
+      .jump-old { position: absolute; left: var(--o); top: 0; bottom: 0; z-index: 2; width: 0; border-left: 2px dashed var(--text); opacity: .75; }
       .jump-new { position: absolute; inset: 0 auto 0 0; width: var(--w); transform-origin: left center; transform: scaleX(0); border-radius: inherit; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 32%)); animation: grow 1.5s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
       .jump-row .vl { font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); }
       .jump-row .vl b { color: var(--text); font-weight: 500; }
@@ -269,7 +270,7 @@
       .bwm-row { display: grid; grid-template-columns: 152px 1fr 152px; gap: 9px; align-items: center; }
       .bwm-row .nm { font-size: .77rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .bwm-track { height: 19px; border-radius: 6px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 18%); overflow: hidden; }
-      .bwm-fill { height: 100%; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 30%)); animation: grow 1.15s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      .bwm-fill { display: block; height: 100%; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 30%)); animation: grow 1.15s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
       .bwm-row .vl { font-family: var(--font-mono); font-size: .63rem; color: var(--text-muted); }
       .bwm-row .vl b { color: var(--text); font-weight: 500; }
 
@@ -297,9 +298,11 @@
         .ridge-row, .pw-row, .mfu-row { grid-template-columns: 116px 1fr; }
         .pw-row .tag, .mfu-row .vl { grid-column: 2; }
         .fmt-grid { grid-template-columns: 104px repeat(7, minmax(34px, 1fr)); }
-        .d0-row, .jump-row, .bwm-row { grid-template-columns: 116px 1fr; }
-        .d0-row .vl, .jump-row .vl, .bwm-row .vl { grid-column: 2; }
-        .d0-axis { left: 125px; right: 0; }
+        /* 名称在窄屏很容易被截断,所以整行改成竖排:名称 / 条 / 数值各占一行 */
+        .d0-row, .jump-row, .bwm-row { grid-template-columns: 1fr; gap: 4px; }
+        .d0-row .nm, .jump-row .nm, .bwm-row .nm { white-space: normal; overflow: visible; }
+        .d0-axis { left: 0; right: 0; }
+        .pd-split b { font-size: .55rem; }
       }
       @media (prefers-reduced-motion: reduce) {
         .race-fill, .race-fill::after, .ridge-line::before, .ridge-dot, .bub circle.pt, .fmt-cell.y,
@@ -421,18 +424,18 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 1:超节点域规模跳变 —— 斜纹是上一版取值,实心是本次重算(条长 = 综合指数)</div>
+            <div class="fig-title">动态图 1:超节点域规模跳变 —— 虚线是上一版的指数位置,实心条是本次重算后的指数</div>
             <div class="fig-legend">
               <span style="--c: var(--cn)"><i></i>因新数据重算</span>
               <span style="--c: var(--accent-1)"><i></i>本次新入榜</span>
-              <span style="--c: var(--base)"><i></i>上一版取值(斜纹)</span>
+              <span style="--c: var(--base)"><i></i>对照(本次未改)</span>
             </div>
             <div class="jump">
-              <div class="jump-row"><span class="nm">沐曦 曦云 C600</span><span class="jump-track"><span class="jump-old" style="--o: 37%"></span><span class="jump-new" style="--w: 42%; --c: var(--cn); --d: .05s"></span></span><span class="vl">域 8 → <b>64</b> · 157 → <b>179</b></span></div>
-              <div class="jump-row"><span class="nm">燧原 L600</span><span class="jump-track"><span class="jump-old" style="--o: 36%"></span><span class="jump-new" style="--w: 41%; --c: var(--cn); --d: .2s"></span></span><span class="vl">域 8 → <b>64</b> · 152 → <b>173</b></span></div>
-              <div class="jump-row"><span class="nm">摩尔线程 MTT S5000</span><span class="jump-track"><span class="jump-old" style="--o: 30%"></span><span class="jump-new" style="--w: 39%; --c: var(--cn); --d: .35s"></span></span><span class="vl">域 8 → <b>256</b> · 129 → <b>164</b></span></div>
+              <div class="jump-row"><span class="nm">沐曦 曦云 C600</span><span class="jump-track"><span class="jump-new" style="--w: 42%; --c: var(--cn); --d: .05s"></span><span class="jump-old" style="--o: 37%"></span></span><span class="vl">域 8→<b>64</b> · 157→<b>179</b></span></div>
+              <div class="jump-row"><span class="nm">燧原 L600</span><span class="jump-track"><span class="jump-new" style="--w: 41%; --c: var(--cn); --d: .2s"></span><span class="jump-old" style="--o: 36%"></span></span><span class="vl">域 8→<b>64</b> · 152→<b>173</b></span></div>
+              <div class="jump-row"><span class="nm">摩尔线程 MTT S5000</span><span class="jump-track"><span class="jump-new" style="--w: 39%; --c: var(--cn); --d: .35s"></span><span class="jump-old" style="--o: 30%"></span></span><span class="vl">域 8→<b>256</b> · 129→<b>164</b></span></div>
               <div class="jump-row"><span class="nm">东方算芯 巅峯 DF1000</span><span class="jump-track"><span class="jump-new" style="--w: 33%; --c: var(--accent-1); --d: .5s"></span></span><span class="vl">首次进榜 · <b>139</b> · 域 64</span></div>
-              <div class="jump-row"><span class="nm">阿里 真武 M890(对照)</span><span class="jump-track"><span class="jump-old" style="--o: 39%"></span><span class="jump-new" style="--w: 39%; --c: var(--base); --d: .65s"></span></span><span class="vl">域 16 → 64 · 上一版已计入</span></div>
+              <div class="jump-row"><span class="nm">阿里 真武 M890(对照)</span><span class="jump-track"><span class="jump-new" style="--w: 39%; --c: var(--base); --d: .65s"></span><span class="jump-old" style="--o: 39%"></span></span><span class="vl">域 16→64 · 上一版已计入</span></div>
             </div>
             <div class="load-note">重算只改「超节点域」一个维度(权重 7 分),其余九维输入逐字沿用上一版:Δ = 7 × log₂(新域 / 旧域),所以 8→64 恰好 +21 分、8→256 恰好 +35 分。条长 = 指数 ÷ 417 × 98%。</div>
             <span class="fig-cap">
@@ -493,22 +496,22 @@
               </div>
               <div class="pd-card" style="--c: var(--nv); --d: .15s">
                 <h5>形态二:同厂两个 SKU</h5>
-                <div class="pd-split" style="--pf: 45%"><b class="pf">Rubin CPX · GDDR7 · 5000 FLOP/B</b><b class="dc">R200 / NVL72 · HBM4 22 TB/s</b></div>
+                <div class="pd-split" style="--pf: 45%"><b class="pf">Rubin CPX · GDDR7</b><b class="dc">R200 / NVL72 · HBM4</b></div>
                 <p>NVIDIA 用 CPX 吃 prefill(算术强度上千,配便宜的 GDDR7)、R200 吃 decode;华为是同一思路的国产版 —— 昇腾 950PR(HiBL 1.0)打 prefill,950DT(HiZQ 2.0)打 decode。<strong>一芯双构在 2026 年成了两家的共同答案。</strong></p>
               </div>
               <div class="pd-card" style="--c: var(--nv); --d: .3s">
                 <h5>形态三:同厂跨形态(HBM + SRAM)</h5>
-                <div class="pd-split" style="--pf: 42%"><b class="pf">Rubin NVL72 · HBM</b><b class="dc">Groq 3 LPX 256 · 0.5 GB SRAM/芯 · 8 FLOP/B</b></div>
+                <div class="pd-split" style="--pf: 42%"><b class="pf">Rubin NVL72 · HBM</b><b class="dc">Groq 3 LPX 256 · SRAM</b></div>
                 <p>NVIDIA 花 200 亿美元拿下 Groq 的 IP 之后,把 LPX 机架和 Rubin 配对卖:GPU 提供算力与大容量 KV,LPU 提供极低延迟 decode。同一家公司,两种完全不同的存储介质。</p>
               </div>
               <div class="pd-card" style="--c: var(--amd); --d: .45s">
                 <h5>形态四:跨厂商 + 跨架构(07-23 新增)</h5>
-                <div class="pd-split" style="--pf: 55%"><b class="pf">AMD Helios · 72×MI455X · 2.9 EF FP4 · 31 TB HBM4</b><b class="dc">Cerebras WSE · 晶圆级 SRAM</b></div>
-                <p>Helios 机架吃 prompt 处理与长上下文,晶圆级引擎吃 token 生成,合起来官方称<strong>每瓦 token 相对纯 WSE 方案最多 ×5</strong>,支持 1T+ 参数前沿模型,2026 H2 先通过 Cerebras Cloud 提供。Cerebras 会在自己的数据中心里部署 AMD 机架。</p>
+                <div class="pd-split" style="--pf: 55%"><b class="pf">AMD Helios · 72×MI455X</b><b class="dc">Cerebras WSE · 晶圆级</b></div>
+                <p>Helios 机架(72 张 MI455X、约 2.9 EFLOPS FP4、31 TB HBM4、UALoE 聚合 scale-up 260 TB/s)吃 prompt 处理与长上下文,晶圆级引擎吃 token 生成,合起来官方称<strong>每瓦 token 相对纯 WSE 方案最多 ×5</strong>,支持 1T+ 参数前沿模型,2026 H2 先通过 Cerebras Cloud 提供。Cerebras 会在自己的数据中心里部署 AMD 机架。</p>
               </div>
               <div class="pd-card" style="--c: var(--alt); --d: .6s">
                 <h5>形态五:跨厂商异构(云侧拼装)</h5>
-                <div class="pd-split" style="--pf: 38%"><b class="pf">NVIDIA H200 · prefill</b><b class="dc">SambaNova SN50 · 432 MB SRAM + 三层内存</b></div>
+                <div class="pd-split" style="--pf: 38%"><b class="pf">NVIDIA H200</b><b class="dc">SambaNova SN50 · RDU</b></div>
                 <p>SambaNova 在 RAISE Summit 2026 演示的方案:用别人的 GPU 做 prefill、自己的 RDU 做 decode。这一档的意义在于它<strong>不需要任何厂商合作</strong> —— 只要两边都接了 vLLM,PD 分离就是一个部署选择。</p>
               </div>
             </div>
@@ -527,7 +530,7 @@
           <div class="fig">
             <div class="fig-title">动态图 4:显存带宽 × 存储介质(满刻度 23.3 TB/s)—— 唯一不用 HBM 还超过基线的一张卡</div>
             <div class="fig-legend">
-              <span style="--c: var(--amd)"><i></i>HBM4</span><span style="--c: var(--nv)"><i></i>HBM3e / HBM3</span>
+              <span style="--c: var(--amd)"><i></i>HBM4</span><span style="--c: var(--nv)"><i></i>HBM3e / HBM3 / 其他 HBM</span>
               <span style="--c: var(--accent-1)"><i></i>3D 混合键合近存 DRAM</span>
               <span style="--c: var(--hw)"><i></i>自研 HBM</span>
               <span style="--c: var(--ms)"><i></i>GDDR / LPDDR</span>
@@ -544,9 +547,9 @@
               <div class="bwm-row"><span class="nm">昇腾 950DT</span><span class="bwm-track"><span class="bwm-fill" style="--w: 17%; --c: var(--hw); --d: .54s"></span></span><span class="vl"><b>4.0 TB/s</b> · 自研 HiZQ 2.0</span></div>
               <div class="bwm-row"><span class="nm">H20(基线)</span><span class="bwm-track"><span class="bwm-fill" style="--w: 17%; --c: var(--base); --d: .61s"></span></span><span class="vl"><b>4.0 TB/s</b> · HBM3 96 GB</span></div>
               <div class="bwm-row"><span class="nm">Intel Gaudi 3</span><span class="bwm-track"><span class="bwm-fill" style="--w: 16%; --c: var(--nv); --d: .68s"></span></span><span class="vl"><b>3.7 TB/s</b> · HBM2e</span></div>
-              <div class="bwm-row"><span class="nm">沐曦 C600 / 燧原 L600</span><span class="bwm-track"><span class="bwm-fill" style="--w: 15%; --c: var(--nv); --d: .75s"></span></span><span class="vl"><b>3.6 TB/s</b> · HBM3e</span></div>
+              <div class="bwm-row"><span class="nm">沐曦 C600 / 燧原 L600</span><span class="bwm-track"><span class="bwm-fill" style="--w: 15%; --c: var(--nv); --d: .75s"></span></span><span class="vl"><b>3.6 TB/s</b> · HBM3e <span class="est">※L600 未标类型</span></span></div>
               <div class="bwm-row"><span class="nm">Rubin CPX</span><span class="bwm-track"><span class="bwm-fill" style="--w: 9%; --c: var(--ms); --d: .82s"></span></span><span class="vl"><b>2.0 TB/s</b> · GDDR7 128 GB</span></div>
-              <div class="bwm-row"><span class="nm">摩尔线程 MTT S5000</span><span class="bwm-track"><span class="bwm-fill" style="--w: 7%; --c: var(--nv); --d: .89s"></span></span><span class="vl"><b>1.6 TB/s</b> · 80 GB</span></div>
+              <div class="bwm-row"><span class="nm">摩尔线程 MTT S5000</span><span class="bwm-track"><span class="bwm-fill" style="--w: 7%; --c: var(--nv); --d: .89s"></span></span><span class="vl"><b>1.6 TB/s</b> · 80 GB <span class="est">※类型未公开</span></span></div>
               <div class="bwm-row"><span class="nm">Intel Crescent Island</span><span class="bwm-track"><span class="bwm-fill" style="--w: 6%; --c: var(--ms); --d: .96s"></span></span><span class="vl"><b>~1.5 TB/s</b> <span class="est">※</span> · LPDDR5X 480 GB</span></div>
             </div>
             <span class="fig-cap">
@@ -724,7 +727,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 7:六张新卡插进总榜的位置(灰色为原有邻居)</div>
+            <div class="fig-title">动态图 7:六张新卡插进总榜的位置(灰色为原有邻居)· <strong>2026-07-28 时点快照</strong></div>
             <div class="fig-legend">
               <span style="--c: var(--accent-1)"><i></i>本次新入榜</span><span style="--c: var(--base)"><i></i>原有邻居</span>
             </div>
@@ -748,6 +751,12 @@
               前十被两类卡包住了:HBM4 旗舰(R200 / MI455X)和超大规模自研 ASIC(TPU / Maia)。前者拼工艺与 HBM 代际,后者拼域规模与自家负载闭环,两条路都需要极重的资本与体系。
               新入榜的六张里有四张(SN50 / REBEL-Quad / RNGD / 真武 810E)走的是<strong>第三条路:不追峰值,追单位成本与可得性</strong> —— SN50 故意用便宜的 HBM2E 换产能确定性,RNGD 用 180 W 无源散热换「插进任何风冷机房」,真武 810E 用 400 W 和自研全栈换「阿里云能直接大规模部署」。
               <strong>它们的对手不是 R200,是「买不到 R200」这个事实。</strong>
+            </span>
+            <span class="fig-cap">
+              这张图刻意保留成 <strong>07-28 的时点快照</strong>,所以它的名次和分数与第一节现在的总榜已经不一致:
+              07-29 把曦云 C600(157 → 179)、燧原 L600(152 → 173)、MTT S5000(129 → 164)重算过,榜也多了一张东方算芯 DF1000,总数 30 → 31。
+              留着它是因为「一批新卡插进来时落在哪一段」这个观察本身有价值 —— 而<strong>它旁边那三个灰色邻居在一天之后就跳到了它们上面</strong>,恰好说明了同一件事的另一面:
+              这一段的名次对「厂商公布了什么」极度敏感,不适合当采购依据。
             </span>
           </div>
 
