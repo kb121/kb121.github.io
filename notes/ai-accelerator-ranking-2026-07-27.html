@@ -3,8 +3,10 @@
   =========================================================================
   AI ACCELERATOR BOARD 2026 — 商用加速卡统计与排名（以 NVIDIA H20 为基线）
   -------------------------------------------------------------------------
-  稳定 URL，滚动更新。首发 2026-07-27（19 家厂商），最近一次复核 2026-07-28
-  （扩到 26 家厂商 / 30 张卡进榜，并加入 Kimi K3 常驻装载校验）。
+  稳定 URL，滚动更新。首发 2026-07-27（19 家厂商），2026-07-28 扩到 26 家厂商 /
+  30 张卡进榜并加入 Kimi K3 常驻装载校验；最近一次复核 2026-07-29（WAIC 2026 超节点
+  数据把三家国产卡的 scale-up 域从 8 卡改写为 64–256 卡并重算指数，新增东方算芯
+  DF1000，补齐 AMD×Cerebras 跨厂商 PD 分离与 K3 Day-0 适配竞赛）。
   所有规格均在正文表格中标注来源链接；带 ※ 的单元格为公开信息不足时的工程
   推算，不要当作厂商官方口径引用。
   =========================================================================
@@ -33,7 +35,7 @@
     <title data-zh="商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏" data-en="Commercial AI Accelerator Board & Ranking (H20 as baseline) — Hong Zhuang">商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏</title>
     <meta
       name="description"
-      content="2026-07-28 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 共 26 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线,并用 Kimi K3(2.8T)做常驻装载校验。"
+      content="2026-07-29 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 共 27 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次用 WAIC 2026 超节点数据重算国产卡的域规模维度,并加入 AMD×Cerebras 跨厂商 PD 分离与 Kimi K3 Day-0 适配竞赛。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -229,6 +231,48 @@
       .camp-cell span { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: .6rem; color: var(--text-muted); line-height: 1.5; }
       @keyframes camp-pulse { 0%, 100% { box-shadow: 0 0 0 0 transparent; transform: translateY(0); } 50% { box-shadow: 0 0 16px color-mix(in srgb, var(--c), transparent 72%); transform: translateY(-2px); } }
 
+      /* 动图 1:Kimi K3 开源后 48 小时的 Day-0 适配竞赛 */
+      .d0 { position: relative; display: grid; gap: 7px; padding-bottom: 22px; }
+      .d0-row { display: grid; grid-template-columns: 158px 1fr 104px; gap: 9px; align-items: center; }
+      .d0-row .nm { font-size: .76rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .d0-lane { position: relative; height: 18px; border-radius: 6px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 20%); overflow: hidden; }
+      .d0-bar { position: absolute; inset: 0 auto 0 0; width: var(--x); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, color-mix(in srgb, var(--c), transparent 62%), var(--c)); animation: grow 1.2s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      .d0-bar::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: var(--c); }
+      .d0-row .vl { font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
+      .d0-row .vl b { color: var(--text); font-weight: 500; }
+      .d0-axis { position: absolute; left: 167px; right: 113px; bottom: 0; height: 15px; border-top: 1px dashed var(--border); }
+      .d0-axis span { position: absolute; left: var(--p); top: 2px; transform: translateX(-50%); font-family: var(--font-mono); font-size: .6rem; color: var(--text-muted); white-space: nowrap; }
+
+      /* 动图 2:超节点域规模跳变(旧值为斜纹底,新值为实心) */
+      .jump { display: grid; gap: 9px; }
+      .jump-row { display: grid; grid-template-columns: 154px 1fr 124px; gap: 9px; align-items: center; }
+      .jump-row .nm { font-size: .77rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .jump-track { position: relative; height: 20px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 15%); overflow: hidden; }
+      .jump-old { position: absolute; inset: 0 auto 0 0; width: var(--o); border-right: 1px dashed var(--base); background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--base), transparent 62%) 0 5px, transparent 5px 10px); }
+      .jump-new { position: absolute; inset: 0 auto 0 0; width: var(--w); transform-origin: left center; transform: scaleX(0); border-radius: inherit; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 32%)); animation: grow 1.5s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      .jump-row .vl { font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); }
+      .jump-row .vl b { color: var(--text); font-weight: 500; }
+
+      /* 动图 3:PD 分离的四种形态 */
+      .pd { display: grid; gap: 10px; }
+      .pd-card { padding: 11px 13px; border: 1px solid var(--border); border-left: 3px solid var(--c); border-radius: 0 13px 13px 0; background: color-mix(in srgb, var(--surface-strong), transparent 28%); }
+      .pd-card h5 { margin: 0 0 8px; font-size: .82rem; color: var(--text); }
+      .pd-split { display: grid; grid-template-columns: var(--pf) 1fr; height: 26px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+      .pd-split b { display: grid; place-items: center; padding: 0 4px; font-family: var(--font-mono); font-size: .6rem; font-weight: 400; white-space: nowrap; overflow: hidden; }
+      .pd-split .pf { color: #0b1020; background: color-mix(in srgb, var(--c), white 16%); animation: pd-pulse 3.6s ease-in-out var(--d, 0s) infinite; }
+      .pd-split .dc { color: var(--text); background: color-mix(in srgb, var(--c), transparent 76%); animation: pd-pulse 3.6s ease-in-out calc(var(--d, 0s) + 1.8s) infinite; }
+      .pd-card p { margin: 8px 0 0; font-size: .77rem; color: var(--text-muted); line-height: 1.62; }
+      @keyframes pd-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.24); } }
+
+      /* 动图 4:显存带宽 × 存储介质 */
+      .bwm { display: grid; gap: 8px; }
+      .bwm-row { display: grid; grid-template-columns: 152px 1fr 152px; gap: 9px; align-items: center; }
+      .bwm-row .nm { font-size: .77rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .bwm-track { height: 19px; border-radius: 6px; border: 1px solid var(--border); background: color-mix(in srgb, var(--surface-strong), transparent 18%); overflow: hidden; }
+      .bwm-fill { height: 100%; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 30%)); animation: grow 1.15s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      .bwm-row .vl { font-family: var(--font-mono); font-size: .63rem; color: var(--text-muted); }
+      .bwm-row .vl b { color: var(--text); font-weight: 500; }
+
       /* 表格 */
       .tbl-scroll { overflow-x: auto; margin: 1rem 0; }
       .mini-table { width: 100%; border-collapse: collapse; font-size: .84rem; min-width: 640px; }
@@ -253,12 +297,16 @@
         .ridge-row, .pw-row, .mfu-row { grid-template-columns: 116px 1fr; }
         .pw-row .tag, .mfu-row .vl { grid-column: 2; }
         .fmt-grid { grid-template-columns: 104px repeat(7, minmax(34px, 1fr)); }
+        .d0-row, .jump-row, .bwm-row { grid-template-columns: 116px 1fr; }
+        .d0-row .vl, .jump-row .vl, .bwm-row .vl { grid-column: 2; }
+        .d0-axis { left: 125px; right: 0; }
       }
       @media (prefers-reduced-motion: reduce) {
         .race-fill, .race-fill::after, .ridge-line::before, .ridge-dot, .bub circle.pt, .fmt-cell.y,
         .dom-ring, .dom-ring::after, .dom-core, .tile-fill, .pw-fill, .mfu-eff, .tl .st, .pw-row .tag.liq::before,
-        .radar polygon.sh, .lane .flow i, .camp-cell, .load-fill, .tier-card { animation: none !important; }
-        .race-fill, .ridge-line::before, .pw-fill, .mfu-eff, .load-fill { transform: scaleX(1); }
+        .radar polygon.sh, .lane .flow i, .camp-cell, .load-fill, .tier-card,
+        .d0-bar, .jump-new, .bwm-fill, .pd-split .pf, .pd-split .dc { animation: none !important; }
+        .race-fill, .ridge-line::before, .pw-fill, .mfu-eff, .load-fill, .d0-bar, .jump-new, .bwm-fill { transform: scaleX(1); }
         .tier-card { opacity: 1; transform: none; }
         .tile-fill { transform: scaleY(1); }
         .ridge-dot, .bub circle.pt { opacity: 1; }
@@ -306,7 +354,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-07-28 复核 · 2026-07-27 首发</span>
+            <span>2026-07-29 复核 · 2026-07-27 首发</span>
             <span class="tags"><span>GPU</span><span>NPU</span><span>Hardware</span><span>Ranking</span><span>Roofline</span><span>Interconnect</span><span>MFU</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">商用 AI 加速卡统计与排名:以 NVIDIA H20 为基线</span><span lang="en" class="i18n-en">Commercial AI Accelerator Board &amp; Ranking, with NVIDIA H20 as the Baseline</span></h1>
@@ -314,26 +362,207 @@
 
         <div class="prose">
           <p class="gpu-lede">
-            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-07-28</strong>。覆盖 <strong>26 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯。
+            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-07-29</strong>。覆盖 <strong>27 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯。
             排名不看单一峰值,而是把<strong>显存、算力、算力/带宽比、数值格式原生支持、Scale-up 与超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU</strong> 十个维度加权成一个「综合硬件指数」,并统一<strong>以 NVIDIA H20 = 100 为基线</strong>。
             所有关键数字都在表格里给出来源链接;公开信息不足、由我按同代规格推算的单元格标注 <span class="est">※</span>,请不要当成厂商官方口径。
           </p>
           <p class="gpu-lede">
-            <strong>本次复核的触发事件是一个模型而不是一张卡</strong>:2026-07-27 深夜月之暗面开源了 Kimi K3 的完整权重(2.8 万亿参数、896 专家激活 16、MXFP4 权重 + MXFP8 激活、原生 100 万上下文),
-            官方部署指引写的是「<strong>建议 64 颗以上加速器组成的超节点</strong>」。这一句话把加速卡的评价标准从「单卡峰值」正式推到了「<strong>一个 scale-up 域能不能把它整个装下</strong>」——
-            所以第零节新增了一张按卡计算「常驻 K3 需要几张、够不够一个域」的校验图,它比任何 PFLOPS 对比都更接近采购现场。
+            <strong>本次复核第一次动了已经发布过的分数。</strong>WAIC 2026 上摩尔线程、沐曦、燧原三家把 scale-up 域从「一层 8 卡」拉到 64–256 卡,
+            而这三张卡在上一版里的「超节点域」一列取的都是 8 —— 新数据直接让它们的综合指数涨了 21–35 分、名次前移 2–6 位。
+            与此同时 AMD 与 Cerebras 宣布把 prefill 和 decode 拆到<strong>两个不同厂商、两种完全不同的架构</strong>上,以及 Kimi K3 开源后 48 小时内的 Day-0 适配竞赛,
+            让第十节那句「软件栈是最慢的一步」第一次有了可以横向比较的实测尺子。改动清单、重算前后对照与新入榜的东方算芯 DF1000 都在第零节。
           </p>
 
           <div class="gpu-kpis">
-            <div class="gpu-kpi"><b>26</b><span>覆盖厂商(+7)</span></div>
-            <div class="gpu-kpi"><b>75</b><span>统计卡型(含未公开规格)</span></div>
-            <div class="gpu-kpi"><b>30</b><span>数据足够、进入排名(+6)</span></div>
+            <div class="gpu-kpi"><b>27</b><span>覆盖厂商(+1)</span></div>
+            <div class="gpu-kpi"><b>78</b><span>统计卡型(含未公开规格)</span></div>
+            <div class="gpu-kpi"><b>31</b><span>数据足够、进入排名(+1)</span></div>
+            <div class="gpu-kpi"><b>3</b><span>因新数据重算分数的卡</span></div>
             <div class="gpu-kpi"><b>10</b><span>评分维度</span></div>
-            <div class="gpu-kpi"><b>16</b><span>动图</span></div>
-            <div class="gpu-kpi"><b>4</b><span>装下 K3 的最少卡数(MI455X)</span></div>
+            <div class="gpu-kpi"><b>20</b><span>动图(+4)</span></div>
+            <div class="gpu-kpi"><b>256</b><span>一层 Scale-up 网络最大卡数</span></div>
           </div>
 
-          <h2>零、2026-07-28 复核:3T 开源模型把标尺从「卡」挪到了「域」</h2>
+          <h2>零、2026-07-29 复核:一层网络 256 卡,超节点从独门武艺变成标准动作</h2>
+          <p>
+            上一版(07-28)的结论是「<strong>域装不装得下</strong>」取代了「单卡峰值」成为 3T 级模型的第一判据,并据此把 MI355X、Gaudi 3、思元690、沐曦 / 燧原 / 摩尔线程、RNGD、B30A 一起划进了「域太小、过不了 64 卡线」那一栏。
+            这个判断在<strong>数据层面</strong>有一处错:我当时对三家国产 GPU 的 scale-up 域取的是「一层 8 卡」,而 WAIC 2026(07-17 至 07-20)上这三家已经各自公布了整柜级方案。补齐之后结论要改写:
+          </p>
+          <ul>
+            <li><strong>摩尔线程 MTT C256</strong>:柜内 Cable Tray 全铜架构,<strong>一层 Scale-up 网络直连 256 颗 GPU</strong> —— 标准单宽机柜 128 卡全互联,并柜到 256 卡,卡间延迟压到亚微秒级。这是目前公开方案里一层网络卡数最多的一个(行业常见是一层 64 卡)。</li>
+            <li><strong>沐曦 曦景 S600</strong>:OEX 正交连接器 + 两级交换拓扑,单机柜 64 卡全互联,柜间可扩到万卡规模。</li>
+            <li><strong>燧原 云燧 ESL64-O</strong>(与中兴通讯联合发布):OEX 正交无背板、<strong>零线缆</strong>,单柜 64 卡,可并柜到 128 / 256 / 512 卡,官方口径 2026 年底量产。</li>
+          </ul>
+          <p>
+            也就是说,「用域规模补单卡工艺差」这件事在 2026 上半年还是华为一家的叙事,到这个夏天已经是<strong>整个国产阵营的集体共识</strong>:壁仞 1024 卡光互联、昆仑芯天池 256 / 512、阿里 ICN Switch 64 卡、
+            摩尔线程 256、沐曦 / 燧原 / 东方算芯各自 64 —— 连互联介质都分化出了三条路(全铜 Cable Tray、OEX 正交零线缆、NPO 光互联)。
+            华为这边则在 07-29 首次公开展示昇腾 950 超节点整机与国内首发的 <strong>800GE AI 网卡</strong>(支持 10 万级节点组网),把同一件事推到了 scale-out 层。
+          </p>
+          <p>
+            另外两条本次要记的账:<strong>(1)</strong> AMD 与 Cerebras 在 Advancing AI 2026(07-23)宣布把 PD 分离拆到两家公司 —— Helios 机架做 prefill、晶圆级引擎做 decode,官方口径相对纯 WSE 方案<strong>每瓦 token 提升最多 5 倍</strong>;
+            <strong>(2)</strong> Kimi K3 开源后 48 小时内,昇腾、阿里真武 M890、海光 DCU、摩尔线程 S5000 以及一批海外托管厂商全部宣布 Day-0 适配,而它们给出的<strong>证据等级差别很大</strong> —— 这是本文「第三层」第一次能用同一个负载横向比。
+          </p>
+
+          <div class="tbl-scroll">
+            <table class="mini-table">
+              <thead>
+                <tr><th>时间</th><th>变化</th><th>对本文的影响</th><th>来源</th></tr>
+              </thead>
+              <tbody>
+                <tr class="hl"><td class="num">07-17 ~ 20<br />(WAIC 2026)</td><td><strong>三家国产 GPU 公布整柜超节点</strong>:摩尔线程 MTT C256 一层 256 卡、沐曦 曦景 S600 单柜 64 卡、燧原 云燧 ESL64-O 单柜 64 卡(零线缆)</td><td><strong>重算三张卡的「超节点域」维度</strong>:S5000 129→164、曦云 C600 157→179、L600 152→173;第零节 K3 装载图里它们从「要跨 4–7 个域」变成「一个域装得下」</td><td class="src-cell"><a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(三家路线对比)</a> · <a href="https://news.eccn.com/news_2026071916425189.htm">中电网(MTT C256)</a> · <a href="https://www.agentren.cn/2026/0720/20931.shtml">爱力方(曦景 S600 / ESL64-O)</a></td></tr>
+                <tr class="hl"><td class="num">07-23</td><td><strong>AMD × Cerebras 解构式推理</strong>:Helios(72×MI455X / 2.9 EF FP4 / 31 TB HBM4)做 prefill,晶圆级引擎做 decode,官方称每瓦 token 最多 ×5,2026 H2 先上 Cerebras Cloud</td><td>PD 分离第一次跨厂商、跨架构;新增「PD 分离五种形态」动图,并把第七节的晶圆级一栏从「进不了榜」改写成「进不了榜但进得了产线」</td><td class="src-cell"><a href="https://ir.amd.com/news-events/press-releases/detail/1293/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference-solution">AMD 官方新闻稿</a> · <a href="https://mlq.ai/news/amd-and-cerebras-partner-on-disaggregated-ai-inference-system-pairing-helios-racks-with-wafer-scale-chips/">MLQ(Helios 机架口径)</a></td></tr>
+                <tr><td class="num">07-28 ~ 29</td><td><strong>Kimi K3 的 Day-0 适配竞赛</strong>:昇腾 0day 完成训练复现 + 推理部署(昇腾 950 超节点原生支持 mxFP4);阿里真武 M890 首 token 时延 −35%、单卡解码吞吐 ×1.8、稳定支持 1M 上下文;摩尔线程 S5000 Day-0 拉起;海外 Nebius / Baseten / Fireworks / Modal / Together / GMI 与 vLLM / SGLang 同步</td><td>新增「48 小时 Day-0 竞赛」动图;第九节软件栈一列补上迄今最硬的横向证据</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260729/28ee398c17ef4e57c61b6d6851a925d9.html">21 财经(汇总)</a> · <a href="https://www.itbear.com.cn/html/2026-07/1468893.html">ITBear(昇腾 0day)</a> · <a href="https://news.aibase.com/zh/news/29966">AIbase(摩尔线程)</a></td></tr>
+                <tr class="hl"><td class="num">本次补齐</td><td><strong>第 27 家厂商:东方算芯</strong>。巅峯 DF1000 用 14nm 成熟工艺 + 3D 混合键合把 DRAM 直接堆在逻辑晶圆上,<strong>不用 HBM 做到 6.4 TB/s</strong>、BF16 520 TFLOPS、Scale-up 900 GB/s、拓域 TY64 为 64 卡域,128 卡集群已实测</td><td>统计卡型 75 → 78、进榜卡 30 → 31;新增「带宽 × 存储介质」动图 —— 它是全表唯一一张带宽高于 H20 却完全不用 HBM 的卡</td><td class="src-cell"><a href="https://www.dfsx.com/products/ai-accelerator/df1000">东方算芯官方产品页</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(发布会拆解)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50557.shtml">半导体行业观察(产品层级)</a></td></tr>
+                <tr class="hl"><td class="num">07-17<br />(WAIC 2026)</td><td><strong>华为 Atlas 850E 风冷超节点</strong>:自研 VCE 相变散热 + 灵衢互联,<strong>不需要对现有风冷 IDC 做液冷改造</strong>,标准机柜直接上架,单个风冷超节点可扩到 <strong>96 卡</strong>商用部署;原生覆盖 FP8 / mxFP8 / HiF8 / INT8 / mxFP4 全量低精格式,4.0 TB/s 内存带宽,10 ms 级时延推理、M 级上下文</td><td><strong>推翻第十一节第 4 条的结论</strong> —— 「能塞进存量风冷机房」这一档此前只有 Crescent Island / Gaudi 3 / Tenstorrent Galaxy,而它们的带宽只有 HBM 卡的 1/5–1/15;850E 是第一个「风冷 + 4 TB/s + 96 卡域 + 全量 FP4」的组合</td><td class="src-cell"><a href="https://qzs.stcn.com/article/detail/615773.html">券中社 / 证券时报(850E 现场展示细节)</a></td></tr>
+                <tr><td class="num">07-17 ~ 29</td><td>昇腾 950 超节点(Atlas 950 SuperPoD)<strong>真机首次公开</strong>:现场按 1024 卡规模部署,1 EFLOPS FP8 / 2 EFLOPS FP4、<strong>256 TB 全局统一内存编址</strong>、3 μs RTT,满配 8192 卡、2026 Q4 批量上市。华为同时国内首发 <strong>800GE SP560 AI 网卡</strong>(支持 10 万级节点组网,数据面直通 GPU/NPU 内存、集合通信卸载到网卡);中科曙光的全国产十万卡超集群「曙光 8000(登峰)」落成并接入国家超算互联网</td><td>第五节的 8192 卡补上「真机 1024 卡 / 满配 8192 / Q4 上市」这层区分,并补一条:域规模竞争已从 scale-up 溢出到 scale-out 网卡</td><td class="src-cell"><a href="https://www.huawei.com/cn/news/2026/7/atlas-950-superpod">华为官方(真机亮相)</a> · <a href="https://www.doit.com.cn/itnews/829292559298629.html">DOIT(800GE SP560 网卡)</a> · <a href="https://news.iresearch.cn/content/202607/561089.shtml">艾瑞网(满配口径与曙光 8000 的性质澄清)</a></td></tr>
+                <tr><td class="num">口径修正</td><td>上一版把沐曦 / 燧原 / 摩尔线程的 scale-up 域写成 8,理由是「只找到 8 卡整机」;实际是<strong>我没有把 WAIC 的超节点发布并进这一列</strong></td><td>这是本文第一次因新数据改写已发布分数。重算只动「超节点域」这一维,其余九维输入完全不变,对照见下图</td><td class="src-cell">见第五节表格与第十二节</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 1:超节点域规模跳变 —— 斜纹是上一版取值,实心是本次重算(条长 = 综合指数)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--cn)"><i></i>因新数据重算</span>
+              <span style="--c: var(--accent-1)"><i></i>本次新入榜</span>
+              <span style="--c: var(--base)"><i></i>上一版取值(斜纹)</span>
+            </div>
+            <div class="jump">
+              <div class="jump-row"><span class="nm">沐曦 曦云 C600</span><span class="jump-track"><span class="jump-old" style="--o: 37%"></span><span class="jump-new" style="--w: 42%; --c: var(--cn); --d: .05s"></span></span><span class="vl">域 8 → <b>64</b> · 157 → <b>179</b></span></div>
+              <div class="jump-row"><span class="nm">燧原 L600</span><span class="jump-track"><span class="jump-old" style="--o: 36%"></span><span class="jump-new" style="--w: 41%; --c: var(--cn); --d: .2s"></span></span><span class="vl">域 8 → <b>64</b> · 152 → <b>173</b></span></div>
+              <div class="jump-row"><span class="nm">摩尔线程 MTT S5000</span><span class="jump-track"><span class="jump-old" style="--o: 30%"></span><span class="jump-new" style="--w: 39%; --c: var(--cn); --d: .35s"></span></span><span class="vl">域 8 → <b>256</b> · 129 → <b>164</b></span></div>
+              <div class="jump-row"><span class="nm">东方算芯 巅峯 DF1000</span><span class="jump-track"><span class="jump-new" style="--w: 33%; --c: var(--accent-1); --d: .5s"></span></span><span class="vl">首次进榜 · <b>139</b> · 域 64</span></div>
+              <div class="jump-row"><span class="nm">阿里 真武 M890(对照)</span><span class="jump-track"><span class="jump-old" style="--o: 39%"></span><span class="jump-new" style="--w: 39%; --c: var(--base); --d: .65s"></span></span><span class="vl">域 16 → 64 · 上一版已计入</span></div>
+            </div>
+            <div class="load-note">重算只改「超节点域」一个维度(权重 7 分),其余九维输入逐字沿用上一版:Δ = 7 × log₂(新域 / 旧域),所以 8→64 恰好 +21 分、8→256 恰好 +35 分。条长 = 指数 ÷ 417 × 98%。</div>
+            <span class="fig-cap">
+              这张图想说的其实不是「国产卡变强了」,而是<strong>一个打分模型最容易出错的地方在哪里</strong>:十个维度里有九个是从 datasheet 抄的,只有「超节点域」这一维要从整机/整柜发布会里读,而它偏偏权重不低(7 分)且跨度极大(8 → 8192,理论上能吃掉 70 分)。
+              上一版把三家写成 8,不是因为它们弱,是因为我把「能买到的 8 卡整机」当成了域上限。<strong>披露渠道的差异会被打分模型放大成能力差异</strong> —— 这是这类榜单最系统性的偏差来源。
+            </span>
+            <span class="fig-cap">
+              重算后名次的变化很值得看:<strong>沐曦 C600 升到第 19、燧原 L600 第 20,双双越过了寒武纪思元690(171)</strong> —— 而思元690 有 196 GB HBM3 和 &gt;700 TFLOPS FP16,单卡明显更强,只是互联仅 ~890 Gbps、域规模至今未公开。
+              <strong>摩尔线程 S5000 从第 25 跳到第 23,和阿里真武 M890 打平(164)</strong>:一张 80 GB / 1.6 TB/s 的卡,靠一层 256 卡的互联把显存与带宽的短板补回来了 21 分。
+              这两件事指向同一个结论:<strong>2026 年国产卡之间的差距,已经不主要由单卡规格决定,而是由「能不能把几百张卡做成一台机器」决定。</strong>
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 2:Kimi K3 开源后 48 小时的 Day-0 适配竞赛(条形越短 = 越快;颜色 = 证据等级)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--nv)"><i></i>L1 训练复现 + 推理部署</span>
+              <span style="--c: var(--ms)"><i></i>L2 生产推理引擎跑通</span>
+              <span style="--c: var(--alt)"><i></i>L3 拉起 / 跑通</span>
+              <span style="--c: var(--cn)"><i></i>L4 托管 / API 服务</span>
+              <span style="--c: var(--base)"><i></i>未检索到官方公告</span>
+            </div>
+            <div class="d0">
+              <div class="d0-row"><span class="nm">vLLM / SGLang(上游)</span><span class="d0-lane"><span class="d0-bar" style="--x: 8%; --c: var(--ms); --d: .05s"></span></span><span class="vl"><b>L2</b> 上游合入</span></div>
+              <div class="d0-row"><span class="nm">海外托管(6 家)</span><span class="d0-lane"><span class="d0-bar" style="--x: 13%; --c: var(--cn); --d: .12s"></span></span><span class="vl"><b>L4</b> 权重日上线</span></div>
+              <div class="d0-row"><span class="nm">阿里云 真武 M890 超节点</span><span class="d0-lane"><span class="d0-bar" style="--x: 29%; --c: var(--ms); --d: .19s"></span></span><span class="vl"><b>L2</b> 首 token −35%</span></div>
+              <div class="d0-row"><span class="nm">海光 DCU 深算四号</span><span class="d0-lane"><span class="d0-bar" style="--x: 37%; --c: var(--ms); --d: .26s"></span></span><span class="vl"><b>L2</b> 折损 &lt;12%</span></div>
+              <div class="d0-row"><span class="nm">摩尔线程 MTT S5000</span><span class="d0-lane"><span class="d0-bar" style="--x: 44%; --c: var(--alt); --d: .33s"></span></span><span class="vl"><b>L3</b> 极速拉起</span></div>
+              <div class="d0-row"><span class="nm">华为昇腾 Atlas 800/900 A3</span><span class="d0-lane"><span class="d0-bar" style="--x: 50%; --c: var(--nv); --d: .4s"></span></span><span class="vl"><b>L1</b> 训练 + 推理</span></div>
+              <div class="d0-row"><span class="nm">昆仑芯 / 寒武纪 / 沐曦 / 燧原</span><span class="d0-lane"><span class="d0-bar" style="--x: 100%; --c: var(--base); --d: .47s"></span></span><span class="vl">T+48h 未见公告</span></div>
+              <div class="d0-axis"><span style="--p: 0%">T+0</span><span style="--p: 25%">12h</span><span style="--p: 50%">24h</span><span style="--p: 75%">36h</span><span style="--p: 100%">48h</span></div>
+            </div>
+            <div class="load-note">T+0 = 2026-07-27 23:00(权重上线)。横轴按厂商公开发文的<strong>日期</strong>归档到小时刻度,精确到小时不可考;「未见公告」指截至本次快照未检索到官方 Day-0 声明,不等于没有适配。</div>
+            <span class="fig-cap">
+              这张图是本文第一次能用<strong>同一个负载</strong>横向比软件栈,而它立刻暴露了「Day-0 适配」这四个字的水分:<strong>同样叫 Day-0,证据等级差了三档。</strong>
+              昇腾是唯一一家同时给出<strong>训练侧复现</strong>(MindSpeed MM 在 Atlas 800 A3 / 900 A3 SuperPoD 上做减层训练适配)和<strong>推理侧部署</strong>(vLLM Ascend + SGLang)的;
+              阿里给的是可验证的性能数字(首 token −35%、单卡解码吞吐 ×1.8、1M 上下文稳定);海光给的是迁移成本数字(模型代码零改动、折损 &lt;12%);
+              摩尔线程给的是「拉起并稳定运行」;海外六家给的是托管服务上线 —— 后两类严格说是<strong>可用性声明而不是效率声明</strong>。
+            </span>
+            <span class="fig-cap">
+              有一处硬件与软件互相印证的细节值得单独记:华为明确写了<strong>昇腾 950 超节点支持 FP8 / MXFP8 / MXFP4 全系列格式,原生支持 K3 的 mxFP4 量化权重</strong>。
+              这是第四节那张格式矩阵里昇腾 950 三个 ■ 第一次拿到<strong>官方 + 实跑</strong>的双重证据,也直接兑现了上一版的推论:
+              <strong>「支不支持微缩放 FP4」在 3T 模型时代是显存问题</strong> —— 950 系列因此不必反量化,而同门的 910C 要把 1.4 TB 的权重摊成 5.6 TB。
+              反过来看那条灰色的「未见公告」:昆仑芯、寒武纪、沐曦、燧原四家的卡在第一节榜上分别是 148 / 171 / 179 / 173 分,硬件不弱,但<strong>它们在这道题上没有留下痕迹</strong>。硬件指数和软件响应速度是两条独立的曲线,这张图就是证据。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 3:PD 分离的五种形态 —— 2026-07-23 之后它跨过了厂商边界</div>
+            <div class="fig-legend">
+              <span style="--c: var(--nv)"><i></i>实心块 = prefill 侧</span><span style="--c: var(--base)"><i></i>浅色块 = decode 侧</span>
+            </div>
+            <div class="pd">
+              <div class="pd-card" style="--c: var(--base); --d: 0s">
+                <h5>形态一:一张卡通吃</h5>
+                <div class="pd-split" style="--pf: 50%"><b class="pf">prefill</b><b class="dc">decode</b></div>
+                <p>H20 / B300 / MI355X。同一张卡靠 batch 调度在两个阶段间切换,好处是运维简单,代价是两个阶段的最优硬件形状正好相反 —— 一定有一半时间在浪费。</p>
+              </div>
+              <div class="pd-card" style="--c: var(--nv); --d: .15s">
+                <h5>形态二:同厂两个 SKU</h5>
+                <div class="pd-split" style="--pf: 45%"><b class="pf">Rubin CPX · GDDR7 · 5000 FLOP/B</b><b class="dc">R200 / NVL72 · HBM4 22 TB/s</b></div>
+                <p>NVIDIA 用 CPX 吃 prefill(算术强度上千,配便宜的 GDDR7)、R200 吃 decode;华为是同一思路的国产版 —— 昇腾 950PR(HiBL 1.0)打 prefill,950DT(HiZQ 2.0)打 decode。<strong>一芯双构在 2026 年成了两家的共同答案。</strong></p>
+              </div>
+              <div class="pd-card" style="--c: var(--nv); --d: .3s">
+                <h5>形态三:同厂跨形态(HBM + SRAM)</h5>
+                <div class="pd-split" style="--pf: 42%"><b class="pf">Rubin NVL72 · HBM</b><b class="dc">Groq 3 LPX 256 · 0.5 GB SRAM/芯 · 8 FLOP/B</b></div>
+                <p>NVIDIA 花 200 亿美元拿下 Groq 的 IP 之后,把 LPX 机架和 Rubin 配对卖:GPU 提供算力与大容量 KV,LPU 提供极低延迟 decode。同一家公司,两种完全不同的存储介质。</p>
+              </div>
+              <div class="pd-card" style="--c: var(--amd); --d: .45s">
+                <h5>形态四:跨厂商 + 跨架构(07-23 新增)</h5>
+                <div class="pd-split" style="--pf: 55%"><b class="pf">AMD Helios · 72×MI455X · 2.9 EF FP4 · 31 TB HBM4</b><b class="dc">Cerebras WSE · 晶圆级 SRAM</b></div>
+                <p>Helios 机架吃 prompt 处理与长上下文,晶圆级引擎吃 token 生成,合起来官方称<strong>每瓦 token 相对纯 WSE 方案最多 ×5</strong>,支持 1T+ 参数前沿模型,2026 H2 先通过 Cerebras Cloud 提供。Cerebras 会在自己的数据中心里部署 AMD 机架。</p>
+              </div>
+              <div class="pd-card" style="--c: var(--alt); --d: .6s">
+                <h5>形态五:跨厂商异构(云侧拼装)</h5>
+                <div class="pd-split" style="--pf: 38%"><b class="pf">NVIDIA H200 · prefill</b><b class="dc">SambaNova SN50 · 432 MB SRAM + 三层内存</b></div>
+                <p>SambaNova 在 RAISE Summit 2026 演示的方案:用别人的 GPU 做 prefill、自己的 RDU 做 decode。这一档的意义在于它<strong>不需要任何厂商合作</strong> —— 只要两边都接了 vLLM,PD 分离就是一个部署选择。</p>
+              </div>
+            </div>
+            <span class="fig-cap">
+              把五种形态并排放,能看到 2026 年硬件分工的演化路径:<strong>从「一张卡的两个阶段」→「一家公司的两颗芯片」→「两家公司的两种架构」。</strong>
+              AMD × Cerebras 这一步的分量不在于性能数字,而在于它<strong>承认了没有一家能同时拿下 prefill 和 decode</strong> —— AMD 有 HBM4 和 UALink 机架,但在单用户 decode 延迟上打不过晶圆级 SRAM;
+              Cerebras 有 21 PB/s 的片上带宽,但 44 GB 容量吃不下前沿模型的 prefill(第零之二节算过:装一份 K3 要 64–91 片晶圆)。<strong>互补的短板刚好拼成一条完整链路。</strong>
+            </span>
+            <span class="fig-cap">
+              对采购的直接含义:<strong>「买哪张卡」这个问题正在被「买哪一段」取代。</strong>如果你的负载是 agent(短 prompt、长输出、单用户延迟敏感),decode 段的钱比 prefill 段值;
+              如果是文档理解或代码库级 RAG(超长 prompt、短输出),反过来。而形态五说明这件事已经不需要等厂商合作 —— <strong>只要 prefill 和 decode 两侧都接了 vLLM,你自己就能拼</strong>。
+              这也是为什么第九节那张 MFU 表里「有没有接 vLLM」比「峰值多少」更值得看。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 4:显存带宽 × 存储介质(满刻度 23.3 TB/s)—— 唯一不用 HBM 还超过基线的一张卡</div>
+            <div class="fig-legend">
+              <span style="--c: var(--amd)"><i></i>HBM4</span><span style="--c: var(--nv)"><i></i>HBM3e / HBM3</span>
+              <span style="--c: var(--accent-1)"><i></i>3D 混合键合近存 DRAM</span>
+              <span style="--c: var(--hw)"><i></i>自研 HBM</span>
+              <span style="--c: var(--ms)"><i></i>GDDR / LPDDR</span>
+              <span style="--c: var(--base)"><i></i>基线 H20</span>
+            </div>
+            <div class="bwm">
+              <div class="bwm-row"><span class="nm">AMD MI455X</span><span class="bwm-track"><span class="bwm-fill" style="--w: 100%; --c: var(--amd); --d: .05s"></span></span><span class="vl"><b>23.3 TB/s</b> · HBM4 432 GB</span></div>
+              <div class="bwm-row"><span class="nm">NVIDIA Rubin R200</span><span class="bwm-track"><span class="bwm-fill" style="--w: 94%; --c: var(--amd); --d: .12s"></span></span><span class="vl"><b>22.0 TB/s</b> · HBM4 288 GB</span></div>
+              <div class="bwm-row"><span class="nm">TPU 8i</span><span class="bwm-track"><span class="bwm-fill" style="--w: 37%; --c: var(--nv); --d: .19s"></span></span><span class="vl"><b>8.6 TB/s</b> · HBM3e</span></div>
+              <div class="bwm-row"><span class="nm">B300 / MI355X</span><span class="bwm-track"><span class="bwm-fill" style="--w: 34%; --c: var(--nv); --d: .26s"></span></span><span class="vl"><b>8.0 TB/s</b> · HBM3e</span></div>
+              <div class="bwm-row"><span class="nm">Microsoft Maia 200</span><span class="bwm-track"><span class="bwm-fill" style="--w: 30%; --c: var(--nv); --d: .33s"></span></span><span class="vl"><b>7.0 TB/s</b> · HBM3e</span></div>
+              <div class="bwm-row"><span class="nm">东方算芯 巅峯 DF1000</span><span class="bwm-track"><span class="bwm-fill" style="--w: 27%; --c: var(--accent-1); --d: .4s"></span></span><span class="vl"><b>6.4 TB/s</b> · <strong>无 HBM</strong> · 14nm</span></div>
+              <div class="bwm-row"><span class="nm">Rebellions REBEL-Quad</span><span class="bwm-track"><span class="bwm-fill" style="--w: 21%; --c: var(--nv); --d: .47s"></span></span><span class="vl"><b>4.8 TB/s</b> · HBM3E</span></div>
+              <div class="bwm-row"><span class="nm">昇腾 950DT</span><span class="bwm-track"><span class="bwm-fill" style="--w: 17%; --c: var(--hw); --d: .54s"></span></span><span class="vl"><b>4.0 TB/s</b> · 自研 HiZQ 2.0</span></div>
+              <div class="bwm-row"><span class="nm">H20(基线)</span><span class="bwm-track"><span class="bwm-fill" style="--w: 17%; --c: var(--base); --d: .61s"></span></span><span class="vl"><b>4.0 TB/s</b> · HBM3 96 GB</span></div>
+              <div class="bwm-row"><span class="nm">Intel Gaudi 3</span><span class="bwm-track"><span class="bwm-fill" style="--w: 16%; --c: var(--nv); --d: .68s"></span></span><span class="vl"><b>3.7 TB/s</b> · HBM2e</span></div>
+              <div class="bwm-row"><span class="nm">沐曦 C600 / 燧原 L600</span><span class="bwm-track"><span class="bwm-fill" style="--w: 15%; --c: var(--nv); --d: .75s"></span></span><span class="vl"><b>3.6 TB/s</b> · HBM3e</span></div>
+              <div class="bwm-row"><span class="nm">Rubin CPX</span><span class="bwm-track"><span class="bwm-fill" style="--w: 9%; --c: var(--ms); --d: .82s"></span></span><span class="vl"><b>2.0 TB/s</b> · GDDR7 128 GB</span></div>
+              <div class="bwm-row"><span class="nm">摩尔线程 MTT S5000</span><span class="bwm-track"><span class="bwm-fill" style="--w: 7%; --c: var(--nv); --d: .89s"></span></span><span class="vl"><b>1.6 TB/s</b> · 80 GB</span></div>
+              <div class="bwm-row"><span class="nm">Intel Crescent Island</span><span class="bwm-track"><span class="bwm-fill" style="--w: 6%; --c: var(--ms); --d: .96s"></span></span><span class="vl"><b>~1.5 TB/s</b> <span class="est">※</span> · LPDDR5X 480 GB</span></div>
+            </div>
+            <span class="fig-cap">
+              这张图只看一件事:<strong>带宽和「用什么内存」之间的绑定关系,在 2026 年被打破了一个口子。</strong>
+              东方算芯的做法是用 Hybrid Bonding 把 DRAM 晶圆和逻辑晶圆直接键合,互连间距从数十微米压到亚微米级,TSV 数量比传统方案多几十倍,官方口径是<strong>同容量下带宽达到 HBM 的 5 倍以上</strong>。
+              代价写在参数里:算力只有 BF16 520 TFLOPS(H20 BF16 的 3.5 倍,但和 HBM4 旗舰差一个数量级)、14nm 工艺、<strong>显存容量至今未公开</strong> —— 而容量恰恰是这条路线声称可以靠堆叠层数继续扩展的那一项。
+            </span>
+            <span class="fig-cap">
+              为什么这件事值得进榜而不只是当新闻:它同时绕开了国产算力的<strong>三个卡点</strong> —— 先进制程(用 14nm)、HBM 供应(不用 HBM)、CUDA 依赖(自研 CAAP 栈)。
+              上一版把国产路线分成「超节点补偿派」和「迁移成本派」两类,DF1000 是第三类:<strong>换存储架构派</strong>。
+              但也要把话说完:它的 128 卡集群实测、CAAP 栈成熟度、以及最关键的<strong>量产良率</strong>都还没有第三方数据,本文给它的 139 分里「显存容量」「能效」「片上 SRAM」三维全部是按基线代入的默认值(见第十二节口径声明第 3 条)。
+              官方路线图是 DF2000 于 2026 Q4 对标 H200、DF3000 于 2027 对标 B300 —— 那两代才是这条路线真正要证明的东西。
+            </span>
+          </div>
+
+          <h2>零之二、2026-07-28 复核:3T 开源模型把标尺从「卡」挪到了「域」</h2>
           <p>
             这一版的增量不是某家厂商发了新卡,而是<strong>一个模型改变了「什么算好卡」的判据</strong>。
             2026-07-27 深夜,月之暗面开源了 Kimi K3 的完整权重与技术报告,并同时开源了支撑它训练的三项基础设施:MoonEP(细粒度 MoE 通信库)、FlashKDA(Kimi Delta Attention 高性能算子)、AgentEnv(分布式 RL 环境)。
@@ -363,7 +592,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 1:常驻一份 Kimi K3(2.8T)需要几张卡 —— 竖线是官方 64 卡门槛</div>
+            <div class="fig-title">动态图 5:常驻一份 Kimi K3(2.8T)需要几张卡 —— 竖线是官方 64 卡门槛</div>
             <div class="fig-legend">
               <span style="--c: var(--amd)"><i></i>原生 MXFP4:权重 1.4 TB</span>
               <span style="--c: var(--hw)"><i></i>只有 FP8:反量化到 2.8 TB</span>
@@ -383,12 +612,13 @@
               <div class="load-row"><span class="nm">昇腾 950PR / Atlas 350</span><span class="load-track"><span class="load-fill" style="--w: 20%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>18 张</b> · 域 8192 ✓</span></div>
               <div class="load-row"><span class="nm">TPU7x Ironwood</span><span class="load-track"><span class="load-fill" style="--w: 23.3%; --c: var(--hw); --d: .5s"></span></span><span class="vl"><b>21 张</b> · 域 9216 ✓</span></div>
               <div class="load-row"><span class="nm">寒武纪 思元690</span><span class="load-track"><span class="load-fill" style="--w: 23.3%; --c: var(--hw); --d: .55s"></span></span><span class="vl"><b>21 张</b> · 域 8 ✗要 3 域</span></div>
-              <div class="load-row"><span class="nm">沐曦 C600 / 燧原 L600 / REBEL-Quad</span><span class="load-track"><span class="load-fill" style="--w: 31.1%; --c: var(--hw); --d: .6s"></span></span><span class="vl"><b>28 张</b> · 域 8 ✗要 4 域</span></div>
+              <div class="load-row"><span class="nm">沐曦 C600 / 燧原 L600</span><span class="load-track"><span class="load-fill" style="--w: 31.1%; --c: var(--hw); --d: .6s"></span></span><span class="vl"><b>28 张</b> · 域 64 ✓<span class="est">※07-29 改</span></span></div>
+              <div class="load-row"><span class="nm">Rebellions REBEL-Quad</span><span class="load-track"><span class="load-fill" style="--w: 31.1%; --c: var(--hw); --d: .62s"></span></span><span class="vl"><b>28 张</b> · 域未公开</span></div>
               <div class="load-row"><span class="nm">Gaudi 3 / 海光 深算四号</span><span class="load-track"><span class="load-fill" style="--w: 35.6%; --c: var(--hw); --d: .65s"></span></span><span class="vl"><b>32 张</b> · 域 8 ✗要 4 域</span></div>
               <div class="load-row is-base"><span class="nm">NVIDIA H20(基线)</span><span class="load-track"><span class="load-fill" style="--w: 46.7%; --c: var(--base); --d: .7s"></span></span><span class="vl"><b>42 张</b> · 域 8 ✗要 6 域</span></div>
               <div class="load-row"><span class="nm">昆仑芯 P800</span><span class="load-track"><span class="load-fill" style="--w: 46.7%; --c: var(--hw); --d: .75s"></span></span><span class="vl"><b>42 张</b> · 域 256 ✓</span></div>
               <div class="load-row"><span class="nm">阿里 真武 810E</span><span class="load-track"><span class="load-fill" style="--w: 46.7%; --c: var(--hw); --d: .8s"></span></span><span class="vl"><b>42 张</b> · 域 16 ✗要 3 域</span></div>
-              <div class="load-row"><span class="nm">摩尔线程 MTT S5000</span><span class="load-track"><span class="load-fill" style="--w: 55.6%; --c: var(--hw); --d: .85s"></span></span><span class="vl"><b>50 张</b> · 域 8 ✗要 7 域</span></div>
+              <div class="load-row"><span class="nm">摩尔线程 MTT S5000</span><span class="load-track"><span class="load-fill" style="--w: 55.6%; --c: var(--hw); --d: .85s"></span></span><span class="vl"><b>50 张</b> · 域 256 ✓<span class="est">※07-29 改</span></span></div>
               <div class="load-row"><span class="nm">SambaNova SN50(HBM 层)</span><span class="load-track"><span class="load-fill" style="--w: 70%; --c: var(--hw); --d: .9s"></span></span><span class="vl"><b>63 张</b> · 域 256 ✓</span></div>
               <div class="load-row"><span class="nm">昇腾 910C(只有 BF16)</span><span class="load-track"><span class="load-fill" style="--w: 70%; --c: var(--cn); --d: .95s"></span></span><span class="vl"><b>63 张</b> · 域 384 ✓</span></div>
               <div class="load-row"><span class="nm">FuriosaAI RNGD</span><span class="load-track"><span class="load-fill" style="--w: 93.3%; --c: var(--hw); --d: 1s"></span></span><span class="vl"><b>84 张</b> · 域 8 ✗要 11 域</span></div>
@@ -403,6 +633,13 @@
               <strong>(3) 只有 6 张卡能做到「4–10 张进一个域」</strong>:MI455X、R200、B300、TPU 8i/8t、Maia 200。它们是 3T 级模型的舒适区,其余全部要么堆卡数、要么跨域。
             </span>
             <span class="fig-cap">
+              <strong>2026-07-29 修正:</strong>标 <span class="est">※07-29 改</span> 的三行原本写的是「域 8 ✗要 4–7 域」,是我漏并了 WAIC 2026 的整柜超节点发布(见第零节)。
+              改过来之后,上一版那句「只有域优先的产品能交付 3T 模型」需要补一个更准确的版本:<strong>过不过 64 卡线,和单卡强弱几乎无关,只和厂商有没有做整柜互联有关。</strong>
+              现在真正还卡在这条线外的是 MI355X(8 卡 UBB)、Gaudi 3(8 卡 HLS)、B30A(8 卡 HGX)、思元690 与 REBEL-Quad(域未公开)、RNGD(只有 PCIe)——
+              注意其中<strong>三张是国际大厂的主流 SKU</strong>,它们不是做不到,而是把大域留给了更贵的机架级产品(NVL144 / Helios 72)。
+              另外东方算芯 DF1000 因为<strong>显存容量未公开</strong>,这张图算不出它需要几张卡,只知道它的域是 64。
+            </span>
+            <span class="fig-cap">
               两个画不进这张图的极端:<strong>Cerebras WSE-3 需要约 64–91 片晶圆</strong>(The Register 对 1T 的 Kimi K2 给的口径是 12–48 片,按 2.8T 线性外推);
               <strong>NVIDIA Groq 3 LPU 每芯只有 0.5 GB SRAM,一个 256 芯 LPX 机架合计 128 GB,要装下 K3 得摊到约 32 个机架</strong>。
               SRAM 派的极低延迟是真的,但它对 3T 级稀疏模型的入场券也是真的贵 —— 这条路线更适合中等规模模型的极限 decode,而不是前沿 MoE 的全量常驻。
@@ -410,7 +647,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 2:基线更替 —— H20 这一档已经有 6 个继任者</div>
+            <div class="fig-title">动态图 6:基线更替 —— H20 这一档已经有 6 个继任者</div>
             <div class="tier-grid">
               <div class="tier-card" style="--c: var(--nv); --d: .05s">
                 <h5>NVIDIA B30A <span class="est">※待许可</span></h5>
@@ -487,7 +724,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 3:六张新卡插进总榜的位置(灰色为原有邻居)</div>
+            <div class="fig-title">动态图 7:六张新卡插进总榜的位置(灰色为原有邻居)</div>
             <div class="fig-legend">
               <span style="--c: var(--accent-1)"><i></i>本次新入榜</span><span style="--c: var(--base)"><i></i>原有邻居</span>
             </div>
@@ -527,7 +764,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 4:综合硬件指数跑道(H20 = 100)</div>
+            <div class="fig-title">动态图 8:综合硬件指数跑道(H20 = 100)</div>
             <div class="fig-legend">
               <span style="--c: var(--nv)"><i></i>NVIDIA</span><span style="--c: var(--amd)"><i></i>AMD</span>
               <span style="--c: var(--goo)"><i></i>Google TPU</span><span style="--c: var(--hw)"><i></i>华为昇腾</span>
@@ -547,27 +784,32 @@
               <div class="race-row"><span class="rk">9</span><span class="nm">AWS Trainium3</span><span class="race-track"><span class="race-fill" style="--w: 61%; --c: var(--aws); --d: .4s"></span></span><span class="vl">260</span></div>
               <div class="race-row"><span class="rk">10</span><span class="nm">昇腾 950DT</span><span class="race-track"><span class="race-fill" style="--w: 61%; --c: var(--hw); --d: .43s"></span></span><span class="vl">258</span></div>
               <div class="race-row"><span class="rk">11</span><span class="nm">NVIDIA Rubin CPX</span><span class="race-track"><span class="race-fill" style="--w: 59%; --c: var(--nv); --d: .46s"></span></span><span class="vl">253</span></div>
-              <div class="race-row is-new"><span class="rk">12</span><span class="nm">NVIDIA B30A <span class="est">※待许可</span></span><span class="race-track"><span class="race-fill" style="--w: 57%; --c: var(--nv); --d: .49s"></span></span><span class="vl">244</span></div>
-              <div class="race-row is-new"><span class="rk">13</span><span class="nm">SambaNova SN50</span><span class="race-track"><span class="race-fill" style="--w: 50%; --c: var(--alt); --d: .52s"></span></span><span class="vl">213</span></div>
+              <div class="race-row"><span class="rk">12</span><span class="nm">NVIDIA B30A <span class="est">※待许可</span></span><span class="race-track"><span class="race-fill" style="--w: 57%; --c: var(--nv); --d: .49s"></span></span><span class="vl">244</span></div>
+              <div class="race-row"><span class="rk">13</span><span class="nm">SambaNova SN50</span><span class="race-track"><span class="race-fill" style="--w: 50%; --c: var(--alt); --d: .52s"></span></span><span class="vl">213</span></div>
               <div class="race-row"><span class="rk">14</span><span class="nm">昇腾 950PR / Atlas 350</span><span class="race-track"><span class="race-fill" style="--w: 46%; --c: var(--hw); --d: .55s"></span></span><span class="vl">197</span></div>
-              <div class="race-row is-new"><span class="rk">15</span><span class="nm">Rebellions REBEL-Quad</span><span class="race-track"><span class="race-fill" style="--w: 45%; --c: var(--alt); --d: .58s"></span></span><span class="vl">191</span></div>
+              <div class="race-row"><span class="rk">15</span><span class="nm">Rebellions REBEL-Quad</span><span class="race-track"><span class="race-fill" style="--w: 45%; --c: var(--alt); --d: .58s"></span></span><span class="vl">191</span></div>
               <div class="race-row"><span class="rk">16</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 43%; --c: var(--intc); --d: .61s"></span></span><span class="vl">181</span></div>
               <div class="race-row"><span class="rk">17</span><span class="nm">AWS Trainium2</span><span class="race-track"><span class="race-fill" style="--w: 42%; --c: var(--aws); --d: .64s"></span></span><span class="vl">180</span></div>
               <div class="race-row"><span class="rk">18</span><span class="nm">昇腾 910C</span><span class="race-track"><span class="race-fill" style="--w: 42%; --c: var(--hw); --d: .67s"></span></span><span class="vl">180</span></div>
-              <div class="race-row"><span class="rk">19</span><span class="nm">寒武纪 思元690</span><span class="race-track"><span class="race-fill" style="--w: 40%; --c: var(--cn); --d: .7s"></span></span><span class="vl">171</span></div>
-              <div class="race-row is-new"><span class="rk">20</span><span class="nm">阿里 真武 M890</span><span class="race-track"><span class="race-fill" style="--w: 39%; --c: var(--cn); --d: .73s"></span></span><span class="vl">164</span></div>
-              <div class="race-row"><span class="rk">21</span><span class="nm">沐曦 曦云 C600</span><span class="race-track"><span class="race-fill" style="--w: 37%; --c: var(--cn); --d: .76s"></span></span><span class="vl">157</span></div>
-              <div class="race-row"><span class="rk">22</span><span class="nm">燧原 L600</span><span class="race-track"><span class="race-fill" style="--w: 36%; --c: var(--cn); --d: .79s"></span></span><span class="vl">152</span></div>
-              <div class="race-row"><span class="rk">23</span><span class="nm">昆仑芯 P800</span><span class="race-track"><span class="race-fill" style="--w: 35%; --c: var(--cn); --d: .82s"></span></span><span class="vl">148</span></div>
-              <div class="race-row"><span class="rk">24</span><span class="nm">Tenstorrent Blackhole(单芯)</span><span class="race-track"><span class="race-fill" style="--w: 33%; --c: var(--alt); --d: .85s"></span></span><span class="vl">140</span></div>
-              <div class="race-row"><span class="rk">25</span><span class="nm">摩尔线程 MTT S5000</span><span class="race-track"><span class="race-fill" style="--w: 30%; --c: var(--cn); --d: .88s"></span></span><span class="vl">129</span></div>
-              <div class="race-row"><span class="rk">26</span><span class="nm">海光 深算四号(SG2040)</span><span class="race-track"><span class="race-fill" style="--w: 29%; --c: var(--cn); --d: .91s"></span></span><span class="vl">123</span></div>
-              <div class="race-row"><span class="rk">27</span><span class="nm">Intel Gaudi 2</span><span class="race-track"><span class="race-fill" style="--w: 28%; --c: var(--intc); --d: .94s"></span></span><span class="vl">120</span></div>
-              <div class="race-row is-new"><span class="rk">28</span><span class="nm">FuriosaAI RNGD</span><span class="race-track"><span class="race-fill" style="--w: 26%; --c: var(--alt); --d: .97s"></span></span><span class="vl">112</span></div>
-              <div class="race-row is-base"><span class="rk">29</span><span class="nm">NVIDIA H20(基线)</span><span class="race-track"><span class="race-fill" style="--w: 24%; --c: var(--base); --d: 1s"></span></span><span class="vl">100</span></div>
-              <div class="race-row is-new"><span class="rk">30</span><span class="nm">阿里 真武 810E</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--cn); --d: 1.03s"></span></span><span class="vl">84</span></div>
+              <div class="race-row is-new"><span class="rk">19</span><span class="nm">沐曦 曦云 C600<span class="new-tag">重算</span></span><span class="race-track"><span class="race-fill" style="--w: 42%; --c: var(--cn); --d: .7s"></span></span><span class="vl">179</span></div>
+              <div class="race-row is-new"><span class="rk">20</span><span class="nm">燧原 L600<span class="new-tag">重算</span></span><span class="race-track"><span class="race-fill" style="--w: 41%; --c: var(--cn); --d: .73s"></span></span><span class="vl">173</span></div>
+              <div class="race-row"><span class="rk">21</span><span class="nm">寒武纪 思元690</span><span class="race-track"><span class="race-fill" style="--w: 40%; --c: var(--cn); --d: .76s"></span></span><span class="vl">171</span></div>
+              <div class="race-row"><span class="rk">22</span><span class="nm">阿里 真武 M890</span><span class="race-track"><span class="race-fill" style="--w: 39%; --c: var(--cn); --d: .79s"></span></span><span class="vl">164</span></div>
+              <div class="race-row is-new"><span class="rk">23</span><span class="nm">摩尔线程 MTT S5000<span class="new-tag">重算</span></span><span class="race-track"><span class="race-fill" style="--w: 39%; --c: var(--cn); --d: .82s"></span></span><span class="vl">164</span></div>
+              <div class="race-row"><span class="rk">24</span><span class="nm">昆仑芯 P800</span><span class="race-track"><span class="race-fill" style="--w: 35%; --c: var(--cn); --d: .85s"></span></span><span class="vl">148</span></div>
+              <div class="race-row"><span class="rk">25</span><span class="nm">Tenstorrent Blackhole(单芯)</span><span class="race-track"><span class="race-fill" style="--w: 33%; --c: var(--alt); --d: .88s"></span></span><span class="vl">140</span></div>
+              <div class="race-row is-new"><span class="rk">26</span><span class="nm">东方算芯 巅峯 DF1000<span class="new-tag">NEW</span></span><span class="race-track"><span class="race-fill" style="--w: 33%; --c: var(--cn); --d: .91s"></span></span><span class="vl">139</span></div>
+              <div class="race-row"><span class="rk">27</span><span class="nm">海光 深算四号(SG2040)</span><span class="race-track"><span class="race-fill" style="--w: 29%; --c: var(--cn); --d: .94s"></span></span><span class="vl">123</span></div>
+              <div class="race-row"><span class="rk">28</span><span class="nm">Intel Gaudi 2</span><span class="race-track"><span class="race-fill" style="--w: 28%; --c: var(--intc); --d: .97s"></span></span><span class="vl">120</span></div>
+              <div class="race-row"><span class="rk">29</span><span class="nm">FuriosaAI RNGD</span><span class="race-track"><span class="race-fill" style="--w: 26%; --c: var(--alt); --d: 1s"></span></span><span class="vl">112</span></div>
+              <div class="race-row is-base"><span class="rk">30</span><span class="nm">NVIDIA H20(基线)</span><span class="race-track"><span class="race-fill" style="--w: 24%; --c: var(--base); --d: 1.03s"></span></span><span class="vl">100</span></div>
+              <div class="race-row"><span class="rk">31</span><span class="nm">阿里 真武 810E</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--cn); --d: 1.06s"></span></span><span class="vl">84</span></div>
             </div>
             <span class="fig-cap">读法:条形长度是十维加权后的综合硬件指数,H20 = 100。注意这是<strong>硬件纸面能力</strong>的排名 —— 它已经把软件栈成熟度算成一个 10 分维度,但软件维度在本模型里最高只能等于 CUDA(即 H20 的 1.0),所以它只会扣分、不会给别人加分。真正的落地效率要看第九节的 MFU 折算。</span>
+            <span class="fig-cap">
+              标「重算」的三张卡是 2026-07-29 按 WAIC 2026 的整柜超节点数据补齐「超节点域」一维后的结果,其余九维输入未变(见第零节动态图 1);标 NEW 的是本次新入榜。
+              <strong>榜单第 16 到第 26 名现在挤在 181–139 这 42 分里,一共 11 张卡</strong> —— 这一段是全榜最拥挤的地方,也是选型时最不该看名次的地方:名次差 5 位可能只差 10 分,而 10 分在本模型里只相当于某一维翻一倍。
+            </span>
           </div>
 
           <div class="tbl-scroll">
@@ -594,24 +836,25 @@
                 <tr><td class="num">16</td><td>Gaudi 3</td><td>Intel / TSMC 5nm</td><td class="num">181</td><td>企业推理</td><td>HBM2e 3.7 TB/s;产品线已被 Crescent Island 接棒</td><td class="src-cell"><a href="https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf">Intel 白皮书</a> · <a href="https://hc2024.hotchips.org/assets/program/conference/day1/60_HC2024.Intel.RomanKaplan.Gaudi3-0826.pdf">Hot Chips 2024</a></td></tr>
                 <tr><td class="num">17</td><td>Trainium2</td><td>AWS / N5</td><td class="num">180</td><td>在产主力(自用)</td><td>无 FP4,带宽 2.9 TB/s</td><td class="src-cell"><a href="https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium3.html">AWS Neuron Docs</a></td></tr>
                 <tr><td class="num">18</td><td><strong>昇腾 910C</strong></td><td>华为 / 双 die 7nm</td><td class="num">180</td><td>当前国产出货主力</td><td>不支持 FP8/FP4 —— 跑 K3 这种 MXFP4 权重的模型要反量化到 BF16,显存足迹 ×4</td><td class="src-cell"><a href="https://baike.baidu.com/item/%E5%8D%8E%E4%B8%BA%E6%98%87%E8%85%BE910C/67777523">百度百科(汇总)</a> · <a href="https://news.qq.com/rain/a/20250620A0711D00">超节点拆解</a></td></tr>
-                <tr><td class="num">19</td><td><strong>寒武纪 思元690</strong></td><td>寒武纪 / 双 die</td><td class="num">171</td><td>国产推理旗舰</td><td>互联仅 ~890 Gbps;带宽/SRAM 未公开,超节点能力弱</td><td class="src-cell"><a href="https://wap.hibor.com.cn/repinfodetail_5107930.html">国海证券一季报点评</a></td></tr>
-                <tr class="hl"><td class="num">20</td><td><strong>阿里 真武 M890</strong></td><td>平头哥 / GPGPU + ICN Switch 1.0</td><td class="num">164</td><td>阿里云超节点实例(64 卡开箱)</td><td>带宽、算力、TDP 全部未公开,十维里有四维只能按基线取值 <span class="est">※</span></td><td class="src-cell"><a href="https://www.ithome.com/0/978/578.htm">IT之家(M890 超节点实例)</a> · <a href="https://www.cs.com.cn/ssgs/01/2026/07/19/detail_2026071910025390.html">中证网</a></td></tr>
-                <tr><td class="num">21</td><td>沐曦 曦云 C600</td><td>沐曦 / XCORE 1.5</td><td class="num">157</td><td>训推一体</td><td>MetaXLink 带宽未公开;FP8 1 PFLOPS 停在 Hopper 档</td><td class="src-cell"><a href="https://caifuhao.eastmoney.com/news/20250824025550377224840">东方财富(规格汇总)</a> · <a href="https://news.qq.com/rain/a/20250728A078UC00">腾讯新闻(发布)</a></td></tr>
-                <tr><td class="num">22</td><td>燧原 L600</td><td>燧原 / 第四代训推一体</td><td class="num">152</td><td>训推一体,十万卡集群路线</td><td>只公布容量/带宽/互联,不公布 TFLOPS;ASIC 路线通用性弱于 GPU</td><td class="src-cell"><a href="https://www.114ic.com/info/391453.html">114ic(L600 规格与云燧 OGX)</a> · <a href="https://static.nfnews.com/content/202507/28/c11556084.html">南方+(WAIC 首发)</a></td></tr>
-                <tr><td class="num">23</td><td>昆仑芯 P800</td><td>百度 / XPU 三代</td><td class="num">148</td><td>在产主力,天池 256 超节点</td><td>FP16 345 TFLOPS;带宽未公开</td><td class="src-cell"><a href="https://www.eefocus.com/article/2054039.html">与非网</a> · <a href="https://m.itbear.com.cn/html/2026-07/1454250.html">ITBear</a></td></tr>
-                <tr><td class="num">24</td><td>Tenstorrent Blackhole(单芯)</td><td>Tenstorrent / RISC-V Tensix</td><td class="num">140</td><td>整机 32 芯,风冷私有化推理</td><td>单芯只有 32 GB GDDR6 / 0.5 TB/s,容量维度直接吃零分</td><td class="src-cell"><a href="https://tenstorrent.com/en/hardware/galaxy">Tenstorrent 官方规格页</a> · <a href="https://tenstorrent.com/en/newsroom/tenstorrent-enables-ai-at-scale-with-industry-leading-performance">Galaxy Blackhole 发布</a></td></tr>
-                <tr><td class="num">25</td><td>摩尔线程 MTT S5000</td><td>摩尔线程 / MUSA 平湖</td><td class="num">129</td><td>训推一体全功能 GPU</td><td>80 GB / 1.6 TB/s,显存与带宽是硬瓶颈</td><td class="src-cell"><a href="https://developer.cloud.tencent.com/news/3682112">腾讯云社区(官方口径)</a> · <a href="https://moark.com/docs/compute/clusters_gpu/moore_gpu">模力方舟规格页</a></td></tr>
-                <tr><td class="num">26</td><td>海光 深算四号(SG2040)</td><td>海光 / 7nm+ Chiplet DCU</td><td class="num">123</td><td>类 CUDA 迁移成本最低的国产卡</td><td>算力档位仍在 A100/H20 区间;规格来自券商与媒体,非官方 datasheet <span class="est">※</span></td><td class="src-cell"><a href="https://caifuhao.eastmoney.com/news/1656022829">东方财富(深算四号规格汇总)</a> · <a href="https://www.cww.net.cn/article?id=608602">通信世界(DTK 26.04 / DAS 1.8)</a></td></tr>
-                <tr><td class="num">27</td><td>Gaudi 2</td><td>Intel / TSMC 7nm</td><td class="num">120</td><td>存量</td><td>全维度落后一代半</td><td class="src-cell"><a href="https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf">Intel 白皮书</a></td></tr>
-                <tr class="hl"><td class="num">28</td><td><strong>FuriosaAI RNGD</strong></td><td>FuriosaAI / TCP 架构, TSMC 5nm</td><td class="num">112</td><td>180 W 无源散热,插进存量风冷机房</td><td>48 GB HBM3 是全榜最小的 HBM 容量;只有 PCIe,没有 scale-up 互联</td><td class="src-cell"><a href="https://furiosa.ai/renegade-spec">FuriosaAI 官方规格页</a> · <a href="https://developer.furiosa.ai/latest/en/overview/rngd.html">开发者文档</a></td></tr>
-                <tr class="base"><td class="num">29</td><td><strong>H20(基线)</strong></td><td>NVIDIA / Hopper 4nm</td><td class="num">100</td><td>中国特供推理卡</td><td>算力被合规阉割到 296 TFLOPS FP8;无 FP4</td><td class="src-cell"><a href="https://baike.baidu.com/en/item/H20/1510112">规格汇总(含 60 MB L2)</a> · <a href="https://flopper.io/gpu/nvidia-h20-96gb/spec-sheet">Flopper.io</a></td></tr>
-                <tr class="hl"><td class="num">30</td><td><strong>阿里 真武 810E</strong></td><td>平头哥 / 7nm GPGPU</td><td class="num">84</td><td>阿里云在产主力(自用为主)</td><td>唯一低于基线的进榜卡:120 TF 基础版算力 + HBM2e,已出货一年但代际落后</td><td class="src-cell"><a href="https://baike.baidu.com/item/%E7%9C%9F%E6%AD%A6810E/67306175">百度百科(真武810E 规格)</a> · <a href="https://news.qq.com/rain/a/20260129A035LL00">腾讯新闻(平头哥官网上线)</a></td></tr>
+                <tr class="hl"><td class="num">19</td><td><strong>沐曦 曦云 C600</strong> <span class="est">※重算</span></td><td>沐曦 / XCORE 1.5</td><td class="num">179</td><td>训推一体 + 曦景 S600 单柜 64 卡超节点</td><td>MetaXLink 单卡带宽未公开;FP8 1 PFLOPS 停在 Hopper 档;曦景 S600 官方未说明配的是哪一代卡 <span class="est">※</span></td><td class="src-cell"><a href="https://caifuhao.eastmoney.com/news/20250824025550377224840">东方财富(C600 规格汇总)</a> · <a href="https://www.agentren.cn/2026/0720/20931.shtml">曦景 S600(单柜 64 卡 / OEX 正交)</a></td></tr>
+                <tr class="hl"><td class="num">20</td><td><strong>燧原 L600</strong> <span class="est">※重算</span></td><td>燧原 / 第四代训推一体</td><td class="num">173</td><td>训推一体 + 云燧 ESL64-O 零线缆 64 卡超节点</td><td>只公布容量/带宽/互联,不公布 TFLOPS;ESL64-O 官方口径 2026 年底量产,当前尚未交付</td><td class="src-cell"><a href="https://www.114ic.com/info/391453.html">114ic(L600 规格与云燧 OGX)</a> · <a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(ESL64-O 正交零线缆)</a></td></tr>
+                <tr><td class="num">21</td><td><strong>寒武纪 思元690</strong></td><td>寒武纪 / 双 die</td><td class="num">171</td><td>国产推理旗舰(单卡最强显存)</td><td>互联仅 ~890 Gbps;<strong>域规模至今未公开</strong> —— 本次三家国产同行都公布了整柜方案,它是唯一没有的</td><td class="src-cell"><a href="https://wap.hibor.com.cn/repinfodetail_5107930.html">国海证券一季报点评</a></td></tr>
+                <tr><td class="num">22</td><td><strong>阿里 真武 M890</strong></td><td>平头哥 / GPGPU + ICN Switch 1.0</td><td class="num">164</td><td>阿里云超节点实例(64 卡开箱)</td><td>带宽、算力、TDP 全部未公开,十维里有四维只能按基线取值 <span class="est">※</span></td><td class="src-cell"><a href="https://www.ithome.com/0/978/578.htm">IT之家(M890 超节点实例)</a> · <a href="https://www.cs.com.cn/ssgs/01/2026/07/19/detail_2026071910025390.html">中证网</a></td></tr>
+                <tr class="hl"><td class="num">23</td><td><strong>摩尔线程 MTT S5000</strong> <span class="est">※重算</span></td><td>摩尔线程 / MUSA 平湖</td><td class="num">164</td><td>训推一体 + MTT C256 一层 256 卡超节点</td><td>80 GB / 1.6 TB/s 仍是硬瓶颈,分数几乎全靠互联撑;C256 官方未说明配的是哪一代卡 <span class="est">※</span></td><td class="src-cell"><a href="https://developer.cloud.tencent.com/news/3682112">腾讯云社区(S5000 官方口径)</a> · <a href="https://news.eccn.com/news_2026071916425189.htm">中电网(MTT C256 一层 256 卡)</a></td></tr>
+                <tr><td class="num">24</td><td>昆仑芯 P800</td><td>百度 / XPU 三代</td><td class="num">148</td><td>在产主力,天池 256 超节点</td><td>FP16 345 TFLOPS;带宽未公开</td><td class="src-cell"><a href="https://www.eefocus.com/article/2054039.html">与非网</a> · <a href="https://m.itbear.com.cn/html/2026-07/1454250.html">ITBear</a></td></tr>
+                <tr><td class="num">25</td><td>Tenstorrent Blackhole(单芯)</td><td>Tenstorrent / RISC-V Tensix</td><td class="num">140</td><td>整机 32 芯,风冷私有化推理</td><td>单芯只有 32 GB GDDR6 / 0.5 TB/s,容量维度直接吃零分</td><td class="src-cell"><a href="https://tenstorrent.com/en/hardware/galaxy">Tenstorrent 官方规格页</a> · <a href="https://tenstorrent.com/en/newsroom/tenstorrent-enables-ai-at-scale-with-industry-leading-performance">Galaxy Blackhole 发布</a></td></tr>
+                <tr class="hl"><td class="num">26</td><td><strong>东方算芯 巅峯 DF1000</strong> <span class="est">※新入榜</span></td><td>东方算芯 / 14nm + 3D 混合键合近存</td><td class="num">139</td><td>不用 HBM、不用先进制程的国产训推卡</td><td><strong>显存容量、TDP、片上 SRAM 全部未公开</strong>(三维按基线代入);BF16 520 TF 与 HBM4 旗舰差一个数量级;CAAP 软件栈是全榜最新的一套</td><td class="src-cell"><a href="https://www.dfsx.com/products/ai-accelerator/df1000">东方算芯官方产品页</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(发布会拆解)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50557.shtml">半导体行业观察</a></td></tr>
+                <tr><td class="num">27</td><td>海光 深算四号(SG2040)</td><td>海光 / 7nm+ Chiplet DCU</td><td class="num">123</td><td>类 CUDA 迁移成本最低的国产卡</td><td>算力档位仍在 A100/H20 区间;规格来自券商与媒体,非官方 datasheet <span class="est">※</span></td><td class="src-cell"><a href="https://caifuhao.eastmoney.com/news/1656022829">东方财富(深算四号规格汇总)</a> · <a href="https://www.cww.net.cn/article?id=608602">通信世界(DTK 26.04 / DAS 1.8)</a></td></tr>
+                <tr><td class="num">28</td><td>Gaudi 2</td><td>Intel / TSMC 7nm</td><td class="num">120</td><td>存量</td><td>全维度落后一代半</td><td class="src-cell"><a href="https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf">Intel 白皮书</a></td></tr>
+                <tr><td class="num">29</td><td><strong>FuriosaAI RNGD</strong></td><td>FuriosaAI / TCP 架构, TSMC 5nm</td><td class="num">112</td><td>180 W 无源散热,插进存量风冷机房</td><td>48 GB HBM3 是全榜最小的 HBM 容量;只有 PCIe,没有 scale-up 互联</td><td class="src-cell"><a href="https://furiosa.ai/renegade-spec">FuriosaAI 官方规格页</a> · <a href="https://developer.furiosa.ai/latest/en/overview/rngd.html">开发者文档</a></td></tr>
+                <tr class="base"><td class="num">30</td><td><strong>H20(基线)</strong></td><td>NVIDIA / Hopper 4nm</td><td class="num">100</td><td>中国特供推理卡</td><td>算力被合规阉割到 296 TFLOPS FP8;无 FP4</td><td class="src-cell"><a href="https://baike.baidu.com/en/item/H20/1510112">规格汇总(含 60 MB L2)</a> · <a href="https://flopper.io/gpu/nvidia-h20-96gb/spec-sheet">Flopper.io</a></td></tr>
+                <tr><td class="num">31</td><td><strong>阿里 真武 810E</strong></td><td>平头哥 / 7nm GPGPU</td><td class="num">84</td><td>阿里云在产主力(自用为主)</td><td>唯一低于基线的进榜卡:120 TF 基础版算力 + HBM2e,已出货一年但代际落后</td><td class="src-cell"><a href="https://baike.baidu.com/item/%E7%9C%9F%E6%AD%A6810E/67306175">百度百科(真武810E 规格)</a> · <a href="https://news.qq.com/rain/a/20260129A035LL00">腾讯新闻(平头哥官网上线)</a></td></tr>
               </tbody>
             </table>
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 5:六维雷达 —— 榜首三卡与 H20 的形状差异(每格 = 翻一倍)</div>
+            <div class="fig-title">动态图 9:六维雷达 —— 榜首三卡与 H20 的形状差异(每格 = 翻一倍)</div>
             <div class="fig-legend">
               <span style="--c: var(--amd)"><i></i>MI455X 417</span><span style="--c: var(--nv)"><i></i>Rubin R200 398</span>
               <span style="--c: var(--ms)"><i></i>Maia 200 346</span><span style="--c: var(--base)"><i></i>H20 100</span>
@@ -651,21 +894,23 @@
             (2) <strong>超大规模厂商的自研芯片第一次挤进前五。</strong>Maia 200 排第 4、TPU 8i 第 3,靠的都不是单卡峰值,而是超节点域 + 片上 SRAM + 能效这三项在本模型里合计占 24 分。它们不外售,但它们定义了 2026 年「一张卡该长什么样」的另一种答案。
             (3) <strong>披露少 ≠ 排名低,而是排名不可信。</strong>本模型对未公开维度按基线取值,所以壁仞 BR20X、昆仑芯 M100/M300、天数智芯天垓300、Etched Sohu、Tesla AI5、d-Matrix Raptor、Intel Crescent Island 这些没有完整公开规格的卡根本进不了榜 —— 不是打分低,是没得打。看第二节的完整清单,不要只看榜。
             反过来也要警惕:阿里真武 M890 有四个维度按基线取值,它的 164 分里有相当一部分是「未公开」的默认值,不要当成实测结论。
+            (4) <strong>这张榜会因为新披露而改分,而且第一次改分就动了 3 张卡(2026-07-29)。</strong>规则写在这里:只有当某一维出现<strong>可引用的新公开数据</strong>时才重算,重算只动那一维、其余输入逐字沿用,并在第零节留下改动前后的对照。
+            所以引用本文的分数请一并引用快照日期 —— 一个会更新的榜比一个不更新的榜有用,但前提是每次更新都说清楚改了哪一维。
           </div>
 
           <h2>二、各厂商最新 3 款卡清单</h2>
           <p>
             这一节只做「统计」,不做排名。包括规格尚未公开、无法进入打分的卡(昆仑芯 M100/M300、Intel Crescent Island、壁仞 BR20X、天数智芯天垓300 等),它们才是 2026–2027 真正要盯的变量。
-            我把 19 家厂商按<strong>技术路线</strong>而不是国别分成五个阵营 —— 这个分法比「国产 / 非国产」更能解释它们各自在第一节榜上的形状。
+            我把 27 家厂商按<strong>技术路线</strong>而不是国别分成六个阵营 —— 这个分法比「国产 / 非国产」更能解释它们各自在第一节榜上的形状。
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 6:19 家厂商的五个阵营版图</div>
+            <div class="fig-title">动态图 10:27 家厂商的六个阵营版图</div>
             <div class="camp">
               <div class="camp-cell" style="--c: var(--nv); --d: 0s"><b>通用 GPU · HBM 派</b><span>NVIDIA · AMD<br />单卡峰值 + 机架级 scale-up</span></div>
               <div class="camp-cell" style="--c: var(--goo); --d: .4s"><b>超大规模自研 ASIC</b><span>Google · AWS · Microsoft · Meta<br />不外售,追域规模与每瓦 token</span></div>
               <div class="camp-cell" style="--c: var(--hw); --d: .8s"><b>超节点补偿派</b><span>华为昇腾 · 百度昆仑芯 · 壁仞<br />单卡弱,用 1024–8192 卡域补</span></div>
-              <div class="camp-cell" style="--c: var(--alt); --d: 1.2s"><b>存内 / 数据流新势力</b><span>Cerebras · Tenstorrent · Qualcomm · d-Matrix<br />+ NVIDIA Groq LPU;绕开 HBM 墙</span></div>
+              <div class="camp-cell" style="--c: var(--alt); --d: 1.2s"><b>存内 / 近存 / 数据流</b><span>Cerebras · Tenstorrent · Qualcomm · d-Matrix<br />东方算芯 + NVIDIA Groq LPU;绕开 HBM 墙</span></div>
               <div class="camp-cell" style="--c: var(--cn); --d: 1.6s"><b>迁移成本派</b><span>海光 · 沐曦 · 摩尔线程 · 寒武纪<br />燧原 · 天数智芯 · Intel;主打「能直接跑」</span></div>
               <div class="camp-cell" style="--c: var(--ms); --d: 2s"><b>推理专用 ASIC / 自用派</b><span>SambaNova · Etched · FuriosaAI · Rebellions<br />阿里平头哥 · Tesla;为一种负载做到极致</span></div>
             </div>
@@ -679,6 +924,12 @@
               FuriosaAI 用 180 W 无源散热换「插进任何风冷机房」;Rebellions 用 UCIe-Advanced 把四颗 chiplet 拼成一颗;
               阿里平头哥和 Tesla 则干脆不外售 —— 前者只服务阿里云与千问,后者只服务 Optimus 与 FSD。
               这个阵营和「超大规模自研 ASIC」的区别在于:后者是巨头为自家云做的,前者里有一半是<strong>创业公司押注「某一种负载会长期存在」</strong>,赌错了就没有第二条产品线。
+            </span>
+            <span class="fig-cap">
+              2026-07-29 有两处需要动这张版图。<strong>(1) 第四格从「存内」扩成「存内 / 近存」</strong>,因为新入榜的东方算芯走的是第三种做法:
+              Cerebras / Groq 把权重搬进 SRAM、d-Matrix 让乘法发生在 SRAM 单元里,而东方算芯是把 <strong>DRAM 晶圆直接键合到逻辑晶圆上</strong> —— 存储仍然不参与计算,只是把距离压到亚微米。三条路的共同点是都不买 HBM。
+              <strong>(2) 第三格「超节点补偿派」实际上已经不成一格了</strong>:摩尔线程(256 卡)、沐曦(64)、燧原(64)、东方算芯(64)在这个夏天全部补上了整柜互联,而它们本来被归在「迁移成本派」。
+              换句话说,<strong>「用域规模补单卡」从一种路线选择变成了国产阵营的公共前提</strong> —— 到 2027 年这一格大概会消失,因为没有哪家还会不做超节点。
             </span>
           </div>
 
@@ -696,8 +947,9 @@
                 <tr><td><strong>Intel</strong></td><td>Crescent Island(Xe3P)</td><td>Gaudi 3</td><td>Gaudi 2</td><td>Crescent Island 用 LPDDR5X 换 HBM:参考卡 160 GB、伙伴可做到 480 GB,350 W 风冷 PCIe,2026 H2 送样、2027 上市,算力未公开 <span class="est">※</span>。</td></tr>
                 <tr><td><strong>百度昆仑芯</strong></td><td>昆仑芯 M300</td><td>昆仑芯 M100</td><td>昆仑芯 P800</td><td>M100(第四代 XPU,对标 H20,HBM 略低于 96 GB)WAIC 2026 首次展出实物,规格未公开;M300 面向超大多模态训推,2027 初上市;天池 256 超节点 2026-06 上市。</td></tr>
                 <tr><td><strong>寒武纪</strong></td><td>思元 690</td><td>思元 590</td><td>思元 370</td><td>690 于 2026 年初量产:双 die、FP16 &gt;700 TFLOPS、196 GB HBM3、实测互联 &gt;890 Gbps;590 为 96 GB HBM2e / FP16 345 TFLOPS。</td></tr>
-                <tr><td><strong>摩尔线程</strong></td><td>MTT S5000</td><td>MTT S4000</td><td>MTT S3000</td><td>S5000 首次硬件原生 FP8:80 GB / 1.6 TB/s / 784 GB/s MTLink / FP8 1000 TFLOPS,原生适配 PyTorch/Megatron/vLLM/SGLang。</td></tr>
-                <tr><td><strong>沐曦</strong></td><td>曦云 C600</td><td>曦思 N300</td><td>曦云 C588</td><td>C600:XCORE 1.5、144 GB HBM3e / 3.6 TB/s、原生 FP8 Tensor 指令、MetaXLink 超节点扩展,2025 Q4 风险量产;X301/X302 科学计算卡规划 2026 Q2。</td></tr>
+                <tr class="hl"><td><strong>摩尔线程</strong></td><td>MTT S5000</td><td>MTT S4000</td><td>MTT S3000</td><td>S5000 首次硬件原生 FP8:80 GB / 1.6 TB/s / 784 GB/s MTLink / FP8 1000 TFLOPS,原生适配 PyTorch/Megatron/vLLM/SGLang。<strong>2026-07-29 增量</strong>:WAIC 2026 首次展出 <strong>MTT C256 超节点</strong> —— 柜内 Cable Tray 全铜、<strong>一层 Scale-up 网络直连 256 卡</strong>(单柜 128 卡全互联 + 并柜 256),卡间亚微秒级延迟,2U 节点兼容现有生态;另完成 Kimi K3 的 Day-0 适配。</td></tr>
+                <tr class="hl"><td><strong>沐曦</strong></td><td>曦云 C600</td><td>曦思 N300</td><td>曦云 C588</td><td>C600:XCORE 1.5、144 GB HBM3e / 3.6 TB/s、原生 FP8 Tensor 指令、MetaXLink 超节点扩展,2025 Q4 风险量产;X301/X302 科学计算卡规划 2026 Q2。<strong>2026-07-29 增量</strong>:WAIC 2026 发布 <strong>曦景 S600 超节点</strong> —— OEX 正交连接器 + 两级交换拓扑,<strong>单机柜 64 卡全互联</strong>,支持 EP/TP 多维并行,柜间可扩到万卡。</td></tr>
+                <tr class="hl"><td><strong>东方算芯</strong> <span class="est">※新增</span></td><td>巅峯 DF1000</td><td>DF2000(2026 Q4)</td><td>DF3000(2027)</td><td><strong>软件定义近存计算 3D 芯片</strong>:14nm 成熟工艺 + Hybrid Bonding 把 DRAM 晶圆与逻辑晶圆无凸点垂直键合,互连间距从数十微米压到亚微米级,官方称同容量下带宽为 HBM 的 5 倍以上。加速卡遵循 <strong>OAM 2.0</strong>、风冷/液冷双形态:<strong>BF16 520 TFLOPS、访存带宽 6.4 TB/s、Scale-up 900 GB/s</strong>。整机层级为 擎元 QY100-S(风冷单机)、<strong>拓域 TY64</strong>(液冷超节点,单机 8 卡、单节点 33 PFLOPS@BF16,合 64 卡域)、慧算 HS128 / HS512 集群,配自研 <strong>CAAP</strong> 软件栈(编译器 + 算子库 + 集合通信 + 分布式训练框架),128 卡集群已在真实业务中实测。路线图对标:DF2000 → H200、DF3000 → B300。</td></tr>
               </tbody>
             </table>
           </div>
@@ -794,6 +1046,7 @@
                 <tr><td>Qualcomm AI200</td><td class="num">768 GB LPDDR5X</td><td class="num">未公开(机架 414 TB/s「有效」)</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">—</td><td class="num">—</td></tr>
                 <tr><td>海光 深算四号(SG2040)</td><td class="num">96–128 GB HBM3e</td><td class="num">3.2 TB/s <span class="est">※非官方</span></td><td class="num">300+ TF</td><td class="num">~600 TF <span class="est">※</span></td><td class="num">无(支持 INT4)</td><td class="num">188 <span class="est">※</span></td><td class="num">40.0 <span class="est">※</span></td></tr>
                 <tr><td>燧原 L600</td><td class="num">144 GB</td><td class="num">3.6 TB/s</td><td class="num">未公开</td><td class="num">原生 FP8,未公布 TFLOPS<br />(打分取 1.0 PF <span class="est">※</span>)</td><td class="num">无</td><td class="num">278 <span class="est">※</span></td><td class="num">40.0</td></tr>
+                <tr class="hl"><td><strong>东方算芯 巅峯 DF1000</strong></td><td class="num">未公开<br />(3D 键合 DRAM,可堆层扩容)</td><td class="num"><strong>6.4 TB/s</strong>(非 HBM)</td><td class="num">520 TF</td><td class="num">未公开<br />(打分保守代入 BF16 520 TF <span class="est">※</span>)</td><td class="num">未公开</td><td class="num"><strong>81</strong> <span class="est">※</span></td><td class="num">—(容量未公开)</td></tr>
                 <tr class="hl"><td><strong>B30A</strong> <span class="est">※待许可</span></td><td class="num">144 GB HBM3E</td><td class="num">4.0 TB/s</td><td class="num">~1.875 PF <span class="est">※</span></td><td class="num">~3.75 PF <span class="est">※</span></td><td class="num">~7.5 PF <span class="est">※</span></td><td class="num">937 <span class="est">※</span></td><td class="num">36.0</td></tr>
                 <tr class="hl"><td><strong>SambaNova SN50</strong></td><td class="num">64 GB HBM2E<br />+ 432 MB SRAM + 256 GB–2 TB DDR5</td><td class="num">1.8 TB/s(HBM 层)</td><td class="num">1.6 PF</td><td class="num">3.2 PF</td><td class="num">无</td><td class="num"><strong>1778</strong></td><td class="num">35.6</td></tr>
                 <tr class="hl"><td><strong>Rebellions REBEL-Quad</strong></td><td class="num">144 GB HBM3E</td><td class="num">4.8 TB/s</td><td class="num">1.024 PF</td><td class="num">2.048 PF</td><td class="num">无</td><td class="num">427</td><td class="num">30.0</td></tr>
@@ -812,12 +1065,13 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 7:山脊点(FP8 算力 ÷ 显存带宽)对数尺 —— 越靠左越「带宽富裕」</div>
+            <div class="fig-title">动态图 11:山脊点(FP8 算力 ÷ 显存带宽)对数尺 —— 越靠左越「带宽富裕」</div>
             <div class="ridge">
               <div class="ridge-row"><span class="nm">Cerebras WSE-3(晶圆级)</span><span class="ridge-line" style="--x: 4.4%; --c: var(--alt); --d: .05s"><span class="ridge-dot" style="--x: 4.4%; --c: var(--alt); --d: .05s"><b>6</b></span></span></div>
               <div class="ridge-row"><span class="nm">NVIDIA Groq 3 LPU</span><span class="ridge-line" style="--x: 8.3%; --c: var(--nv); --d: .11s"><span class="ridge-dot" style="--x: 8.3%; --c: var(--nv); --d: .11s"><b>8</b></span></span></div>
               <div class="ridge-row"><span class="nm">d-Matrix Corsair(SRAM)</span><span class="ridge-line" style="--x: 17.5%; --c: var(--alt); --d: .14s"><span class="ridge-dot" style="--x: 17.5%; --c: var(--alt); --d: .14s"><b>16</b></span></span></div>
               <div class="ridge-row"><span class="nm">H20(基线)</span><span class="ridge-line" style="--x: 38.0%; --c: var(--base); --d: .17s"><span class="ridge-dot" style="--x: 38.0%; --c: var(--base); --d: .17s"><b>74</b></span></span></div>
+              <div class="ridge-row"><span class="nm">东方算芯 DF1000 <span class="est">※</span></span><span class="ridge-line" style="--x: 39.3%; --c: var(--cn); --d: .2s"><span class="ridge-dot" style="--x: 39.3%; --c: var(--cn); --d: .2s"><b>81</b></span></span></div>
               <div class="ridge-row"><span class="nm">海光 深算四号</span><span class="ridge-line" style="--x: 50.5%; --c: var(--cn); --d: .23s"><span class="ridge-dot" style="--x: 50.5%; --c: var(--cn); --d: .23s"><b>188</b></span></span></div>
               <div class="ridge-row"><span class="nm">昇腾 910C(BF16)</span><span class="ridge-line" style="--x: 54.3%; --c: var(--hw); --d: .29s"><span class="ridge-dot" style="--x: 54.3%; --c: var(--hw); --d: .29s"><b>250</b></span></span></div>
               <div class="ridge-row"><span class="nm">沐曦 C600 / 燧原 L600</span><span class="ridge-line" style="--x: 55.8%; --c: var(--cn); --d: .35s"><span class="ridge-dot" style="--x: 55.8%; --c: var(--cn); --d: .35s"><b>278</b></span></span></div>
@@ -852,10 +1106,16 @@
               <strong>SambaNova SN50 的 1778 则跑到了 Tenstorrent 右边</strong>,因为它 3.2 PFLOPS 的算力只配了 1.8 TB/s 的 HBM2E —— 这是刻意的取舍(用便宜且有产能的 HBM2E 换出货确定性),它靠 432 MB SRAM 和卡上 2 TB DDR5 的三层结构把访存补回来,而不是靠 HBM 带宽。
               两张卡都不能只看山脊点这一个数,<strong>三层内存的卡需要三个山脊点</strong>,这是本文这把尺子在 2026 年下半年开始不够用的地方。
             </span>
+            <span class="fig-cap">
+              07-29 新增的一个点几乎和基线重合:<strong>东方算芯 DF1000 的山脊点是 81,H20 是 74。</strong>
+              这两张卡的成因完全不同 —— H20 是「算力被合规砍掉、带宽留着」砍出来的畸形平衡,DF1000 是「工艺代差压住了算力、近存架构把带宽做上去」做出来的平衡,
+              但结果落在同一个位置,也就意味着<strong>它们适合的负载是同一类:decode 密集、访存受限、不指望靠大 batch 拉算术强度。</strong>
+              这可能比它的 139 分更能说明它的定位:一张 14nm 的卡在 roofline 上和 H20 站在同一格,前提是别拿它去打 prefill。
+            </span>
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 8:显存容量 × 显存带宽 定位图(气泡面积 ≈ FP8 峰值)</div>
+            <div class="fig-title">动态图 12:显存容量 × 显存带宽 定位图(气泡面积 ≈ FP8 峰值)</div>
             <svg class="bub" viewBox="0 0 760 380" role="img" aria-label="加速卡显存容量与带宽定位气泡图">
               <line class="ax" x1="70" y1="340" x2="730" y2="340"></line>
               <line class="ax" x1="70" y1="340" x2="70" y2="34"></line>
@@ -937,7 +1197,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 9:数值格式原生支持矩阵(■ 原生 · ▨ 部分/模拟 · □ 不支持)</div>
+            <div class="fig-title">动态图 13:数值格式原生支持矩阵(■ 原生 · ▨ 部分/模拟 · □ 不支持)</div>
             <div class="fmt-grid">
               <span class="nm"></span>
               <span class="hd">BF16</span><span class="hd">FP8</span><span class="hd">微缩放<br />MX/NV</span><span class="hd">FP6</span><span class="hd">FP4</span><span class="hd">INT8</span><span class="hd">FP64</span>
@@ -977,6 +1237,8 @@
               <span class="fmt-cell y" style="--d: .8s">■</span><span class="fmt-cell y" style="--d: .9s">■</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell y" style="--d: 1s">■</span><span class="fmt-cell y" style="--d: 1.1s">■</span>
               <span class="nm">燧原 L600</span>
               <span class="fmt-cell y" style="--d: .85s">■</span><span class="fmt-cell y" style="--d: .95s">■</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell y" style="--d: 1.05s">■</span><span class="fmt-cell n">□</span>
+              <span class="nm">东方算芯 DF1000</span>
+              <span class="fmt-cell y" style="--d: .88s">■</span><span class="fmt-cell p">▨</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell y" style="--d: .98s">■</span><span class="fmt-cell n">□</span>
               <span class="nm">阿里 真武 M890</span>
               <span class="fmt-cell y" style="--d: .9s">■</span><span class="fmt-cell y" style="--d: 1s">■</span><span class="fmt-cell n">□</span><span class="fmt-cell n">□</span><span class="fmt-cell y" style="--d: 1.1s">■</span><span class="fmt-cell y" style="--d: 1.2s">■</span><span class="fmt-cell n">□</span>
               <span class="nm">SN50 / REBEL-Q / RNGD</span>
@@ -997,6 +1259,13 @@
               结合第零节的装载图就知道后果:它们跑 Kimi K3 这种 MXFP4 权重的模型必须反量化,显存足迹直接翻倍。
               <strong>2026 年下半年买推理卡,「支不支持微缩放 FP4」已经从加分项变成入场券</strong> —— 因为开源前沿模型开始默认以 MXFP4 发布权重。
             </span>
+            <span class="fig-cap">
+              07-29 这张矩阵有两处变化。<strong>(1) 昇腾 950 那三个 ■ 从「白皮书口径」升级成「官方 + 实跑」双重证据</strong>:
+              华为在 K3 的 0day 适配公告里明确写了「昇腾 950 超节点支持 FP8、MXFP8、MXFP4 等全系列数值精度格式,<strong>原生支持 Kimi K3 的 mxFP4 量化权重</strong>」——
+              这是国产卡第一次在一个真实的 3T 级 MXFP4 模型上验证微缩放路径,而不只是在 datasheet 上列格式。
+              <strong>(2) 新增的东方算芯 DF1000 一行是全表最保守的形状之一</strong>:官方只明确 BF16 520 TFLOPS 和「支持多种数据精度」,FP8 未给峰值(记 ▨)、FP4 与微缩放没有提及。
+              按上一段那条入场券标准,它现在还没拿到票 —— 一张不支持 MXFP4 的卡跑 K3 要把 1.4 TB 权重反量化到 2.8 TB 甚至 5.6 TB,而它的显存容量恰好也没公开。
+            </span>
           </div>
 
           <h2>五、Scale-up 互联与超节点域规模</h2>
@@ -1006,14 +1275,14 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 10:一个 Scale-up 域能装多少张卡(同心环 = 域规模)</div>
+            <div class="fig-title">动态图 14:一个 Scale-up 域能装多少张卡(同心环 = 域规模)</div>
             <div class="dom" aria-label="scale-up 域规模同心环动画">
               <div class="dom-ring" data-l="TPU7x / 8t · 9216–9600 卡 · 3D Torus + OCS" style="--s: 258px; --c: var(--goo); --t: 26s"></div>
               <div class="dom-ring" data-l="Atlas 950 SuperPoD · 8192 卡 · 灵衢 UB-Mesh 16.3 PB/s" style="--s: 222px; --c: var(--hw); --t: 22s"></div>
               <div class="dom-ring" data-l="Maia 200 · 6144 卡 · 两层以太网 + ATL 协议" style="--s: 190px; --c: var(--ms); --t: 18s"></div>
               <div class="dom-ring" data-l="TPU 8i 1152 卡 · 壁仞 NPO 光互联 1024 卡" style="--s: 160px; --c: var(--goo); --t: 14s"></div>
-              <div class="dom-ring" data-l="CloudMatrix384 · 384 卡 · Groq LPX 256 卡 · 天池256" style="--s: 128px; --c: var(--hw); --t: 11s"></div>
-              <div class="dom-ring" data-l="Trn3 UltraServer 144 · NVL144 / Helios 72" style="--s: 98px; --c: var(--aws); --t: 8s"></div>
+              <div class="dom-ring" data-l="CloudMatrix384 384 · 摩尔线程 MTT C256 · Groq LPX 256 · 天池256" style="--s: 128px; --c: var(--hw); --t: 11s"></div>
+              <div class="dom-ring" data-l="Trn3 144 · NVL144 / Helios 72 · 国产整柜 64 卡 ×4 家" style="--s: 98px; --c: var(--aws); --t: 8s"></div>
               <div class="dom-core">HGX 8 卡<br />H20 基线</div>
             </div>
             <span class="fig-cap">
@@ -1035,6 +1304,25 @@
               也解释了阿里为什么急着把 ICN 域从 16 拉到 64:<strong>64 不是工程上顺手的数字,是 Moonshot 写在部署文档里的那个数字。</strong>
               还要补一句提醒:<strong>UCIe-Advanced(Rebellions)与 CSM(Etched)是 2026 年新出现的第三、第四种 scale-up 介质</strong> —— 前者把 die-to-die 协议直接当机架互联用,后者把整个域做成一个内存池。它们都还没有第三方实测,但方向一致:让专家路由不出高速域。
             </span>
+            <span class="fig-cap">
+              <strong>2026-07-29 修正与更新。</strong>上一段那句「沐曦 / 燧原 / 摩尔线程(8)全部不过线」是错的 —— 三家在 WAIC 2026 都已公布整柜方案(见第零节),
+              正确的清单是:<strong>过线的多了摩尔线程 MTT C256(一层 256 卡)、沐曦 曦景 S600(单柜 64)、燧原 云燧 ESL64-O(单柜 64,年底量产)、东方算芯 拓域 TY64(64);
+              仍不过线的是 MI355X(8 卡 UBB)、Gaudi 3(8 卡 HLS)、B30A(8 卡 HGX)、RNGD(仅 PCIe),以及域规模至今未公开的思元690 与 REBEL-Quad。</strong>
+              更值得记的是<strong>互联介质在国产阵营内部也分叉了</strong>,而且分叉理由非常具体:摩尔线程选柜内 Cable Tray 全铜,理由是正交架构一柜只能做 64 卡、要做一层 256 就得引入跨柜光连接从而牺牲链路可靠性;
+              燧原与沐曦选 OEX 正交零线缆,理由是电信号不走长铜缆、衰减小、机房运维省事。<strong>同一道题两个相反的答案,取决于你更怕带宽损耗还是更怕线缆故障。</strong>
+            </span>
+            <span class="fig-cap">
+              还有一个溢出效应:<strong>域规模的竞争已经从 scale-up 挤到 scale-out 网卡上了。</strong>华为在 WAIC 2026 首次完整展示计算模组产品线,国内首发的是 <strong>800GE SP560 AI 网卡</strong>(支持 10 万级节点组网,主机侧灵衢 + PCIe 双总线,数据面直通 GPU/NPU 内存、集合通信卸载到网卡);
+              中科曙光的全国产十万卡超集群「曙光 8000(登峰)」也已落成并接入国家超算互联网 —— 注意它是<strong>超集群而不是单体超节点</strong>,由大量计算节点、超节点与网络存储系统组成,证明的是大规模调度与工程交付能力。
+              逻辑很直白:当一个域已经能装 256–8192 张卡,下一个瓶颈就是<strong>域和域之间</strong> —— 而 Kimi K3 这种 896 专家的模型如果必须跨域,all-to-all 就会直接压在这张网卡上。
+              所以看超节点参数时,别只看域内卡数,也要问<strong>域出口有多宽</strong>。
+            </span>
+            <span class="fig-cap">
+              最后是本次最出乎意料的一条:<strong>华为把超节点做成了风冷的。</strong>Atlas 850E 用自研 VCE 相变散热 + 灵衢互联,
+              <strong>不需要对现有风冷 IDC 做液冷基建改造、标准机柜直接上架,单个风冷超节点可扩到 96 卡</strong>,原生覆盖 FP8 / mxFP8 / HiF8 / INT8 / mxFP4 全量低精格式,配 4.0 TB/s 内存带宽,官方口径 10 ms 级时延推理、支持 M 级上下文。
+              把这条和第八节放在一起读会发现一个新的产品分类正在出现:<strong>「域够大 + 格式够全 + 还能进老机房」</strong>。
+              此前这三件事是互斥的 —— 大域要液冷(Atlas 950 / Helios / NVL144),能进老机房的卡带宽只有 1.5 TB/s(Crescent Island)。850E 是第一个同时给出这三项的产品,代价大概率在单卡功耗与整柜密度上(华为未公开 850E 的单卡 TDP 与配的是哪一代芯片 <span class="est">※</span>)。
+            </span>
           </div>
 
           <div class="tbl-scroll">
@@ -1049,7 +1337,8 @@
                 <tr><td>B300</td><td>NVLink 5</td><td class="num">1.8 TB/s</td><td class="num">72(GB300 NVL72)</td><td>机架 ~37 TB 高速内存</td><td class="src-cell"><a href="https://nor-tech.com/wp-content/uploads/2026/03/blackwell-datasheet-B300.pdf">NVIDIA Datasheet</a></td></tr>
                 <tr><td>MI455X</td><td>UALink over Ethernet(UALoE)</td><td class="num">3.6 TB/s(36 links)</td><td class="num">72(Helios ORW)</td><td>机架 260 TB/s scale-up + 43 TB/s scale-out;31 TB HBM4</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-mi455x-and-helios-432gb-hbm4-72-gpu-racks-and-a-real-answer-to-vera-rubin">StorageReview</a></td></tr>
                 <tr><td>MI355X</td><td>Infinity Fabric(7 links)</td><td class="num">1.075 TB/s(7×153.6)</td><td class="num">8(UBB 2.0)</td><td>风冷机架 64 卡 / 液冷 128 卡,但非单一内存域</td><td class="src-cell"><a href="https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/product-briefs/amd-instinct-miI355x-platform-brochure.pdf">AMD Platform Brief</a></td></tr>
-                <tr class="hl"><td>昇腾 950DT / 950PR</td><td>灵衢 UnifiedBus(UB-Mesh)</td><td class="num">2 TB/s</td><td class="num"><strong>8192</strong>(Atlas 950 SuperPoD)</td><td>16.3 PB/s 互联,跨柜 &lt;2.1 μs,柜内铜 + 柜间全光 OCS;FP8 8 EFLOPS</td><td class="src-cell"><a href="https://www.huawei.com/en/news/2025/9/hc-xu-keynote-speech">华为官方演讲</a></td></tr>
+                <tr class="hl"><td>昇腾 950DT / 950PR</td><td>灵衢 UnifiedBus(UB-Mesh)</td><td class="num">2 TB/s</td><td class="num"><strong>8192</strong> 满配<br />(真机 1024 卡)</td><td>16.3 PB/s 互联,跨柜 &lt;2.1 μs、灵衢 2.0 单跳 200 ns,柜内铜 + 柜间全光 OCS;满配 8 EFLOPS FP8 / 16 EFLOPS FP4、1152 TB 内存、160 机柜约 1000 m²,<strong>2026 Q4 批量上市</strong>。WAIC 2026 首次公开的真机按 1024 卡部署(1 EFLOPS FP8 / 2 EFLOPS FP4 / <strong>256 TB 全局统一内存编址</strong> / 3 μs RTT)</td><td class="src-cell"><a href="https://www.huawei.com/cn/news/2026/7/atlas-950-superpod">华为官方(真机 1024 卡口径)</a> · <a href="https://www.huawei.com/en/news/2025/9/hc-xu-keynote-speech">华为 HC 主题演讲(满配口径)</a></td></tr>
+                <tr class="hl"><td><strong>昇腾 Atlas 850E</strong>(风冷超节点)</td><td>灵衢互联 + VCE 相变散热</td><td class="num">未公开 <span class="est">※</span></td><td class="num"><strong>96</strong>(单个风冷超节点)</td><td><strong>不需要液冷基建改造,标准机柜直接上架</strong>;原生 FP8 / mxFP8 / HiF8 / INT8 / mxFP4 全量低精格式,4.0 TB/s 内存带宽,10 ms 级时延推理、M 级上下文、内存资源池化。官方未公开配的是哪一代芯片与单卡 TDP <span class="est">※</span></td><td class="src-cell"><a href="https://qzs.stcn.com/article/detail/615773.html">券中社 / 证券时报(WAIC 现场)</a></td></tr>
                 <tr><td>昇腾 910C</td><td>UB + RDMA</td><td class="num">~784 GB/s</td><td class="num">384(CloudMatrix384)</td><td>每 die 7×224 Gbps UB;满配 ~300 PFLOPS FP16</td><td class="src-cell"><a href="https://news.qq.com/rain/a/20250620A0711D00">超节点拆解</a> · <a href="https://www.fibermall.com/blog/semianalysis-of-huawei-cloudmatrix-910c.htm">SemiAnalysis 评估</a></td></tr>
                 <tr><td>TPU7x Ironwood</td><td>ICI 3D Torus + OCS</td><td class="num">1.2 TB/s(9.6 Tb/s)</td><td class="num"><strong>9216</strong></td><td>1.77 PB 可直接寻址共享 HBM;42.5 EFLOPS FP8</td><td class="src-cell"><a href="https://hc2025.hotchips.org/assets/program/conference/day2/61_Google_Ironwood-Final.pdf">Hot Chips 2025</a></td></tr>
                 <tr><td>TPU 8t / 8i</td><td>ICI(19.2 Tb/s)</td><td class="num">2.4 TB/s</td><td class="num">9600 / 1152</td><td>8t 训练域更大,8i 为低延迟推理刻意收小</td><td class="src-cell"><a href="https://codelabs.developers.google.com/gemini-interactions-java-sdk/tpu_history_report">Google Codelabs 对比</a></td></tr>
@@ -1057,7 +1346,9 @@
                 <tr><td>Gaudi 3</td><td>24×200 GbE RoCE(片上 NIC)</td><td class="num">1.05 TB/s</td><td class="num">8(HLS 节点)</td><td>scale-up/scale-out 同一套 RoCE,无需节点内交换机</td><td class="src-cell"><a href="https://hc2024.hotchips.org/assets/program/conference/day1/60_HC2024.Intel.RomanKaplan.Gaudi3-0826.pdf">Hot Chips 2024</a></td></tr>
                 <tr><td>昆仑芯 P800 / M100</td><td>自研互联 + IB/RoCE</td><td class="num">未公开(天池 256 卡间带宽 ×4)</td><td class="num">256 / 512(天池)</td><td>天池 256 已上市(吞吐 +25%、推理效率 +50%);天池 512 单节点可训万亿参数</td><td class="src-cell"><a href="https://www.cls.cn/detail/2200034">科创板日报</a> · <a href="https://www.eefocus.com/article/2054039.html">与非网</a></td></tr>
                 <tr><td>寒武纪 思元690</td><td>自研互联</td><td class="num">&gt;890 Gbps(~111 GB/s)</td><td class="num">未公开(8 卡整机为主)</td><td>支持 TP/PP/SP/DP/EP 5D 混合并行与 PD 分离</td><td class="src-cell"><a href="https://wap.hibor.com.cn/repinfodetail_5107930.html">国海证券一季报点评</a></td></tr>
-                <tr><td>MTT S5000 / 曦云 C600</td><td>MTLink / MetaXLink</td><td class="num">784 GB/s / 未公开</td><td class="num">8 / 8–16 <span class="est">※</span></td><td>S5000 已做到千卡集群训练(RoboBrain 2.5,loss 与 H100 差 0.62%)</td><td class="src-cell"><a href="https://finance.sina.com.cn/tech/roll/2026-02-12/doc-inhmpkar4117688.shtml">新浪科技</a> · <a href="https://news.qq.com/rain/a/20250728A078UC00">腾讯新闻</a></td></tr>
+                <tr class="hl"><td><strong>MTT S5000</strong>(MTT C256)</td><td>MTLink + 柜内 Cable Tray 全铜</td><td class="num">784 GB/s</td><td class="num"><strong>256</strong>(单柜 128 全互联 + 并柜)</td><td><strong>一层 Scale-up 网络直连 256 卡</strong>(行业常见为一层 64),卡间亚微秒级;计算与交换一体化高密设计,2U 节点兼容现有生态,可作为万卡→十万卡集群的基础单元 <span class="est">※官方未说明配的是哪一代卡</span></td><td class="src-cell"><a href="https://news.eccn.com/news_2026071916425189.htm">中电网(MTT C256)</a> · <a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(与正交架构的路线取舍)</a></td></tr>
+                <tr class="hl"><td><strong>曦云 C600</strong>(曦景 S600)</td><td>MetaXLink + OEX 正交连接器</td><td class="num">未公开</td><td class="num"><strong>64</strong>(单机柜全互联)</td><td>两级交换拓扑、零线缆,支持 EP / TP 等多维并行,柜间横向扩展到万卡规模 <span class="est">※官方未说明配的是哪一代卡</span></td><td class="src-cell"><a href="https://www.agentren.cn/2026/0720/20931.shtml">爱力方(曦景 S 系列)</a> · <a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报</a></td></tr>
+                <tr class="hl"><td><strong>东方算芯 巅峯 DF1000</strong></td><td>自研 Scale-up + Full Mesh 全互联</td><td class="num">900 GB/s</td><td class="num"><strong>64</strong>(拓域 TY64 液冷超节点)</td><td>液冷单机 8 卡 Full Mesh,单节点 33 PFLOPS@BF16;上层 慧算 HS128 / HS512 走 Scale-out 组 128 / 512 卡集群,已在真实业务中实测 128 卡</td><td class="src-cell"><a href="http://www.semi-insights.com/s/bdt/15/50557.shtml">半导体行业观察(产品层级)</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(单卡 900 GB/s Full Mesh)</a></td></tr>
                 <tr class="hl"><td><strong>Maia 200</strong></td><td>片内 NIC + 标准以太网(ATL 协议)</td><td class="num">2.8 TB/s(1.4 双向)</td><td class="num"><strong>6144</strong>(两层)</td><td>包喷洒 + 多路径 + 抗拥塞流控做在传输层;省掉外置 NIC 的功耗与成本</td><td class="src-cell"><a href="https://techcommunity.microsoft.com/blog/azureinfrastructureblog/deep-dive-into-the-maia-200-architecture/4489312">微软官方架构解析</a></td></tr>
                 <tr><td>NVIDIA Groq 3 LPU</td><td>C2C 直连(96×112 Gbps SerDes)</td><td class="num">2.5 TB/s</td><td class="num">256(LPX 机架)</td><td>机架 640 TB/s scale-up;与 Rubin NVL72 配对,GPU 管 prefill、LPU 管 decode</td><td class="src-cell"><a href="https://www.nvidia.com/en-us/data-center/lpx/">NVIDIA LPX 产品页</a></td></tr>
                 <tr><td>壁仞 BR2xx</td><td>BLink 2.0 + NPO 光互联</td><td class="num">未公开</td><td class="num">16 / 128 / <strong>1024</strong></td><td>三级矩阵:整机电互联 → 整柜电互联 → 分布式解耦光互联;内存语义共享 + 在网计算</td><td class="src-cell"><a href="https://www.eefocus.com/article/2053119.html">与非网(WAIC 2026)</a> · <a href="https://hao.cnyes.com/post/259936">鉅亨(方案细节)</a></td></tr>
@@ -1070,7 +1361,8 @@
                 <tr><td>FuriosaAI RNGD</td><td><strong>无专有互联</strong>,仅 PCIe Gen5 ×16</td><td class="num">128 GB/s</td><td class="num">8(NXT 整机)</td><td>反向操作:单芯可切成 2/4/8 个隔离 NPU + SR-IOV,卖的是多租户密度而不是大模型并行</td><td class="src-cell"><a href="https://furiosa.ai/renegade-spec">FuriosaAI 官方</a></td></tr>
                 <tr><td>Etched Sohu</td><td>自研超低延迟互联 + <strong>CSM</strong></td><td class="num">未公开</td><td class="num">未公开(域内共享内存池)</td><td>官方思路是「最好的内存层级是没有层级」:在整个 scale-up 域上建一个共享低延迟内存池,让 MoE 的专家路由不必穿越交换机</td><td class="src-cell"><a href="https://markets.financialcontent.com/stocks/article/gnwcq-2026-6-30-etched-emerges-from-stealth-with-working-chip-800m-raised-and-over-1b-in-customer-contracts">Etched 新闻稿</a></td></tr>
                 <tr><td>d-Matrix Corsair</td><td>PCIe Gen5 + DMX Bridge</td><td class="num">128 GB/s(PCIe)+ 512 GB/s(Bridge)</td><td class="num">8 卡/服务器 → 64 卡/机架</td><td>SquadRack 整机架 128 GB 性能内存 @ 9.6 PB/s、最多 16.4 TB 容量内存,<strong>不需要液冷</strong>,装机后数天即可上线</td><td class="src-cell"><a href="https://www.d-matrix.ai/product/">d-Matrix 官方</a></td></tr>
-                <tr><td>燧原 L600 / 海光 深算四号</td><td>云燧 OGX(OAM 全互联) / HSL 总线</td><td class="num">800 GB/s / 未公开</td><td class="num">8 / 未公开</td><td>OGX400 单机八卡全互联、28.8 TB/s 单机存储带宽;海光 HSL 与超节点仍在建设期</td><td class="src-cell"><a href="https://www.114ic.com/info/391453.html">114ic(云燧 OGX400)</a> · <a href="https://www.cww.net.cn/article?id=608602">通信世界(海光超节点)</a></td></tr>
+                <tr class="hl"><td><strong>燧原 L600</strong>(云燧 ESL64-O)</td><td>云燧 OGX + OEX 正交无背板</td><td class="num">800 GB/s</td><td class="num"><strong>64</strong>(单柜)→ 并柜 128 / 256 / 512</td><td>与中兴通讯联合发布,<strong>零线缆</strong>设计大幅降低互联成本、提升机房运维效率;OGX400 单机八卡全互联、28.8 TB/s 单机存储带宽。官方口径 <strong>2026 年底量产</strong></td><td class="src-cell"><a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(ESL64-O 与量产时间)</a> · <a href="https://www.114ic.com/info/391453.html">114ic(云燧 OGX400)</a></td></tr>
+                <tr><td>海光 深算四号</td><td>HSL 总线</td><td class="num">未公开</td><td class="num">未公开</td><td>海光 HSL 与超节点仍在建设期 —— 它是本次唯一没有公布整柜方案的国产 GPU/DCU 厂商之一</td><td class="src-cell"><a href="https://www.cww.net.cn/article?id=608602">通信世界(海光超节点)</a></td></tr>
               </tbody>
             </table>
           </div>
@@ -1090,7 +1382,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 11:片上 SRAM 容量与「能装下什么」(条形高度 = 相对容量)</div>
+            <div class="fig-title">动态图 15:片上 SRAM 容量与「能装下什么」(条形高度 = 相对容量)</div>
             <div class="sram-wrap">
               <div class="sram-card">
                 <h5>H20(基线)</h5>
@@ -1191,7 +1483,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 12:三条存储路线的容量 ↔ 带宽取舍</div>
+            <div class="fig-title">动态图 16:三条存储路线的容量 ↔ 带宽取舍</div>
             <div class="lanes">
               <div class="lane" style="--c: var(--alt)">
                 <div class="flow" aria-hidden="true"><i style="--y: 18%; --t: 2.2s; --d: 0s"></i><i style="--y: 46%; --t: 1.8s; --d: .5s"></i><i style="--y: 74%; --t: 2.6s; --d: 1s"></i><i style="--y: 32%; --t: 2s; --d: 1.4s"></i></div>
@@ -1200,6 +1492,15 @@
                   Cerebras WSE-3:<strong>44 GB @ 21 PB/s</strong>(整片晶圆);NVIDIA Groq 3 LPU:<strong>0.5 GB @ 150 TB/s</strong>(单芯,机架 128 GB @ 40 PB/s);Tenstorrent Blackhole:194 MB/芯 @ 2.9 PB/s(整机);
                   <strong>d-Matrix Corsair:4 GB @ 300 TB/s</strong>(整机架 128 GB @ 9.6 PB/s),而且是<strong>数字存内计算</strong> —— 乘法直接在改造过的 SRAM 单元里做,再配最多 512 GB LPDDR5 当「容量内存」。
                   带宽比 HBM4 高 1–3 个数量级,代价是容量小 2–3 个数量级 —— 模型必须按层切开摊在几百颗芯片上,靠<strong>流水并行</strong>而不是张量并行来跑。
+                </p>
+              </div>
+              <div class="lane" style="--c: var(--accent-1)">
+                <div class="flow" aria-hidden="true"><i style="--y: 22%; --t: 3s; --d: .1s"></i><i style="--y: 55%; --t: 2.6s; --d: .8s"></i><i style="--y: 78%; --t: 3.4s; --d: 1.5s"></i></div>
+                <h5>3D 近存 DRAM 派 —— 把内存搬到计算正上方(07-29 新增)</h5>
+                <p>
+                  东方算芯 巅峯 DF1000:<strong>6.4 TB/s,没有一颗 HBM</strong>。做法是用 Hybrid Bonding 把 DRAM 晶圆与逻辑晶圆<strong>无凸点垂直键合</strong>,互连间距从传统硅中介层 + 微凸点的数十微米压到亚微米级,TSV 数量多出几十倍,官方口径是同容量下带宽为 HBM 的 5 倍以上,并可通过增加堆叠层数继续扩容。
+                  它和 SRAM 派的区别在于<strong>存储仍然不参与计算</strong>(不是存内计算),只是把搬运距离压到极短;和 HBM 派的区别在于它不需要 CoWoS 与 HBM 供应,<strong>14nm 成熟工艺 + 全国产供应链就能流片</strong>。
+                  代价是算力被工艺锁住(BF16 520 TFLOPS)、<strong>容量与 TDP 至今未公开</strong>,以及一套全新的 CAAP 软件栈。高通的 AI250(HBC:把 LPDDR 3D 堆到计算上面)与 d-Matrix 的 Raptor(3DIMC)本质上在做同一件事,只是介质不同。
                 </p>
               </div>
               <div class="lane" style="--c: var(--nv)">
@@ -1226,6 +1527,13 @@
               2026 年的真实趋势是<strong>同一条推理链路上同时出现两三种硬件</strong>:NVIDIA 自己就在卖「Rubin NVL72(HBM)+ LPX 256(SRAM)+ CPX(GDDR)」三件套。
               选型时该问的不再是「哪张卡最强」,而是「<strong>我的 prefill:decode 比例是多少,值不值得为它拆成两种硬件</strong>」。
             </span>
+            <span class="fig-cap">
+              07-29 有一件事让这一节的地位变了:<strong>晶圆级不再只是「进不了榜的异类」,它进了别人的产线。</strong>
+              AMD 与 Cerebras 在 07-23 宣布把 Helios 机架(72×MI455X、2.9 EF FP4、31 TB HBM4、UALoE 260 TB/s)和晶圆级引擎串成一条推理流水线:
+              <strong>HBM 派做 prefill、SRAM 派做 decode,官方称每瓦 token 相对纯晶圆级方案最多 ×5</strong>,支持 1T+ 参数模型,2026 H2 先上 Cerebras Cloud,而 Cerebras 会把 AMD 机架部署进自己的数据中心。
+              这条新闻验证了本节开头那个判断的下半句:三条存储路线不是三种「谁会赢」的赌注,而是<strong>一条链路上的三段分工</strong>。
+              照这个逻辑,3D 近存这一派最可能的位置也不是取代 HBM,而是<strong>吃掉「带宽要够、容量不必大、成本要低」的那一段</strong> —— 恰好是 decode 和中等规模模型常驻。
+            </span>
           </div>
 
           <div class="tbl-scroll">
@@ -1234,7 +1542,8 @@
                 <tr><th>形态</th><th>代表产品</th><th>单元容量</th><th>单元带宽</th><th>山脊点<br />(FLOP/B)</th><th>为什么进不了第一节的榜</th><th>来源</th></tr>
               </thead>
               <tbody>
-                <tr><td>晶圆级</td><td>Cerebras WSE-3 / CS-3</td><td class="num">44 GB SRAM</td><td class="num">21 PB/s</td><td class="num">6</td><td>「一张卡」= 46,225 mm² 的一整片晶圆、整机 23 kW,按卡归一化会严重高估</td><td class="src-cell"><a href="https://www.cerebras.ai/press-release/cerebras-announces-third-generation-wafer-scale-engine">Cerebras 官方</a> · <a href="https://arxiv.org/html/2503.11698v1">arXiv 对比研究</a></td></tr>
+                <tr class="hl"><td>晶圆级</td><td><strong>Cerebras WSE-3 / CS-3</strong></td><td class="num">44 GB SRAM</td><td class="num">21 PB/s</td><td class="num">6</td><td>「一张卡」= 46,225 mm² 的一整片晶圆、整机 23 kW,按卡归一化会严重高估。<strong>2026-07-23 起它有了新的落地形态</strong>:与 AMD Helios 组成解构式推理流水线(Helios 做 prefill、WSE 做 decode),官方称每瓦 token 最多 ×5,2026 H2 通过 Cerebras Cloud 提供 —— 进不了本文的榜,但进得了产线</td><td class="src-cell"><a href="https://www.cerebras.ai/press-release/cerebras-announces-third-generation-wafer-scale-engine">Cerebras 官方(WSE-3)</a> · <a href="https://www.cerebras.ai/press-release/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference">Cerebras/AMD 联合新闻稿</a> · <a href="https://arxiv.org/html/2503.11698v1">arXiv 对比研究</a></td></tr>
+                <tr class="hl"><td>3D 近存 DRAM</td><td><strong>东方算芯 巅峯 DF1000</strong></td><td class="num">未公开(3D 键合 DRAM)</td><td class="num">6.4 TB/s</td><td class="num">81 <span class="est">※</span></td><td><strong>它已经按卡进了第一节的榜(第 26 名 / 139 分)</strong>,列在这里是因为路线归属:它是全榜唯一一张带宽高于基线却完全不用 HBM 的卡,和 SRAM 派、LPDDR 派同属「换掉 HBM 这个前提」这一类</td><td class="src-cell"><a href="https://www.dfsx.com/products/ai-accelerator/df1000">东方算芯官方</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(Hybrid Bonding 拆解)</a></td></tr>
                 <tr><td>SRAM 数据流</td><td>NVIDIA Groq 3 LPU(LP30)</td><td class="num">0.5 GB SRAM</td><td class="num">150 TB/s</td><td class="num">8</td><td>单芯 TDP 未公开;容量维度会拿 0 分,但它本来就不打算单芯服务</td><td class="src-cell"><a href="https://developer.nvidia.com/blog/inside-nvidia-groq-3-lpx-the-low-latency-inference-accelerator-for-the-nvidia-vera-rubin-platform/">NVIDIA 技术博客</a> · <a href="https://www.theregister.com/special-features/2026/03/19/a-closer-look-at-nvidias-groq-powered-lpx-rack-systems/5223364">The Register 拆解</a></td></tr>
                 <tr><td>RISC-V 数据流</td><td>Tenstorrent Galaxy Blackhole</td><td class="num">32 GB GDDR6 + 194 MB SRAM</td><td class="num">0.5 TB/s + 90 TB/s <span class="est">※</span></td><td class="num">1438</td><td>已按单芯进榜(第 20 名),但它的卖点是整机 TCO 而不是单芯指标</td><td class="src-cell"><a href="https://tenstorrent.com/en/hardware/galaxy">官方规格</a> · <a href="https://www.forbes.com/sites/davealtavilla/2026/04/28/tenstorrent-unveils-galaxy-ai-platform-targeting-scale-and-efficiency/">Forbes</a></td></tr>
                 <tr><td>LPDDR 机架</td><td>Qualcomm AI200 / AI250</td><td class="num">768 GB LPDDR</td><td class="num">未公开(AI250 称 133 TB/s「有效」)</td><td class="num">—</td><td>算力、单卡带宽、TDP 全部未公开,十个维度里有六个无法取值</td><td class="src-cell"><a href="https://www.datacenterdynamics.com/en/news/qualcomm-launches-ai200-and-ai250-chip-offering-targeting-inferencing-workloads-at-rack-scale/">DCD</a> · <a href="https://www.techpowerup.com/350281/qualcomm-hbc-gen-1-achieves-133-tb-s-bandwidth-by-stacking-lpddr-memory">TechPowerUp(HBC)</a></td></tr>
@@ -1255,7 +1564,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 13:整卡 TDP 与散热要求(条形长度 = 功耗,右侧标注冷却方式)</div>
+            <div class="fig-title">动态图 17:整卡 TDP 与散热要求(条形长度 = 功耗,右侧标注冷却方式)</div>
             <div class="pw">
               <div class="pw-row"><span class="nm">FuriosaAI RNGD</span><span class="pw-track"><span class="pw-fill" style="--w: 8%; --d: .01s"></span></span><span class="tag">180 W · <strong>被动散热</strong>(无风扇)</span></div>
               <div class="pw-row"><span class="nm">Tenstorrent Blackhole(单芯)</span><span class="pw-track"><span class="pw-fill" style="--w: 12%; --d: .02s"></span></span><span class="tag">~280 W <span class="est">※由整机 8–10 kW / 32 芯推算</span> · 风冷</span></div>
@@ -1290,6 +1599,16 @@
               同一逻辑上还有 <strong>d-Matrix 的 1200 W 卡却宣称整机架不需要液冷</strong> —— 因为它没有 HBM 也没有专有互联,散热预算全花在计算 die 上,SquadRack 可以「装完几天内上线」。
               把这两行和 Crescent Island(350 W)、Tenstorrent Galaxy(整机 8–10 kW 风冷)放在一起,可以看到一条被主流叙事忽略的赛道:<strong>「不改造机房」本身就是一种产品定位</strong>,而且它的对手不是峰值算力,是液冷改造的资本开支。
             </span>
+            <span class="fig-cap">
+              07-29 复核后,上面那条赛道出现了一个量级完全不同的玩家。此前「进得了存量风冷机房」的代价是<strong>带宽只有 HBM 卡的 1/5 到 1/15</strong>(Crescent Island ~1.5 TB/s、Galaxy 单芯 0.5 TB/s),
+              所以它只适合大容量、低并发的负载。华为的 <strong>Atlas 850E 风冷超节点</strong>把这个取舍改掉了:靠自研 VCE 相变散热,<strong>不做液冷基建改造、标准机柜直接上架,还能把 96 张卡组成一个域,内存带宽 4.0 TB/s(与 H20 同档)、格式覆盖到 mxFP4</strong>。
+              也就是说「风冷」不再等于「弱」—— 它换掉的是<strong>散热技术</strong>而不是存储介质。
+            </span>
+            <span class="fig-cap">
+              这件事对 TCO 的含义比它的参数更重要。一个 R200 机架要 45 °C 冷液 + 800 V DC 母排,Helios 参考设计是 246 kW / 385 L·min⁻¹ 冷液 —— 而全世界绝大多数在运机房两样都没有,液冷改造往往是<strong>比卡本身更大的一笔资本开支</strong>。
+              850E 把这笔钱省掉的同时保住了 4 TB/s 和 96 卡域,意味着<strong>「能不能用」和「有多强」这两件事第一次可以不冲突</strong>。
+              需要留一句保守:华为没公开 850E 的单卡 TDP、配的是哪一代芯片、整柜功率密度,以及 VCE 相变散热在长期满载下的可靠性数据 <span class="est">※</span> —— 相变散热的工程难点恰恰在于长时间高负载后的性能衰减,这一项要等第三方实测。
+            </span>
           </div>
 
           <p>
@@ -1297,7 +1616,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 14:每瓦 FP8 峰值算力(TFLOPS / W,满刻度 = 12.5)</div>
+            <div class="fig-title">动态图 18:每瓦 FP8 峰值算力(TFLOPS / W,满刻度 = 12.5)</div>
             <div class="race">
               <div class="race-row"><span class="rk">1</span><span class="nm">Rubin CPX</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--nv); --d: 0.05s"></span></span><span class="vl">12.5</span></div>
               <div class="race-row"><span class="rk">1</span><span class="nm">MI455X</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--amd); --d: 0.09s"></span></span><span class="vl">12.5</span></div>
@@ -1357,19 +1676,20 @@
                 <tr class="hl"><td><strong>Maia 200</strong></td><td>Maia SDK(PyTorch / Triton)</td><td>★★★☆ SDK 仍在 preview</td><td>微软称每美元性能比现役硬件高 30%、FP4 算力为 Trainium3 的 3 倍;第三方 MFU 无公开数据</td><td class="num">0.35 <span class="est">※</span></td><td class="num">1.77 PF</td><td class="num">12.0×</td></tr>
                 <tr><td>MI355X</td><td>ROCm 7 / vLLM / SGLang</td><td>★★★★</td><td>ROCm 官方博客给出 625 FLOP/B 的机器平衡分析,kernel 层文档化程度已接近 NVIDIA</td><td class="num">0.35 <span class="est">※</span></td><td class="num">1.75 PF</td><td class="num">11.8×</td></tr>
                 <tr><td>Trainium3</td><td>Neuron SDK / NKI</td><td>★★★ 编译器路径窄</td><td>官方称相对 Trn2 性能 ×4.4、每瓦 ×4;MFU 未公开</td><td class="num">0.30 <span class="est">※</span></td><td class="num">755 TF</td><td class="num">5.1×</td></tr>
-                <tr class="hl"><td><strong>昇腾 950DT</strong></td><td>CANN / MindSpore / vLLM-Ascend</td><td>★★★ 生态在补</td><td>盘古 Ultra 稠密训练 MFU &gt;50%、MoE 41%(910 代、FP16);950 的 FP8/FP4 路径尚无公开 MFU</td><td class="num">0.30 <span class="est">※</span></td><td class="num">600 TF</td><td class="num">4.1×</td></tr>
+                <tr class="hl"><td><strong>昇腾 950DT</strong></td><td>CANN / MindSpore / MindSpeed MM / vLLM-Ascend / SGLang</td><td>★★★ 生态在补</td><td>盘古 Ultra 稠密训练 MFU &gt;50%、MoE 41%(910 代、FP16);950 的 FP8/FP4 路径尚无公开 MFU。<strong>2026-07-28 Kimi K3 0day 适配</strong>:训练侧基于 MindSpeed MM 在 Atlas 800 A3 / Atlas 900 A3 SuperPoD 完成减层训练复现(算子、并行加速、显存优化专项),推理侧走 vLLM Ascend + SGLang;官方明确<strong>昇腾 950 超节点支持 FP8/MXFP8/MXFP4 全系列格式,原生支持 K3 的 mxFP4 权重</strong> —— 全榜唯一同时给出训练与推理证据的非 CUDA 平台</td><td class="num">0.30 <span class="est">※</span></td><td class="num">600 TF</td><td class="num">4.1×</td></tr>
                 <tr><td>Gaudi 3</td><td>SynapseAI / oneAPI</td><td>★★☆</td><td>官方称能效相对 H100 有优势,MFU 无第三方公开数据</td><td class="num">0.25 <span class="est">※</span></td><td class="num">459 TF</td><td class="num">3.1×</td></tr>
                 <tr><td>寒武纪 思元690</td><td>Cambricon Neuware</td><td>★★☆</td><td>已支持 TP/PP/SP/DP/EP 5D 并行与 PD 分离,并即时适配 DeepSeek-V4 级模型</td><td class="num">0.25 <span class="est">※</span></td><td class="num">350 TF</td><td class="num">2.4×</td></tr>
                 <tr><td>昇腾 910C</td><td>CANN(相对成熟)</td><td>★★★</td><td>910B 实测 LLaMA 训练 MFU 61.3–71.5%(FP16,与 A100 差 2.6–4.3%);910C 集群完成 1.6 万亿参数 DeepSeek-V4-Pro 全参后训练</td><td class="num">0.42 <span class="est">※</span></td><td class="num">336 TF</td><td class="num">2.3×</td></tr>
-                <tr><td>MTT S5000</td><td>MUSA(PyTorch/Megatron/vLLM/SGLang)</td><td>★★☆ 迁移成本低</td><td>千卡集群训 RoboBrain 2.5,loss 与 H100 差 0.62%;端到端约为 H20 的 2.5 倍</td><td class="num">0.28 <span class="est">※</span></td><td class="num">280 TF</td><td class="num">1.9×</td></tr>
-                <tr><td>沐曦 曦云 C600</td><td>MXMACA(CUDA 语义兼容)</td><td>★★☆</td><td>DeepSeek-V3.1 已完成 FP8 训练验证,端到端相对 FP16 提升 1.3–1.6 倍</td><td class="num">0.25 <span class="est">※</span></td><td class="num">250 TF</td><td class="num">1.7×</td></tr>
-                <tr><td>燧原 L600</td><td>驭算 TopsRider(ASIC 路线)</td><td>★★☆</td><td>上一代 S60 已出货 7 万颗、庆阳 10016 张卡的万卡推理集群在产;L600 无公开 MFU</td><td class="num">0.25 <span class="est">※</span></td><td class="num">250 TF</td><td class="num">1.7×</td></tr>
+                <tr class="hl"><td><strong>MTT S5000</strong></td><td>MUSA(PyTorch/Megatron/vLLM/SGLang)</td><td>★★☆ 迁移成本低</td><td>千卡集群训 RoboBrain 2.5,loss 与 H100 差 0.62%;端到端约为 H20 的 2.5 倍。<strong>2026-07-28 晚完成 Kimi K3 Day-0 适配</strong>(2.8T / 896 专家 / 1M 上下文「极速拉起并稳定运行」)—— 但官方未给出吞吐或折损数字,证据等级停在「可用性」而非「效率」</td><td class="num">0.28 <span class="est">※</span></td><td class="num">280 TF</td><td class="num">1.9×</td></tr>
+                <tr><td>沐曦 曦云 C600</td><td>MXMACA(CUDA 语义兼容)</td><td>★★☆</td><td>DeepSeek-V3.1 已完成 FP8 训练验证,端到端相对 FP16 提升 1.3–1.6 倍;历史上对 Step 3.7 Flash、混元 Hy-MT2 等模型做过 Day-0 适配,但<strong>截至本次快照未见 Kimi K3 的 Day-0 公告</strong></td><td class="num">0.25 <span class="est">※</span></td><td class="num">250 TF</td><td class="num">1.7×</td></tr>
+                <tr><td>燧原 L600</td><td>驭算 TopsRider(ASIC 路线)</td><td>★★☆</td><td>上一代 S60 已出货 7 万颗、庆阳 10016 张卡的万卡推理集群在产;L600 无公开 MFU,<strong>亦未见 Kimi K3 的 Day-0 公告</strong></td><td class="num">0.25 <span class="est">※</span></td><td class="num">250 TF</td><td class="num">1.7×</td></tr>
+                <tr class="hl"><td><strong>东方算芯 巅峯 DF1000</strong></td><td>CAAP 自研栈(编译器 / 算子库 / 集合通信 / 分布式训练框架)</td><td>★★ 全榜最新的一套栈</td><td>官方称支持主流深度学习框架与开源模型生态,<strong>128 卡集群已在真实业务场景稳定运行</strong>;无公开 MFU、无第三方基准。注意它和 RNGD 一样属于「指数高于 H20 但折算有效算力低于 H20」的卡</td><td class="num">0.20 <span class="est">※</span></td><td class="num">104 TF</td><td class="num"><strong>0.70×</strong></td></tr>
                 <tr><td>Tenstorrent Blackhole</td><td>TT-Metalium / vLLM(全栈开源)</td><td>★★★ 开源但生态小</td><td>16 台 Galaxy(512 芯)跑 DeepSeek-R1 671B:单用户 decode &gt;350 tok/s、100K 上下文 TTFT &lt;4 s;宣称每百万 token 约 $6,对比 GB300 约 $30</td><td class="num">0.30 <span class="est">※</span></td><td class="num">216 TF</td><td class="num">1.5×</td></tr>
                 <tr><td>海光 深算四号</td><td>DTK 26.04 / DAS 1.8(类 CUDA)</td><td>★★★ 迁移成本最低</td><td>算子兼容 CUDA &gt;99%、集成 2000+ 算子、支持 PyTorch/vLLM/SGLang 等 100+ 组件;数万卡集群已跑通 10 万亿参数模型稳定运行。<strong>2026-07-28:完成 Kimi K3(2.8T / 896 专家)全栈适配,模型代码零改动,官方实测性能折损 &lt;12%</strong>,并针对 KDA 注意力与 896 专家 MoE 做了算子级定制</td><td class="num">0.35 <span class="est">※</span></td><td class="num">210 TF</td><td class="num">1.4×</td></tr>
                 <tr><td>昆仑芯 P800</td><td>昆仑芯 SDK / 百舸</td><td>★★☆</td><td>3 万卡集群已点亮,完成文心 5.1 重要版本全国产训练</td><td class="num">0.25 <span class="est">※</span></td><td class="num">172 TF</td><td class="num">1.2×</td></tr>
                 <tr class="hl"><td><strong>Etched Sohu</strong></td><td>自研编译器(<strong>不兼容 CUDA/vLLM</strong>)</td><td>★☆ 必须重建整条推理栈</td><td>官方称 90%+ FLOPS 利用率;8 芯服务器 Llama-70B &gt;500,000 tok/s,对比 8×H100 约 23,000、8×B200 约 43,000–45,000。<strong>无第三方基准</strong></td><td class="num">不适用</td><td class="num">未公布 FLOPS</td><td class="num">tok/s 口径 ~21×<br />(vs 8×H100)</td></tr>
                 <tr><td>SambaNova SN50</td><td>SambaFlow(RDU 编译器)</td><td>★★★ 五代积累,但只做推理</td><td>官方称 agentic 推理相对 B200 有 5× 速度 / 3× 吞吐;RAISE Summit 2026 演示 H200 做 prefill + SN50 做 decode 的异构方案</td><td class="num">0.30 <span class="est">※</span></td><td class="num">960 TF</td><td class="num">6.5×</td></tr>
-                <tr class="hl"><td><strong>阿里 真武 M890</strong></td><td>阿里云全栈自研(编译器 + 算子)</td><td>★★★ 自家闭环最完整</td><td>810E 已在多个万卡集群跑千问系列训练与推理、服务 400+ 客户;M890 超节点实例 <strong>Day0 适配 Kimi K3</strong>。第三方 MFU 无公开数据</td><td class="num">0.30 <span class="est">※</span></td><td class="num">216 TF <span class="est">※</span></td><td class="num">1.5× <span class="est">※</span></td></tr>
+                <tr class="hl"><td><strong>阿里 真武 M890</strong></td><td>阿里云全栈自研(编译器 + 算子)</td><td>★★★ 自家闭环最完整</td><td>810E 已在多个万卡集群跑千问系列训练与推理、服务 400+ 客户;M890 超节点实例 <strong>Day0 适配 Kimi K3,官方称是国内首个跑通近 3 万亿参数模型的超节点</strong>。阿里云、平头哥与 Kimi 团队做了软件栈与算子层的联合适配,给出的数字是<strong>首 token 时延降低约 35%、单卡解码吞吐提升 1.8 倍、稳定支持 1M 长上下文</strong> —— 这是本轮 Day-0 竞赛里唯一带性能增量的口径。第三方 MFU 仍无公开数据</td><td class="num">0.30 <span class="est">※</span></td><td class="num">216 TF <span class="est">※</span></td><td class="num">1.5× <span class="est">※</span></td></tr>
                 <tr><td>d-Matrix Corsair</td><td>Aviator(含分布式推理引擎)</td><td>★★☆</td><td>官方称相对 GPU 有 10× 交互性能 / 3× 能效 / 3× 性价比;Gimlet Labs 做过独立测试。只支持 MXINT8/MXINT4,BF16 主干需软件绕</td><td class="num">不适用(块整数)</td><td class="num">4.8 PF MXINT8 峰值</td><td class="num">—</td></tr>
                 <tr><td>Rebellions REBEL-Quad</td><td>RBLN SDK / vLLM</td><td>★★ 生态最小</td><td>内部评测称大模型吞吐高于 H200 级 GPU;无公开 MFU 与第三方基准</td><td class="num">0.22 <span class="est">※</span></td><td class="num">451 TF</td><td class="num">3.0×</td></tr>
                 <tr><td>FuriosaAI RNGD</td><td>Furiosa SDK / vLLM</td><td>★★☆ 已接 vLLM</td><td>无公开 MFU。<strong>注意它是本榜唯一「综合指数高于 H20 但折算有效算力低于 H20」的卡</strong>(112 分 vs 0.86×)</td><td class="num">0.25 <span class="est">※</span></td><td class="num">128 TF</td><td class="num"><strong>0.86×</strong></td></tr>
@@ -1378,7 +1698,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 15:峰值 → 有效算力的收缩(虚线框 = 峰值,实心 = 折算 MFU 后)</div>
+            <div class="fig-title">动态图 19:峰值 → 有效算力的收缩(虚线框 = 峰值,实心 = 折算 MFU 后)</div>
             <div class="mfu">
               <div class="mfu-row"><span class="nm">MI455X</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 33%; --c: var(--amd); --d: .05s"></span></span><span class="vl">20 PF → 6.6 PF</span></div>
               <div class="mfu-row"><span class="nm">Rubin R200</span><span class="mfu-track"><span class="mfu-peak" style="--p: 88%; --c: var(--nv)"></span><span class="mfu-eff" style="--e: 31%; --c: var(--nv); --d: .15s"></span></span><span class="vl">17.5 PF → 6.1 PF</span></div>
@@ -1405,16 +1725,30 @@
               对照另一端,海光深算四号的卖点恰恰相反 —— Kimi K3 这种 2.8 万亿参数、896 专家的模型,<strong>模型代码零改动直接跑,官方实测折损 &lt;12%</strong>。
               2026 年这两种极端会同时存在,而选哪一端取决于一个很朴素的问题:<strong>你的团队有没有人能维护一套非 CUDA 的 kernel</strong>。
             </span>
+            <span class="fig-cap">
+              07-29 复核后,这一节多出第三条结论:<strong>「Day-0 适配」这个词需要一个证据等级,否则它衡量的是公关速度而不是软件栈成熟度。</strong>
+              把上面这张表按 Kimi K3 这一个负载重排,证据强度从高到低是:<strong>训练复现 + 推理部署</strong>(昇腾)&gt; <strong>带性能增量的推理部署</strong>(阿里:首 token −35% / 解码 ×1.8)&gt;
+              <strong>带迁移成本数字的全栈适配</strong>(海光:零代码改动 / 折损 &lt;12%)&gt; <strong>「拉起并稳定运行」</strong>(摩尔线程)&gt; <strong>托管服务上线</strong>(海外六家)。
+              这个梯度和第一节的硬件指数几乎不相关:摩尔线程重算后 164 分、沐曦 179 分,但前者交了作业、后者这次没交;而海光只有 123 分,给出的却是最硬的迁移成本数字。
+              <strong>如果你的选型标准是「新模型出来多久能上线」,那么该看的是这张表的第四列,而不是第一节的条形图。</strong>
+            </span>
+            <span class="fig-cap">
+              另外新增的东方算芯 DF1000 一行,把 07-28 那条「综合指数与有效算力可以指向相反方向」的警告变成了<strong>两个样本</strong>:
+              RNGD 是 112 分 / 0.86× H20,DF1000 是 139 分 / <strong>0.70× H20</strong>(520 TF × 0.20 估算 MFU = 104 TF)。
+              两张卡的分数都来自「结构好」的维度 —— RNGD 靠 SRAM 与能效,DF1000 靠带宽(6.4 TB/s)与域规模(64 卡) —— 而这些维度都不直接产出 token。
+              需要说清楚的是那个 0.20 的 MFU 是我给的最保守估计(全榜最低),理由是 CAAP 是一套全新的编译器栈、且没有任何第三方基准;
+              <strong>如果它的实际 MFU 能做到 0.35,有效算力就会反超 H20</strong>。这一行是全表最应该等真实数据来推翻的一行。
+            </span>
           </div>
 
           <h2>十、代际节奏</h2>
           <div class="fig">
-            <div class="fig-title">动态图 16:主要厂商的代际时间线</div>
+            <div class="fig-title">动态图 20:主要厂商的代际时间线</div>
             <div class="tl">
               <div class="st"><div class="yr">2024</div><div class="lb">H20 / MI300X<br />910B · P800 · TPU v6 · MTIA 300</div></div>
               <div class="st"><div class="yr">2025</div><div class="lb">B200/B300 · MI355X<br />910C + CloudMatrix384 · Ironwood · 深算三号</div></div>
               <div class="st"><div class="yr">2026 H1</div><div class="lb">Maia 200 · 昇腾 950PR/Atlas 350 上市<br />思元690 · 天池256 · TPU 8 · Galaxy Blackhole<br />真武 810E 官宣 · SN50 发布 · Corsair 量产 · Sohu 出隐身 · AI5 tape-out</div></div>
-              <div class="st"><div class="yr">2026 Now</div><div class="lb">Rubin R200 + CPX + Groq LPX<br />MI455X + Helios · 950DT 上云 · 天垓300 · 深算四号<br />真武 M890 超节点邀测 · Kimi K3 开源(≥64 卡门槛)</div></div>
+              <div class="st"><div class="yr">2026 Now</div><div class="lb">Rubin R200 + CPX + Groq LPX<br />MI455X + Helios · 950DT 上云 · 天垓300 · 深算四号<br />真武 M890 超节点邀测 · Kimi K3 开源(≥64 卡门槛)<br /><strong>WAIC 超节点放量</strong>:MTT C256 / 曦景 S600 / ESL64-O<br />AMD×Cerebras 解构式推理 · 东方算芯 DF1000 · 800GE 网卡</div></div>
               <div class="st"><div class="yr">2027</div><div class="lb">昆仑芯 M300 · Crescent Island · 壁仞 BR20X<br />MTIA 450/500 · Qualcomm AI250 · Atlas 960<br />d-Matrix Raptor(3DIMC) · Tesla AI5 量产 · Etched 千兆瓦级</div></div>
               <div class="st"><div class="yr">2028</div><div class="lb">昇腾 970 · MI500 UAL256<br />Rubin Ultra · Qualcomm AI300 · 壁仞 BR30X</div></div>
             </div>
@@ -1429,18 +1763,38 @@
               也就是说,<strong>2027 这一代的竞争焦点大概率不是制程或 FLOPS,而是「内存怎么摆」</strong>:堆在计算上面、摊在域里面、还是继续在 die 边上放 HBM。
               对照阿里的节奏也说明同一件事:真武从 810E 到 M890 的关键改动不是算力,是加了一颗 <strong>ICN Switch</strong> 把域从 16 拉到 64。
             </span>
+            <span class="fig-cap">
+              07-29 复核后,上面那句「国产卡的追赶路径:先补数值格式 → 再补超节点 → 最后补软件栈」需要修正一个<strong>时序</strong>:第二步和第三步是<strong>同时</strong>发生的,而且第二步的速度远超预期。
+              2026 年初这一栏里只有华为(8192)和昆仑芯(天池 256);到这个夏天,摩尔线程 256、沐曦 64、燧原 64、阿里 64、壁仞 1024、东方算芯 64 全部到位 ——
+              <strong>半年时间,「有没有超节点」从差异化卖点变成了参展门槛。</strong>
+              第三步(软件栈)也没有像预期那样慢:Kimi K3 开源 48 小时内,昇腾交了训练 + 推理、阿里交了性能增量、海光交了迁移成本、摩尔线程交了可用性。
+              但要注意这两步<strong>补的速度不同,能力上限也不同</strong>:超节点靠工程投入和铜缆/正交连接器就能堆出来,而软件栈的上限是有没有人持续写 kernel ——
+              前者可以一年翻 32 倍(8 → 256),后者的证据等级还停留在「跑起来了」和「快了多少」之间。
+            </span>
           </div>
 
           <h2>十一、选型结论</h2>
           <ol>
             <li><strong>前沿训练(万亿参数 MoE)</strong>:R200 与 MI455X 是唯一两个选项,决策点不是 PFLOPS 而是「你有没有 250 kW 机架 + 45 °C 冷液」和「你的栈是 CUDA 还是 ROCm」。若模型是超大 MoE,把预算优先给 scale-up 域(NVL144 / Helios 72 / UALoE),而不是给单卡峰值。</li>
             <li><strong>长上下文推理</strong>:走 PD 分离。prefill 用高山脊点、便宜显存的卡(Rubin CPX 是原生答案,昇腾 950PR 是同思路的国产版),decode 用高带宽 + 大 SRAM 的卡(R200 / TPU 8i / 950DT)。用一种卡同时干两件事在 2026 年已经是浪费。</li>
-            <li><strong>国产替代</strong>:昇腾 950DT 是这一代唯一在数值格式(FP8/MXFP4/HiF8)、带宽(4 TB/s)、超节点(8192 卡)三项上同时够格的国产卡;思元690 靠 196 GB 显存打大模型单卡部署;海光深算四号的卖点是<strong>类 CUDA 迁移成本 &lt;5%</strong>(算子兼容 &gt;99%,DTK/DAS 支持 vLLM/SGLang),适合存量 CUDA 代码多、不想重写 kernel 的团队;S5000 / C600 / L600 的优势同样是 vLLM/SGLang/Megatron 迁移几乎零成本;壁仞 BR20X(2026 Q4)与天数智芯天垓300 值得盯,但在它们公布显存/带宽/TFLOPS 之前无法评估。选型时务必要求<strong>实测 MFU 与端到端 tokens/s,而不是峰值 TFLOPS</strong>。</li>
-            <li><strong>存量风冷机房</strong>:Crescent Island(350 W、160–480 GB LPDDR5X)、Gaudi 3(900 W 风冷)和 Tenstorrent Galaxy(整机 8–10 kW 风冷、11 万美元起)是少数还能塞进老机房的选择,代价是带宽只有 HBM 卡的 1/5 到 1/15,只适合大显存、低并发的 agent 推理。</li>
+            <li><strong>国产替代</strong>:昇腾 950DT 是这一代唯一在数值格式(FP8/MXFP4/HiF8)、带宽(4 TB/s)、超节点(8192 卡)三项上同时够格的国产卡;思元690 靠 196 GB 显存打大模型单卡部署;海光深算四号的卖点是<strong>类 CUDA 迁移成本 &lt;5%</strong>(算子兼容 &gt;99%,DTK/DAS 支持 vLLM/SGLang),适合存量 CUDA 代码多、不想重写 kernel 的团队;S5000 / C600 / L600 的优势同样是 vLLM/SGLang/Megatron 迁移几乎零成本,而且<strong>2026-07-29 起它们都有了整柜方案</strong>(MTT C256 一层 256 卡、曦景 S600 单柜 64、云燧 ESL64-O 单柜 64 但要等年底量产)—— 如果你的模型是大 MoE,这三张卡的可选性和半年前完全不同;壁仞 BR20X(2026 Q4)与天数智芯天垓300 值得盯,但在它们公布显存/带宽/TFLOPS 之前无法评估。选型时务必要求<strong>实测 MFU 与端到端 tokens/s,而不是峰值 TFLOPS</strong>。</li>
+            <li><strong>存量风冷机房(2026-07-29 改写)</strong>:这一档原本只有 Crescent Island(350 W、160–480 GB LPDDR5X)、Gaudi 3(900 W 风冷)、Tenstorrent Galaxy(整机 8–10 kW 风冷、11 万美元起)和 FuriosaAI RNGD(180 W 被动散热),
+              共同代价是带宽只有 HBM 卡的 1/5 到 1/15,只适合大显存、低并发的 agent 推理。<strong>华为 Atlas 850E 风冷超节点改变了这个取舍</strong>:靠 VCE 相变散热做到不改液冷基建、标准机柜直接上架,
+              同时保住 <strong>4.0 TB/s 内存带宽(与 H20 同档)、96 卡单域、mxFP4 全格式覆盖、10 ms 级时延</strong>。如果你的约束是「机房不能改」而负载又是大 MoE 推理,这是目前唯一不用在带宽上大幅让步的选项 ——
+              但要求供应商提供<strong>长期满载下的相变散热衰减数据与整柜功率密度</strong>,这两项官方都还没公开 <span class="est">※</span>。</li>
             <li><strong>极低延迟 decode(agent / 代码补全)</strong>:这是 2026 年新出现的一档需求。要的不是吞吐而是单用户 tok/s,山脊点越低越好 —— NVIDIA Groq LPX(8 FLOP/B)、Cerebras CS-3(6)、Tenstorrent Galaxy 是仅有的三个答案,而它们都要求你<strong>把模型按层摊到几百颗芯片上</strong>,和「一台 8 卡机跑一个模型」是完全不同的部署心智。</li>
             <li><strong>不外售的卡也要看</strong>:Maia 200、TPU 8i/8t、Trainium3、MTIA 500 你买不到,但你会通过 Azure / GCP / AWS / Meta 的 API 间接为它们付费。它们的规格决定了云上 token 的成本下限 —— 比如 Maia 200 排到第 4,意味着 Azure 有底气在 GPT-5.2 这类负载上打价格战。</li>
             <li><strong>部署 3T 级开源模型(2026-07-28 新增)</strong>:先算「几张卡 + 够不够一个域」,再看峰值。以 Kimi K3 为例,MXFP4 权重 1.4 TB、官方要求 ≥64 卡超节点,于是决策顺序变成:<strong>(a) 卡有没有原生 MXFP4</strong>(没有就 ×2 或 ×4 显存足迹,910C 这类卡直接从 14 张变 63 张);<strong>(b) 域装不装得下</strong>(72 卡机架和 8192 卡超节点在这道题上没差别,但 8 卡 UBB 就必须跨域,而跨域正是官方让你避免的);<strong>(c) 才是 PFLOPS</strong>。按这个顺序,昇腾 950 系列 / TPU / Maia / Trainium3 / 真武 M890 / 昆仑芯天池 这些「域优先」的产品比它们的单卡指数看起来更强。</li>
             <li><strong>推理专用 ASIC 值不值得(2026-07-28 新增)</strong>:Etched Sohu、d-Matrix Corsair、SambaNova SN50、FuriosaAI RNGD 这一档的共同卖点是单位 token 成本,共同代价是<strong>生态</strong>。判断标准只有两条:一是你的模型架构会不会在硬件生命周期内变(Sohu 把 transformer 烧进了电路,押的就是「不会变」);二是<strong>你能不能承受没有 CUDA/vLLM</strong> —— Sohu 要求完全重写,RNGD / SN50 / Corsair 已接 vLLM 或提供分布式引擎,迁移成本差一个数量级。反过来,如果你的诉求只是「进得了现有风冷机房」,RNGD 的 180 W 被动散热和 d-Matrix 的免液冷机架是目前最直接的答案。</li>
+            <li><strong>怎么读「超节点」这三个字(2026-07-29 新增)</strong>:域内卡数只是第一个数字,还要追问另外四个 —— <strong>(a) 是几层网络</strong>(摩尔线程一层 256 卡 vs 行业常见一层 64 卡再往上叠,层数决定跨卡延迟的方差);
+              <strong>(b) 介质是什么</strong>(柜内全铜 Cable Tray 带宽利用率高但线缆多,OEX 正交零线缆运维省事但一柜只能 64,NPO 光互联能到千卡但成本与故障域另算);
+              <strong>(c) 是不是单一内存域</strong>(MI355X「风冷 64 卡 / 液冷 128 卡」是机架密度,不是一个 scale-up 域,这两件事经常被混着讲);
+              <strong>(d) 什么时候能交付</strong>(云燧 ESL64-O 的口径是 2026 年底量产,昆仑芯天池 256 已上市,差别是一整个采购周期)。
+              一句话:<strong>「一层多少卡 + 什么时候能提货」比「域上限多少卡」更有决策价值。</strong></li>
+            <li><strong>把 PD 分离当成采购单位(2026-07-29 新增)</strong>:AMD × Cerebras 之后,「prefill 用一家、decode 用另一家」已经是厂商自己在卖的方案,不再是极客拼装。
+              落地时按三步走:<strong>(a) 先量自己的 prefill:decode token 比例</strong>(agent 类负载通常 1:10 以上,文档理解类可能反过来);
+              <strong>(b) 再看两侧是否都接了 vLLM</strong> —— 这是拼装可行性的唯一硬门槛,SN50 / RNGD / Corsair / 昇腾 / 海光都接了,Etched Sohu 没接;
+              <strong>(c) 最后算跨段传输的代价</strong>:KV cache 要从 prefill 侧搬到 decode 侧,这条链路的带宽和延迟经常是整个方案的真实瓶颈,而它不在任何一张卡的 datasheet 上。</li>
             <li><strong>方法论警告</strong>:本文任何一个排名都不该单独用于采购。峰值算力的可信度 &gt; 带宽 &gt; SRAM &gt; MFU;而对 TCO 的影响顺序恰好相反 —— <strong>MFU 和液冷改造费才是真正花钱的地方</strong>。另外注意「有效带宽」这类词:高通 AI250 的 133 TB/s 与 AI200 机架的 414 TB/s 都是厂商自定义口径,不能和 HBM 的物理带宽直接比。</li>
           </ol>
 
@@ -1464,6 +1818,11 @@
             <li><strong>Kimi K3 与硬件门槛(2026-07-28 新增)</strong>:<a href="https://m.21jingji.com/article/20260728/herald/e0313388ea754773ba31602914ea8862.html">21 财经:K3 权重与 MoonEP / FlashKDA / AgentEnv 开源,真武 M890 Day0 适配</a>、<a href="https://www.eefocus.com/article/2058143.html">与非网:2.8T / 896 专家激活 16 / MXFP4 权重 1.4 TB,官方建议 64 卡以上超节点</a>、<a href="https://finance.sina.com.cn/stock/roll/2026-07-19/doc-iniihzch1210315.shtml">新浪财经:K2 的 16 卡 → K3 的 64 卡,开源旗舰「最小服务单元」按代际变大</a>、<a href="https://news.futunn.com/post/76661961">富途:FlashKDA 在 H20 上 prefill 提速 1.72–2.22 倍</a>、<a href="https://news.aibase.com/zh/news/29946">AIbase:海光 DCU 完成 K3 全栈适配,零代码改动、折损 &lt;12%</a>、<a href="https://www.ai-indeed.com/encyclopedia/27163.html">硬件门槛拆解(1.5 TB+ HBM、机柜级互联)</a>。</li>
             <li><strong>NVIDIA 中国线 B30A / RTX 6000D(2026-07-28 新增)</strong>:<a href="https://www.jonpeddie.com/news/nvidias-new-b30a-chip/">Jon Peddie Research:单 die、144 GB HBM3E、保留 NVLink、CoWoS-S 封装</a>、<a href="https://videocardz.com/newz/nvidia-reportedly-preparing-b30a-ai-accelerator-for-chinese-market">VideoCardz:FP4 7.5 PF / FP8 3.75 PF / BF16 1.875 PF 与 RTX 6000D 定位</a>、<a href="https://markets.financialcontent.com/stocks/article/tokenring-2025-11-1-nvidia-navigates-geopolitical-minefield-blackwell-chips-and-the-china-conundrum">4 TB/s 带宽与相对 H20 的代际差</a>。</li>
             <li><strong>SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Tesla(2026-07-28 新增)</strong>:<a href="https://sambanova.ai/blog/introducing-the-sn50-rdu-purpose-built-for-agentic-inference">SambaNova 官方:SN50 三层内存与 agentic 推理定位</a>、<a href="https://sambanova.ai/products/rdu-ai-chips">RDU 产品页(256 芯 scale-up / 32K scale-out / 10T 参数)</a>、<a href="https://www.hpcwire.com/off-the-wire/sambanova-introduces-sn50-ai-chip-intel-collaboration-and-350m-in-new-funding/">HPCwire:发布、Intel 合作与 3.5 亿美元融资</a>、<a href="https://www.jonpeddie.com/news/sambanova-could-cap-ai-capex/">Jon Peddie:432 MB SRAM + 64 GB HBM2E @1.8 TB/s + 256 GB–2 TB DDR5、1.6/3.2 PF</a>;<a href="https://www.d-matrix.ai/product/">d-Matrix 官方规格(4800 TF MXINT8 / 4 GB @300 TB/s / ≤512 GB LPDDR5 / DMX Bridge)</a>、<a href="https://d-matrix.ai/pdf/d-Matrix-Corsair-Product-Brief-FINAL.pdf">Corsair Product Brief(TDP 600 W / 1200 W 两档)</a>、<a href="https://www.d-matrix.ai/announcements/d-matrix-corsair-ai-inference-platform-enters-full-production-to-meet-customer-demand/">2026-06 进入全量产、SquadRack 免液冷</a>、<a href="https://www.d-matrix.ai/technology/">d-Matrix:DIMC 技术说明</a>、<a href="https://longbridge.com/en/news/273537723">Raptor 3DIMC(目标相对 HBM4 有 10× 带宽 / 10× 能效)、Pavehawk 测试芯片与 Jetstream NIC</a>;<a href="https://markets.financialcontent.com/stocks/article/gnwcq-2026-6-30-etched-emerges-from-stealth-with-working-chip-800m-raised-and-over-1b-in-customer-contracts">Etched 官方新闻稿(A0 首次流片成功 / 8 亿美元融资 / 10 亿美元合同)</a>、<a href="https://www.techtimes.com/articles/319393/20260630/transformer-chip-startup-etched-exits-stealth-800m-raised-1b-contracts.htm">Tech Times:144 GB HBM3E、500k tok/s 口径与「不兼容 CUDA」的迁移代价</a>、<a href="https://www.spheron.network/blog/etched-ai-sohu-vs-nvidia-transformer-asic-inference/">带宽约为 H100 SXM5 的 1.8 倍</a>;<a href="https://furiosa.ai/renegade-spec">FuriosaAI RNGD 官方规格页</a>、<a href="https://developer.furiosa.ai/latest/en/overview/rngd.html">RNGD 开发者文档(TCP 架构 / 多实例 / SR-IOV)</a>;<a href="https://rebellions.ai/wp-content/uploads/2025/08/RebellionsREBEL-Quad_brochure_v1.2.pdf">Rebellions REBEL-Quad brochure(UCIe-A 1 TB/s·11 ns / 144 GB HBM3E @4.8 TB/s / 2048 TF FP8 / ≤600 W)</a>、<a href="https://rebellions.ai/wp-content/uploads/2025/05/White-Paper_Issue6_REBEL-Q_v1.1.pdf">白皮书:预编译 DMA 与 32K decode</a>;<a href="https://www.techpowerup.com/348241/tesla-tapes-out-ai5-chip-in-partnership-with-tsmc-and-samsung">TechPowerUp:AI5 tape-out、TSMC + 三星双代工、12 颗 LPDDR5X 共 192 GB</a>。</li>
+            <li><strong>华为超节点与网卡(WAIC 2026,2026-07-29 新增)</strong>:<a href="https://www.huawei.com/cn/news/2026/7/atlas-950-superpod">华为官方:昇腾 950 超节点真机首次公开(现场 1024 卡 / 1 EFLOPS FP8 / 2 EFLOPS FP4 / 256 TB 全局统一内存编址 / 3 μs RTT),昇腾 384 超节点已商用落地 750+ 套</a>、<a href="https://qzs.stcn.com/article/detail/615773.html">券中社:<strong>Atlas 850E 风冷超节点</strong> —— VCE 相变散热、无需液冷改造、单域 96 卡、4.0 TB/s、FP8/mxFP8/HiF8/INT8/mxFP4 全量格式、10 ms 级时延</a>、<a href="https://news.iresearch.cn/content/202607/561089.shtml">艾瑞网:满配 8192 卡 / 16.3 PB/s / 1152 TB、灵衢 2.0 单跳 200 ns、2026 Q4 批量上市,以及「曙光 8000(登峰)是超集群而非单体超节点」的澄清</a>、<a href="https://www.doit.com.cn/itnews/829292559298629.html">DOIT:国内首发 800GE SP560 AI 网卡(10 万级节点组网、灵衢 + PCIe 双总线、数据面直通 GPU/NPU 内存、集合通信卸载)</a>。</li>
+            <li><strong>国产超节点放量(WAIC 2026,2026-07-29 新增)</strong>:<a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报:三条互联路线同台对比 —— 摩尔线程柜内 Cable Tray 全铜 vs 燧原 / 沐曦 OEX 正交零线缆,以及各自的取舍理由</a>、<a href="https://news.eccn.com/news_2026071916425189.htm">中电网:MTT C256 一层 Scale-up 网络 256 卡全互联、单柜 128 卡、亚微秒级延迟、2U 节点</a>、<a href="https://finance.sina.com.cn/stock/t/2026-07-20/doc-iniimuyh8180404.shtml">新浪财经:摩尔线程谈超节点工程化(单台超节点功耗可达 400 kW、投入过亿)</a>、<a href="https://www.agentren.cn/2026/0720/20931.shtml">爱力方:沐曦 曦景 S600(单柜 64 卡、EP/TP 多维并行、可扩万卡)与燧原联合中兴的云燧 ESL64-O</a>。</li>
+            <li><strong>AMD × Cerebras 解构式推理(2026-07-23,2026-07-29 新增)</strong>:<a href="https://ir.amd.com/news-events/press-releases/detail/1293/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference-solution">AMD 官方新闻稿:Helios 做 prefill、Wafer-Scale Engine 做 decode,每瓦 token 最多 ×5,2026 H2 上 Cerebras Cloud</a>、<a href="https://www.cerebras.ai/press-release/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference">Cerebras 同稿</a>、<a href="https://mlq.ai/news/amd-and-cerebras-partner-on-disaggregated-ai-inference-system-pairing-helios-racks-with-wafer-scale-chips/">MLQ:Helios 机架口径(72×MI455X / 2.9 EF FP4 / 31 TB HBM4 / UALoE 260 TB/s)与未披露的商业条款</a>。</li>
+            <li><strong>东方算芯(第 27 家厂商,2026-07-29 新增)</strong>:<a href="https://www.dfsx.com/products/ai-accelerator/df1000">官方产品页:巅峯 DF1000 基于 3D 近存计算架构、遵循 OAM 2.0、全国产供应链</a>、<a href="https://www.eefocus.com/article/2049953.html">与非网:14nm 软件定义近存计算 3D 芯片、BF16 520 TFLOPS / 6.4 TB/s、Hybrid Bonding 把互连间距压到亚微米、单卡 Scale-up 900 GB/s Full Mesh、CAAP 软件栈、128 卡集群、DF2000/DF3000 对标 H200/B300</a>、<a href="http://www.semi-insights.com/s/bdt/15/50557.shtml">半导体行业观察:产品层级(巅峯加速卡 / 擎元 QY100-S / 拓域 TY64 / 慧算 HS128·HS512)</a>、<a href="https://www.readaitime.com/news/2026-07-17/9qgnzdn5">读懂 AI 时代:发布会细节与「同容量带宽为 HBM 5 倍以上」的官方口径</a>。</li>
+            <li><strong>Kimi K3 的 Day-0 适配竞赛(2026-07-29 新增)</strong>:<a href="https://m.21jingji.com/article/20260729/28ee398c17ef4e57c61b6d6851a925d9.html">21 财经:数十家 AI 基础设施厂商首日适配汇总,阿里云真武 M890 首 token 时延 −35% / 单卡解码吞吐 ×1.8 / 1M 上下文</a>、<a href="https://www.guancha.cn/economy/2026_07_28_825302.shtml">观察者网:昇腾 0day 适配与昇腾 950 超节点原生支持 mxFP4;海外 Nebius / Baseten / Fireworks / Modal / Together / GMI 与 vLLM / SGLang 同步</a>、<a href="https://www.itbear.com.cn/html/2026-07/1468893.html">ITBear:华为官宣昇腾 0day 支持 K3 训练适配与推理部署(MindSpeed MM + Atlas 800 A3 / 900 A3 SuperPoD)</a>、<a href="https://news.aibase.com/zh/news/29966">AIbase:摩尔线程基于 MTT S5000 与 MUSA 栈完成 K3 极速适配</a>。</li>
             <li><strong>MFU 与实测</strong>:<a href="https://newsletter.semianalysis.com/p/h100-vs-gb200-nvl72-training-benchmarks">SemiAnalysis:H100 FP8 MFU 29.5% → 39.5%、集群规模对 MFU 的影响</a>、<a href="https://nebius.com/blog/posts/inside-the-nebius-pytorch-deepseek-v3-recipe">Nebius:256 卡 B200 上 DeepSeek-V3 MFU 11.2% → 14.0%</a>、<a href="https://pytorch.org/blog/enabling-up-to-41-faster-pre-training-mxfp8-and-deepep-for-deepseek-v3-on-b200-with-torchtitan/">PyTorch:MXFP8 + DeepEP 使吞吐 +41%</a>、<a href="https://mlcommons.org/2026/05/deepseek-v3-training-v6-0/">MLPerf Training v6.0 DeepSeek-V3 基准</a>、<a href="https://inferencex.semianalysis.com/zh/compare/qwen-3-5-h100-vs-mi355x">InferenceX:Qwen3.5 在 H100 与 MI355X 上的推理对比</a>、<a href="https://www.starverse-ai.com/guide/archives/3770">昇腾 910B LLaMA 训练 MFU 实测(第三方)</a>。</li>
           </ul>
 
@@ -1473,10 +1832,17 @@
             (3) <strong>某个维度没有公开数据时按基线取值(<em>r</em> = 1)</strong>,既不加分也不减分 —— 这个约定让披露少的卡天然贴近 100 分。所以低分要区分「确实弱」和「没数据」:壁仞 BR20X、天数智芯天垓300、昆仑芯 M100/M300、MI430X、Crescent Island、Qualcomm AI200 是后者,它们根本没进榜。
             (4) 机架级 / 晶圆级产品(Cerebras CS-3、Groq LPX、Qualcomm Dragonfly)不按「卡」归一化,单列第七节讨论;Tenstorrent 按单芯进榜,但它真正的卖点是整机 TCO。
             (5) 厂商自定义的「有效带宽」不与物理带宽混用:高通 AI250 的 133 TB/s、AI200 机架的 414 TB/s 均按官方口径原样引用并注明。
-            (6) 数据快照时间 <strong>2026-07-28</strong>(首发 07-27),厂商在发布前修改规格是常态(NVIDIA 自己就把 R200 的 HBM4 速率从 6.4 Gbps 上调到 10 Gbps)。
+            (6) 数据快照时间 <strong>2026-07-29</strong>(首发 07-27),厂商在发布前修改规格是常态(NVIDIA 自己就把 R200 的 HBM4 速率从 6.4 Gbps 上调到 10 Gbps)。
             (7) 07-28 新增的六张进榜卡里,<strong>B30A 尚未获得出口许可、规格未最终锁定,真武 M890 有四个维度未公开(按基线取值)</strong>,两者的分数比其他卡更容易被后续官方数据推翻。
             Etched Sohu、d-Matrix Corsair、Tesla AI5、Cerebras WSE-4 按第七节的口径不参与「按卡」排名:前两者不公布可比的浮点峰值,AI5 不是数据中心卡,WSE-4 只有第三方汇总。
-            (8) 第零节的「装载校验」是我按公开权重规模与显存容量做的算术,不是任何厂商或月之暗面的官方部署建议;真实部署还要考虑激活值峰值、并发数、上下文长度与 KV 卸载策略。
+            (8) 第零之二节的「装载校验」是我按公开权重规模与显存容量做的算术,不是任何厂商或月之暗面的官方部署建议;真实部署还要考虑激活值峰值、并发数、上下文长度与 KV 卸载策略。
+            (9) <strong>2026-07-29 的重算规则</strong>:本文会因新披露改写已发布的分数,但只在出现<strong>可引用的新公开数据</strong>时改,且只改对应那一维、其余输入逐字沿用,改动前后一律在第零节留对照。
+            本次重算三张卡的「超节点域」:摩尔线程 S5000 8 → 256(MTT C256)、沐曦 C600 8 → 64(曦景 S600)、燧原 L600 8 → 64(云燧 ESL64-O)。
+            需要注意<strong>三家官方都没有明确说明超节点里配的是哪一代卡</strong>,我按各家当前唯一的旗舰训推卡对应,这一步带 <span class="est">※</span>;
+            另外<strong>云燧 ESL64-O 的官方口径是 2026 年底量产</strong>,即它的 64 卡域目前是产品承诺而非在售能力 —— 与之对照,昇腾 8192、天池 256、真武 M890 的 64 卡是已交付或已上云的。本文的模型不区分「已交付」与「已发布」,这是它的已知偏差。
+            (10) <strong>东方算芯 DF1000 的打分口径</strong>:官方只公布 BF16 520 TFLOPS、6.4 TB/s、Scale-up 900 GB/s、拓域 TY64 为 64 卡域。
+            「FP8 级算力」一列<strong>没有按惯例把 BF16 翻倍</strong>,而是保守地直接代入 520 TFLOPS(FP8 峰值未公开);显存容量、能效(TDP 未公开)、片上 SRAM 三维按基线代入(<em>r</em> = 1)。
+            也就是说它的 139 分里有 27 分是「未公开」的默认值,而软件栈给的 ★★ 与 0.20 折算 MFU 都是全榜最低 —— 这一行最需要真实数据来推翻。
           </div>
         </div>
       </article>
