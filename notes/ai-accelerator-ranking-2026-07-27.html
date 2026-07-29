@@ -584,7 +584,7 @@
                 <tr><th>时间</th><th>变化</th><th>对本文的影响</th><th>来源</th></tr>
               </thead>
               <tbody>
-                <tr class="hl"><td class="num">07-27 23:00</td><td><strong>Kimi K3 权重开源</strong>(2.8T / 896 专家 / MXFP4 权重),官方要求 ≥64 卡超节点</td><td>新增第零节的「常驻装载校验」动图;把「域够不够」提到与峰值算力并列</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260728/herald/e0313388ea754773ba31602914ea8862.html">21 财经</a> · <a href="https://www.eefocus.com/article/2058143.html">与非网</a></td></tr>
+                <tr class="hl"><td class="num">07-27 23:00</td><td><strong>Kimi K3 权重开源</strong>(2.8T / 896 专家 / MXFP4 权重),官方要求 ≥64 卡超节点</td><td>新增第零之二节的「常驻装载校验」动图;把「域够不够」提到与峰值算力并列</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260728/herald/e0313388ea754773ba31602914ea8862.html">21 财经</a> · <a href="https://www.eefocus.com/article/2058143.html">与非网</a></td></tr>
                 <tr><td class="num">07-28</td><td><strong>海光 DCU 完成 K3 全栈适配</strong>:模型代码零改动,896 专家并行 + 百万上下文下稳定,官方实测性能折损 &lt;12%</td><td>第九节海光一行补上迄今最硬的国产软件栈证据</td><td class="src-cell"><a href="https://news.aibase.com/zh/news/29946">AIbase</a></td></tr>
                 <tr><td class="num">07-28</td><td><strong>阿里云灵骏真武 M890 超节点实例 Day0 适配 K3</strong></td><td>新增阿里平头哥一档(真武 M890 / 810E / 含光 800),M890 首次进榜</td><td class="src-cell"><a href="https://www.ithome.com/0/978/578.htm">IT之家</a> · <a href="https://finance.sina.com.cn/hy/hyjz/2026-07-18/doc-iniifhua1617416.shtml">新浪科技</a></td></tr>
                 <tr><td class="num">本次补齐</td><td>7 家此前未覆盖的厂商:<strong>阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions</strong></td><td>厂商 19 → 26、统计卡型 54 → 75、进榜卡 24 → 30</td><td class="src-cell">见第二节与第十二节</td></tr>
@@ -1265,7 +1265,7 @@
               07-28 新增的四行把这张矩阵的意义又推进了一层。<strong>d-Matrix Corsair 那一行的形状是全表最特殊的:它根本没有 BF16。</strong>
               整卡只做 MXINT8 / MXINT4(块浮点),浮点矩阵乘直接不提供 —— 这是「推理专用」做到极致的样子,也意味着任何需要 BF16 主干的算子(某些 norm、softmax 的高精度路径)都得靠软件绕。
               另一头,<strong>SN50 / REBEL-Quad / RNGD 三张新势力卡的格式支持反而比国产卡还保守</strong>:都停在 BF16 + FP8 + INT8,没有 FP4、没有微缩放。
-              结合第零节的装载图就知道后果:它们跑 Kimi K3 这种 MXFP4 权重的模型必须反量化,显存足迹直接翻倍。
+              结合第零之二节的装载图就知道后果:它们跑 Kimi K3 这种 MXFP4 权重的模型必须反量化,显存足迹直接翻倍。
               <strong>2026 年下半年买推理卡,「支不支持微缩放 FP4」已经从加分项变成入场券</strong> —— 因为开源前沿模型开始默认以 MXFP4 发布权重。
             </span>
             <span class="fig-cap">
