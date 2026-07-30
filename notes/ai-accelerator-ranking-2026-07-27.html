@@ -422,7 +422,7 @@
               </thead>
               <tbody>
                 <tr class="hl"><td class="num">本次补齐<br />(2026-05 上市)</td><td><strong>第 32 张进榜卡:AMD Instinct MI350P</strong>。CDNA 4 / TSMC 3nm+6nm,128 CU,144 GB HBM3E / 4.0 TB/s,FP8 2.3 PF、MXFP6 与 MXFP4 各 4.6 PF、FP64 36 TF,128 MB Infinity Cache,FHFL 双宽 PCIe Gen5 ×16,600 W(可配 450 W)被动风冷,<strong>无 Infinity Fabric,单机最多 8 卡</strong></td><td>综合指数 <strong>219</strong>,插在 B30A(244)与 SambaNova SN50(213)之间列第 13;它是全榜「带宽与基线完全相同、算力差 7.8 倍」的唯一样本,也是 <code>su</code> / <code>dom</code> 两维靠 PCIe 口径拿分最低的国际旗舰衍生卡</td><td class="src-cell"><a href="https://www.amd.com/en/products/accelerators/instinct/mi350/mi350p.html">AMD 官方规格页</a> · <a href="https://www.amd.com/content/dam/amd/en/documents/epyc-business-docs/other/amd-instinct-mi350p-product-brochure.pdf">AMD 官方 brochure(PDF)</a> · <a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(delivered / peak 双列表)</a></td></tr>
-                <tr class="hl"><td class="num">口径新增</td><td><strong>MI350P 的 datasheet 同时给出 peak 与 delivered</strong>:BF16 713/1150、FP16 672/1150、FP8 1529/2300、MXFP8 1327/2300、MXFP6 1804/4600、MXFP4 2299/4600、显存带宽 3.6/4.0 TB/s</td><td>新增口径声明 (10):<strong>本榜一律用 peak,不混用 delivered</strong>,并在本节给出「如果换成 delivered 会怎样」的敏感度对照(MI350P 219 → 192,掉 3 位)</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(双列原表)</a></td></tr>
+                <tr class="hl"><td class="num">口径新增</td><td><strong>MI350P 的 datasheet 同时给出 peak 与 delivered</strong>:BF16 713/1150、FP16 672/1150、FP8 1529/2300、MXFP8 1327/2300、MXFP6 1804/4600、MXFP4 2299/4600、显存带宽 3.6/4.0 TB/s</td><td>新增口径声明 (10):<strong>本榜一律用 peak,不混用 delivered</strong>,并在本节给出「如果换成 delivered 会怎样」的敏感度对照(MI350P 219 → 192,掉 2 位)</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(双列原表)</a></td></tr>
                 <tr><td class="num">方法论</td><td><strong>AMD 官方定义 Peak / MAF / Delivered 三层,并建议 MFU 换分母</strong>;同门的 Gluon 内核博客给出实例:单张 MI355 上一个 FP16 GEMM 内核调优十版从 520 TFLOPS 到 1489 TFLOPS,<strong>MFMA 单元效率 99%,但只有 datasheet 峰值的 60%</strong>(BF8 3257 TF / 99.72%、MXFP4 5255 TF / 92.41%)</td><td>第九节那一列 MFU 的分母被正式说明为「peak」;新增两张动图把「软件效率」与「负载降频」拆开 —— 前者 AMD 已经做到 99%,后者纹丝不动</td><td class="src-cell"><a href="https://rocm.blogs.amd.com/software-tools-optimization/Understanding_Peak_and_Max-Achievable_FLOPS/README.html">ROCm Blog:Peak / MAF / Delivered</a> · <a href="https://rocm.blogs.amd.com/blog/category/software-tools-optimizations.html">ROCm Blog 索引(Gluon 内核 / MAF Part 2)</a></td></tr>
                 <tr><td class="num">第三方实测</td><td><strong>达成率被拆成三条独立曲线</strong>:GEMM 算力 MI300X ~45%(H100/B200 至 93%)、显存带宽 MI300X 81%(A100/H100/H200 至 90%、B200 86%)、all-reduce 互联 MI300X 70%(H100 NVLink4 85%);端到端 Llama 3.1 70B,MI300X 纸面算力高 1.5 倍,实测只有 H100/H200 的 <strong>37%–80%</strong></td><td>新增三张动图。这条材料同时说明:<strong>「软件栈」不该只是一个 10 分维度,它同时在打折另外三个维度的分子</strong></td><td class="src-cell"><a href="https://arxiv.org/pdf/2510.27583">AMD MI300X GPU Performance Analysis(白皮书 PDF)</a></td></tr>
                 <tr class="hl"><td class="num">第 28、29 家厂商</td><td><strong>曦望(Sunrise)启望 S3</strong>:商汤大芯片部门分拆,国内首款用 <strong>LPDDR6</strong> 的 GPGPU 推理卡,FP16→FP8/FP6/FP4 多精度,显存容量为上一代训推卡的 4 倍以上,寰望 SC3-256 超节点一跳直连 256 卡、通信时延 ~200 ns。<strong>奕行智能 Epoch</strong>:国内首颗量产的 RISC-V 云端大算力 AI 芯片,原生分块量化 FP8,ELink 单芯互联 3.2T,正交无背板单柜 64–128 芯,已量产</td><td>厂商数 27 → <strong>29</strong>、统计卡型 78 → <strong>85</strong>。两家都<strong>不公开 FLOPS 与显存绝对值,因此进不了排名</strong>(见第二节与第七节)。它们的意义在第七节:非 HBM 路线上第一次同时出现 LPDDR6 与 RISC-V 两个新变量</td><td class="src-cell"><a href="https://www.qbitai.com/2026/01/373113.html">量子位(启望 S3 与寰望 SC3)</a> · <a href="https://m.21jingji.com/article/20260203/0b76e57e4eaa08c0a36df7af1444a631.html">21 财经(放弃训练的取舍)</a> · <a href="https://36kr.com/p/3903359692342918">36氪(奕行智能 RISC-V 超节点)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50502.shtml">半导体行业观察(Epoch 板卡矩阵)</a></td></tr>
@@ -581,7 +581,7 @@
             </div>
             <div class="load-note">条长 = 指数 ÷ 417 × 98%。虚线位置是把 MI350P 的显存带宽、FP8、FP4、能效四维换成 datasheet 的 delivered 列后重算的结果(3.6 TB/s、1529、2299、2.55 TF/W),其余六维不变。</div>
             <span class="fig-cap">
-              这条虚线是本节唯一一处「如果换口径会怎样」的量化答案:<strong>同一张卡、同一张 datasheet,用 peak 打分是 219 分列第 13,用 delivered 打分是 192 分列第 16 —— 27 分、3 个名次。</strong>
+              这条虚线是本节唯一一处「如果换口径会怎样」的量化答案:<strong>同一张卡、同一张 datasheet,用 peak 打分是 219 分列第 13,用 delivered 打分是 192 分列第 15 —— 27 分、2 个名次。</strong>
               27 分在本模型里相当于某一维翻一倍多。这就是为什么口径必须写死在明面上,而不是「取厂商公布的算力」这种含混说法。
               <strong>本榜的选择是继续用 peak</strong>,理由不是 peak 更对,而是<strong>只有 peak 是每家都给的</strong> —— 32 张卡里目前只有 MI350P 一张有 delivered 列,混用会让「披露更多」变成「分数更低」,那是最坏的一种激励。
             </span>
@@ -1029,9 +1029,9 @@
             </span>
             <span class="fig-cap">
               2026-07-30 新入榜的 <strong>AMD MI350P 排第 13(219 分)</strong>,它在这张图上的位置有一个别处没有的用途:<strong>它是唯一一张能验证「这条条形该有多长」的卡。</strong>
-              AMD 在它的 datasheet 上同时给了 peak 与 delivered 两列,按 delivered 重算是 192 分 —— 也就是第 16 名。
-              <strong>同一张卡、同一张官方文档,换一列数字就掉 3 位。</strong>本榜的口径是一律用 peak(理由见第零节动态图 6),但这 27 分的落差应该被当成整张条形图的<strong>误差量级</strong>来读:
-              名次相差 3 位以内的卡,不要认为它们分出了高下。
+              AMD 在它的 datasheet 上同时给了 peak 与 delivered 两列,按 delivered 重算是 192 分 —— 也就是第 15 名。
+              <strong>同一张卡、同一张官方文档,换一列数字就掉 2 位。</strong>本榜的口径是一律用 peak(理由见第零节动态图 6),但这 27 分的落差应该被当成整张条形图的<strong>误差量级</strong>来读:
+              名次相差 2 位以内的卡,不要认为它们分出了高下。
             </span>
           </div>
 
@@ -2091,7 +2091,7 @@
               过去二十年数据中心加速卡的标称口径只有一个数(峰值),而 2026 年 5 月上市的 MI350P 在官方规格页上把六种数值格式的 delivered 与 peak 并排印了出来,
               同月 AMD 官方博客给出 Peak / MAF / Delivered 三层定义并建议行业把 MFU 的分母换掉。
               <strong>如果这件事变成惯例,它对选型的影响会比任何一次制程跃进都大</strong> —— 因为它把「纸面 68 倍」这类比较从一开始就掐掉了。
-              值得留一句保守:<strong>目前只有一家一款这么做</strong>,而先披露的一方在任何按峰值排的榜上都会显得更弱(本文这张榜就是例子:MI350P 按 delivered 会掉 3 位)。
+              值得留一句保守:<strong>目前只有一家一款这么做</strong>,而先披露的一方在任何按峰值排的榜上都会显得更弱(本文这张榜就是例子:MI350P 按 delivered 会掉 2 位)。
               所以这条趋势能不能持续,取决于读榜的人愿不愿意奖励披露 —— 而不是取决于厂商是否愿意披露。
             </span>
             <span class="fig-cap">
@@ -2183,7 +2183,7 @@
             (11) <strong>2026-07-30 的 peak / delivered 口径(本文最重要的一条口径声明)</strong>:本榜十个维度里的「显存带宽」「FP8 级算力」「FP4 级算力」「能效」「Scale-up 带宽」<strong>一律取厂商标称的峰值(peak)</strong>,不混用 delivered 或 MAF。
             这个选择不是因为 peak 更准确,恰恰相反 —— 已知的达成率是<strong>算力 44%–93%、显存带宽 81%–90%、Scale-up all-reduce 70%–85%</strong>,而且这三条曲线互不相关、各家差别很大。
             继续用 peak 的唯一理由是<strong>可比性:32 张卡里目前只有 AMD MI350P 一张公布了 delivered</strong>,混用会直接导致「披露更多的厂商分数更低」,那是最坏的一种激励。
-            <strong>MI350P 的敏感度对照写在第零节动态图 6:peak 口径 219 分列第 13,delivered 口径 192 分列第 16。</strong>请把这 27 分当作整张榜的误差量级 —— <strong>名次相差 3 位以内不构成高下之分</strong>。
+            <strong>MI350P 的敏感度对照写在第零节动态图 6:peak 口径 219 分列第 13,delivered 口径 192 分列第 15。</strong>请把这 27 分当作整张榜的误差量级 —— <strong>名次相差 2 位以内不构成高下之分</strong>。
             (12) <strong>MFU 一列的分母是 peak</strong>。AMD 官方在 2026-07 建议行业改用 MAF(Max-Achievable FLOPs)作分母,本文暂未改,因为只有一家给了可用的 MAF/delivered 数据。
             后果是本文所有 MFU 估计值都<strong>偏低</strong>(MI350P 的 0.35 对 peak 等价于 0.53 对 delivered),但「有效算力」与「vs H20」两列不受分母口径影响,跨卡比较请只看那两列。
             另外必须说清:<strong>达成率与 MFU 是两件会相乘的事</strong> —— 前者是「一个写到位的内核能拿到峰值的多少」,后者是「真实模型端到端有多少时间花在有效矩阵乘上」,第零节动态图 5 那个 1.6–2.7 倍的沟是两者相乘的结果。
