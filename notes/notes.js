@@ -44,10 +44,10 @@ window.NOTES = [
       en: "AI Infra / LLM Radar: Multi-window Signals and Trends",
     },
     summary: {
-      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-07-27:推理栈收敛到 vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache,同时数据中心融资与电力成为新瓶颈。",
-      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-07-27: serving converges around vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache while data-center financing and power become the new bottleneck.",
+      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-07-30:Kimi K3 / gpt-oss 推动开源权重自托管,MCP 稳定版与 LiteLLM 凭证治理成形,KV 数据层和电力/融资约束成为主线。",
+      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-07-30: Kimi K3 / gpt-oss push open-weight self-hosting, MCP stable and LiteLLM credential governance mature, and KV data planes plus power/financing constraints become the main thread.",
     },
-    date: "2026-07-27",
+    date: "2026-07-30",
     tags: ["AI Infra", "LLM", "Inference", "KV Cache", "Agents", "Trend Analysis"],
   },
   {
