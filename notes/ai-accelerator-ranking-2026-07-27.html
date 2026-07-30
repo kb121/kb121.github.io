@@ -35,7 +35,7 @@
     <title data-zh="商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏" data-en="Commercial AI Accelerator Board & Ranking (H20 as baseline) — Hong Zhuang">商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏</title>
     <meta
       name="description"
-      content="2026-07-29 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 共 27 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次用 WAIC 2026 超节点数据重算国产卡的域规模维度,并加入 AMD×Cerebras 跨厂商 PD 分离与 Kimi K3 Day-0 适配竞赛。"
+      content="2026-07-30 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 / 曦望 / 奕行智能 共 29 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次新增 AMD Instinct MI350P(PCIe 144GB),并用 MI350P datasheet 的 delivered/peak 双列、AMD 官方 Peak/MAF/Delivered 定义与第三方达成率实测,审查本榜「用峰值当分母」这个前提:峰值算力达成率 44%–93%、显存带宽 81%–90%、Scale-up 互联 70%–85%。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -274,6 +274,18 @@
       .bwm-row .vl { font-family: var(--font-mono); font-size: .63rem; color: var(--text-muted); }
       .bwm-row .vl b { color: var(--text); font-weight: 500; }
 
+      /* 动图 3(07-30):达成率的三层嵌套分解 —— 峰值 ⊃ 降频后上限 ⊃ 实测
+         三层都是 position: absolute,所以不会踩「inline span 忽略 width」那个坑 */
+      .nest { display: grid; gap: 9px; }
+      .nest-row { display: grid; grid-template-columns: 150px 1fr 168px; gap: 9px; align-items: center; }
+      .nest-row .nm { font-size: .77rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .nest-track { position: relative; height: 22px; border-radius: 7px; border: 1px dashed var(--border-strong); background: color-mix(in srgb, var(--surface-strong), transparent 30%); overflow: hidden; }
+      .nest-a { position: absolute; inset: 0 auto 0 0; width: 100%; background: color-mix(in srgb, var(--c), transparent 86%); }
+      .nest-b { position: absolute; inset: 0 auto 0 0; width: var(--b); background: color-mix(in srgb, var(--c), transparent 62%); transform-origin: left; transform: scaleX(0); animation: grow 1s cubic-bezier(.2,.7,.2,1) var(--d, 0s) forwards; }
+      .nest-c { position: absolute; inset: 0 auto 0 0; width: var(--e); background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 26%)); transform-origin: left; transform: scaleX(0); animation: grow 1s cubic-bezier(.2,.7,.2,1) calc(var(--d, 0s) + .5s) forwards; }
+      .nest-row .vl { font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); line-height: 1.45; }
+      .nest-row .vl b { color: var(--text); font-weight: 500; }
+
       /* 表格 */
       .tbl-scroll { overflow-x: auto; margin: 1rem 0; }
       .mini-table { width: 100%; border-collapse: collapse; font-size: .84rem; min-width: 640px; }
@@ -299,8 +311,8 @@
         .pw-row .tag, .mfu-row .vl { grid-column: 2; }
         .fmt-grid { grid-template-columns: 104px repeat(7, minmax(34px, 1fr)); }
         /* 名称在窄屏很容易被截断,所以整行改成竖排:名称 / 条 / 数值各占一行 */
-        .d0-row, .jump-row, .bwm-row { grid-template-columns: 1fr; gap: 4px; }
-        .d0-row .nm, .jump-row .nm, .bwm-row .nm { white-space: normal; overflow: visible; }
+        .d0-row, .jump-row, .bwm-row, .nest-row { grid-template-columns: 1fr; gap: 4px; }
+        .d0-row .nm, .jump-row .nm, .bwm-row .nm, .nest-row .nm { white-space: normal; overflow: visible; }
         .d0-axis { left: 0; right: 0; }
         .pd-split b { font-size: .55rem; }
       }
@@ -308,8 +320,9 @@
         .race-fill, .race-fill::after, .ridge-line::before, .ridge-dot, .bub circle.pt, .fmt-cell.y,
         .dom-ring, .dom-ring::after, .dom-core, .tile-fill, .pw-fill, .mfu-eff, .tl .st, .pw-row .tag.liq::before,
         .radar polygon.sh, .lane .flow i, .camp-cell, .load-fill, .tier-card,
-        .d0-bar, .jump-new, .bwm-fill, .pd-split .pf, .pd-split .dc { animation: none !important; }
-        .race-fill, .ridge-line::before, .pw-fill, .mfu-eff, .load-fill, .d0-bar, .jump-new, .bwm-fill { transform: scaleX(1); }
+        .d0-bar, .jump-new, .bwm-fill, .pd-split .pf, .pd-split .dc, .nest-b, .nest-c { animation: none !important; }
+        .race-fill, .ridge-line::before, .pw-fill, .mfu-eff, .load-fill, .d0-bar, .jump-new, .bwm-fill,
+        .nest-b, .nest-c { transform: scaleX(1); }
         .tier-card { opacity: 1; transform: none; }
         .tile-fill { transform: scaleY(1); }
         .ridge-dot, .bub circle.pt { opacity: 1; }
@@ -357,7 +370,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-07-29 复核 · 2026-07-27 首发</span>
+            <span>2026-07-30 复核 · 2026-07-27 首发</span>
             <span class="tags"><span>GPU</span><span>NPU</span><span>Hardware</span><span>Ranking</span><span>Roofline</span><span>Interconnect</span><span>MFU</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">商用 AI 加速卡统计与排名:以 NVIDIA H20 为基线</span><span lang="en" class="i18n-en">Commercial AI Accelerator Board &amp; Ranking, with NVIDIA H20 as the Baseline</span></h1>
@@ -365,28 +378,222 @@
 
         <div class="prose">
           <p class="gpu-lede">
-            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-07-29</strong>。覆盖 <strong>27 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯。
+            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-07-30</strong>。覆盖 <strong>29 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯、曦望、奕行智能。
             排名不看单一峰值,而是把<strong>显存、算力、算力/带宽比、数值格式原生支持、Scale-up 与超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU</strong> 十个维度加权成一个「综合硬件指数」,并统一<strong>以 NVIDIA H20 = 100 为基线</strong>。
             所有关键数字都在表格里给出来源链接;公开信息不足、由我按同代规格推算的单元格标注 <span class="est">※</span>,请不要当成厂商官方口径。
           </p>
           <p class="gpu-lede">
-            <strong>本次复核第一次动了已经发布过的分数。</strong>WAIC 2026 上摩尔线程、沐曦、燧原三家把 scale-up 域从「一层 8 卡」拉到 64–256 卡,
-            而这三张卡在上一版里的「超节点域」一列取的都是 8 —— 新数据直接让它们的综合指数涨了 21–35 分、名次前移 2–6 位。
-            与此同时 AMD 与 Cerebras 宣布把 prefill 和 decode 拆到<strong>两个不同厂商、两种完全不同的架构</strong>上,以及 Kimi K3 开源后 48 小时内的 Day-0 适配竞赛,
-            让第十节那句「软件栈是最慢的一步」第一次有了可以横向比较的实测尺子。改动清单、重算前后对照与新入榜的东方算芯 DF1000 都在第零节。
+            <strong>本次复核审的是这份榜自己的分母。</strong>十个维度里有九个抄的是 datasheet 上的「峰值」,而 07-30 有三份互相独立的材料第一次把「峰值能兑现多少」变成了可引用的数字:
+            AMD Instinct MI350P 的官方规格页<strong>把 delivered 与 peak 两列并排印在同一张 datasheet 上</strong>(折扣率随数值格式在 39%–67% 之间变);
+            AMD 官方博客给出 Peak / MAF / Delivered 三层定义并建议<strong>把 MFU 的分母从 peak 换成 MAF</strong>;
+            一份第三方白皮书把达成率<strong>拆成算力、显存带宽、Scale-up 互联三条互不相关的曲线</strong>(45%–93% / 81%–90% / 70%–85%)。
+            结论是:同一个「4.0 TB/s」写在两家的 datasheet 上不是同一个东西。方法论对照、新入榜的 MI350P(219 分)与两家新厂商都在第零节。
           </p>
 
           <div class="gpu-kpis">
-            <div class="gpu-kpi"><b>27</b><span>覆盖厂商(+1)</span></div>
-            <div class="gpu-kpi"><b>78</b><span>统计卡型(含未公开规格)</span></div>
-            <div class="gpu-kpi"><b>31</b><span>数据足够、进入排名(+1)</span></div>
-            <div class="gpu-kpi"><b>3</b><span>因新数据重算分数的卡</span></div>
+            <div class="gpu-kpi"><b>29</b><span>覆盖厂商(+2)</span></div>
+            <div class="gpu-kpi"><b>85</b><span>统计卡型(含未公开规格)</span></div>
+            <div class="gpu-kpi"><b>32</b><span>数据足够、进入排名(+1)</span></div>
+            <div class="gpu-kpi"><b>44%</b><span>峰值算力最低达成率</span></div>
             <div class="gpu-kpi"><b>10</b><span>评分维度</span></div>
-            <div class="gpu-kpi"><b>20</b><span>动图(+4)</span></div>
+            <div class="gpu-kpi"><b>26</b><span>动图(+6)</span></div>
             <div class="gpu-kpi"><b>256</b><span>一层 Scale-up 网络最大卡数</span></div>
           </div>
 
-          <h2>零、2026-07-29 复核:一层网络 256 卡,超节点从独门武艺变成标准动作</h2>
+          <h2>零、2026-07-30 复核:分母之争 —— 十维里有九维填的是「峰值」,而峰值只兑现 44%–93%</h2>
+          <p>
+            这份榜从第一版起就有一个自己知道的软肋:<strong>十个打分维度里,有九个抄的是 datasheet 上那个「峰值」</strong>。峰值是个上限,不是个产出,所有人都知道;但过去没有可引用的数字说清「上限和产出之间差多少」,于是只能把这件事推给第九节那一列我手工估的 MFU。
+            本次复核之所以值得单独写一节,是因为<strong>三份互相独立的材料第一次把这个折扣变成了可引用的数字,而且三者互相印证</strong>:
+          </p>
+          <ul>
+            <li><strong>AMD Instinct MI350P 的官方规格页,第一次把 delivered 和 peak 两列并排印在同一张 datasheet 上</strong>。同一块硅,BF16 713/1150、FP8 1529/2300、MXFP4 2299/4600 —— 折扣率从 39% 到 67%,<strong>而且随数值格式变化</strong>。</li>
+            <li><strong>AMD 官方 ROCm 博客给出了 Peak / MAF / Delivered 三层定义</strong>,并明确建议:<strong>MFU 的分母应该从 peak 换成 MAF</strong>(Max-Achievable FLOPs,在最优矩阵尺寸、稳定热环境、冷缓存下可测的上限)。这是厂商自己在说「别拿我 datasheet 上那个数当分母」。</li>
+            <li><strong>一份第三方白皮书把达成率拆成了三条独立的曲线</strong>:算力(GEMM)、显存带宽、Scale-up 互联 all-reduce,三条各测各的。结论是 MI300X 的算力达成率约 45%、H100/B200 可到 93%,<strong>而这两个数字都被我的模型当成「同一个峰值」用了</strong>。</li>
+          </ul>
+          <p>
+            顺带进来一张新卡,而且它恰好是这件事最好的样本:<strong>AMD Instinct MI350P</strong> —— CDNA 4 的 PCIe 单卡形态(半个 MI350X),144 GB HBM3E、<strong>4.0 TB/s 带宽与 H20 完全相同</strong>、FP8 峰值 2.3 PFLOPS 是 H20 的 7.8 倍、128 MB Infinity Cache、600 W(可配 450 W)风冷被动散热。
+            它同时是 07-29 那条「超节点已经是标准动作」结论的<strong>反例</strong>:官方规格表里 <em>GPU Scale-up Interconnect</em> 一栏直接写 <strong>Not supported</strong> —— Infinity Fabric 只在 OAM 上出,PCIe SKU 一根都不给,所有集合通信走 PCIe Gen5 ×16 的 128 GB/s。
+          </p>
+
+          <div class="tbl-scroll">
+            <table class="mini-table">
+              <thead>
+                <tr><th>时间 / 来源</th><th>变化</th><th>对本文的影响</th><th>来源</th></tr>
+              </thead>
+              <tbody>
+                <tr class="hl"><td class="num">本次补齐<br />(2026-05 上市)</td><td><strong>第 32 张进榜卡:AMD Instinct MI350P</strong>。CDNA 4 / TSMC 3nm+6nm,128 CU,144 GB HBM3E / 4.0 TB/s,FP8 2.3 PF、MXFP6 与 MXFP4 各 4.6 PF、FP64 36 TF,128 MB Infinity Cache,FHFL 双宽 PCIe Gen5 ×16,600 W(可配 450 W)被动风冷,<strong>无 Infinity Fabric,单机最多 8 卡</strong></td><td>综合指数 <strong>219</strong>,插在 B30A(244)与 SambaNova SN50(213)之间列第 13;它是全榜「带宽与基线完全相同、算力差 7.8 倍」的唯一样本,也是 <code>su</code> / <code>dom</code> 两维靠 PCIe 口径拿分最低的国际旗舰衍生卡</td><td class="src-cell"><a href="https://www.amd.com/en/products/accelerators/instinct/mi350/mi350p.html">AMD 官方规格页</a> · <a href="https://www.amd.com/content/dam/amd/en/documents/epyc-business-docs/other/amd-instinct-mi350p-product-brochure.pdf">AMD 官方 brochure(PDF)</a> · <a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(delivered / peak 双列表)</a></td></tr>
+                <tr class="hl"><td class="num">口径新增</td><td><strong>MI350P 的 datasheet 同时给出 peak 与 delivered</strong>:BF16 713/1150、FP16 672/1150、FP8 1529/2300、MXFP8 1327/2300、MXFP6 1804/4600、MXFP4 2299/4600、显存带宽 3.6/4.0 TB/s</td><td>新增口径声明 (10):<strong>本榜一律用 peak,不混用 delivered</strong>,并在本节给出「如果换成 delivered 会怎样」的敏感度对照(MI350P 219 → 192,掉 3 位)</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(双列原表)</a></td></tr>
+                <tr><td class="num">方法论</td><td><strong>AMD 官方定义 Peak / MAF / Delivered 三层,并建议 MFU 换分母</strong>;同门的 Gluon 内核博客给出实例:单张 MI355 上一个 FP16 GEMM 内核调优十版从 520 TFLOPS 到 1489 TFLOPS,<strong>MFMA 单元效率 99%,但只有 datasheet 峰值的 60%</strong>(BF8 3257 TF / 99.72%、MXFP4 5255 TF / 92.41%)</td><td>第九节那一列 MFU 的分母被正式说明为「peak」;新增两张动图把「软件效率」与「负载降频」拆开 —— 前者 AMD 已经做到 99%,后者纹丝不动</td><td class="src-cell"><a href="https://rocm.blogs.amd.com/software-tools-optimization/Understanding_Peak_and_Max-Achievable_FLOPS/README.html">ROCm Blog:Peak / MAF / Delivered</a> · <a href="https://rocm.blogs.amd.com/blog/category/software-tools-optimizations.html">ROCm Blog 索引(Gluon 内核 / MAF Part 2)</a></td></tr>
+                <tr><td class="num">第三方实测</td><td><strong>达成率被拆成三条独立曲线</strong>:GEMM 算力 MI300X ~45%(H100/B200 至 93%)、显存带宽 MI300X 81%(A100/H100/H200 至 90%、B200 86%)、all-reduce 互联 MI300X 70%(H100 NVLink4 85%);端到端 Llama 3.1 70B,MI300X 纸面算力高 1.5 倍,实测只有 H100/H200 的 <strong>37%–80%</strong></td><td>新增三张动图。这条材料同时说明:<strong>「软件栈」不该只是一个 10 分维度,它同时在打折另外三个维度的分子</strong></td><td class="src-cell"><a href="https://arxiv.org/pdf/2510.27583">AMD MI300X GPU Performance Analysis(白皮书 PDF)</a></td></tr>
+                <tr class="hl"><td class="num">第 28、29 家厂商</td><td><strong>曦望(Sunrise)启望 S3</strong>:商汤大芯片部门分拆,国内首款用 <strong>LPDDR6</strong> 的 GPGPU 推理卡,FP16→FP8/FP6/FP4 多精度,显存容量为上一代训推卡的 4 倍以上,寰望 SC3-256 超节点一跳直连 256 卡、通信时延 ~200 ns。<strong>奕行智能 Epoch</strong>:国内首颗量产的 RISC-V 云端大算力 AI 芯片,原生分块量化 FP8,ELink 单芯互联 3.2T,正交无背板单柜 64–128 芯,已量产</td><td>厂商数 27 → <strong>29</strong>、统计卡型 78 → <strong>85</strong>。两家都<strong>不公开 FLOPS 与显存绝对值,因此进不了排名</strong>(见第二节与第七节)。它们的意义在第七节:非 HBM 路线上第一次同时出现 LPDDR6 与 RISC-V 两个新变量</td><td class="src-cell"><a href="https://www.qbitai.com/2026/01/373113.html">量子位(启望 S3 与寰望 SC3)</a> · <a href="https://m.21jingji.com/article/20260203/0b76e57e4eaa08c0a36df7af1444a631.html">21 财经(放弃训练的取舍)</a> · <a href="https://36kr.com/p/3903359692342918">36氪(奕行智能 RISC-V 超节点)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50502.shtml">半导体行业观察(Epoch 板卡矩阵)</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 1:同一张 datasheet 上的两列数字 —— MI350P 的 peak 与 delivered(虚线框 = peak,实心 = delivered)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--amd)"><i></i>算力(TFLOPS)</span><span style="--c: var(--nv)"><i></i>显存带宽(TB/s)</span>
+            </div>
+            <div class="mfu">
+              <div class="mfu-row"><span class="nm">FP8</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 66.5%; --c: var(--amd); --d: .05s"></span></span><span class="vl">2300 → 1529 · <b>67%</b></span></div>
+              <div class="mfu-row"><span class="nm">BF16</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 62%; --c: var(--amd); --d: .15s"></span></span><span class="vl">1150 → 713 · <b>62%</b></span></div>
+              <div class="mfu-row"><span class="nm">FP16</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 58.4%; --c: var(--amd); --d: .25s"></span></span><span class="vl">1150 → 672 · <b>58%</b></span></div>
+              <div class="mfu-row"><span class="nm">MXFP8</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 57.7%; --c: var(--amd); --d: .35s"></span></span><span class="vl">2300 → 1327 · <b>58%</b></span></div>
+              <div class="mfu-row"><span class="nm">MXFP4</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 50%; --c: var(--amd); --d: .45s"></span></span><span class="vl">4600 → 2299 · <b>50%</b></span></div>
+              <div class="mfu-row"><span class="nm">MXFP6</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 39.2%; --c: var(--amd); --d: .55s"></span></span><span class="vl">4600 → 1804 · <b>39%</b></span></div>
+              <div class="mfu-row"><span class="nm">显存带宽</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--nv)"></span><span class="mfu-eff" style="--e: 90%; --c: var(--nv); --d: .65s"></span></span><span class="vl">4.0 → 3.6 TB/s · <b>90%</b></span></div>
+            </div>
+            <div class="load-note">每行各自归一化到<strong>它自己的 peak = 100%</strong>,所以条形长度读的是折扣率而不是绝对算力;绝对值在右侧。数据逐字取自 AMD MI350P 规格页与 brochure 的 delivered / peak 双列。</div>
+            <span class="fig-cap">
+              这张图最反直觉的一点不是折扣的大小,而是<strong>折扣不是一个常数</strong>:同一块硅上,FP8 兑现 67%、BF16 兑现 62%、MXFP4 只兑现 50%、MXFP6 只兑现 39%。
+              也就是说「MFU」根本不能写成一张卡的一个标量 —— 它至少是<strong>每种数值格式一个数</strong>。
+              更要紧的是那条规律的方向:<strong>精度越低,兑现得越差。</strong>MXFP6 与 MXFP4 的 peak 完全相同(都是 4600),delivered 却差了 495 TFLOPS —— 同一个峰值,两个产出。
+            </span>
+            <span class="fig-cap">
+              把 FP8 与 MXFP4 这两行放在一起算一次,能得到本节最该被记住的一个数:<strong>FP4 相对 FP8 的纸面收益是 2.00 倍,delivered 收益只有 1.50 倍。</strong>
+              这恰好从反面加强了第零之三节那个结论 ——「FP4 是显存问题而不是算力问题」。因为显存那一侧的收益是<strong>足迹直接减半、100% 兑现</strong>(权重就是少一半字节,不打折);
+              而算力那一侧的收益<strong>只兑现四分之三</strong>。两边的兑现率差这么多,选型时把 FP4 当成「算力翻倍」就会高估 33%,当成「显存减半」则不会错。
+            </span>
+            <span class="fig-cap">
+              还有一条容易被跳过的:<strong>显存带宽的达成率(90%)明显高于任何一种算力格式。</strong>这在工程上有直接含义 —— decode 阶段是带宽瓶颈、prefill 阶段是算力瓶颈,
+              而这张卡的两个瓶颈打折的力度差了 20 到 50 个百分点。<strong>所以「算力/带宽比」这个指标在 delivered 口径下会整体左移</strong>(第三节的山脊点图按 peak 画,读的时候要记得这一层)。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 2:那 44% 是怎么来的 —— 达成率 = 软件效率 × 负载降频(外层虚框 = datasheet 峰值)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--amd)"><i></i>MI300X(CDNA 3,第三方实测,三层可拆)</span>
+              <span style="--c: var(--accent-1)"><i></i>MI350P(CDNA 4,官方 delivered,未拆分)</span>
+            </div>
+            <div class="nest">
+              <div class="nest-row"><span class="nm">MI300X · FP8</span><span class="nest-track"><span class="nest-a" style="--c: var(--amd)"></span><span class="nest-b" style="--b: 58%; --c: var(--amd); --d: .05s"></span><span class="nest-c" style="--e: 47%; --c: var(--amd); --d: .05s"></span></span><span class="vl">2615 → 降频上限 1515 → 实测 <b>1228</b><br />软件效率 81% × 降频 58% = <b>47%</b></span></div>
+              <div class="nest-row"><span class="nm">MI300X · BF16</span><span class="nest-track"><span class="nest-a" style="--c: var(--amd)"></span><span class="nest-b" style="--b: 56.5%; --c: var(--amd); --d: .25s"></span><span class="nest-c" style="--e: 45%; --c: var(--amd); --d: .25s"></span></span><span class="vl">1307 → 降频上限 739 → 实测 <b>588</b><br />软件效率 80% × 降频 57% = <b>45%</b></span></div>
+              <div class="nest-row"><span class="nm">MI300X · FP16</span><span class="nest-track"><span class="nest-a" style="--c: var(--amd)"></span><span class="nest-b" style="--b: 51.6%; --c: var(--amd); --d: .45s"></span><span class="nest-c" style="--e: 43.8%; --c: var(--amd); --d: .45s"></span></span><span class="vl">1307 → 降频上限 674 → 实测 <b>573</b><br />软件效率 85% × 降频 52% = <b>44%</b></span></div>
+              <div class="nest-row"><span class="nm">MI350P · FP8(对照)</span><span class="nest-track"><span class="nest-a" style="--c: var(--accent-1)"></span><span class="nest-c" style="--e: 66.5%; --c: var(--accent-1); --d: .65s"></span></span><span class="vl">2300 → delivered <b>1529</b> · <b>67%</b><br />官方未拆分频率与软件两项</span></div>
+            </div>
+            <div class="load-note">「降频上限」= 按实测中位频率折算的峰值 ÷ datasheet 按 boost 频率标称的峰值。MI300X 的 boost 是 2100 MHz,满载 GEMM 下中位频率为 1217 / 1187 / 1083 MHz(对应 FP8 / BF16 / FP16),这一栏就是 1217÷2100 这类比值。</div>
+            <span class="fig-cap">
+              这是本节技术含量最高的一张图,因为它把一个含混的「达成率」拆成了两件<strong>责任方完全不同</strong>的事。
+              <strong>软件效率 80%–85%</strong> —— 这是编译器和内核库的账,能修;<strong>负载降频 52%–58%</strong> —— 这是功耗墙和频率管理的账,<strong>软件修不动</strong>。
+              两者相乘才是 44%–47%。过去把这 44% 整体归给「ROCm 不成熟」是记错了账:哪怕内核写到完美,这一代硅在满载 GEMM 下也只能跑到 datasheet 峰值的 52%–58%。
+            </span>
+            <span class="fig-cap">
+              把最后那条 MI350P 的对照行接上来看,故事就完整了:<strong>CDNA 4 的 delivered 是 67%,比 CDNA 3 的实测 47% 高了 20 个百分点</strong>,而下一张图会说明<strong>这 20 个点几乎全是软件那一半贡献的</strong>(Gluon 内核已经把 MFMA 效率做到 99%),
+              降频那一半基本没动(60% 左右)。
+              <strong>结论:datasheet 上那个「峰值」在 2026 年默认自带 40% 左右的降频折扣,而且这个折扣不会随软件成熟而消失。</strong>它不是谁家的问题,是 boost 频率作为标称口径的问题 —— 只是各家标称的激进程度不同,所以折扣的大小也不同。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 3:一个 GEMM 内核调优十版 —— MFMA 单元效率 99%,但仍只有 datasheet 峰值的 60%(条形 = 占 datasheet 峰值的比例)</div>
+            <div class="race">
+              <div class="race-row"><span class="rk">—</span><span class="nm">datasheet 峰值(参照)</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--base); --d: .05s"></span></span><span class="vl">100%</span></div>
+              <div class="race-row"><span class="rk">1</span><span class="nm">MI355 · BF8 调优后</span><span class="race-track"><span class="race-fill" style="--w: 65.1%; --c: var(--amd); --d: .15s"></span></span><span class="vl">65%</span></div>
+              <div class="race-row"><span class="rk">2</span><span class="nm">MI350P · FP8 delivered</span><span class="race-track"><span class="race-fill" style="--w: 66.5%; --c: var(--accent-1); --d: .25s"></span></span><span class="vl">67%</span></div>
+              <div class="race-row"><span class="rk">3</span><span class="nm">MI355 · FP16 调优后(第 10 版)</span><span class="race-track"><span class="race-fill" style="--w: 59.6%; --c: var(--amd); --d: .35s"></span></span><span class="vl">60%</span></div>
+              <div class="race-row"><span class="rk">4</span><span class="nm">MI355 · MXFP4 调优后</span><span class="race-track"><span class="race-fill" style="--w: 52%; --c: var(--amd); --d: .45s"></span></span><span class="vl">52%</span></div>
+              <div class="race-row"><span class="rk">5</span><span class="nm">MI300X · FP8 第三方实测</span><span class="race-track"><span class="race-fill" style="--w: 47%; --c: var(--cn); --d: .55s"></span></span><span class="vl">47%</span></div>
+              <div class="race-row"><span class="rk">6</span><span class="nm">MI355 · FP16 朴素实现(第 1 版)</span><span class="race-track"><span class="race-fill" style="--w: 20.8%; --c: var(--base); --d: .65s"></span></span><span class="vl">21%</span></div>
+            </div>
+            <div class="load-note">MI355 三行取自 ROCm 官方 Gluon 内核博客:FP16 520 → 1489 TFLOPS(MFMA 效率 99%)、BF8 3257 TFLOPS(99.72%)、MXFP4 5255 TFLOPS(92.41%);分母用 MI355X datasheet 峰值 2500 / 5000 / 10100 TFLOPS。</div>
+            <span class="fig-cap">
+              这张图把「软件成熟度」这个虚词换成了一段可复现的过程:<strong>同一块卡、同一个 GEMM,朴素实现只有 datasheet 峰值的 21%,十个版本之后是 60%,接近三倍。</strong>
+              这 21% → 60% 是软件栈能拿回来的全部份额;而作者同时报告 <strong>MFMA 矩阵单元效率已经 99%</strong> —— 矩阵引擎每个循环只空转几个周期。
+              两句话并排的含义很硬:<strong>剩下那 40% 不是「再调调内核」能拿到的</strong>,它在频率和功耗预算里。
+            </span>
+            <span class="fig-cap">
+              第 2 行(MI350P 官方 delivered 67%)与第 1、3 行(MI355 手工调到极致的 65% / 60%)几乎重合,这是本节最有说服力的一处交叉验证:
+              <strong>两个完全独立的 AMD 来源 —— 一张产品 datasheet 的 delivered 列,和一篇内核优化博客的实测值 —— 落在同一条折扣曲线上(BF16 ~60%、FP8 ~66%、MXFP4 ~51%)。</strong>
+              这说明 delivered 那一列不是营销数字,它就是「内核写到位之后能拿到的东西」。反过来说,<strong>这也让 MI350P 的 delivered 列具备了当参考基准的资格</strong>:
+              任何一家厂商如果只给 peak,读者现在有了一把尺子去猜它的 delivered 大概在哪个位置。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 4:达成率是三条独立的曲线,不是一个数(虚线 = 90% 参考线)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--nv)"><i></i>NVIDIA</span><span style="--c: var(--amd)"><i></i>AMD</span>
+            </div>
+            <div class="load">
+              <div class="load-row"><span class="nm">GEMM 算力 · H100 / B200</span><span class="load-track"><span class="load-fill" style="--w: 93%; --c: var(--nv); --d: .05s"></span></span><span class="vl"><b>93%</b> cuBLASLt</span></div>
+              <div class="load-row"><span class="nm">GEMM 算力 · MI300X</span><span class="load-track"><span class="load-fill" style="--w: 45%; --c: var(--amd); --d: .15s"></span></span><span class="vl"><b>45%</b> hipBLASLt</span></div>
+              <div class="load-row"><span class="nm">显存带宽 · A100/H100/H200</span><span class="load-track"><span class="load-fill" style="--w: 90%; --c: var(--nv); --d: .25s"></span></span><span class="vl"><b>90%</b></span></div>
+              <div class="load-row"><span class="nm">显存带宽 · B200</span><span class="load-track"><span class="load-fill" style="--w: 86%; --c: var(--nv); --d: .35s"></span></span><span class="vl"><b>86%</b> 一月后 +10%</span></div>
+              <div class="load-row"><span class="nm">显存带宽 · MI300X</span><span class="load-track"><span class="load-fill" style="--w: 81%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>81%</b> 4.3/5.3 TB/s</span></div>
+              <div class="load-row"><span class="nm">all-reduce · H100 NVLink 4</span><span class="load-track"><span class="load-fill" style="--w: 85%; --c: var(--nv); --d: .55s"></span></span><span class="vl"><b>85%</b> NCCL</span></div>
+              <div class="load-row"><span class="nm">all-reduce · MI300X IF mesh</span><span class="load-track"><span class="load-fill" style="--w: 70%; --c: var(--amd); --d: .65s"></span></span><span class="vl"><b>70%</b> RCCL · 448/8卡</span></div>
+              <div class="load-gate-layer"><span class="load-gate" style="--g: 90%"><b>90%</b></span></div>
+            </div>
+            <div class="load-note">条形 = 实测 ÷ 理论峰值,满刻度 100%。三组分别用 cuBLASLt / hipBLASLt 的 GEMM、显存带宽微基准、以及 8 卡 all-reduce 集合通信测得。</div>
+            <span class="fig-cap">
+              这张图是对本文打分模型最直接的一次挑战。<strong>我的十个维度里,「显存带宽」「FP8 算力」「FP4 算力」「Scale-up 带宽」四维一共 48 分,填的全是理论峰值</strong> ——
+              而这四个数字的达成率在这里分别是 81%–90%、45%–93%、45%–93%、70%–85%。<strong>也就是说同样一个 4.0 TB/s,写在两家的 datasheet 上不是同一个东西。</strong>
+            </span>
+            <span class="fig-cap">
+              更值得记的是这三条曲线<strong>互不相关</strong>:MI300X 的算力达成率(45%)明显差,但显存带宽达成率(81%)只差 9 个点,互联达成率(70%)差 15 个点。
+              这解释了一个乍看矛盾的实测现象 —— 同一张卡在 prefill(算力瓶颈)上只有 H100 的一半,在长输出 decode(带宽瓶颈)上能到八成(见下一张图)。
+              <strong>「这张卡相对那张卡有多强」在 2026 年不再有单一答案,它取决于你的负载压在哪条曲线上。</strong>
+              另外 B200 那一行值得单独留意:<strong>86% 是一个会动的数字</strong> —— 白皮书作者一个月后重跑,带宽实测又涨了 10%。这就是「软件维度」在时间轴上的真实形状。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 5:纸面领先 1.5 倍,端到端只剩 0.37–0.80 倍 —— Llama 3.1 70B,MI300X 相对 H100(虚线 = H100 = 100%)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--base)"><i></i>纸面峰值比</span><span style="--c: var(--amd)"><i></i>FP8 实测</span><span style="--c: var(--nv)"><i></i>FP16 实测</span>
+            </div>
+            <div class="load">
+              <div class="load-row"><span class="nm">FP8 峰值算力比(纸面)</span><span class="load-track"><span class="load-fill" style="--w: 94.3%; --c: var(--base); --d: .05s"></span></span><span class="vl"><b>132%</b> 2615/1979</span></div>
+              <div class="load-row"><span class="nm">FP16 · decode 重(出 2048)</span><span class="load-track"><span class="load-fill" style="--w: 57.1%; --c: var(--nv); --d: .15s"></span></span><span class="vl"><b>80%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · decode 重(出 2048)</span><span class="load-track"><span class="load-fill" style="--w: 47.1%; --c: var(--amd); --d: .25s"></span></span><span class="vl"><b>66%</b></span></div>
+              <div class="load-row"><span class="nm">FP16 · decode 起点(出 1)</span><span class="load-track"><span class="load-fill" style="--w: 40%; --c: var(--nv); --d: .35s"></span></span><span class="vl"><b>56%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · prefill 重(入 32→256)</span><span class="load-track"><span class="load-fill" style="--w: 35.7%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>≤50%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · decode 起点(出 1)</span><span class="load-track"><span class="load-fill" style="--w: 35%; --c: var(--amd); --d: .55s"></span></span><span class="vl"><b>49%</b></span></div>
+              <div class="load-gate-layer"><span class="load-gate" style="--g: 71.4%"><b>H100</b></span></div>
+            </div>
+            <div class="load-note">满刻度 140%,虚线 = H100 基准 100%。吞吐口径为 tokens/s,同一套 vLLM / TensorRT-LLM 各自最优路径。注意 MI300X 的显存是 192 GB vs H100 的 80 GB,这道题里容量优势没有被计入(70B 两边都装得下)。</div>
+            <span class="fig-cap">
+              这张图是前面四张图的汇总检验,也是「第三层」存在的理由:<strong>纸面 FP8 峰值高 32%,端到端吞吐从 49% 到 80% 不等,没有一个场景追平。</strong>
+              而 49% → 80% 这条区间的走向恰好符合上一张图的三条曲线:<strong>输出越长,负载越靠带宽(达成率 81%),差距越小;输入越长,负载越靠算力(达成率 45%),差距越大。</strong>
+              FP16 又整体好于 FP8,原因也在带宽侧 —— FP16 把权重与 KV 的足迹翻倍,工作集落进了 MI300X 带宽曲线更好的那一段。
+            </span>
+            <span class="fig-cap">
+              对本榜的含义要说得直白些:<strong>第一节那个综合指数是「纸面峰值比」这一类的数字,它天然对应这张图最上面那根条,而不是下面那五根。</strong>
+              第九节的 MFU 折算就是为了跨过这道沟,而这张图第一次给出了一个可对照的量级 —— <strong>沟的深度在 1.6 到 2.7 倍之间,并且随负载形状变化。</strong>
+              这也是为什么本文一直强调「引用分数请一并引用快照日期与口径」:一个纸面指数 219 的卡,可能跑出 100 分卡的 1.2 倍,也可能跑出 2 倍,取决于你压哪条曲线。
+            </span>
+          </div>
+
+          <div class="fig">
+            <div class="fig-title">动态图 6:MI350P 插进总榜的位置,以及换成 delivered 口径会掉几位(虚线 = delivered 口径下的指数)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--amd)"><i></i>本次新入榜</span><span style="--c: var(--base)"><i></i>原有邻居(未改)</span>
+            </div>
+            <div class="jump">
+              <div class="jump-row"><span class="nm">NVIDIA B30A ※待许可</span><span class="jump-track"><span class="jump-new" style="--w: 57%; --c: var(--base); --d: .05s"></span></span><span class="vl">第 12 · 244</span></div>
+              <div class="jump-row"><span class="nm">AMD MI350P(新)</span><span class="jump-track"><span class="jump-new" style="--w: 51%; --c: var(--amd); --d: .2s"></span><span class="jump-old" style="--o: 45%"></span></span><span class="vl">第 13 · <b>219</b> → delivered 口径 <b>192</b></span></div>
+              <div class="jump-row"><span class="nm">SambaNova SN50</span><span class="jump-track"><span class="jump-new" style="--w: 50%; --c: var(--base); --d: .35s"></span></span><span class="vl">第 14 · 213</span></div>
+              <div class="jump-row"><span class="nm">昇腾 950PR / Atlas 350</span><span class="jump-track"><span class="jump-new" style="--w: 46%; --c: var(--base); --d: .5s"></span></span><span class="vl">第 15 · 197</span></div>
+              <div class="jump-row"><span class="nm">Rebellions REBEL-Quad</span><span class="jump-track"><span class="jump-new" style="--w: 45%; --c: var(--base); --d: .65s"></span></span><span class="vl">第 16 · 191</span></div>
+              <div class="jump-row"><span class="nm">Intel Gaudi 3</span><span class="jump-track"><span class="jump-new" style="--w: 43%; --c: var(--base); --d: .8s"></span></span><span class="vl">第 17 · 181</span></div>
+            </div>
+            <div class="load-note">条长 = 指数 ÷ 417 × 98%。虚线位置是把 MI350P 的显存带宽、FP8、FP4、能效四维换成 datasheet 的 delivered 列后重算的结果(3.6 TB/s、1529、2299、2.55 TF/W),其余六维不变。</div>
+            <span class="fig-cap">
+              这条虚线是本节唯一一处「如果换口径会怎样」的量化答案:<strong>同一张卡、同一张 datasheet,用 peak 打分是 219 分列第 13,用 delivered 打分是 192 分列第 16 —— 27 分、3 个名次。</strong>
+              27 分在本模型里相当于某一维翻一倍多。这就是为什么口径必须写死在明面上,而不是「取厂商公布的算力」这种含混说法。
+              <strong>本榜的选择是继续用 peak</strong>,理由不是 peak 更对,而是<strong>只有 peak 是每家都给的</strong> —— 32 张卡里目前只有 MI350P 一张有 delivered 列,混用会让「披露更多」变成「分数更低」,那是最坏的一种激励。
+            </span>
+            <span class="fig-cap">
+              MI350P 本身也值得看一眼形状,它是全榜一个很干净的对照样本:<strong>4.0 TB/s 的显存带宽和 H20 完全相同,144 GB 容量是 1.5 倍,FP8 峰值 7.8 倍,而 Scale-up 互联官方写「不支持」。</strong>
+              于是它的 219 分里,<strong><code>su</code> 与 <code>dom</code> 两维(合计 15 分权重)一共只拿到 7 分</strong>,全靠算力、能效与 128 MB Infinity Cache 撑起来。
+              放在 07-29 那条「超节点已经从独门武艺变成标准动作」旁边,它是个有意思的反证:<strong>2026 年仍然有厂商在旗舰家族里专门做一张「不参加超节点竞赛」的卡</strong>,
+              卖点恰恰是第八节那条被忽略的赛道 —— 600 W 被动风冷、插进标准 PCIe 服务器、不动机房。
+            </span>
+          </div>
+
+          <h2>零之二、2026-07-29 复核:一层网络 256 卡,超节点从独门武艺变成标准动作</h2>
           <p>
             上一版(07-28)的结论是「<strong>域装不装得下</strong>」取代了「单卡峰值」成为 3T 级模型的第一判据,并据此把 MI355X、Gaudi 3、思元690、沐曦 / 燧原 / 摩尔线程、RNGD、B30A 一起划进了「域太小、过不了 64 卡线」那一栏。
             这个判断在<strong>数据层面</strong>有一处错:我当时对三家国产 GPU 的 scale-up 域取的是「一层 8 卡」,而 WAIC 2026(07-17 至 07-20)上这三家已经各自公布了整柜级方案。补齐之后结论要改写:
@@ -412,7 +619,7 @@
                 <tr><th>时间</th><th>变化</th><th>对本文的影响</th><th>来源</th></tr>
               </thead>
               <tbody>
-                <tr class="hl"><td class="num">07-17 ~ 20<br />(WAIC 2026)</td><td><strong>三家国产 GPU 公布整柜超节点</strong>:摩尔线程 MTT C256 一层 256 卡、沐曦 曦景 S600 单柜 64 卡、燧原 云燧 ESL64-O 单柜 64 卡(零线缆)</td><td><strong>重算三张卡的「超节点域」维度</strong>:S5000 129→164、曦云 C600 157→179、L600 152→173;第零节 K3 装载图里它们从「要跨 4–7 个域」变成「一个域装得下」</td><td class="src-cell"><a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(三家路线对比)</a> · <a href="https://news.eccn.com/news_2026071916425189.htm">中电网(MTT C256)</a> · <a href="https://www.agentren.cn/2026/0720/20931.shtml">爱力方(曦景 S600 / ESL64-O)</a></td></tr>
+                <tr class="hl"><td class="num">07-17 ~ 20<br />(WAIC 2026)</td><td><strong>三家国产 GPU 公布整柜超节点</strong>:摩尔线程 MTT C256 一层 256 卡、沐曦 曦景 S600 单柜 64 卡、燧原 云燧 ESL64-O 单柜 64 卡(零线缆)</td><td><strong>重算三张卡的「超节点域」维度</strong>:S5000 129→164、曦云 C600 157→179、L600 152→173;第零之三节 K3 装载图里它们从「要跨 4–7 个域」变成「一个域装得下」</td><td class="src-cell"><a href="https://epaper.oeeee.com/epaper/A/html/2026-07/23/content_6310.htm">南方都市报(三家路线对比)</a> · <a href="https://news.eccn.com/news_2026071916425189.htm">中电网(MTT C256)</a> · <a href="https://www.agentren.cn/2026/0720/20931.shtml">爱力方(曦景 S600 / ESL64-O)</a></td></tr>
                 <tr class="hl"><td class="num">07-23</td><td><strong>AMD × Cerebras 解构式推理</strong>:Helios(72×MI455X / 2.9 EF FP4 / 31 TB HBM4)做 prefill,晶圆级引擎做 decode,官方称每瓦 token 最多 ×5,2026 H2 先上 Cerebras Cloud</td><td>PD 分离第一次跨厂商、跨架构;新增「PD 分离五种形态」动图,并把第七节的晶圆级一栏从「进不了榜」改写成「进不了榜但进得了产线」</td><td class="src-cell"><a href="https://ir.amd.com/news-events/press-releases/detail/1293/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference-solution">AMD 官方新闻稿</a> · <a href="https://mlq.ai/news/amd-and-cerebras-partner-on-disaggregated-ai-inference-system-pairing-helios-racks-with-wafer-scale-chips/">MLQ(Helios 机架口径)</a></td></tr>
                 <tr><td class="num">07-28 ~ 29</td><td><strong>Kimi K3 的 Day-0 适配竞赛</strong>:昇腾 0day 完成训练复现 + 推理部署(昇腾 950 超节点原生支持 mxFP4);阿里真武 M890 首 token 时延 −35%、单卡解码吞吐 ×1.8、稳定支持 1M 上下文;摩尔线程 S5000 Day-0 拉起;海外 Nebius / Baseten / Fireworks / Modal / Together / GMI 与 vLLM / SGLang 同步</td><td>新增「48 小时 Day-0 竞赛」动图;第九节软件栈一列补上迄今最硬的横向证据</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260729/28ee398c17ef4e57c61b6d6851a925d9.html">21 财经(汇总)</a> · <a href="https://www.itbear.com.cn/html/2026-07/1468893.html">ITBear(昇腾 0day)</a> · <a href="https://news.aibase.com/zh/news/29966">AIbase(摩尔线程)</a></td></tr>
                 <tr class="hl"><td class="num">本次补齐</td><td><strong>第 27 家厂商:东方算芯</strong>。巅峯 DF1000 用 14nm 成熟工艺 + 3D 混合键合把 DRAM 直接堆在逻辑晶圆上,<strong>不用 HBM 做到 6.4 TB/s</strong>、BF16 520 TFLOPS、Scale-up 900 GB/s、拓域 TY64 为 64 卡域,128 卡集群已实测</td><td>统计卡型 75 → 78、进榜卡 30 → 31;新增「带宽 × 存储介质」动图 —— 它是全表唯一一张带宽高于 H20 却完全不用 HBM 的卡</td><td class="src-cell"><a href="https://www.dfsx.com/products/ai-accelerator/df1000">东方算芯官方产品页</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(发布会拆解)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50557.shtml">半导体行业观察(产品层级)</a></td></tr>
@@ -424,7 +631,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 1:超节点域规模跳变 —— 虚线是上一版的指数位置,实心条是本次重算后的指数</div>
+            <div class="fig-title">动态图 7:超节点域规模跳变 —— 虚线是上一版的指数位置,实心条是本次重算后的指数</div>
             <div class="fig-legend">
               <span style="--c: var(--cn)"><i></i>因新数据重算</span>
               <span style="--c: var(--accent-1)"><i></i>本次新入榜</span>
@@ -450,7 +657,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 2:Kimi K3 开源后 48 小时的 Day-0 适配竞赛(条形越短 = 越快;颜色 = 证据等级)</div>
+            <div class="fig-title">动态图 8:Kimi K3 开源后 48 小时的 Day-0 适配竞赛(条形越短 = 越快;颜色 = 证据等级)</div>
             <div class="fig-legend">
               <span style="--c: var(--nv)"><i></i>L1 训练复现 + 推理部署</span>
               <span style="--c: var(--ms)"><i></i>L2 生产推理引擎跑通</span>
@@ -484,7 +691,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 3:PD 分离的五种形态 —— 2026-07-23 之后它跨过了厂商边界</div>
+            <div class="fig-title">动态图 9:PD 分离的五种形态 —— 2026-07-23 之后它跨过了厂商边界</div>
             <div class="fig-legend">
               <span style="--c: var(--nv)"><i></i>实心块 = prefill 侧</span><span style="--c: var(--base)"><i></i>浅色块 = decode 侧</span>
             </div>
@@ -518,7 +725,7 @@
             <span class="fig-cap">
               把五种形态并排放,能看到 2026 年硬件分工的演化路径:<strong>从「一张卡的两个阶段」→「一家公司的两颗芯片」→「两家公司的两种架构」。</strong>
               AMD × Cerebras 这一步的分量不在于性能数字,而在于它<strong>承认了没有一家能同时拿下 prefill 和 decode</strong> —— AMD 有 HBM4 和 UALink 机架,但在单用户 decode 延迟上打不过晶圆级 SRAM;
-              Cerebras 有 21 PB/s 的片上带宽,但 44 GB 容量吃不下前沿模型的 prefill(第零之二节算过:装一份 K3 要 64–91 片晶圆)。<strong>互补的短板刚好拼成一条完整链路。</strong>
+              Cerebras 有 21 PB/s 的片上带宽,但 44 GB 容量吃不下前沿模型的 prefill(第零之三节算过:装一份 K3 要 64–91 片晶圆)。<strong>互补的短板刚好拼成一条完整链路。</strong>
             </span>
             <span class="fig-cap">
               对采购的直接含义:<strong>「买哪张卡」这个问题正在被「买哪一段」取代。</strong>如果你的负载是 agent(短 prompt、长输出、单用户延迟敏感),decode 段的钱比 prefill 段值;
@@ -528,7 +735,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 4:显存带宽 × 存储介质(满刻度 23.3 TB/s)—— 唯一不用 HBM 还超过基线的一张卡</div>
+            <div class="fig-title">动态图 10:显存带宽 × 存储介质(满刻度 23.3 TB/s)—— 唯一不用 HBM 还超过基线的一张卡</div>
             <div class="fig-legend">
               <span style="--c: var(--amd)"><i></i>HBM4</span><span style="--c: var(--nv)"><i></i>HBM3e / HBM3 / 其他 HBM</span>
               <span style="--c: var(--accent-1)"><i></i>3D 混合键合近存 DRAM</span>
@@ -565,7 +772,7 @@
             </span>
           </div>
 
-          <h2>零之二、2026-07-28 复核:3T 开源模型把标尺从「卡」挪到了「域」</h2>
+          <h2>零之三、2026-07-28 复核:3T 开源模型把标尺从「卡」挪到了「域」</h2>
           <p>
             这一版的增量不是某家厂商发了新卡,而是<strong>一个模型改变了「什么算好卡」的判据</strong>。
             2026-07-27 深夜,月之暗面开源了 Kimi K3 的完整权重与技术报告,并同时开源了支撑它训练的三项基础设施:MoonEP(细粒度 MoE 通信库)、FlashKDA(Kimi Delta Attention 高性能算子)、AgentEnv(分布式 RL 环境)。
@@ -584,7 +791,7 @@
                 <tr><th>时间</th><th>变化</th><th>对本文的影响</th><th>来源</th></tr>
               </thead>
               <tbody>
-                <tr class="hl"><td class="num">07-27 23:00</td><td><strong>Kimi K3 权重开源</strong>(2.8T / 896 专家 / MXFP4 权重),官方要求 ≥64 卡超节点</td><td>新增第零之二节的「常驻装载校验」动图;把「域够不够」提到与峰值算力并列</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260728/herald/e0313388ea754773ba31602914ea8862.html">21 财经</a> · <a href="https://www.eefocus.com/article/2058143.html">与非网</a></td></tr>
+                <tr class="hl"><td class="num">07-27 23:00</td><td><strong>Kimi K3 权重开源</strong>(2.8T / 896 专家 / MXFP4 权重),官方要求 ≥64 卡超节点</td><td>新增第零之三节的「常驻装载校验」动图;把「域够不够」提到与峰值算力并列</td><td class="src-cell"><a href="https://m.21jingji.com/article/20260728/herald/e0313388ea754773ba31602914ea8862.html">21 财经</a> · <a href="https://www.eefocus.com/article/2058143.html">与非网</a></td></tr>
                 <tr><td class="num">07-28</td><td><strong>海光 DCU 完成 K3 全栈适配</strong>:模型代码零改动,896 专家并行 + 百万上下文下稳定,官方实测性能折损 &lt;12%</td><td>第九节海光一行补上迄今最硬的国产软件栈证据</td><td class="src-cell"><a href="https://news.aibase.com/zh/news/29946">AIbase</a></td></tr>
                 <tr><td class="num">07-28</td><td><strong>阿里云灵骏真武 M890 超节点实例 Day0 适配 K3</strong></td><td>新增阿里平头哥一档(真武 M890 / 810E / 含光 800),M890 首次进榜</td><td class="src-cell"><a href="https://www.ithome.com/0/978/578.htm">IT之家</a> · <a href="https://finance.sina.com.cn/hy/hyjz/2026-07-18/doc-iniifhua1617416.shtml">新浪科技</a></td></tr>
                 <tr><td class="num">本次补齐</td><td>7 家此前未覆盖的厂商:<strong>阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions</strong></td><td>厂商 19 → 26、统计卡型 54 → 75、进榜卡 24 → 30</td><td class="src-cell">见第二节与第十二节</td></tr>
@@ -595,7 +802,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 5:常驻一份 Kimi K3(2.8T)需要几张卡 —— 竖线是官方 64 卡门槛</div>
+            <div class="fig-title">动态图 11:常驻一份 Kimi K3(2.8T)需要几张卡 —— 竖线是官方 64 卡门槛</div>
             <div class="fig-legend">
               <span style="--c: var(--amd)"><i></i>原生 MXFP4:权重 1.4 TB</span>
               <span style="--c: var(--hw)"><i></i>只有 FP8:反量化到 2.8 TB</span>
@@ -636,7 +843,7 @@
               <strong>(3) 只有 6 张卡能做到「4–10 张进一个域」</strong>:MI455X、R200、B300、TPU 8i/8t、Maia 200。它们是 3T 级模型的舒适区,其余全部要么堆卡数、要么跨域。
             </span>
             <span class="fig-cap">
-              <strong>2026-07-29 修正:</strong>标 <span class="est">※07-29 改</span> 的三行原本写的是「域 8 ✗要 4–7 域」,是我漏并了 WAIC 2026 的整柜超节点发布(见第零节)。
+              <strong>2026-07-29 修正:</strong>标 <span class="est">※07-29 改</span> 的三行原本写的是「域 8 ✗要 4–7 域」,是我漏并了 WAIC 2026 的整柜超节点发布(见第零之二节)。
               改过来之后,上一版那句「只有域优先的产品能交付 3T 模型」需要补一个更准确的版本:<strong>过不过 64 卡线,和单卡强弱几乎无关,只和厂商有没有做整柜互联有关。</strong>
               现在真正还卡在这条线外的是 MI355X(8 卡 UBB)、Gaudi 3(8 卡 HLS)、B30A(8 卡 HGX)、思元690 与 REBEL-Quad(域未公开)、RNGD(只有 PCIe)——
               注意其中<strong>三张是国际大厂的主流 SKU</strong>,它们不是做不到,而是把大域留给了更贵的机架级产品(NVL144 / Helios 72)。
@@ -650,7 +857,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 6:基线更替 —— H20 这一档已经有 6 个继任者</div>
+            <div class="fig-title">动态图 12:基线更替 —— H20 这一档已经有 6 个继任者</div>
             <div class="tier-grid">
               <div class="tier-card" style="--c: var(--nv); --d: .05s">
                 <h5>NVIDIA B30A <span class="est">※待许可</span></h5>
@@ -727,7 +934,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 7:六张新卡插进总榜的位置(灰色为原有邻居)· <strong>2026-07-28 时点快照</strong></div>
+            <div class="fig-title">动态图 13:六张新卡插进总榜的位置(灰色为原有邻居)· <strong>2026-07-28 时点快照</strong></div>
             <div class="fig-legend">
               <span style="--c: var(--accent-1)"><i></i>本次新入榜</span><span style="--c: var(--base)"><i></i>原有邻居</span>
             </div>
@@ -773,7 +980,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 8:综合硬件指数跑道(H20 = 100)</div>
+            <div class="fig-title">动态图 14:综合硬件指数跑道(H20 = 100)</div>
             <div class="fig-legend">
               <span style="--c: var(--nv)"><i></i>NVIDIA</span><span style="--c: var(--amd)"><i></i>AMD</span>
               <span style="--c: var(--goo)"><i></i>Google TPU</span><span style="--c: var(--hw)"><i></i>华为昇腾</span>
@@ -816,7 +1023,7 @@
             </div>
             <span class="fig-cap">读法:条形长度是十维加权后的综合硬件指数,H20 = 100。注意这是<strong>硬件纸面能力</strong>的排名 —— 它已经把软件栈成熟度算成一个 10 分维度,但软件维度在本模型里最高只能等于 CUDA(即 H20 的 1.0),所以它只会扣分、不会给别人加分。真正的落地效率要看第九节的 MFU 折算。</span>
             <span class="fig-cap">
-              标「重算」的三张卡是 2026-07-29 按 WAIC 2026 的整柜超节点数据补齐「超节点域」一维后的结果,其余九维输入未变(见第零节动态图 1);标 NEW 的是本次新入榜。
+              标「重算」的三张卡是 2026-07-29 按 WAIC 2026 的整柜超节点数据补齐「超节点域」一维后的结果,其余九维输入未变(见第零之二节动态图 7);标 NEW 的是本次新入榜。
               <strong>榜单第 16 到第 26 名现在挤在 181–139 这 42 分里,一共 11 张卡</strong> —— 这一段是全榜最拥挤的地方,也是选型时最不该看名次的地方:名次差 5 位可能只差 10 分,而 10 分在本模型里只相当于某一维翻一倍。
             </span>
           </div>
@@ -863,7 +1070,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 9:六维雷达 —— 榜首三卡与 H20 的形状差异(每格 = 翻一倍)</div>
+            <div class="fig-title">动态图 15:六维雷达 —— 榜首三卡与 H20 的形状差异(每格 = 翻一倍)</div>
             <div class="fig-legend">
               <span style="--c: var(--amd)"><i></i>MI455X 417</span><span style="--c: var(--nv)"><i></i>Rubin R200 398</span>
               <span style="--c: var(--ms)"><i></i>Maia 200 346</span><span style="--c: var(--base)"><i></i>H20 100</span>
@@ -914,7 +1121,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 10:27 家厂商的六个阵营版图</div>
+            <div class="fig-title">动态图 16:27 家厂商的六个阵营版图</div>
             <div class="camp">
               <div class="camp-cell" style="--c: var(--nv); --d: 0s"><b>通用 GPU · HBM 派</b><span>NVIDIA · AMD<br />单卡峰值 + 机架级 scale-up</span></div>
               <div class="camp-cell" style="--c: var(--goo); --d: .4s"><b>超大规模自研 ASIC</b><span>Google · AWS · Microsoft · Meta<br />不外售,追域规模与每瓦 token</span></div>
@@ -1074,7 +1281,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 11:山脊点(FP8 算力 ÷ 显存带宽)对数尺 —— 越靠左越「带宽富裕」</div>
+            <div class="fig-title">动态图 17:山脊点(FP8 算力 ÷ 显存带宽)对数尺 —— 越靠左越「带宽富裕」</div>
             <div class="ridge">
               <div class="ridge-row"><span class="nm">Cerebras WSE-3(晶圆级)</span><span class="ridge-line" style="--x: 4.4%; --c: var(--alt); --d: .05s"><span class="ridge-dot" style="--x: 4.4%; --c: var(--alt); --d: .05s"><b>6</b></span></span></div>
               <div class="ridge-row"><span class="nm">NVIDIA Groq 3 LPU</span><span class="ridge-line" style="--x: 8.3%; --c: var(--nv); --d: .11s"><span class="ridge-dot" style="--x: 8.3%; --c: var(--nv); --d: .11s"><b>8</b></span></span></div>
@@ -1124,7 +1331,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 12:显存容量 × 显存带宽 定位图(气泡面积 ≈ FP8 峰值)</div>
+            <div class="fig-title">动态图 18:显存容量 × 显存带宽 定位图(气泡面积 ≈ FP8 峰值)</div>
             <svg class="bub" viewBox="0 0 760 380" role="img" aria-label="加速卡显存容量与带宽定位气泡图">
               <line class="ax" x1="70" y1="340" x2="730" y2="340"></line>
               <line class="ax" x1="70" y1="340" x2="70" y2="34"></line>
@@ -1206,7 +1413,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 13:数值格式原生支持矩阵(■ 原生 · ▨ 部分/模拟 · □ 不支持)</div>
+            <div class="fig-title">动态图 19:数值格式原生支持矩阵(■ 原生 · ▨ 部分/模拟 · □ 不支持)</div>
             <div class="fmt-grid">
               <span class="nm"></span>
               <span class="hd">BF16</span><span class="hd">FP8</span><span class="hd">微缩放<br />MX/NV</span><span class="hd">FP6</span><span class="hd">FP4</span><span class="hd">INT8</span><span class="hd">FP64</span>
@@ -1265,7 +1472,7 @@
               07-28 新增的四行把这张矩阵的意义又推进了一层。<strong>d-Matrix Corsair 那一行的形状是全表最特殊的:它根本没有 BF16。</strong>
               整卡只做 MXINT8 / MXINT4(块浮点),浮点矩阵乘直接不提供 —— 这是「推理专用」做到极致的样子,也意味着任何需要 BF16 主干的算子(某些 norm、softmax 的高精度路径)都得靠软件绕。
               另一头,<strong>SN50 / REBEL-Quad / RNGD 三张新势力卡的格式支持反而比国产卡还保守</strong>:都停在 BF16 + FP8 + INT8,没有 FP4、没有微缩放。
-              结合第零之二节的装载图就知道后果:它们跑 Kimi K3 这种 MXFP4 权重的模型必须反量化,显存足迹直接翻倍。
+              结合第零之三节的装载图就知道后果:它们跑 Kimi K3 这种 MXFP4 权重的模型必须反量化,显存足迹直接翻倍。
               <strong>2026 年下半年买推理卡,「支不支持微缩放 FP4」已经从加分项变成入场券</strong> —— 因为开源前沿模型开始默认以 MXFP4 发布权重。
             </span>
             <span class="fig-cap">
@@ -1284,7 +1491,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 14:一个 Scale-up 域能装多少张卡(同心环 = 域规模)</div>
+            <div class="fig-title">动态图 20:一个 Scale-up 域能装多少张卡(同心环 = 域规模)</div>
             <div class="dom" aria-label="scale-up 域规模同心环动画">
               <div class="dom-ring" data-l="TPU7x / 8t · 9216–9600 卡 · 3D Torus + OCS" style="--s: 258px; --c: var(--goo); --t: 26s"></div>
               <div class="dom-ring" data-l="Atlas 950 SuperPoD · 8192 卡 · 灵衢 UB-Mesh 16.3 PB/s" style="--s: 222px; --c: var(--hw); --t: 22s"></div>
@@ -1314,7 +1521,7 @@
               还要补一句提醒:<strong>UCIe-Advanced(Rebellions)与 CSM(Etched)是 2026 年新出现的第三、第四种 scale-up 介质</strong> —— 前者把 die-to-die 协议直接当机架互联用,后者把整个域做成一个内存池。它们都还没有第三方实测,但方向一致:让专家路由不出高速域。
             </span>
             <span class="fig-cap">
-              <strong>2026-07-29 修正与更新。</strong>上一段那句「沐曦 / 燧原 / 摩尔线程(8)全部不过线」是错的 —— 三家在 WAIC 2026 都已公布整柜方案(见第零节),
+              <strong>2026-07-29 修正与更新。</strong>上一段那句「沐曦 / 燧原 / 摩尔线程(8)全部不过线」是错的 —— 三家在 WAIC 2026 都已公布整柜方案(见第零之二节),
               正确的清单是:<strong>过线的多了摩尔线程 MTT C256(一层 256 卡)、沐曦 曦景 S600(单柜 64)、燧原 云燧 ESL64-O(单柜 64,年底量产)、东方算芯 拓域 TY64(64);
               仍不过线的是 MI355X(8 卡 UBB)、Gaudi 3(8 卡 HLS)、B30A(8 卡 HGX)、RNGD(仅 PCIe),以及域规模至今未公开的思元690 与 REBEL-Quad。</strong>
               更值得记的是<strong>互联介质在国产阵营内部也分叉了</strong>,而且分叉理由非常具体:摩尔线程选柜内 Cable Tray 全铜,理由是正交架构一柜只能做 64 卡、要做一层 256 就得引入跨柜光连接从而牺牲链路可靠性;
@@ -1391,7 +1598,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 15:片上 SRAM 容量与「能装下什么」(条形高度 = 相对容量)</div>
+            <div class="fig-title">动态图 21:片上 SRAM 容量与「能装下什么」(条形高度 = 相对容量)</div>
             <div class="sram-wrap">
               <div class="sram-card">
                 <h5>H20(基线)</h5>
@@ -1492,7 +1699,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 16:三条存储路线的容量 ↔ 带宽取舍</div>
+            <div class="fig-title">动态图 22:三条存储路线的容量 ↔ 带宽取舍</div>
             <div class="lanes">
               <div class="lane" style="--c: var(--alt)">
                 <div class="flow" aria-hidden="true"><i style="--y: 18%; --t: 2.2s; --d: 0s"></i><i style="--y: 46%; --t: 1.8s; --d: .5s"></i><i style="--y: 74%; --t: 2.6s; --d: 1s"></i><i style="--y: 32%; --t: 2s; --d: 1.4s"></i></div>
@@ -1573,7 +1780,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 17:整卡 TDP 与散热要求(条形长度 = 功耗,右侧标注冷却方式)</div>
+            <div class="fig-title">动态图 23:整卡 TDP 与散热要求(条形长度 = 功耗,右侧标注冷却方式)</div>
             <div class="pw">
               <div class="pw-row"><span class="nm">FuriosaAI RNGD</span><span class="pw-track"><span class="pw-fill" style="--w: 8%; --d: .01s"></span></span><span class="tag">180 W · <strong>被动散热</strong>(无风扇)</span></div>
               <div class="pw-row"><span class="nm">Tenstorrent Blackhole(单芯)</span><span class="pw-track"><span class="pw-fill" style="--w: 12%; --d: .02s"></span></span><span class="tag">~280 W <span class="est">※由整机 8–10 kW / 32 芯推算</span> · 风冷</span></div>
@@ -1625,7 +1832,7 @@
           </p>
 
           <div class="fig">
-            <div class="fig-title">动态图 18:每瓦 FP8 峰值算力(TFLOPS / W,满刻度 = 12.5)</div>
+            <div class="fig-title">动态图 24:每瓦 FP8 峰值算力(TFLOPS / W,满刻度 = 12.5)</div>
             <div class="race">
               <div class="race-row"><span class="rk">1</span><span class="nm">Rubin CPX</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--nv); --d: 0.05s"></span></span><span class="vl">12.5</span></div>
               <div class="race-row"><span class="rk">1</span><span class="nm">MI455X</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--amd); --d: 0.09s"></span></span><span class="vl">12.5</span></div>
@@ -1707,7 +1914,7 @@
           </div>
 
           <div class="fig">
-            <div class="fig-title">动态图 19:峰值 → 有效算力的收缩(虚线框 = 峰值,实心 = 折算 MFU 后)</div>
+            <div class="fig-title">动态图 25:峰值 → 有效算力的收缩(虚线框 = 峰值,实心 = 折算 MFU 后)</div>
             <div class="mfu">
               <div class="mfu-row"><span class="nm">MI455X</span><span class="mfu-track"><span class="mfu-peak" style="--p: 100%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 33%; --c: var(--amd); --d: .05s"></span></span><span class="vl">20 PF → 6.6 PF</span></div>
               <div class="mfu-row"><span class="nm">Rubin R200</span><span class="mfu-track"><span class="mfu-peak" style="--p: 88%; --c: var(--nv)"></span><span class="mfu-eff" style="--e: 31%; --c: var(--nv); --d: .15s"></span></span><span class="vl">17.5 PF → 6.1 PF</span></div>
@@ -1752,7 +1959,7 @@
 
           <h2>十、代际节奏</h2>
           <div class="fig">
-            <div class="fig-title">动态图 20:主要厂商的代际时间线</div>
+            <div class="fig-title">动态图 26:主要厂商的代际时间线</div>
             <div class="tl">
               <div class="st"><div class="yr">2024</div><div class="lb">H20 / MI300X<br />910B · P800 · TPU v6 · MTIA 300</div></div>
               <div class="st"><div class="yr">2025</div><div class="lb">B200/B300 · MI355X<br />910C + CloudMatrix384 · Ironwood · 深算三号</div></div>
@@ -1844,7 +2051,7 @@
             (6) 数据快照时间 <strong>2026-07-29</strong>(首发 07-27),厂商在发布前修改规格是常态(NVIDIA 自己就把 R200 的 HBM4 速率从 6.4 Gbps 上调到 10 Gbps)。
             (7) 07-28 新增的六张进榜卡里,<strong>B30A 尚未获得出口许可、规格未最终锁定,真武 M890 有四个维度未公开(按基线取值)</strong>,两者的分数比其他卡更容易被后续官方数据推翻。
             Etched Sohu、d-Matrix Corsair、Tesla AI5、Cerebras WSE-4 按第七节的口径不参与「按卡」排名:前两者不公布可比的浮点峰值,AI5 不是数据中心卡,WSE-4 只有第三方汇总。
-            (8) 第零之二节的「装载校验」是我按公开权重规模与显存容量做的算术,不是任何厂商或月之暗面的官方部署建议;真实部署还要考虑激活值峰值、并发数、上下文长度与 KV 卸载策略。
+            (8) 第零之三节的「装载校验」是我按公开权重规模与显存容量做的算术,不是任何厂商或月之暗面的官方部署建议;真实部署还要考虑激活值峰值、并发数、上下文长度与 KV 卸载策略。
             (9) <strong>2026-07-29 的重算规则</strong>:本文会因新披露改写已发布的分数,但只在出现<strong>可引用的新公开数据</strong>时改,且只改对应那一维、其余输入逐字沿用,改动前后一律在第零节留对照。
             本次重算三张卡的「超节点域」:摩尔线程 S5000 8 → 256(MTT C256)、沐曦 C600 8 → 64(曦景 S600)、燧原 L600 8 → 64(云燧 ESL64-O)。
             需要注意<strong>三家官方都没有明确说明超节点里配的是哪一代卡</strong>,我按各家当前唯一的旗舰训推卡对应,这一步带 <span class="est">※</span>;
