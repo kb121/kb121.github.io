@@ -422,7 +422,7 @@
               </thead>
               <tbody>
                 <tr class="hl"><td class="num">本次补齐<br />(2026-05 上市)</td><td><strong>第 32 张进榜卡:AMD Instinct MI350P</strong>。CDNA 4 / TSMC 3nm+6nm,128 CU,144 GB HBM3E / 4.0 TB/s,FP8 2.3 PF、MXFP6 与 MXFP4 各 4.6 PF、FP64 36 TF,128 MB Infinity Cache,FHFL 双宽 PCIe Gen5 ×16,600 W(可配 450 W)被动风冷,<strong>无 Infinity Fabric,单机最多 8 卡</strong></td><td>综合指数 <strong>219</strong>,插在 B30A(244)与 SambaNova SN50(213)之间列第 13;它是全榜「带宽与基线完全相同、算力差 7.8 倍」的唯一样本,也是 <code>su</code> / <code>dom</code> 两维靠 PCIe 口径拿分最低的国际旗舰衍生卡</td><td class="src-cell"><a href="https://www.amd.com/en/products/accelerators/instinct/mi350/mi350p.html">AMD 官方规格页</a> · <a href="https://www.amd.com/content/dam/amd/en/documents/epyc-business-docs/other/amd-instinct-mi350p-product-brochure.pdf">AMD 官方 brochure(PDF)</a> · <a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(delivered / peak 双列表)</a></td></tr>
-                <tr class="hl"><td class="num">口径新增</td><td><strong>MI350P 的 datasheet 同时给出 peak 与 delivered</strong>:BF16 713/1150、FP16 672/1150、FP8 1529/2300、MXFP8 1327/2300、MXFP6 1804/4600、MXFP4 2299/4600、显存带宽 3.6/4.0 TB/s</td><td>新增口径声明 (10):<strong>本榜一律用 peak,不混用 delivered</strong>,并在本节给出「如果换成 delivered 会怎样」的敏感度对照(MI350P 219 → 192,掉 2 位)</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(双列原表)</a></td></tr>
+                <tr class="hl"><td class="num">口径新增</td><td><strong>MI350P 的 datasheet 同时给出 peak 与 delivered</strong>:BF16 713/1150、FP16 672/1150、FP8 1529/2300、MXFP8 1327/2300、MXFP6 1804/4600、MXFP4 2299/4600、显存带宽 3.6/4.0 TB/s</td><td>新增口径声明 (11)(12):<strong>本榜一律用 peak,不混用 delivered</strong>,并在本节给出「如果换成 delivered 会怎样」的敏感度对照(MI350P 219 → 192,掉 2 位)</td><td class="src-cell"><a href="https://www.storagereview.com/news/amd-instinct-mi350p-enterprise-pcie-ai-inference-returns-to-standard-servers">StorageReview(双列原表)</a></td></tr>
                 <tr><td class="num">方法论</td><td><strong>AMD 官方定义 Peak / MAF / Delivered 三层,并建议 MFU 换分母</strong>;同门的 Gluon 内核博客给出实例:单张 MI355 上一个 FP16 GEMM 内核调优十版从 520 TFLOPS 到 1489 TFLOPS,<strong>MFMA 单元效率 99%,但只有 datasheet 峰值的 60%</strong>(BF8 3257 TF / 99.72%、MXFP4 5255 TF / 92.41%)</td><td>第九节那一列 MFU 的分母被正式说明为「peak」;新增两张动图把「软件效率」与「负载降频」拆开 —— 前者 AMD 已经做到 99%,后者纹丝不动</td><td class="src-cell"><a href="https://rocm.blogs.amd.com/software-tools-optimization/Understanding_Peak_and_Max-Achievable_FLOPS/README.html">ROCm Blog:Peak / MAF / Delivered</a> · <a href="https://rocm.blogs.amd.com/blog/category/software-tools-optimizations.html">ROCm Blog 索引(Gluon 内核 / MAF Part 2)</a></td></tr>
                 <tr><td class="num">第三方实测</td><td><strong>达成率被拆成三条独立曲线</strong>:GEMM 算力 MI300X ~45%(H100/B200 至 93%)、显存带宽 MI300X 81%(A100/H100/H200 至 90%、B200 86%)、all-reduce 互联 MI300X 70%(H100 NVLink4 85%);端到端 Llama 3.1 70B,MI300X 纸面算力高 1.5 倍,实测只有 H100/H200 的 <strong>37%–80%</strong></td><td>新增三张动图。这条材料同时说明:<strong>「软件栈」不该只是一个 10 分维度,它同时在打折另外三个维度的分子</strong></td><td class="src-cell"><a href="https://arxiv.org/pdf/2510.27583">AMD MI300X GPU Performance Analysis(白皮书 PDF)</a></td></tr>
                 <tr class="hl"><td class="num">第 28、29 家厂商</td><td><strong>曦望(Sunrise)启望 S3</strong>:商汤大芯片部门分拆,国内首款用 <strong>LPDDR6</strong> 的 GPGPU 推理卡,FP16→FP8/FP6/FP4 多精度,显存容量为上一代训推卡的 4 倍以上,寰望 SC3-256 超节点一跳直连 256 卡、通信时延 ~200 ns。<strong>奕行智能 Epoch</strong>:国内首颗量产的 RISC-V 云端大算力 AI 芯片,原生分块量化 FP8,ELink 单芯互联 3.2T,正交无背板单柜 64–128 芯,已量产</td><td>厂商数 27 → <strong>29</strong>、统计卡型 78 → <strong>85</strong>。两家都<strong>不公开 FLOPS 与显存绝对值,因此进不了排名</strong>(见第二节与第七节)。它们的意义在第七节:非 HBM 路线上第一次同时出现 LPDDR6 与 RISC-V 两个新变量</td><td class="src-cell"><a href="https://www.qbitai.com/2026/01/373113.html">量子位(启望 S3 与寰望 SC3)</a> · <a href="https://m.21jingji.com/article/20260203/0b76e57e4eaa08c0a36df7af1444a631.html">21 财经(放弃训练的取舍)</a> · <a href="https://36kr.com/p/3903359692342918">36氪(奕行智能 RISC-V 超节点)</a> · <a href="http://www.semi-insights.com/s/bdt/15/50502.shtml">半导体行业观察(Epoch 板卡矩阵)</a></td></tr>
@@ -489,22 +489,22 @@
           <div class="fig">
             <div class="fig-title">动态图 3:一个 GEMM 内核调优十版 —— MFMA 单元效率 99%,但仍只有 datasheet 峰值的 60%(条形 = 占 datasheet 峰值的比例)</div>
             <div class="race">
-              <div class="race-row"><span class="rk">—</span><span class="nm">datasheet 峰值(参照)</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--base); --d: .05s"></span></span><span class="vl">100%</span></div>
-              <div class="race-row"><span class="rk">1</span><span class="nm">MI355 · BF8 调优后</span><span class="race-track"><span class="race-fill" style="--w: 65.1%; --c: var(--amd); --d: .15s"></span></span><span class="vl">65%</span></div>
-              <div class="race-row"><span class="rk">2</span><span class="nm">MI350P · FP8 delivered</span><span class="race-track"><span class="race-fill" style="--w: 66.5%; --c: var(--accent-1); --d: .25s"></span></span><span class="vl">67%</span></div>
-              <div class="race-row"><span class="rk">3</span><span class="nm">MI355 · FP16 调优后(第 10 版)</span><span class="race-track"><span class="race-fill" style="--w: 59.6%; --c: var(--amd); --d: .35s"></span></span><span class="vl">60%</span></div>
-              <div class="race-row"><span class="rk">4</span><span class="nm">MI355 · MXFP4 调优后</span><span class="race-track"><span class="race-fill" style="--w: 52%; --c: var(--amd); --d: .45s"></span></span><span class="vl">52%</span></div>
-              <div class="race-row"><span class="rk">5</span><span class="nm">MI300X · FP8 第三方实测</span><span class="race-track"><span class="race-fill" style="--w: 47%; --c: var(--cn); --d: .55s"></span></span><span class="vl">47%</span></div>
-              <div class="race-row"><span class="rk">6</span><span class="nm">MI355 · FP16 朴素实现(第 1 版)</span><span class="race-track"><span class="race-fill" style="--w: 20.8%; --c: var(--base); --d: .65s"></span></span><span class="vl">21%</span></div>
+              <div class="race-row"><span class="rk">—</span><span class="nm">datasheet 峰值</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--base); --d: .05s"></span></span><span class="vl">100%</span></div>
+              <div class="race-row"><span class="rk">1</span><span class="nm">MI350P 官方值</span><span class="race-track"><span class="race-fill" style="--w: 66.5%; --c: var(--accent-1); --d: .15s"></span></span><span class="vl">67%</span></div>
+              <div class="race-row"><span class="rk">2</span><span class="nm">MI355 BF8 调优</span><span class="race-track"><span class="race-fill" style="--w: 65.1%; --c: var(--amd); --d: .25s"></span></span><span class="vl">65%</span></div>
+              <div class="race-row"><span class="rk">3</span><span class="nm">MI355 FP16 调优</span><span class="race-track"><span class="race-fill" style="--w: 59.6%; --c: var(--amd); --d: .35s"></span></span><span class="vl">60%</span></div>
+              <div class="race-row"><span class="rk">4</span><span class="nm">MI355 MXFP4 调优</span><span class="race-track"><span class="race-fill" style="--w: 52%; --c: var(--amd); --d: .45s"></span></span><span class="vl">52%</span></div>
+              <div class="race-row"><span class="rk">5</span><span class="nm">MI300X FP8 实测</span><span class="race-track"><span class="race-fill" style="--w: 47%; --c: var(--cn); --d: .55s"></span></span><span class="vl">47%</span></div>
+              <div class="race-row"><span class="rk">6</span><span class="nm">MI355 FP16 朴素</span><span class="race-track"><span class="race-fill" style="--w: 20.8%; --c: var(--base); --d: .65s"></span></span><span class="vl">21%</span></div>
             </div>
-            <div class="load-note">MI355 三行取自 ROCm 官方 Gluon 内核博客:FP16 520 → 1489 TFLOPS(MFMA 效率 99%)、BF8 3257 TFLOPS(99.72%)、MXFP4 5255 TFLOPS(92.41%);分母用 MI355X datasheet 峰值 2500 / 5000 / 10100 TFLOPS。</div>
+            <div class="load-note">MI355 四行取自 ROCm 官方 Gluon 内核博客的同一个 GEMM:FP16 <strong>朴素实现(第 1 版)520 TFLOPS → 调优后(第 10 版)1489 TFLOPS</strong>(MFMA 效率 99%)、BF8 3257 TFLOPS(99.72%)、MXFP4 5255 TFLOPS(92.41%);分母用 MI355X datasheet 峰值 2500 / 5000 / 10100 TFLOPS。MI300X 那行是第三方白皮书的 hipBLASLt 实测 1228 / 2615。</div>
             <span class="fig-cap">
               这张图把「软件成熟度」这个虚词换成了一段可复现的过程:<strong>同一块卡、同一个 GEMM,朴素实现只有 datasheet 峰值的 21%,十个版本之后是 60%,接近三倍。</strong>
               这 21% → 60% 是软件栈能拿回来的全部份额;而作者同时报告 <strong>MFMA 矩阵单元效率已经 99%</strong> —— 矩阵引擎每个循环只空转几个周期。
               两句话并排的含义很硬:<strong>剩下那 40% 不是「再调调内核」能拿到的</strong>,它在频率和功耗预算里。
             </span>
             <span class="fig-cap">
-              第 2 行(MI350P 官方 delivered 67%)与第 1、3 行(MI355 手工调到极致的 65% / 60%)几乎重合,这是本节最有说服力的一处交叉验证:
+              第 1 行(MI350P 官方 delivered 67%)与第 2、3 行(MI355 手工调到极致的 65% / 60%)几乎重合,这是本节最有说服力的一处交叉验证:
               <strong>两个完全独立的 AMD 来源 —— 一张产品 datasheet 的 delivered 列,和一篇内核优化博客的实测值 —— 落在同一条折扣曲线上(BF16 ~60%、FP8 ~66%、MXFP4 ~51%)。</strong>
               这说明 delivered 那一列不是营销数字,它就是「内核写到位之后能拿到的东西」。反过来说,<strong>这也让 MI350P 的 delivered 列具备了当参考基准的资格</strong>:
               任何一家厂商如果只给 peak,读者现在有了一把尺子去猜它的 delivered 大概在哪个位置。
@@ -519,11 +519,11 @@
             <div class="load">
               <div class="load-row"><span class="nm">GEMM 算力 · H100 / B200</span><span class="load-track"><span class="load-fill" style="--w: 93%; --c: var(--nv); --d: .05s"></span></span><span class="vl"><b>93%</b> cuBLASLt</span></div>
               <div class="load-row"><span class="nm">GEMM 算力 · MI300X</span><span class="load-track"><span class="load-fill" style="--w: 45%; --c: var(--amd); --d: .15s"></span></span><span class="vl"><b>45%</b> hipBLASLt</span></div>
-              <div class="load-row"><span class="nm">显存带宽 · A100/H100/H200</span><span class="load-track"><span class="load-fill" style="--w: 90%; --c: var(--nv); --d: .25s"></span></span><span class="vl"><b>90%</b></span></div>
+              <div class="load-row"><span class="nm">显存带宽 · H100/H200</span><span class="load-track"><span class="load-fill" style="--w: 90%; --c: var(--nv); --d: .25s"></span></span><span class="vl"><b>90%</b></span></div>
               <div class="load-row"><span class="nm">显存带宽 · B200</span><span class="load-track"><span class="load-fill" style="--w: 86%; --c: var(--nv); --d: .35s"></span></span><span class="vl"><b>86%</b> 一月后 +10%</span></div>
               <div class="load-row"><span class="nm">显存带宽 · MI300X</span><span class="load-track"><span class="load-fill" style="--w: 81%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>81%</b> 4.3/5.3 TB/s</span></div>
               <div class="load-row"><span class="nm">all-reduce · H100 NVLink 4</span><span class="load-track"><span class="load-fill" style="--w: 85%; --c: var(--nv); --d: .55s"></span></span><span class="vl"><b>85%</b> NCCL</span></div>
-              <div class="load-row"><span class="nm">all-reduce · MI300X IF mesh</span><span class="load-track"><span class="load-fill" style="--w: 70%; --c: var(--amd); --d: .65s"></span></span><span class="vl"><b>70%</b> RCCL · 448/8卡</span></div>
+              <div class="load-row"><span class="nm">all-reduce · MI300X</span><span class="load-track"><span class="load-fill" style="--w: 70%; --c: var(--amd); --d: .65s"></span></span><span class="vl"><b>70%</b> RCCL · 448/8卡</span></div>
               <div class="load-gate-layer"><span class="load-gate" style="--g: 90%"><b>90%</b></span></div>
             </div>
             <div class="load-note">条形 = 实测 ÷ 理论峰值,满刻度 100%。三组分别用 cuBLASLt / hipBLASLt 的 GEMM、显存带宽微基准、以及 8 卡 all-reduce 集合通信测得。</div>
@@ -545,12 +545,12 @@
               <span style="--c: var(--base)"><i></i>纸面峰值比</span><span style="--c: var(--amd)"><i></i>FP8 实测</span><span style="--c: var(--nv)"><i></i>FP16 实测</span>
             </div>
             <div class="load">
-              <div class="load-row"><span class="nm">FP8 峰值算力比(纸面)</span><span class="load-track"><span class="load-fill" style="--w: 94.3%; --c: var(--base); --d: .05s"></span></span><span class="vl"><b>132%</b> 2615/1979</span></div>
-              <div class="load-row"><span class="nm">FP16 · decode 重(出 2048)</span><span class="load-track"><span class="load-fill" style="--w: 57.1%; --c: var(--nv); --d: .15s"></span></span><span class="vl"><b>80%</b></span></div>
-              <div class="load-row"><span class="nm">FP8 · decode 重(出 2048)</span><span class="load-track"><span class="load-fill" style="--w: 47.1%; --c: var(--amd); --d: .25s"></span></span><span class="vl"><b>66%</b></span></div>
-              <div class="load-row"><span class="nm">FP16 · decode 起点(出 1)</span><span class="load-track"><span class="load-fill" style="--w: 40%; --c: var(--nv); --d: .35s"></span></span><span class="vl"><b>56%</b></span></div>
-              <div class="load-row"><span class="nm">FP8 · prefill 重(入 32→256)</span><span class="load-track"><span class="load-fill" style="--w: 35.7%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>≤50%</b></span></div>
-              <div class="load-row"><span class="nm">FP8 · decode 起点(出 1)</span><span class="load-track"><span class="load-fill" style="--w: 35%; --c: var(--amd); --d: .55s"></span></span><span class="vl"><b>49%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 峰值比(纸面)</span><span class="load-track"><span class="load-fill" style="--w: 94.3%; --c: var(--base); --d: .05s"></span></span><span class="vl"><b>132%</b> 2615/1979</span></div>
+              <div class="load-row"><span class="nm">FP16 · 出 2048</span><span class="load-track"><span class="load-fill" style="--w: 57.1%; --c: var(--nv); --d: .15s"></span></span><span class="vl"><b>80%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · 出 2048</span><span class="load-track"><span class="load-fill" style="--w: 47.1%; --c: var(--amd); --d: .25s"></span></span><span class="vl"><b>66%</b></span></div>
+              <div class="load-row"><span class="nm">FP16 · 出 1</span><span class="load-track"><span class="load-fill" style="--w: 40%; --c: var(--nv); --d: .35s"></span></span><span class="vl"><b>56%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · prefill 重</span><span class="load-track"><span class="load-fill" style="--w: 35.7%; --c: var(--amd); --d: .45s"></span></span><span class="vl"><b>≤50%</b></span></div>
+              <div class="load-row"><span class="nm">FP8 · 出 1</span><span class="load-track"><span class="load-fill" style="--w: 35%; --c: var(--amd); --d: .55s"></span></span><span class="vl"><b>49%</b></span></div>
               <div class="load-gate-layer"><span class="load-gate" style="--g: 71.4%"><b>H100</b></span></div>
             </div>
             <div class="load-note">满刻度 140%,虚线 = H100 基准 100%。吞吐口径为 tokens/s,同一套 vLLM / TensorRT-LLM 各自最优路径。注意 MI300X 的显存是 192 GB vs H100 的 80 GB,这道题里容量优势没有被计入(70B 两边都装得下)。</div>
@@ -579,7 +579,7 @@
               <div class="jump-row"><span class="nm">Rebellions REBEL-Quad</span><span class="jump-track"><span class="jump-new" style="--w: 45%; --c: var(--base); --d: .65s"></span></span><span class="vl">第 16 · 191</span></div>
               <div class="jump-row"><span class="nm">Intel Gaudi 3</span><span class="jump-track"><span class="jump-new" style="--w: 43%; --c: var(--base); --d: .8s"></span></span><span class="vl">第 17 · 181</span></div>
             </div>
-            <div class="load-note">条长 = 指数 ÷ 417 × 98%。虚线位置是把 MI350P 的显存带宽、FP8、FP4、能效四维换成 datasheet 的 delivered 列后重算的结果(3.6 TB/s、1529、2299、2.55 TF/W),其余六维不变。</div>
+            <div class="load-note">条长 = 指数 ÷ 417 × 98%。左侧的「第 N」是<strong>现行 peak 口径下的名次</strong>。虚线位置是把 MI350P 的显存带宽、FP8、FP4、能效四维换成 datasheet 的 delivered 列后重算的结果(3.6 TB/s、1529、2299、2.55 TF/W),其余六维不变。注意 delivered 情形下 MI350P 是<strong>第 15 名而不是第 16 名</strong> —— 它腾出了第 13 这一格,所以它下面的三张卡各自前移一位。</div>
             <span class="fig-cap">
               这条虚线是本节唯一一处「如果换口径会怎样」的量化答案:<strong>同一张卡、同一张 datasheet,用 peak 打分是 219 分列第 13,用 delivered 打分是 192 分列第 15 —— 27 分、2 个名次。</strong>
               27 分在本模型里相当于某一维翻一倍多。这就是为什么口径必须写死在明面上,而不是「取厂商公布的算力」这种含混说法。
@@ -1916,7 +1916,7 @@
               <div class="race-row is-new"><span class="rk">8</span><span class="nm">B30A ※待许可</span><span class="race-track"><span class="race-fill" style="--w: 43%; --c: var(--nv); --d: 0.33s"></span></span><span class="vl">5.4</span></div>
               <div class="race-row"><span class="rk">9</span><span class="nm">B300 Blackwell Ultra</span><span class="race-track"><span class="race-fill" style="--w: 40%; --c: var(--nv); --d: 0.37s"></span></span><span class="vl">5.0</span></div>
               <div class="race-row is-new"><span class="rk">10</span><span class="nm">d-Matrix Corsair</span><span class="race-track"><span class="race-fill" style="--w: 32%; --c: var(--alt); --d: 0.41s"></span></span><span class="vl">4.0</span></div>
-              <div class="race-row is-new"><span class="rk">11</span><span class="nm">AMD MI350P(PCIe)</span><span class="race-track"><span class="race-fill" style="--w: 31%; --c: var(--amd); --d: 0.43s"></span></span><span class="vl">3.8</span></div>
+              <div class="race-row is-new"><span class="rk">11</span><span class="nm">AMD MI350P</span><span class="race-track"><span class="race-fill" style="--w: 31%; --c: var(--amd); --d: 0.43s"></span></span><span class="vl">3.8</span></div>
               <div class="race-row"><span class="rk">12</span><span class="nm">MI355X</span><span class="race-track"><span class="race-fill" style="--w: 29%; --c: var(--amd); --d: 0.45s"></span></span><span class="vl">3.6</span></div>
               <div class="race-row is-new"><span class="rk">13</span><span class="nm">Rebellions REBEL-Quad</span><span class="race-track"><span class="race-fill" style="--w: 27%; --c: var(--alt); --d: 0.49s"></span></span><span class="vl">3.4</span></div>
               <div class="race-row is-new"><span class="rk">14</span><span class="nm">FuriosaAI RNGD</span><span class="race-track"><span class="race-fill" style="--w: 23%; --c: var(--alt); --d: 0.53s"></span></span><span class="vl">2.8</span></div>
