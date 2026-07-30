@@ -1854,6 +1854,7 @@
               <div class="pw-row"><span class="nm">阿里 真武 810E</span><span class="pw-track"><span class="pw-fill" style="--w: 17%; --d: .12s"></span></span><span class="tag">400 W · PCIe 5.0 ×16</span></div>
               <div class="pw-row"><span class="nm">昇腾 910C</span><span class="pw-track"><span class="pw-fill" style="--w: 17%; --d: .15s"></span></span><span class="tag">~400 W <span class="est">※</span> · 风冷/液冷</span></div>
               <div class="pw-row"><span class="nm">沐曦 曦云 C600</span><span class="pw-track"><span class="pw-fill" style="--w: 19%; --d: .2s"></span></span><span class="tag">~450 W <span class="est">※存疑</span></span></div>
+              <div class="pw-row"><span class="nm">AMD MI350P(PCIe)</span><span class="pw-track"><span class="pw-fill" style="--w: 26%; --d: .23s"></span></span><span class="tag">600 W(可配 450 W)· <strong>被动风冷</strong></span></div>
               <div class="pw-row"><span class="nm">昇腾 950PR / Atlas 350</span><span class="pw-track"><span class="pw-fill" style="--w: 26%; --d: .25s"></span></span><span class="tag">600 W · 建议液冷</span></div>
               <div class="pw-row"><span class="nm">Rebellions REBEL-Quad</span><span class="pw-track"><span class="pw-fill" style="--w: 26%; --d: .27s"></span></span><span class="tag">≤600 W · OAM/PCIe</span></div>
               <div class="pw-row"><span class="nm">B30A <span class="est">※待许可</span></span><span class="pw-track"><span class="pw-fill" style="--w: 30%; --d: .29s"></span></span><span class="tag">~700 W <span class="est">※按 B300 单 die 推算</span></span></div>
@@ -1890,6 +1891,12 @@
               850E 把这笔钱省掉的同时保住了 4 TB/s 和 96 卡域,意味着<strong>「能不能用」和「有多强」这两件事第一次可以不冲突</strong>。
               需要留一句保守:华为没公开 850E 的单卡 TDP、配的是哪一代芯片、整柜功率密度,以及 VCE 相变散热在长期满载下的可靠性数据 <span class="est">※</span> —— 相变散热的工程难点恰恰在于长时间高负载后的性能衰减,这一项要等第三方实测。
             </span>
+            <span class="fig-cap">
+              07-30 新增的 <strong>MI350P 落在 600 W,和昇腾 950PR 同一格,但散热要求差一档:它是被动风冷 —— 卡上没有风扇,靠机箱风道带走 600 W。</strong>
+              这一格此前的居民要么是低功耗卡(RNGD 180 W、Crescent Island 350 W),要么已经建议液冷(950PR)。<strong>600 W 被动风冷 + 144 GB HBM3E 是这条赛道 2026 年的新上限</strong>,
+              也解释了它为什么要砍掉 Infinity Fabric:<strong>把整卡功耗预算全花在计算和 HBM 上,一个字节都不给专有互联</strong> —— 和第八节前面说 d-Matrix「没有 HBM 也没有专有互联所以整机架能风冷」是同一笔账,只是 AMD 选择留下 HBM、砍掉互联。
+              需要说清楚的一处保守:450 W 可配模式下的 delivered 算力官方没有单独给 <span class="est">※</span>,本文的能效数字一律按 600 W 计算。
+            </span>
           </div>
 
           <p>
@@ -1899,7 +1906,7 @@
           <div class="fig">
             <div class="fig-title">动态图 24:每瓦 FP8 峰值算力(TFLOPS / W,满刻度 = 12.5)</div>
             <div class="race">
-              <div class="race-row"><span class="rk">1</span><span class="nm">Rubin CPX</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--nv); --d: 0.05s"></span></span><span class="vl">12.5</span></div>
+                            <div class="race-row"><span class="rk">1</span><span class="nm">Rubin CPX</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--nv); --d: 0.05s"></span></span><span class="vl">12.5</span></div>
               <div class="race-row"><span class="rk">1</span><span class="nm">MI455X</span><span class="race-track"><span class="race-fill" style="--w: 100%; --c: var(--amd); --d: 0.09s"></span></span><span class="vl">12.5</span></div>
               <div class="race-row"><span class="rk">3</span><span class="nm">Rubin R200</span><span class="race-track"><span class="race-fill" style="--w: 78%; --c: var(--nv); --d: 0.13s"></span></span><span class="vl">9.7</span></div>
               <div class="race-row"><span class="rk">4</span><span class="nm">TPU 8t</span><span class="race-track"><span class="race-fill" style="--w: 63%; --c: var(--goo); --d: 0.17s"></span></span><span class="vl">7.9</span></div>
@@ -1909,17 +1916,18 @@
               <div class="race-row is-new"><span class="rk">8</span><span class="nm">B30A ※待许可</span><span class="race-track"><span class="race-fill" style="--w: 43%; --c: var(--nv); --d: 0.33s"></span></span><span class="vl">5.4</span></div>
               <div class="race-row"><span class="rk">9</span><span class="nm">B300 Blackwell Ultra</span><span class="race-track"><span class="race-fill" style="--w: 40%; --c: var(--nv); --d: 0.37s"></span></span><span class="vl">5.0</span></div>
               <div class="race-row is-new"><span class="rk">10</span><span class="nm">d-Matrix Corsair</span><span class="race-track"><span class="race-fill" style="--w: 32%; --c: var(--alt); --d: 0.41s"></span></span><span class="vl">4.0</span></div>
-              <div class="race-row"><span class="rk">11</span><span class="nm">MI355X</span><span class="race-track"><span class="race-fill" style="--w: 29%; --c: var(--amd); --d: 0.45s"></span></span><span class="vl">3.6</span></div>
-              <div class="race-row is-new"><span class="rk">12</span><span class="nm">Rebellions REBEL-Quad</span><span class="race-track"><span class="race-fill" style="--w: 27%; --c: var(--alt); --d: 0.49s"></span></span><span class="vl">3.4</span></div>
-              <div class="race-row is-new"><span class="rk">13</span><span class="nm">FuriosaAI RNGD</span><span class="race-track"><span class="race-fill" style="--w: 23%; --c: var(--alt); --d: 0.53s"></span></span><span class="vl">2.8</span></div>
-              <div class="race-row"><span class="rk">14</span><span class="nm">Tenstorrent Blackhole</span><span class="race-track"><span class="race-fill" style="--w: 21%; --c: var(--alt); --d: 0.57s"></span></span><span class="vl">2.6</span></div>
-              <div class="race-row"><span class="rk">15</span><span class="nm">寒武纪 思元690</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--cn); --d: 0.61s"></span></span><span class="vl">2.5</span></div>
+              <div class="race-row is-new"><span class="rk">11</span><span class="nm">AMD MI350P(PCIe)</span><span class="race-track"><span class="race-fill" style="--w: 31%; --c: var(--amd); --d: 0.43s"></span></span><span class="vl">3.8</span></div>
+              <div class="race-row"><span class="rk">12</span><span class="nm">MI355X</span><span class="race-track"><span class="race-fill" style="--w: 29%; --c: var(--amd); --d: 0.45s"></span></span><span class="vl">3.6</span></div>
+              <div class="race-row is-new"><span class="rk">13</span><span class="nm">Rebellions REBEL-Quad</span><span class="race-track"><span class="race-fill" style="--w: 27%; --c: var(--alt); --d: 0.49s"></span></span><span class="vl">3.4</span></div>
+              <div class="race-row is-new"><span class="rk">14</span><span class="nm">FuriosaAI RNGD</span><span class="race-track"><span class="race-fill" style="--w: 23%; --c: var(--alt); --d: 0.53s"></span></span><span class="vl">2.8</span></div>
+              <div class="race-row"><span class="rk">15</span><span class="nm">Tenstorrent Blackhole</span><span class="race-track"><span class="race-fill" style="--w: 21%; --c: var(--alt); --d: 0.57s"></span></span><span class="vl">2.6</span></div>
+              <div class="race-row"><span class="rk">16</span><span class="nm">寒武纪 思元690</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--cn); --d: 0.61s"></span></span><span class="vl">2.5</span></div>
               <div class="race-row"><span class="rk">16</span><span class="nm">AWS Trainium3</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--aws); --d: 0.65s"></span></span><span class="vl">2.5</span></div>
-              <div class="race-row"><span class="rk">17</span><span class="nm">昇腾 950DT</span><span class="race-track"><span class="race-fill" style="--w: 18%; --c: var(--hw); --d: 0.69s"></span></span><span class="vl">2.2</span></div>
-              <div class="race-row"><span class="rk">18</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--intc); --d: 0.73s"></span></span><span class="vl">2.0</span></div>
+              <div class="race-row"><span class="rk">18</span><span class="nm">昇腾 950DT</span><span class="race-track"><span class="race-fill" style="--w: 18%; --c: var(--hw); --d: 0.69s"></span></span><span class="vl">2.2</span></div>
+              <div class="race-row"><span class="rk">19</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--intc); --d: 0.73s"></span></span><span class="vl">2.0</span></div>
               <div class="race-row"><span class="rk">19</span><span class="nm">昇腾 910C(BF16)</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--hw); --d: 0.77s"></span></span><span class="vl">2.0</span></div>
-              <div class="race-row"><span class="rk">20</span><span class="nm">海光 深算四号</span><span class="race-track"><span class="race-fill" style="--w: 12%; --c: var(--cn); --d: 0.81s"></span></span><span class="vl">1.5</span></div>
-              <div class="race-row is-base"><span class="rk">21</span><span class="nm">H20(基线)</span><span class="race-track"><span class="race-fill" style="--w: 6%; --c: var(--base); --d: 0.85s"></span></span><span class="vl">0.74</span></div>
+              <div class="race-row"><span class="rk">21</span><span class="nm">海光 深算四号</span><span class="race-track"><span class="race-fill" style="--w: 12%; --c: var(--cn); --d: 0.81s"></span></span><span class="vl">1.5</span></div>
+              <div class="race-row is-base"><span class="rk">22</span><span class="nm">H20(基线)</span><span class="race-track"><span class="race-fill" style="--w: 6%; --c: var(--base); --d: 0.85s"></span></span><span class="vl">0.74</span></div>
             </div>
             <span class="fig-cap">
               这张图解释了为什么「机房功率上限」正在取代「卡的单价」成为主要约束。<strong>在同样的 1 MW 供电下,MI455X 能提供的 FP8 峰值是 H20 的 17 倍</strong> —— 不是 68 倍(那是单卡峰值比),因为它的功耗也是 4 倍。
@@ -1931,6 +1939,12 @@
               07-28 新增的四张卡在这张图上排在第 8、10、12、13 名,<strong>全部落在中游而不是像它们的营销材料暗示的那样领先</strong> —— 这正是「每瓦峰值算力」这个指标的价值:它会把「专用化」的真实收益量化出来。
               <strong>d-Matrix Corsair 的 4.0 TFLOPS/W 高于 MI355X 的 3.6</strong>,但远低于 Rubin CPX 的 12.5,说明存内计算的能效优势在同代工艺下是「几十个百分点」量级,不是「一个数量级」量级(它的 10× 宣称口径是交互延迟,不是能效)。
               <strong>B30A 的 5.4 反而高于 B300 的 5.0</strong>,因为单 die 省掉了 die-to-die 互联的功耗 —— 合规阉割在能效上偶然成了优势,这和 H20 当年靠保留 4 TB/s 带宽成为 decode 好卡是同一类偶然。
+            </span>
+            <span class="fig-cap">
+              07-30 新增的 MI350P 排第 11(3.8 TFLOPS/W),<strong>略高于它自己的 OAM 全尺寸兄弟 MI355X(3.6)</strong> —— 同一代架构、砍掉一半规模,每瓦反而更好。原因和 B30A 高于 B300 是同一类:
+              <strong>砍掉的那一半里包含了专有互联和一半的 HBM 堆栈,而这两样都是耗电不产出 FLOPS 的部分。</strong>
+              这张图也是本次唯一可以顺手做一次「delivered 校验」的地方:按 delivered 的 1529 TFLOPS ÷ 600 W 算,MI350P 的真实每瓦是 <strong>2.55 TFLOPS/W</strong>,会掉到第 14 名(RNGD 的 2.8 之后)。
+              <strong>整张图上所有卡的真实位置都要这样往下挪一档</strong>,而挪的幅度各家不同 —— 这就是为什么本文一直强调这张图末尾那句「真实每瓦 token 还要再乘下一节的 MFU」。
             </span>
           </div>
 
@@ -1956,6 +1970,7 @@
                 <tr><td>TPU 8i</td><td>JAX / XLA / vLLM</td><td>★★★★</td><td>384 MB SRAM 面向低延迟 decode,实测数据尚未公开</td><td class="num">0.40 <span class="est">※</span></td><td class="num">2.02 PF</td><td class="num">13.6×</td></tr>
                 <tr class="hl"><td><strong>Maia 200</strong></td><td>Maia SDK(PyTorch / Triton)</td><td>★★★☆ SDK 仍在 preview</td><td>微软称每美元性能比现役硬件高 30%、FP4 算力为 Trainium3 的 3 倍;第三方 MFU 无公开数据</td><td class="num">0.35 <span class="est">※</span></td><td class="num">1.77 PF</td><td class="num">12.0×</td></tr>
                 <tr><td>MI355X</td><td>ROCm 7 / vLLM / SGLang</td><td>★★★★</td><td>ROCm 官方博客给出 625 FLOP/B 的机器平衡分析,kernel 层文档化程度已接近 NVIDIA</td><td class="num">0.35 <span class="est">※</span></td><td class="num">1.75 PF</td><td class="num">11.8×</td></tr>
+                <tr class="hl"><td><strong>MI350P(PCIe)</strong></td><td>ROCm 7 / vLLM / SGLang</td><td>★★★★</td><td><strong>全表唯一一行有厂商官方 delivered 数字的卡</strong>:datasheet 给出 FP8 1529 TFLOPS(peak 2300 的 66.5%)、BF16 713(62%)、MXFP4 2299(50%)、显存带宽 3.6 TB/s(90%)。同门的 ROCm Gluon 内核博客在 MI355 上把一个 FP16 GEMM 从 520 调到 1489 TFLOPS(<strong>MFMA 单元效率 99%,但只有 datasheet 峰值的 60%</strong>),两个独立来源落在同一条折扣曲线上。AMD 官方另有一篇博客明确<strong>建议 MFU 的分母用 MAF 而不是 peak</strong></td><td class="num">0.35 <span class="est">※</span><br />(对 peak)</td><td class="num">805 TF</td><td class="num">5.4×</td></tr>
                 <tr><td>Trainium3</td><td>Neuron SDK / NKI</td><td>★★★ 编译器路径窄</td><td>官方称相对 Trn2 性能 ×4.4、每瓦 ×4;MFU 未公开</td><td class="num">0.30 <span class="est">※</span></td><td class="num">755 TF</td><td class="num">5.1×</td></tr>
                 <tr class="hl"><td><strong>昇腾 950DT</strong></td><td>CANN / MindSpore / MindSpeed MM / vLLM-Ascend / SGLang</td><td>★★★ 生态在补</td><td>盘古 Ultra 稠密训练 MFU &gt;50%、MoE 41%(910 代、FP16);950 的 FP8/FP4 路径尚无公开 MFU。<strong>2026-07-28 Kimi K3 0day 适配</strong>:训练侧基于 MindSpeed MM 在 Atlas 800 A3 / Atlas 900 A3 SuperPoD 完成减层训练复现(算子、并行加速、显存优化专项),推理侧走 vLLM Ascend + SGLang;官方明确<strong>昇腾 950 超节点支持 FP8/MXFP8/MXFP4 全系列格式,原生支持 K3 的 mxFP4 权重</strong> —— 全榜唯一同时给出训练与推理证据的非 CUDA 平台</td><td class="num">0.30 <span class="est">※</span></td><td class="num">600 TF</td><td class="num">4.1×</td></tr>
                 <tr><td>Gaudi 3</td><td>SynapseAI / oneAPI</td><td>★★☆</td><td>官方称能效相对 H100 有优势,MFU 无第三方公开数据</td><td class="num">0.25 <span class="est">※</span></td><td class="num">459 TF</td><td class="num">3.1×</td></tr>
@@ -1988,6 +2003,7 @@
               <div class="mfu-row"><span class="nm">TPU 8t</span><span class="mfu-track"><span class="mfu-peak" style="--p: 32%; --c: var(--goo)"></span><span class="mfu-eff" style="--e: 13%; --c: var(--goo); --d: .45s"></span></span><span class="vl">6.3 PF → 2.5 PF</span></div>
               <div class="mfu-row"><span class="nm">Microsoft Maia 200</span><span class="mfu-track"><span class="mfu-peak" style="--p: 25%; --c: var(--ms)"></span><span class="mfu-eff" style="--e: 9%; --c: var(--ms); --d: .5s"></span></span><span class="vl">5.07 PF → 1.77 PF</span></div>
               <div class="mfu-row"><span class="nm">MI355X</span><span class="mfu-track"><span class="mfu-peak" style="--p: 25%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 9%; --c: var(--amd); --d: .55s"></span></span><span class="vl">5 PF → 1.75 PF</span></div>
+              <div class="mfu-row"><span class="nm">MI350P(PCIe)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 11.5%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 4%; --c: var(--amd); --d: .6s"></span></span><span class="vl">2.3 PF → 805 TF</span></div>
               <div class="mfu-row"><span class="nm">Trainium3</span><span class="mfu-track"><span class="mfu-peak" style="--p: 13%; --c: var(--aws)"></span><span class="mfu-eff" style="--e: 4%; --c: var(--aws); --d: .65s"></span></span><span class="vl">2.5 PF → 755 TF</span></div>
               <div class="mfu-row"><span class="nm">昇腾 950DT</span><span class="mfu-track"><span class="mfu-peak" style="--p: 10%; --c: var(--hw)"></span><span class="mfu-eff" style="--e: 3%; --c: var(--hw); --d: .75s"></span></span><span class="vl">2 PF → 600 TF</span></div>
               <div class="mfu-row"><span class="nm">昇腾 910C(BF16)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 4%; --c: var(--hw)"></span><span class="mfu-eff" style="--e: 1.7%; --c: var(--hw); --d: .85s"></span></span><span class="vl">800 TF → 336 TF</span></div>
@@ -2019,6 +2035,24 @@
               两张卡的分数都来自「结构好」的维度 —— RNGD 靠 SRAM 与能效,DF1000 靠带宽(6.4 TB/s)与域规模(64 卡) —— 而这些维度都不直接产出 token。
               需要说清楚的是那个 0.20 的 MFU 是我给的最保守估计(全榜最低),理由是 CAAP 是一套全新的编译器栈、且没有任何第三方基准;
               <strong>如果它的实际 MFU 能做到 0.35,有效算力就会反超 H20</strong>。这一行是全表最应该等真实数据来推翻的一行。
+            </span>
+            <span class="fig-cap">
+              <strong>2026-07-30:这一节的分母被正式写清楚了 —— 上表「折算用 MFU」一列的分母一律是 datasheet 的 peak。</strong>
+              这句话过去是隐含的,现在必须写明,因为 AMD 官方博客在这个月给出了三层定义并明确<strong>建议把 MFU 的分母从 peak 换成 MAF</strong>(Max-Achievable FLOPs):
+              peak 是按 boost 频率的数学上限;<strong>MAF 是在最优矩阵尺寸、稳定热环境、冷缓存下可测的上限</strong>;delivered 则是真实应用里 GEMM 实际拿到的数。
+              AMD 的理由很实在:开发者能调的旋钮只影响 MAF 到 delivered 这一段,拿 peak 当分母会让优化目标永远达不到,反而失去指导意义。
+            </span>
+            <span class="fig-cap">
+              换分母会让这张表的数字变成什么样,MI350P 这一行给了唯一一个可核对的样本:<strong>它的 0.35(对 peak)等价于 0.53(对 delivered)。</strong>
+              也就是说,当我给一张卡估 0.35 的 MFU 时,真实含义更接近「<strong>把厂商写在 datasheet 上那个数打到一半以下</strong>」,而不是「浪费了三分之二的硅」。
+              这对读全表有两个直接影响:<strong>(1) 表里所有 0.2–0.5 的估计值,换成 MAF 分母之后大致要 ÷0.6 到 ÷0.9</strong>(取决于该家标称有多激进),看起来会「体面」很多,但有效算力那一列一个字都不变;
+              <strong>(2) 跨厂商比 MFU 数字本身是没有意义的</strong> —— 因为分母的激进程度不同。要比就比最后两列(有效算力与 vs H20),那两列不受分母口径影响。
+            </span>
+            <span class="fig-cap">
+              最后一条,是本节这几天最该被记住的一句:<strong>这张表的第五列(MFU)和第零节讲的达成率是两件事,而它们会相乘。</strong>
+              达成率(44%–93%)说的是「一个写到位的 GEMM 内核能从这块硅上拿到峰值的多少」,MFU 说的是「一个真实模型的端到端执行里有多少时间花在有效的矩阵乘上」。
+              第零节动态图 5 那个端到端实测就是两者相乘之后的东西:MI300X 纸面算力比 H100 高 32%,端到端只剩 49%–80%。
+              <strong>所以看到「某卡 MFU 40%」这种说法时,先问一句分母是 peak 还是 MAF —— 这两个答案之间差着将近两倍。</strong>
             </span>
           </div>
 
