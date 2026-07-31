@@ -103,12 +103,61 @@
 }
 @media (max-width: 640px) { .notes-count { margin-left: 0; width: 100%; } }
 
+/* ---------- Notes groups (技术笔记 / 行业分析) ---------- */
+
+.notes-groups { padding-bottom: clamp(60px, 10vh, 120px); }
+/* Opt out of the global `section` box (design.css) — the head and grid below
+   carry their own max-width/padding, so inheriting it would double up. */
+.notes-group { max-width: none; margin: 0; padding: 0; }
+.notes-group + .notes-group { margin-top: clamp(46px, 6vh, 76px); }
+
+.notes-group-head {
+  max-width: var(--max);
+  margin: 0 auto 20px;
+  padding: 0 var(--pad-x);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.notes-group-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.notes-group-note {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+/* The hairline fills whatever space is left, so the row reads as a divider. */
+.notes-group-rule {
+  flex: 1;
+  min-width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-strong), transparent);
+  transform: translateY(-3px);
+}
+.notes-group-count {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+@media (max-width: 720px) {
+  .notes-group-head { flex-wrap: wrap; gap: 8px 12px; }
+  .notes-group-note { order: 3; width: 100%; }
+  .notes-group-rule { display: none; }
+  .notes-group-count { margin-left: auto; }
+}
+
 /* ---------- Notes grid ---------- */
 
 .notes-grid {
   max-width: var(--max);
   margin: 0 auto;
-  padding: 0 var(--pad-x) clamp(60px, 10vh, 120px);
+  padding: 0 var(--pad-x);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;

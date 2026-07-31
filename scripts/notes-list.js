@@ -1,7 +1,8 @@
 /* =========================================================================
    notes-list.js — renders the knowledge-notes index from window.NOTES.
    Handles: bilingual cards (zh/en spans so the global lang toggle works),
-   date sorting, tag filter chips, and live text search.
+   date sorting, tag filter chips, live text search, and splitting the list
+   into 技术笔记 / 行业分析 sections (see `category` in notes/notes.js).
    Loaded after notes/notes.js (the data) and works with the shared app.js
    for theme + language toggles.
    ========================================================================= */
@@ -9,8 +10,15 @@
 (function () {
   'use strict';
 
-  const grid = document.getElementById('notes-grid');
-  if (!grid) return;
+  const root = document.getElementById('notes-groups');
+  if (!root) return;
+
+  // Section order is deliberate: evergreen technical notes first, so the
+  // rolling industry snapshots don't bury them at the top of the page.
+  const GROUPS = [
+    { key: 'tech', zh: '技术笔记', en: 'Technical Notes', descZh: '原理拆解与工程实践,长期有效', descEn: 'Explainers and engineering practice — built to last' },
+    { key: 'industry', zh: '行业分析', en: 'Industry Analysis', descZh: '榜单、趋势与硬件对比,带时间戳的快照', descEn: 'Leaderboards, trends, and hardware comparisons — timestamped snapshots' },
+  ];
 
   const notes = Array.isArray(window.NOTES) ? window.NOTES.slice() : [];
   const searchInput = document.getElementById('notes-search');
@@ -85,6 +93,41 @@
     return true;
   }
 
+  function card(note) {
+    const tags = (note.tags || [])
+      .map((t) => `<li>${escapeHtml(t)}</li>`)
+      .join('');
+    return (
+      `<a class="note-card" href="notes/${encodeURIComponent(note.slug)}.html">` +
+      `<span class="note-date">${escapeHtml(fmtDate(note.date))}</span>` +
+      bilingual(note.title, 'note-title') +
+      bilingual(note.summary, 'note-summary') +
+      `<ul class="note-tags">${tags}</ul>` +
+      `<span class="note-read">` +
+      `<span lang="zh-CN" class="i18n-zh">阅读</span><span lang="en" class="i18n-en">Read</span>` +
+      ` <span class="arrow">→</span></span>` +
+      `</a>`
+    );
+  }
+
+  function section(group, items) {
+    return (
+      `<section class="notes-group" data-group="${group.key}">` +
+      `<div class="notes-group-head">` +
+      `<h2 class="notes-group-title">` +
+      `<span lang="zh-CN" class="i18n-zh">${group.zh}</span><span lang="en" class="i18n-en">${group.en}</span>` +
+      `</h2>` +
+      `<span class="notes-group-note">` +
+      `<span lang="zh-CN" class="i18n-zh">${group.descZh}</span><span lang="en" class="i18n-en">${group.descEn}</span>` +
+      `</span>` +
+      `<span class="notes-group-rule" aria-hidden="true"></span>` +
+      `<span class="notes-group-count">${items.length}</span>` +
+      `</div>` +
+      `<div class="notes-grid">${items.map(card).join('')}</div>` +
+      `</section>`
+    );
+  }
+
   function render() {
     const visible = notes.filter(matches);
 
@@ -94,33 +137,20 @@
         `<span lang="en" class="i18n-en">${visible.length} note${visible.length === 1 ? '' : 's'}</span>`;
     }
 
+    const empty = document.getElementById('notes-empty');
     if (!visible.length) {
-      grid.innerHTML = '';
-      const empty = document.getElementById('notes-empty');
+      root.innerHTML = '';
       if (empty) empty.hidden = false;
       return;
     }
-    const empty = document.getElementById('notes-empty');
     if (empty) empty.hidden = true;
 
-    grid.innerHTML = visible
-      .map((note) => {
-        const tags = (note.tags || [])
-          .map((t) => `<li>${escapeHtml(t)}</li>`)
-          .join('');
-        return (
-          `<a class="note-card" href="notes/${encodeURIComponent(note.slug)}.html">` +
-          `<span class="note-date">${escapeHtml(fmtDate(note.date))}</span>` +
-          bilingual(note.title, 'note-title') +
-          bilingual(note.summary, 'note-summary') +
-          `<ul class="note-tags">${tags}</ul>` +
-          `<span class="note-read">` +
-          `<span lang="zh-CN" class="i18n-zh">阅读</span><span lang="en" class="i18n-en">Read</span>` +
-          ` <span class="arrow">→</span></span>` +
-          `</a>`
-        );
-      })
-      .join('');
+    // Only render a section that still has matches, so filtering never
+    // leaves a stranded heading behind.
+    root.innerHTML = GROUPS.map((g) => {
+      const items = visible.filter((n) => (n.category || 'tech') === g.key);
+      return items.length ? section(g, items) : '';
+    }).join('');
   }
 
   if (tagBar) {

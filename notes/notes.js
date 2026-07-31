@@ -9,12 +9,22 @@
 
    Entry shape:
      {
-       slug:    "your-file-name-without-.html",   // -> notes/your-file-name.html
-       title:   { zh: "中文标题", en: "English title" },
-       summary: { zh: "一句话摘要", en: "One-line summary" },
-       date:    "2026-05-29",                      // ISO date, used for sorting
-       tags:    ["LLM", "Training"]                // free-form, also build the filter bar
+       slug:     "your-file-name-without-.html",  // -> notes/your-file-name.html
+       title:    { zh: "中文标题", en: "English title" },
+       summary:  { zh: "一句话摘要", en: "One-line summary" },
+       date:     "2026-05-29",                     // ISO date, used for sorting
+       tags:     ["LLM", "Training"],              // free-form, also build the filter bar
+       category: "tech"                            // "tech" | "industry" (see below)
      }
+
+   `category` splits the index page into two sections:
+     "tech"     — 技术笔记 / Technical Notes.  Long-lived explainers: how a
+                  system works, why a design is the way it is. This is the
+                  default when `category` is omitted.
+     "industry" — 行业分析 / Industry Analysis.  Time-stamped snapshots that
+                  go stale: leaderboards, hardware rankings, trend radars.
+   Keeping them apart stops the rolling snapshots from burying the
+   evergreen technical notes at the top of the list.
 
    Notes are sorted by `date` descending automatically — order here doesn't
    matter, but keeping newest on top is tidy.
@@ -36,6 +46,7 @@ window.NOTES = [
     },
     date: "2026-07-31",
     tags: ["Attention", "KV Cache", "GQA", "Long Context", "Inference"],
+    category: "tech",
   },
   {
     slug: "ai-accelerator-ranking-2026-07-27",
@@ -49,6 +60,7 @@ window.NOTES = [
     },
     date: "2026-07-27",
     tags: ["GPU", "NPU", "Hardware", "Ranking", "Roofline", "MFU", "Trend Analysis"],
+    category: "industry",
   },
   {
     slug: "ai-infra-llm-radar-2026-06-22",
@@ -62,6 +74,7 @@ window.NOTES = [
     },
     date: "2026-07-27",
     tags: ["AI Infra", "LLM", "Inference", "KV Cache", "Agents", "Trend Analysis"],
+    category: "industry",
   },
   {
     slug: "vllm-gpu-memory-utilization",
@@ -75,6 +88,7 @@ window.NOTES = [
     },
     date: "2026-07-03",
     tags: ["vLLM", "KV Cache", "Memory", "Inference"],
+    category: "tech",
   },
   {
     slug: "llm-leaderboard-2026-06-30",
@@ -88,6 +102,7 @@ window.NOTES = [
     },
     date: "2026-07-13",
     tags: ["LLM", "Leaderboard", "Benchmarks", "Coding", "Trend Analysis"],
+    category: "industry",
   },
   {
     slug: "sequence-parallel-and-comms",
@@ -101,6 +116,7 @@ window.NOTES = [
     },
     date: "2026-06-11",
     tags: ["Distributed", "Sequence Parallel", "LLM", "Communication"],
+    category: "tech",
   },
   {
     slug: "github-daily-trending",
@@ -114,6 +130,7 @@ window.NOTES = [
     },
     date: "2026-07-13",
     tags: ["GitHub", "Trending", "Multi-window", "Agent Safety", "Runtime Guardrails", "Trend Analysis"],
+    category: "industry",
   },
   {
     slug: "cuda-graph-vllm",
@@ -127,6 +144,7 @@ window.NOTES = [
     },
     date: "2026-06-05",
     tags: ["CUDA", "vLLM", "Inference", "Performance"],
+    category: "tech",
   },
   {
     slug: "vllm-architecture",
@@ -140,6 +158,7 @@ window.NOTES = [
     },
     date: "2026-05-29",
     tags: ["vLLM", "LLM", "Inference", "System"],
+    category: "tech",
   },
   {
     slug: "example-sequence-parallel",
@@ -153,6 +172,7 @@ window.NOTES = [
     },
     date: "2026-05-20",
     tags: ["LLM", "Distributed", "Training"],
+    category: "tech",
   },
   {
     slug: "example-deblurgan",
@@ -166,5 +186,6 @@ window.NOTES = [
     },
     date: "2026-04-08",
     tags: ["Computer Vision", "GAN", "Research"],
+    category: "tech",
   },
 ];
