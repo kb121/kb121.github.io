@@ -25,6 +25,19 @@
 
 window.NOTES = [
   {
+    slug: "qkv-lifecycle-256k",
+    title: {
+      zh: "Q / K / V 在 256K 对话窗口中的一生",
+      en: "The Life of Q / K / V in a 256K Chat Window",
+    },
+    summary: {
+      zh: "以 HYV3(80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 / 262144 上下文)为例,用三段可交互动画拆解 Q、K、V 各自的生命周期:Q 每步重建即弃、与序列长度无关,K/V 只增不减一路堆到 80 GiB;并给出 GQA 分组、prefill 与 decode 的形状差异、前缀缓存,以及由访存带宽推出的 decode 吞吐衰减曲线。",
+      en: "Using HYV3 (80 layers / 64 Q heads / 8 KV heads / head_dim 128 / bf16 / 262144 context), three interactive animations trace what happens to Q, K, and V: Q is rebuilt and discarded every step and never grows with sequence length, while K/V only accumulate — all the way to 80 GiB. Covers GQA grouping, prefill vs decode shapes, prefix caching, and the bandwidth-bound decode throughput decay curve.",
+    },
+    date: "2026-07-31",
+    tags: ["Attention", "KV Cache", "GQA", "Long Context", "Inference"],
+  },
+  {
     slug: "ai-accelerator-ranking-2026-07-27",
     title: {
       zh: "商用 AI 加速卡统计与排名:以 NVIDIA H20 为基线",

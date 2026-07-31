@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  Q / K / V 在 256K 对话窗口中的一生 — HYV3 (300B-A20B)
+  -------------------------------------------------------------------------
+  模型参数取自 HYV3 配置:80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 /
+  max_position_embeddings 262144。性能数字为 HBM 访存理论下界估算,未计入
+  通信、调度与 kernel 效率损失,仅用于说明量级关系,不要当作实测引用。
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="Q / K / V 在 256K 对话窗口中的一生 — 庄宏" data-en="The Life of Q / K / V in a 256K Chat Window — Hong Zhuang">Q / K / V 在 256K 对话窗口中的一生 — 庄宏</title>
+    <meta
+      name="description"
+      content="以 HYV3(80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 / 262144 上下文)为例,用三段动画拆解一个 256K 对话窗口里 Q、K、V 各自的生命周期:Q 每步重建即弃,K/V 只增不减一路堆到 80 GiB,以及由此带来的 decode 吞吐衰减曲线。"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ===== 本篇作用域内的样式:Q/K/V 三色贯穿全篇 ===== */
+      .qkv-note {
+        --q: #22d3ee;
+        --k: #a78bfa;
+        --v: #fbbf24;
+        --hot: #fb7185;
+        --ok: #34d399;
+        --on-accent: #08101c;
+        --inset: color-mix(in srgb, var(--surface-strong), transparent 30%);
+      }
+      /* 浅色主题下压暗三色,保证小字号标签的对比度;色块上的文字随之转白 */
+      [data-theme="light"] .qkv-note {
+        --q: #0e7490;
+        --k: #6d28d9;
+        --v: #b45309;
+        --hot: #be123c;
+        --ok: #047857;
+        --on-accent: #fff;
+      }
+
+      .qkv-note .qkv-lede { font-size: 1.02rem; line-height: 1.85; }
+
+      .qkv-specs { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.2rem 0 1.6rem; }
+      .qkv-specs .chip { display: flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); font-family: var(--font-mono); font-size: .72rem; color: var(--text-muted); }
+      .qkv-specs .chip b { color: var(--text); font-weight: 600; }
+
+      .qkv-card { margin: 1.5rem 0; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+
+      /* ---------- 一、三个张量的角色卡 ---------- */
+      .qkv-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(275px, 1fr)); gap: 14px; margin: 1.4rem 0; }
+      .qkv-role { position: relative; overflow: hidden; padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+      .qkv-role::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: var(--c); }
+      .qkv-role .glyph { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 13px; border-radius: 11px; background: var(--c); color: var(--on-accent); font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; box-shadow: 0 6px 22px -8px var(--c); }
+      .qkv-role h4 { margin: 0 0 3px; font-size: .98rem; }
+      .qkv-role .tag { margin-bottom: 10px; color: var(--c); font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
+      .qkv-role p { margin: 0; color: var(--text-muted); font-size: .84rem; line-height: 1.7; }
+      .qkv-role .shape { margin-top: 12px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--inset); font-family: var(--font-mono); font-size: .7rem; color: var(--text); }
+      .qkv-role .shape span { color: var(--c); }
+      .qkv-role .life { display: inline-flex; align-items: center; gap: 7px; margin-top: 11px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--inset); font-family: var(--font-mono); font-size: .64rem; }
+      .qkv-note .pip { width: 7px; height: 7px; border-radius: 999px; background: var(--c); }
+      .qkv-note .pip.pulse { animation: qkv-pulse 1.4s ease-in-out infinite; }
+      @keyframes qkv-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+
+      /* ---------- GQA 分组 ---------- */
+      .qkv-gqa h4 { margin: 0 0 4px; font-size: .95rem; }
+      .qkv-gqa > p { margin: 0 0 6px; color: var(--text-muted); font-size: .84rem; }
+      .qkv-gqa-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px 0 4px; }
+      .qkv-gqa-group { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 76px; padding: 10px 9px 9px; border: 1px solid var(--border); border-radius: 12px; background: var(--inset); transition: .25s; }
+      .qkv-gqa-group.on { border-color: color-mix(in srgb, var(--q), transparent 45%); background: color-mix(in srgb, var(--q), transparent 92%); box-shadow: 0 8px 26px -14px var(--q); }
+      .qkv-kvpair { display: flex; gap: 4px; }
+      .qkv-kvbox { width: 16px; height: 16px; border-radius: 4px; color: var(--on-accent); font-family: var(--font-mono); font-size: .55rem; font-weight: 700; line-height: 16px; text-align: center; }
+      .qkv-kvbox.k { background: var(--k); }
+      .qkv-kvbox.v { background: var(--v); }
+      .qkv-qrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+      .qkv-qdot { width: 9px; height: 9px; border-radius: 3px; background: color-mix(in srgb, var(--q), transparent 70%); transition: .25s; }
+      .qkv-gqa-group.on .qkv-qdot { background: var(--q); box-shadow: 0 0 8px var(--q); }
+      .qkv-gqa-cap { margin-top: 10px; color: var(--text-dim); font-family: var(--font-mono); font-size: .68rem; line-height: 1.6; text-align: center; }
+
+      /* ---------- 二、显微镜 ---------- */
+      .qkv-scope-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+      .qkv-stage { display: flex; align-items: center; gap: 11px; }
+      .qkv-pill { padding: 7px 11px; border-radius: 7px; font-family: var(--font-mono); font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      .qkv-pill.pf { border: 1px solid color-mix(in srgb, var(--ok), transparent 70%); background: color-mix(in srgb, var(--ok), transparent 86%); color: var(--ok); }
+      .qkv-pill.dc { border: 1px solid color-mix(in srgb, var(--hot), transparent 70%); background: color-mix(in srgb, var(--hot), transparent 86%); color: var(--hot); }
+      .qkv-stage .t { font-size: .92rem; font-weight: 600; }
+      .qkv-scope-desc { min-height: 46px; margin: 0 0 18px; color: var(--text-muted); font-size: .84rem; line-height: 1.7; }
+      .qkv-scope-desc em { color: var(--text); font-style: normal; font-weight: 600; }
+
+      .qkv-lanes { display: flex; flex-direction: column; gap: 9px; }
+      .qkv-lane { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 13px; }
+      .qkv-lane-lab { font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted); text-align: right; }
+      .qkv-lane-lab b { display: block; font-size: .84rem; font-weight: 700; }
+      .qkv-lane-lab.q b { color: var(--q); }
+      .qkv-lane-lab.k b { color: var(--k); }
+      .qkv-lane-lab.v b { color: var(--v); }
+      .qkv-lane-lab small { font-size: .58rem; color: var(--text-dim); letter-spacing: .04em; }
+      .qkv-track { position: relative; display: flex; align-items: center; gap: 3px; height: 34px; padding: 0 5px; border: 1px solid var(--border); border-radius: 9px; background: var(--inset); overflow: hidden; }
+      .qkv-cell { flex: none; width: 19px; height: 22px; border-radius: 4px; transition: opacity .3s; }
+      .qkv-cell.new { animation: qkv-pop .34s cubic-bezier(.2, 1.5, .4, 1); }
+      @keyframes qkv-pop { from { transform: scale(.3) translateY(-9px); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .qkv-cell.ghost { opacity: .16; }
+      .qkv-cell.q { background: var(--q); box-shadow: 0 0 12px color-mix(in srgb, var(--q), transparent 45%); }
+      .qkv-cell.k { background: var(--k); }
+      .qkv-cell.v { background: var(--v); }
+      .qkv-cell.fade { animation: qkv-fadeout .55s ease forwards; }
+      @keyframes qkv-fadeout { to { opacity: 0; transform: scale(.55); } }
+      .qkv-scan { position: absolute; top: 0; bottom: 0; left: -80px; width: 70px; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text), transparent 55%), transparent); }
+      .qkv-scan.run { animation: qkv-sweep var(--dur, 1s) linear; }
+      @keyframes qkv-sweep { from { left: -80px; } to { left: var(--end, 100%); } }
+      .qkv-turnmark { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-strong); }
+
+      .qkv-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 10px; margin-top: 18px; }
+      .qkv-ro { padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--inset); }
+      .qkv-ro .kk { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; color: var(--text-dim); text-transform: uppercase; }
+      .qkv-ro .vv { margin-top: 6px; font-family: var(--font-mono); font-size: .78rem; font-weight: 600; }
+      .qkv-ro .vv .q { color: var(--q); }
+      .qkv-ro .vv .k { color: var(--k); }
+
+      .qkv-ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 18px; }
+      .qkv-note button { padding: 9px 14px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-strong); color: var(--text); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: .16s; }
+      .qkv-note button:hover { border-color: var(--border-strong); background: color-mix(in srgb, var(--surface-strong), var(--text) 6%); }
+      .qkv-note button.primary { border-color: transparent; background: var(--accent-grad); color: #06121c; font-weight: 700; }
+      .qkv-note button.primary:hover { filter: brightness(1.1); }
+      .qkv-seg { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+      .qkv-note .qkv-seg button { border: 0; border-radius: 0; background: transparent; padding: 9px 12px; }
+      .qkv-note .qkv-seg button.on { background: color-mix(in srgb, var(--q), transparent 84%); color: var(--q); }
+
+      /* ---------- 三、全程宏观 ---------- */
+      .qkv-macro-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+      .qkv-bigstat { display: flex; flex-wrap: wrap; gap: 26px; }
+      .qkv-bs .n { font-family: var(--font-mono); font-size: 1.42rem; font-weight: 700; line-height: 1.15; }
+      .qkv-bs .l { margin-top: 6px; font-family: var(--font-mono); font-size: .58rem; letter-spacing: .13em; color: var(--text-dim); text-transform: uppercase; }
+      .qkv-bs .n.q { color: var(--q); }
+      .qkv-bs .n.k { color: var(--k); }
+      .qkv-bs .n.h { color: var(--hot); }
+      .qkv-bs .n.o { color: var(--ok); }
+      .qkv-note canvas { display: block; width: 100%; }
+      .qkv-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); }
+      .qkv-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
+
+      .qkv-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 13px; margin-top: 20px; }
+      .qkv-qb { padding: 14px 15px; border: 1px solid var(--border); border-radius: 13px; background: var(--inset); }
+      .qkv-qb h5 { margin: 0 0 4px; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+      .qkv-qb h5.q { color: var(--q); }
+      .qkv-qb h5.k { color: var(--k); }
+      .qkv-qb h5.v { color: var(--v); }
+      .qkv-qb .st { min-height: 34px; margin-bottom: 11px; font-size: .72rem; line-height: 1.6; color: var(--text-dim); }
+      .qkv-meter { position: relative; height: 12px; border-radius: 999px; background: var(--surface-strong); overflow: hidden; }
+      .qkv-meter i { display: block; width: 0%; height: 100%; border-radius: 999px; transition: width .12s linear; }
+      .qkv-meter i.q { background: linear-gradient(90deg, color-mix(in srgb, var(--q), transparent 60%), var(--q)); }
+      .qkv-meter i.k { background: linear-gradient(90deg, color-mix(in srgb, var(--k), transparent 60%), var(--k)); }
+      .qkv-meter i.v { background: linear-gradient(90deg, color-mix(in srgb, var(--v), transparent 60%), var(--v)); }
+      .qkv-meter i.blink { animation: qkv-blink .42s ease-in-out infinite; }
+      @keyframes qkv-blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+      .qkv-qb .num { display: flex; justify-content: space-between; margin-top: 10px; font-family: var(--font-mono); font-size: .72rem; color: var(--text-muted); }
+      .qkv-qb .num b { color: var(--text); font-weight: 600; }
+
+      .qkv-timeline { display: flex; flex-wrap: wrap; align-items: center; gap: 13px; margin-top: 18px; }
+      .qkv-note input[type="range"] { flex: 1; min-width: 210px; height: 5px; border-radius: 999px; background: var(--surface-strong); outline: none; -webkit-appearance: none; appearance: none; }
+      .qkv-note input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 999px; background: var(--q); cursor: pointer; box-shadow: 0 0 0 4px color-mix(in srgb, var(--q), transparent 82%); }
+      .qkv-note input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 999px; background: var(--q); cursor: pointer; }
+
+      .qkv-chatlog { position: relative; height: 148px; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--inset); overflow: hidden; }
+      .qkv-msg { display: flex; gap: 9px; font-family: var(--font-mono); font-size: .7rem; line-height: 1.65; opacity: .55; }
+      .qkv-msg.cur { opacity: 1; }
+      .qkv-msg .who { flex: none; width: 62px; font-weight: 700; }
+      .qkv-msg.u .who { color: var(--ok); }
+      .qkv-msg.a .who { color: var(--hot); }
+      .qkv-msg .tx { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--text-muted); }
+      .qkv-msg .tk { flex: none; color: var(--text-dim); }
+
+      /* ---------- 四、代价曲线 ---------- */
+      .qkv-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 1.4rem 0; }
+      @media (max-width: 860px) { .qkv-charts { grid-template-columns: 1fr; } }
+      .qkv-chart h5 { margin: 0 0 2px; font-size: .9rem; }
+      .qkv-chart .cs { margin-bottom: 12px; font-size: .72rem; color: var(--text-dim); }
+
+      /* ---------- 五、要点 ---------- */
+      .qkv-takes { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 13px; margin: 1.4rem 0; }
+      .qkv-take { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .qkv-take .n { margin-bottom: 9px; font-family: var(--font-mono); font-size: .7rem; font-weight: 700; color: var(--text-dim); }
+      .qkv-take h5 { margin: 0 0 8px; font-size: .92rem; }
+      .qkv-take p { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .qkv-note *,
+        .qkv-note *::before,
+        .qkv-note *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page qkv-note">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-07-31</span>
+            <span class="tags"><span>Attention</span><span>KV Cache</span><span>GQA</span><span>Long Context</span><span>Inference</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">Q / K / V 在 256K 对话窗口中的一生</span><span lang="en" class="i18n-en">The Life of Q / K / V in a 256K Chat Window</span></h1>
+        </header>
+
+        <div class="prose">
+          <p class="qkv-lede">
+            同一个聊天窗口里持续对话,直到上下文用满 262,144 token。这个过程中 Query 每一步都被造出来又立刻丢弃,
+            而 Key / Value 只增不减,一路堆到 80 GiB 显存。下面用三段动画把这件事拆开看。
+          </p>
+
+          <div class="qkv-specs">
+            <span class="chip">层数 <b>80</b></span>
+            <span class="chip">Q 头 <b>64</b></span>
+            <span class="chip">KV 头 <b>8</b> (GQA)</span>
+            <span class="chip">head_dim <b>128</b></span>
+            <span class="chip">hidden <b>4096</b></span>
+            <span class="chip">上下文 <b>262,144</b></span>
+            <span class="chip">dtype <b>bf16</b></span>
+          </div>
+
+          <h2>一、三个张量,两种命运</h2>
+
+          <p>
+            Q、K、V 都由同一个 token 的隐状态线性投影而来,但它们在时间轴上的行为完全不同:
+            Q 是「一次性」的,K/V 是「永久」的。这个区别决定了长上下文推理的全部工程难点。
+          </p>
+
+          <div class="qkv-roles">
+            <div class="qkv-role" style="--c: var(--q)">
+              <div class="glyph">Q</div>
+              <div class="tag">Query · 瞬时</div>
+              <h4>我现在想找什么</h4>
+              <p>只属于「当前正在计算的那些 token」。算完这一层的 attention 就被释放,不进缓存、不跨步复用。序列再长,Q 也不会变大。</p>
+              <div class="shape">q_proj: 4096 → <span>64 × 128 = 8192</span></div>
+              <div class="life"><i class="pip pulse"></i> 生命周期:单层单步,用完即弃</div>
+            </div>
+
+            <div class="qkv-role" style="--c: var(--k)">
+              <div class="glyph">K</div>
+              <div class="tag">Key · 累积</div>
+              <h4>历史里都有什么</h4>
+              <p>每个 token 算一次,然后<strong>永久写进 KV cache</strong>。后续每生成一个 token,都要把整条历史的 K 重新读一遍算注意力分数。</p>
+              <div class="shape">k_proj: 4096 → <span>8 × 128 = 1024</span></div>
+              <div class="life"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</div>
+            </div>
+
+            <div class="qkv-role" style="--c: var(--v)">
+              <div class="glyph">V</div>
+              <div class="tag">Value · 累积</div>
+              <h4>取到之后拿走什么</h4>
+              <p>与 K 完全同步地累积。注意力权重算好后,用它对全部历史 V 做加权求和。K 和 V 一起构成 KV cache 的两半。</p>
+              <div class="shape">v_proj: 4096 → <span>8 × 128 = 1024</span></div>
+              <div class="life"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</div>
+            </div>
+          </div>
+
+          <div class="qkv-card qkv-gqa">
+            <h4>GQA:64 个 Q 头,只养 8 份 K/V</h4>
+            <p>
+              每组 8 个 Query 头共享同一份 Key/Value。KV cache 因此比 MHA 小 8 倍 —— 这是 256K 上下文能跑起来的前提。
+              鼠标划过任意一组看分组关系。
+            </p>
+            <div class="qkv-gqa-grid" id="gqaGrid"></div>
+            <div class="qkv-gqa-cap">8 组 × (1 份 KV + 8 个 Q 头) &nbsp;·&nbsp; 若用 MHA 则需 64 份 KV,cache 将达 640 GiB</div>
+          </div>
+
+          <h2>二、显微镜:逐 token 慢放</h2>
+
+          <p>
+            把时间放慢,看清一轮对话内部发生了什么。每个方块 = 序列里的一个 token 位置。
+            注意 <b style="color: var(--q)">Q 行</b> 亮一下就消失,而 <b style="color: var(--k)">K</b> /
+            <b style="color: var(--v)">V</b> 行只增不减,且每个 decode step 都被从头扫一遍。
+          </p>
+
+          <div class="qkv-card">
+            <div class="qkv-scope-top">
+              <div class="qkv-stage">
+                <span class="qkv-pill pf" id="scopePill">PREFILL</span>
+                <span class="t" id="scopeTitle">第 1 轮 · 用户输入</span>
+              </div>
+              <div style="font-family: var(--font-mono); font-size: .7rem; color: var(--text-dim)" id="scopeStep">step —</div>
+            </div>
+
+            <p class="qkv-scope-desc" id="scopeDesc"></p>
+
+            <div class="qkv-lanes">
+              <div class="qkv-lane">
+                <div class="qkv-lane-lab q"><b>Q</b><small>瞬时 / 丢弃</small></div>
+                <div class="qkv-track" id="laneQ"></div>
+              </div>
+              <div class="qkv-lane">
+                <div class="qkv-lane-lab k"><b>K cache</b><small>累积 / 常驻</small></div>
+                <div class="qkv-track" id="laneK"><div class="qkv-scan" id="scanK"></div></div>
+              </div>
+              <div class="qkv-lane">
+                <div class="qkv-lane-lab v"><b>V cache</b><small>累积 / 常驻</small></div>
+                <div class="qkv-track" id="laneV"><div class="qkv-scan" id="scanV"></div></div>
+              </div>
+            </div>
+
+            <div class="qkv-readout">
+              <div class="qkv-ro"><div class="kk">本步 Q 形状</div><div class="vv"><span class="q" id="roQ">—</span></div></div>
+              <div class="qkv-ro"><div class="kk">本步新增 K / V</div><div class="vv"><span class="k" id="roKV">—</span></div></div>
+              <div class="qkv-ro"><div class="kk">Attention 矩阵</div><div class="vv" id="roAttn">—</div></div>
+              <div class="qkv-ro"><div class="kk">KV cache 累计</div><div class="vv" id="roCache">—</div></div>
+            </div>
+
+            <div class="qkv-ctrls">
+              <button class="primary" id="scopePlay">暂停</button>
+              <button id="scopeStepBtn">单步 →</button>
+              <button id="scopeReset">重置</button>
+              <div class="qkv-seg" id="scopeSpeed">
+                <button data-s="1600">慢</button>
+                <button data-s="900" class="on">正常</button>
+                <button data-s="420">快</button>
+              </div>
+            </div>
+          </div>
+
+          <h2>三、全程:聊到 256K 用满</h2>
+
+          <p>
+            快进视角。约 260 轮往返对话,逐步吃满 262,144 token 的窗口。
+            每一轮用户提问触发一次 <b style="color: var(--ok)">prefill</b>(只处理新增部分,历史命中前缀缓存),
+            模型回答则是成百上千次 <b style="color: var(--hot)">decode</b>。
+          </p>
+
+          <div class="qkv-card" id="act3">
+            <div class="qkv-macro-head">
+              <div class="qkv-bigstat">
+                <div class="qkv-bs"><div class="n q" id="mCtx">0</div><div class="l">已用 token</div></div>
+                <div class="qkv-bs"><div class="n k" id="mMem">0.00 GiB</div><div class="l">KV cache 显存</div></div>
+                <div class="qkv-bs"><div class="n o" id="mTurn">0</div><div class="l">对话轮次</div></div>
+                <div class="qkv-bs"><div class="n h" id="mSpeed">— tok/s</div><div class="l">decode 吞吐</div></div>
+              </div>
+              <div style="text-align: right">
+                <div style="font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; color: var(--text-dim); text-transform: uppercase">当前阶段</div>
+                <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700" id="mPhase">—</div>
+              </div>
+            </div>
+
+            <canvas id="ribbon" height="132"></canvas>
+            <div class="qkv-legend">
+              <span><i style="background: #34d399"></i>用户输入 (prefill)</span>
+              <span><i style="background: #fb7185"></i>模型输出 (decode)</span>
+              <span><i style="background: var(--surface-strong)"></i>剩余窗口</span>
+              <span><i style="background: var(--q)"></i>当前写入位置</span>
+            </div>
+
+            <div class="qkv-timeline">
+              <button class="primary" id="mPlay">▶ 播放</button>
+              <input type="range" id="mScrub" min="0" max="1000" value="0" aria-label="播放进度" />
+              <div class="qkv-seg" id="mSpeedSel">
+                <button data-s="1" class="on">1×</button>
+                <button data-s="2">2×</button>
+                <button data-s="4">4×</button>
+              </div>
+              <button id="mReset">重置</button>
+            </div>
+
+            <div class="qkv-bars">
+              <div class="qkv-qb">
+                <h5 class="q">Q · 每步重新生成</h5>
+                <div class="st">无论上下文多长,单步 Q 永远只有当前 token 那么大,算完立刻归还显存。</div>
+                <div class="qkv-meter"><i class="q" id="barQ" style="width: 4%"></i></div>
+                <div class="num"><span>本步临时占用</span><b id="numQ">16 KiB</b></div>
+              </div>
+              <div class="qkv-qb">
+                <h5 class="k">K cache · 只增不减</h5>
+                <div class="st">每 token 每层写入 8×128 的 bf16 向量,全 80 层合计 160 KiB,永不释放。</div>
+                <div class="qkv-meter"><i class="k" id="barK" style="width: 0%"></i></div>
+                <div class="num"><span>已累计</span><b id="numK">0.00 GiB</b></div>
+              </div>
+              <div class="qkv-qb">
+                <h5 class="v">V cache · 只增不减</h5>
+                <div class="st">与 K 完全同步增长。两者相加就是那条决定推理成本的 80 GiB。</div>
+                <div class="qkv-meter"><i class="v" id="barV" style="width: 0%"></i></div>
+                <div class="num"><span>已累计</span><b id="numV">0.00 GiB</b></div>
+              </div>
+            </div>
+
+            <div class="qkv-chatlog" id="chatlog"></div>
+          </div>
+
+          <h2>四、代价曲线</h2>
+
+          <p>
+            KV cache 随上下文线性增长,而 decode 吞吐随之衰减 —— 因为每生成一个 token,都必须把整条 cache 从 HBM 完整读一遍。
+            下图按 H100 SXM(3.35 TB/s,单序列,理论下界)估算。
+          </p>
+
+          <div class="qkv-charts">
+            <div class="qkv-card qkv-chart">
+              <h5>KV cache 显存 vs 上下文长度</h5>
+              <div class="cs">320 KiB / token(80 层 × 2 × 8 头 × 128 × 2B)</div>
+              <canvas id="chartMem" height="250"></canvas>
+            </div>
+            <div class="qkv-card qkv-chart">
+              <h5>decode 吞吐 vs 上下文长度</h5>
+              <div class="cs">权重 40 GB 常数 + KV cache 线性项,全部访存受限</div>
+              <canvas id="chartSpd" height="250"></canvas>
+            </div>
+          </div>
+
+          <h2>五、五个要点</h2>
+
+          <div class="qkv-takes">
+            <div class="qkv-take">
+              <div class="n">01</div>
+              <h5>Q 不是问题,KV 才是</h5>
+              <p>Q 的显存占用与序列长度无关,decode 时单层仅 <code>64×128×2B = 16 KiB</code>。真正撑爆显存的是那 80 GiB 的 K/V。优化长上下文,本质上是在优化 KV cache。</p>
+            </div>
+            <div class="qkv-take">
+              <div class="n">02</div>
+              <h5>prefill 算力密集,decode 访存密集</h5>
+              <p>prefill 把成千上万个 token 的 Q/K/V 一次性算出来,是漂亮的大 GEMM;decode 每步只有一个 Q 向量,退化成 GEMV,算术强度约 <code>8 FLOP/byte</code>,远低于 H100 约 590 的拐点。</p>
+            </div>
+            <div class="qkv-take">
+              <div class="n">03</div>
+              <h5>多轮对话不重算历史</h5>
+              <p>第 2 轮起,用户新消息只需 prefill 新增的那几百个 token,之前所有 K/V 直接命中缓存。这就是「前缀缓存」,也是同一窗口连续对话比新开窗口快得多的原因。</p>
+            </div>
+            <div class="qkv-take">
+              <div class="n">04</div>
+              <h5>越聊越慢是物理规律</h5>
+              <p>空窗口时每 token 约 12 ms(只需读 20B 激活权重),满窗口时约 38 ms(额外读 80 GiB cache)。吞吐从约 84 tok/s 掉到约 27 tok/s,与模型质量无关。</p>
+            </div>
+            <div class="qkv-take">
+              <div class="n">05</div>
+              <h5>GQA 是这一切的前提</h5>
+              <p>若用 MHA(64 份 KV),256K 的 cache 会是 640 GiB,单机八卡都放不下。GQA 把它压到 80 GiB,同时让每份 KV 被 8 个 Q 头复用,decode 的算术强度也提高 8 倍。</p>
+            </div>
+          </div>
+
+          <blockquote>
+            参数取自 HYV3 配置:80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 / max_position_embeddings 262144。
+            性能数字为访存理论下界估算,未计入通信、调度与 kernel 效率损失,仅用于说明量级关系。
+          </blockquote>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+
+    <script>
+      (function () {
+        /* ================= 常量 ================= */
+        var L = 80, QH = 64, KVH = 8, HD = 128, EB = 2, CTX = 262144;
+        var KV_PER_TOK = 2 * KVH * HD * EB * L; // 327680 B = 320 KiB
+        var Q_PER_TOK_LAYER = QH * HD * EB; // 16384 B = 16 KiB
+        var HBM = 3.35e12; // B/s
+        var W_BYTES = 20e9 * EB; // 激活权重 40 GB
+        var GiB = Math.pow(1024, 3);
+
+        var fmtInt = function (n) { return Math.round(n).toLocaleString('en-US'); };
+        var gib = function (b) { return (b / GiB).toFixed(2) + ' GiB'; };
+        var msPerTok = function (n) { return (W_BYTES + n * KV_PER_TOK) / HBM * 1000; };
+        var tps = function (n) { return 1000 / msPerTok(n); };
+
+        // 画布颜色跟随站点明暗主题
+        var cvar = function (name, fallback) {
+          var v = getComputedStyle(document.body).getPropertyValue(name).trim();
+          return v || fallback;
+        };
+        var repaint = [];
+        new MutationObserver(function () {
+          repaint.forEach(function (fn) { fn(); });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        /* ================= 一、GQA 图 ================= */
+        (function () {
+          var g = document.getElementById('gqaGrid');
+          for (var i = 0; i < KVH; i++) {
+            var d = document.createElement('div');
+            d.className = 'qkv-gqa-group';
+            d.innerHTML =
+              '<div class="qkv-kvpair"><div class="qkv-kvbox k">K</div><div class="qkv-kvbox v">V</div></div>' +
+              '<div class="qkv-qrow">' + new Array(9).join('<div class="qkv-qdot"></div>') + '</div>';
+            d.addEventListener('mouseenter', function () { this.classList.add('on'); });
+            d.addEventListener('mouseleave', function () { this.classList.remove('on'); });
+            g.appendChild(d);
+          }
+          var idx = 0, hovering = false;
+          g.addEventListener('mouseenter', function () { hovering = true; });
+          g.addEventListener('mouseleave', function () { hovering = false; });
+          setInterval(function () {
+            if (hovering) return;
+            var gs = g.children;
+            for (var j = 0; j < gs.length; j++) gs[j].classList.remove('on');
+            gs[idx % KVH].classList.add('on');
+            idx++;
+          }, 900);
+        })();
+
+        /* ================= 二、显微镜 ================= */
+        (function () {
+          // 剧本:一轮 = prefill(n) + 若干 decode step
+          var script = [];
+          script.push({
+            t: 'pf', turn: 1, n: 8, label: '第 1 轮 · 用户输入',
+            desc: '会话开始。用户发来 8 个 token,模型<em>一次性并行</em>为这 8 个位置算出 Q、K、V。Q 用于计算 8×8 的因果注意力后立即丢弃;K、V 被<em>写入 KV cache 并永久保留</em>。'
+          });
+          for (var i = 1; i <= 5; i++) {
+            script.push({
+              t: 'dc', turn: 1, n: 1, step: i, label: '第 1 轮 · 模型输出',
+              desc: '生成第 ' + i + ' 个回复 token。<em>只有 1 个新 Q</em>(形状与序列长度无关),它要和 cache 里<em>全部 ' + (8 + i) + ' 个位置</em>的 K 做点积、再对全部 V 加权求和。新的 K、V 追加到 cache 尾部。'
+            });
+          }
+          script.push({
+            t: 'pf', turn: 2, n: 4, label: '第 2 轮 · 用户追问',
+            desc: '用户继续追问,新增 4 个 token。关键点:<em>前面 13 个位置的 K/V 直接复用</em>,不需要重算 —— 这就是前缀缓存。只有新增的 4 个位置需要 prefill。'
+          });
+          for (var j = 1; j <= 4; j++) {
+            script.push({
+              t: 'dc', turn: 2, n: 1, step: j, label: '第 2 轮 · 模型输出',
+              desc: '继续逐 token 生成。cache 已经跨越两轮对话,长度 ' + (17 + j) + '。每一步扫描的历史都比上一步更长 —— 这就是「越聊越慢」的微观来源。'
+            });
+          }
+          script.push({
+            t: 'pf', turn: 3, n: 3, label: '第 3 轮 · 用户追问',
+            desc: '又一轮。注意 K/V 行从第 1 轮开始就<em>从未被清空过</em>,它记录了整个会话的全部历史。而 Q 行始终只有当前这一下。'
+          });
+          for (var m = 1; m <= 3; m++) {
+            script.push({
+              t: 'dc', turn: 3, n: 1, step: m, label: '第 3 轮 · 模型输出',
+              desc: '把这个循环重复几百次,cache 就会一路长到 262,144 —— 也就是下一节的内容。'
+            });
+          }
+
+          var laneQ = document.getElementById('laneQ'),
+            laneK = document.getElementById('laneK'),
+            laneV = document.getElementById('laneV'),
+            scanK = document.getElementById('scanK'),
+            scanV = document.getElementById('scanV'),
+            elPill = document.getElementById('scopePill'),
+            elTitle = document.getElementById('scopeTitle'),
+            elDesc = document.getElementById('scopeDesc'),
+            elStep = document.getElementById('scopeStep'),
+            roQ = document.getElementById('roQ'),
+            roKV = document.getElementById('roKV'),
+            roAttn = document.getElementById('roAttn'),
+            roCache = document.getElementById('roCache');
+
+          var idx = 0, cache = 0, timer = null, period = 900, playing = true;
+          var turnStarts = [];
+
+          function mkCell(cls, isNew) {
+            var c = document.createElement('div');
+            c.className = 'qkv-cell ' + cls + (isNew ? ' new' : '');
+            return c;
+          }
+
+          function render() {
+            var s = script[idx];
+            elPill.textContent = s.t === 'pf' ? 'PREFILL' : 'DECODE';
+            elPill.className = 'qkv-pill ' + (s.t === 'pf' ? 'pf' : 'dc');
+            elTitle.textContent = s.label;
+            elDesc.innerHTML = s.desc;
+            elStep.textContent = s.t === 'pf' ? '并行处理 ' + s.n + ' 个位置' : 'decode step ' + s.step;
+
+            if (s.t === 'pf' && turnStarts.indexOf(cache) === -1 && cache > 0) {
+              turnStarts.push(cache);
+              [laneK, laneV].forEach(function (ln) {
+                var mk = document.createElement('div');
+                mk.className = 'qkv-turnmark';
+                mk.style.left = (5 + cache * 22) + 'px';
+                ln.appendChild(mk);
+              });
+            }
+
+            laneQ.innerHTML = '';
+            for (var a = 0; a < cache; a++) laneQ.appendChild(mkCell('q ghost', false));
+            var qCells = [];
+            for (var b = 0; b < s.n; b++) {
+              var c = mkCell('q', true);
+              laneQ.appendChild(c);
+              qCells.push(c);
+            }
+
+            for (var d = 0; d < s.n; d++) {
+              laneK.appendChild(mkCell('k', true));
+              laneV.appendChild(mkCell('v', true));
+            }
+            cache += s.n;
+
+            // decode 时扫描整条 cache,视觉上表现「全量读取」
+            if (s.t === 'dc') {
+              var dur = Math.max(0.45, cache * 0.055);
+              [scanK, scanV].forEach(function (sc) {
+                sc.classList.remove('run');
+                void sc.offsetWidth;
+                sc.style.setProperty('--dur', dur + 's');
+                sc.style.setProperty('--end', (5 + cache * 22) + 'px');
+                sc.classList.add('run');
+              });
+            }
+            setTimeout(function () {
+              qCells.forEach(function (c) { c.classList.add('fade'); });
+            }, period * 0.55);
+
+            var n = s.n;
+            roQ.textContent = '[1, ' + QH + ', ' + n + ', ' + HD + ']';
+            roKV.textContent = '[1, ' + KVH + ', ' + n + ', ' + HD + '] ×2';
+            roAttn.innerHTML = s.t === 'pf'
+              ? '<span style="color: var(--ok)">' + n + ' × ' + n + '</span> 因果三角'
+              : '<span style="color: var(--hot)">1 × ' + cache + '</span> 单行全扫';
+            roCache.innerHTML = cache + ' token · <b style="color: var(--k)">' + (cache * KV_PER_TOK / 1024).toFixed(0) + ' KiB</b>';
+
+            [laneQ, laneK, laneV].forEach(function (ln) { ln.scrollLeft = ln.scrollWidth; });
+          }
+
+          function hardReset(rerender) {
+            idx = 0; cache = 0; turnStarts.length = 0;
+            laneQ.innerHTML = '';
+            laneK.innerHTML = ''; laneK.appendChild(scanK);
+            laneV.innerHTML = ''; laneV.appendChild(scanV);
+            if (rerender !== false) render();
+          }
+          function next() {
+            idx = (idx + 1) % script.length;
+            if (idx === 0) hardReset(false);
+            render();
+          }
+          function loop() {
+            clearInterval(timer);
+            if (playing) timer = setInterval(next, period);
+          }
+
+          document.getElementById('scopePlay').addEventListener('click', function (e) {
+            playing = !playing;
+            e.target.textContent = playing ? '暂停' : '继续';
+            loop();
+          });
+          document.getElementById('scopeStepBtn').addEventListener('click', function () {
+            playing = false;
+            document.getElementById('scopePlay').textContent = '继续';
+            clearInterval(timer);
+            next();
+          });
+          document.getElementById('scopeReset').addEventListener('click', function () {
+            hardReset(true);
+            loop();
+          });
+          document.getElementById('scopeSpeed').addEventListener('click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            period = +b.dataset.s;
+            loop();
+          });
+
+          render();
+          loop();
+        })();
+
+        /* ================= 三、全程宏观 ================= */
+        (function () {
+          // 可复现伪随机,保证每次加载对话切分一致
+          var seed = 20240731;
+          var rnd = function () {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed / 0x7fffffff;
+          };
+
+          var segs = []; // {start, end, type:'u'|'a', turn}
+          (function build() {
+            var used = 0, turn = 0;
+            while (used < CTX) {
+              turn++;
+              var inTok = turn === 1 ? 1400 : Math.round(90 + rnd() * 560);
+              inTok = Math.min(inTok, CTX - used);
+              if (inTok > 0) { segs.push({ start: used, end: used + inTok, type: 'u', turn: turn }); used += inTok; }
+              if (used >= CTX) break;
+              var outTok = Math.round(320 + rnd() * 1250);
+              outTok = Math.min(outTok, CTX - used);
+              if (outTok > 0) { segs.push({ start: used, end: used + outTok, type: 'a', turn: turn }); used += outTok; }
+            }
+          })();
+          var TOTAL_TURNS = segs[segs.length - 1].turn;
+
+          var TOPICS_U = ['帮我看下这段 kernel', '这个 shape 为什么不对', '再给个更快的版本', '解释一下这段 profile', '对比下两种实现', '有没有别的思路',
+            '这里的显存怎么算', '把上面的整理成表', '继续', '那 batch 大了呢', '换成 fp8 会怎样', '再展开讲讲'];
+          var TOPICS_A = ['已定位到访存瓶颈…', '这里的分组索引可以省掉一次拷贝…', '建议改成 grouped GEMM…', '逐层拆解如下…', '两者差异主要在…',
+            '按带宽估算大约…', '结论是…', '补充一点…', '需要注意边界情况…', '实测数据显示…'];
+
+          var cv = document.getElementById('ribbon'), ctx2d = cv.getContext('2d');
+          var elCtx = document.getElementById('mCtx'), elMem = document.getElementById('mMem'),
+            elTurn = document.getElementById('mTurn'), elSpeed = document.getElementById('mSpeed'),
+            elPhase = document.getElementById('mPhase'),
+            barQ = document.getElementById('barQ'), barK = document.getElementById('barK'), barV = document.getElementById('barV'),
+            numQ = document.getElementById('numQ'), numK = document.getElementById('numK'), numV = document.getElementById('numV'),
+            chatlog = document.getElementById('chatlog'), scrub = document.getElementById('mScrub');
+
+          var W = 0, H = 132;
+
+          function fit() {
+            var dpr = Math.min(window.devicePixelRatio || 1, 2);
+            W = cv.clientWidth;
+            cv.width = W * dpr;
+            cv.height = H * dpr;
+            ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+            draw();
+          }
+
+          var DUR = 42000; // ms 走完全程(1×)
+          var t = 0, playing = false, mul = 1, last = 0, cursor = 0, lastSegIdx = -1;
+
+          var ease = function (x) { return Math.pow(x, 1.8); };
+          var posFromT = function () { return Math.min(CTX, Math.floor(CTX * ease(Math.min(1, t / DUR)))); };
+
+          function curSeg() {
+            var lo = 0, hi = segs.length - 1, r = segs.length - 1;
+            while (lo <= hi) {
+              var mid = (lo + hi) >> 1;
+              if (segs[mid].start <= cursor) { r = mid; lo = mid + 1; } else hi = mid - 1;
+            }
+            return r;
+          }
+
+          function roundRect(c, x, y, w, h, r) {
+            c.beginPath();
+            c.moveTo(x + r, y);
+            c.arcTo(x + w, y, x + w, y + h, r);
+            c.arcTo(x + w, y + h, x, y + h, r);
+            c.arcTo(x, y + h, x, y, r);
+            c.arcTo(x, y, x + w, y, r);
+            c.closePath();
+          }
+
+          function draw() {
+            var barH = 52, y = 22;
+            ctx2d.clearRect(0, 0, W, H);
+
+            ctx2d.fillStyle = cvar('--surface-strong', 'rgba(255,255,255,.07)');
+            roundRect(ctx2d, 0, y, W, barH, 8);
+            ctx2d.fill();
+
+            var px = W / CTX, s, i;
+            for (i = 0; i < segs.length; i++) {
+              s = segs[i];
+              if (s.start >= cursor) break;
+              var e = Math.min(s.end, cursor);
+              var x0 = s.start * px, w = Math.max(px, (e - s.start) * px);
+              ctx2d.fillStyle = s.type === 'u' ? 'rgba(52,211,153,.85)' : 'rgba(251,113,133,.75)';
+              ctx2d.fillRect(x0, y, w, barH);
+            }
+            // 段间分隔线,只在段够宽时画
+            ctx2d.fillStyle = cvar('--bg', '#070817');
+            for (i = 0; i < segs.length; i++) {
+              s = segs[i];
+              if (s.start >= cursor) break;
+              if (s.start > 0 && (s.end - s.start) * px > 2.2) ctx2d.fillRect(s.start * px, y, 0.8, barH);
+            }
+            // 写入光标,颜色与下方图例的 --q 保持一致
+            var cx = cursor * px;
+            if (cursor > 0 && cursor < CTX) {
+              var qc = cvar('--q', '#22d3ee');
+              ctx2d.fillStyle = qc;
+              ctx2d.fillRect(cx - 1, y - 6, 2.5, barH + 12);
+              ctx2d.shadowColor = qc;
+              ctx2d.shadowBlur = 14;
+              ctx2d.fillRect(cx - 1, y - 6, 2.5, barH + 12);
+              ctx2d.shadowBlur = 0;
+            }
+            ctx2d.strokeStyle = cvar('--border', 'rgba(255,255,255,.12)');
+            ctx2d.lineWidth = 1;
+            roundRect(ctx2d, 0.5, y + 0.5, W - 1, barH - 1, 8);
+            ctx2d.stroke();
+
+            ctx2d.font = '500 10.5px ui-monospace, Menlo, monospace';
+            ctx2d.fillStyle = cvar('--text-dim', '#6c7591');
+            ctx2d.textAlign = 'center';
+            for (var k = 0; k <= 8; k++) {
+              var v = CTX * k / 8, x = v * px;
+              ctx2d.fillRect(Math.min(W - 1, x), y + barH + 3, 1, 4);
+              ctx2d.fillText(k === 0 ? '0' : (v / 1024) + 'K', Math.max(12, Math.min(W - 14, x)), y + barH + 18);
+            }
+            ctx2d.textAlign = 'left';
+            ctx2d.fillStyle = cvar('--text-muted', '#9aa3b8');
+            ctx2d.font = '600 11px ui-monospace, Menlo, monospace';
+            ctx2d.fillText('CONTEXT WINDOW  ·  262,144 tokens', 0, 12);
+            ctx2d.textAlign = 'right';
+            ctx2d.fillText((cursor / CTX * 100).toFixed(1) + '% 已用', W, 12);
+          }
+
+          function pushLog(si) {
+            var s = segs[si];
+            var who = s.type === 'u' ? 'USER' : 'MODEL';
+            var tx = s.type === 'u' ? TOPICS_U[si % TOPICS_U.length] : TOPICS_A[si % TOPICS_A.length];
+            var d = document.createElement('div');
+            d.className = 'qkv-msg ' + (s.type === 'u' ? 'u' : 'a');
+            d.innerHTML = '<span class="who">' + who + '</span><span class="tx">' + tx + '</span><span class="tk">' + (s.end - s.start) + ' tok</span>';
+            chatlog.appendChild(d);
+            [].forEach.call(chatlog.querySelectorAll('.qkv-msg'), function (m) { m.classList.remove('cur'); });
+            d.classList.add('cur');
+            while (chatlog.children.length > 5) chatlog.removeChild(chatlog.firstChild);
+          }
+
+          function update() {
+            cursor = posFromT();
+            var si = curSeg(), s = segs[si];
+
+            if (si !== lastSegIdx) {
+              // 快进时可能跨过多段,只补最近几条
+              var from = Math.max(lastSegIdx + 1, si - 3);
+              for (var i = from; i <= si; i++) pushLog(i);
+              lastSegIdx = si;
+            }
+
+            var isPF = s.type === 'u';
+            elPhase.textContent = isPF ? 'PREFILL' : 'DECODE';
+            elPhase.style.color = isPF ? 'var(--ok)' : 'var(--hot)';
+            elCtx.textContent = fmtInt(cursor);
+            var bytes = cursor * KV_PER_TOK;
+            elMem.textContent = gib(bytes);
+            elTurn.textContent = s.turn + ' / ' + TOTAL_TURNS;
+            elSpeed.textContent = tps(cursor).toFixed(1) + ' tok/s';
+
+            // Q 条:prefill 时按 chunk 撑满,decode 时只剩一格并闪烁
+            if (isPF) {
+              var chunk = Math.min(2048, s.end - s.start);
+              barQ.style.width = Math.min(100, 8 + chunk / 2048 * 92) + '%';
+              numQ.textContent = (chunk * Q_PER_TOK_LAYER / 1048576).toFixed(1) + ' MiB / 层';
+              barQ.classList.remove('blink');
+            } else {
+              barQ.style.width = '3.5%';
+              numQ.textContent = '16 KiB / 层';
+              barQ.classList.add('blink');
+            }
+            var p = cursor / CTX * 100;
+            barK.style.width = p + '%';
+            barV.style.width = p + '%';
+            numK.textContent = gib(bytes / 2);
+            numV.textContent = gib(bytes / 2);
+
+            scrub.value = Math.round(t / DUR * 1000);
+            draw();
+          }
+
+          function frame(ts) {
+            if (!last) last = ts;
+            var dt = ts - last;
+            last = ts;
+            if (playing) {
+              t += dt * mul;
+              if (t >= DUR) {
+                t = DUR;
+                playing = false;
+                document.getElementById('mPlay').textContent = '↻ 重放';
+              }
+              update();
+            }
+            requestAnimationFrame(frame);
+          }
+
+          function reset() {
+            t = 0; cursor = 0; lastSegIdx = -1;
+            chatlog.innerHTML = '';
+            playing = false;
+            document.getElementById('mPlay').textContent = '▶ 播放';
+            update();
+          }
+
+          document.getElementById('mPlay').addEventListener('click', function (e) {
+            if (t >= DUR) reset();
+            playing = !playing;
+            e.target.textContent = playing ? '❚❚ 暂停' : '▶ 播放';
+          });
+          document.getElementById('mReset').addEventListener('click', reset);
+          scrub.addEventListener('input', function (e) {
+            t = +e.target.value / 1000 * DUR;
+            var before = cursor;
+            cursor = posFromT();
+            if (cursor < before) { lastSegIdx = -1; chatlog.innerHTML = ''; }
+            update();
+          });
+          document.getElementById('mSpeedSel').addEventListener('click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            mul = +b.dataset.s;
+          });
+
+          window.addEventListener('resize', fit);
+          repaint.push(draw);
+          fit();
+          update();
+          requestAnimationFrame(frame);
+
+          // 滚动进入视口时自动播放一次
+          var io = new IntersectionObserver(function (es) {
+            es.forEach(function (en) {
+              if (en.isIntersecting && t === 0 && !playing) {
+                playing = true;
+                document.getElementById('mPlay').textContent = '❚❚ 暂停';
+              }
+            });
+          }, { threshold: 0.45 });
+          io.observe(document.getElementById('act3'));
+        })();
+
+        /* ================= 四、代价曲线 ================= */
+        (function () {
+          function lineChart(id, opt) {
+            var cv = document.getElementById(id), c = cv.getContext('2d');
+            function paint() {
+              var dpr = Math.min(window.devicePixelRatio || 1, 2);
+              var W = cv.clientWidth, H = 250;
+              cv.width = W * dpr;
+              cv.height = H * dpr;
+              c.setTransform(dpr, 0, 0, dpr, 0, 0);
+              c.clearRect(0, 0, W, H);
+              var ml = 54, mr = 12, mt = 14, mb = 32, pw = W - ml - mr, ph = H - mt - mb;
+
+              c.strokeStyle = cvar('--border', 'rgba(255,255,255,.07)');
+              c.lineWidth = 1;
+              c.font = '500 10.5px ui-monospace, Menlo, monospace';
+              c.fillStyle = cvar('--text-dim', '#6c7591');
+              for (var i = 0; i <= opt.yTicks; i++) {
+                var y = mt + ph - ph * i / opt.yTicks;
+                c.beginPath();
+                c.moveTo(ml, y + 0.5);
+                c.lineTo(W - mr, y + 0.5);
+                c.stroke();
+                c.textAlign = 'right';
+                c.fillText(opt.fmtY(opt.yMax * i / opt.yTicks), ml - 9, y + 3.5);
+              }
+              c.textAlign = 'center';
+              for (var k = 0; k <= 4; k++) {
+                var v = CTX * k / 4;
+                c.fillText(k === 0 ? '0' : (v / 1024) + 'K', ml + pw * k / 4, H - 11);
+              }
+
+              var pts = [];
+              for (var s = 0; s <= 200; s++) {
+                var n = CTX * s / 200;
+                pts.push([ml + pw * s / 200, mt + ph - ph * (opt.yOf(n) / opt.yMax)]);
+              }
+              var grd = c.createLinearGradient(0, mt, 0, mt + ph);
+              grd.addColorStop(0, opt.color + '44');
+              grd.addColorStop(1, opt.color + '00');
+              c.beginPath();
+              c.moveTo(pts[0][0], mt + ph);
+              pts.forEach(function (p) { c.lineTo(p[0], p[1]); });
+              c.lineTo(pts[pts.length - 1][0], mt + ph);
+              c.closePath();
+              c.fillStyle = grd;
+              c.fill();
+
+              c.beginPath();
+              pts.forEach(function (p, i) { return i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); });
+              c.strokeStyle = opt.color;
+              c.lineWidth = 2.2;
+              c.stroke();
+
+              var lastPt = pts[pts.length - 1];
+              c.beginPath();
+              c.arc(lastPt[0], lastPt[1], 4, 0, 7);
+              c.fillStyle = opt.color;
+              c.fill();
+              c.textAlign = 'right';
+              c.fillStyle = cvar('--text', '#f5f5fa');
+              c.font = '700 12px ui-monospace, Menlo, monospace';
+              // 曲线终点贴顶时(如显存图正好落在 yMax),把标注压回绘图区内,避免被裁掉
+              c.fillText(opt.fmtY(opt.yOf(CTX)) + ' ' + opt.unit, lastPt[0] - 6, Math.max(lastPt[1] - 10, mt + 10));
+            }
+            paint();
+            window.addEventListener('resize', paint);
+            repaint.push(paint);
+          }
+
+          lineChart('chartMem', {
+            yOf: function (n) { return n * KV_PER_TOK / GiB; },
+            yMax: 80, yTicks: 4, color: '#a78bfa',
+            fmtY: function (v) { return v.toFixed(0); }, unit: 'GiB'
+          });
+          lineChart('chartSpd', {
+            yOf: function (n) { return tps(n); },
+            yMax: 90, yTicks: 3, color: '#fb7185',
+            fmtY: function (v) { return v.toFixed(0); }, unit: 'tok/s'
+          });
+        })();
+      })();
+    </script>
+  </body>
+</html>
