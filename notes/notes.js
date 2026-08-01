@@ -69,10 +69,10 @@ window.NOTES = [
       en: "AI Infra / LLM Radar: Multi-window Signals and Trends",
     },
     summary: {
-      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-07-27:推理栈收敛到 vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache,同时数据中心融资与电力成为新瓶颈。",
-      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-07-27: serving converges around vLLM 0.26 / SGLang 0.5.16 / FlashInfer / LMCache while data-center financing and power become the new bottleneck.",
+      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-08-01:LiteLLM MCP/OAuth、LMCache 0.5.3rc1、FlashInfer nightly、llama.cpp 当日构建成为短窗口热点;中长期主线是 vLLM/SGLang/Kimi K3、KV 数据层、open weights 与数万亿美元级 AI capex。",
+      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-08-01: LiteLLM MCP/OAuth, LMCache 0.5.3rc1, FlashInfer nightly, and same-day llama.cpp builds lead the short-window signals; longer windows center on vLLM/SGLang/Kimi K3, the KV data layer, open weights, and multi-trillion-dollar AI capex.",
     },
-    date: "2026-07-27",
+    date: "2026-08-01",
     tags: ["AI Infra", "LLM", "Inference", "KV Cache", "Agents", "Trend Analysis"],
     category: "industry",
   },
