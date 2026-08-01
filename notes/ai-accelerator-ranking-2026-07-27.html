@@ -2166,10 +2166,10 @@
               <div class="race-row"><span class="rk">15</span><span class="nm">Tenstorrent Blackhole</span><span class="race-track"><span class="race-fill" style="--w: 21%; --c: var(--alt); --d: 0.57s"></span></span><span class="vl">2.6</span></div>
               <div class="race-row"><span class="rk">16</span><span class="nm">寒武纪 思元690</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--cn); --d: 0.61s"></span></span><span class="vl">2.5</span></div>
               <div class="race-row"><span class="rk">16</span><span class="nm">AWS Trainium3</span><span class="race-track"><span class="race-fill" style="--w: 20%; --c: var(--aws); --d: 0.65s"></span></span><span class="vl">2.5</span></div>
-              <div class="race-row"><span class="rk">18</span><span class="nm">昇腾 950DT</span><span class="race-track"><span class="race-fill" style="--w: 18%; --c: var(--hw); --d: 0.69s"></span></span><span class="vl">2.2</span></div>
-              <div class="race-row"><span class="rk">19</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--intc); --d: 0.73s"></span></span><span class="vl">2.0</span></div>
-              <div class="race-row"><span class="rk">19</span><span class="nm">昇腾 910C(BF16)</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--hw); --d: 0.77s"></span></span><span class="vl">2.0</span></div>
-              <div class="race-row"><span class="rk">21</span><span class="nm">海光 深算四号</span><span class="race-track"><span class="race-fill" style="--w: 12%; --c: var(--cn); --d: 0.81s"></span></span><span class="vl">1.5</span></div>
+              <div class="race-row"><span class="rk">18</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--intc); --d: 0.73s"></span></span><span class="vl">2.0</span></div>
+              <div class="race-row"><span class="rk">18</span><span class="nm">昇腾 910C(BF16)</span><span class="race-track"><span class="race-fill" style="--w: 16%; --c: var(--hw); --d: 0.77s"></span></span><span class="vl">2.0</span></div>
+              <div class="race-row"><span class="rk">20</span><span class="nm">海光 深算四号</span><span class="race-track"><span class="race-fill" style="--w: 12%; --c: var(--cn); --d: 0.81s"></span></span><span class="vl">1.5</span></div>
+              <div class="race-row"><span class="rk">21</span><span class="nm">昇腾 950DT <span class="est">※重算</span></span><span class="race-track"><span class="race-fill" style="--w: 9%; --c: var(--hw); --d: 0.81s"></span></span><span class="vl">1.15</span></div>
               <div class="race-row is-base"><span class="rk">22</span><span class="nm">H20(基线)</span><span class="race-track"><span class="race-fill" style="--w: 6%; --c: var(--base); --d: 0.85s"></span></span><span class="vl">0.74</span></div>
             </div>
             <span class="fig-cap">
@@ -2188,6 +2188,14 @@
               <strong>砍掉的那一半里包含了专有互联和一半的 HBM 堆栈,而这两样都是耗电不产出 FLOPS 的部分。</strong>
               这张图也是本次唯一可以顺手做一次「delivered 校验」的地方:按 delivered 的 1529 TFLOPS ÷ 600 W 算,MI350P 的真实每瓦是 <strong>2.55 TFLOPS/W</strong>,会掉到第 14 名(RNGD 的 2.8 之后)。
               <strong>整张图上所有卡的真实位置都要这样往下挪一档</strong>,而挪的幅度各家不同 —— 这就是为什么本文一直强调这张图末尾那句「真实每瓦 token 还要再乘下一节的 MFU」。
+            </span>
+            <span class="fig-cap">
+              08-01 这张图上 <strong>昇腾 950DT 从 2.2 掉到 1.15 TFLOPS/W(1034 TF ÷ 900 W ※),第 18 落到第 21</strong>,只比基线 H20 的 0.74 高 55%。
+              这是本次纠错里最刺眼的一处,原因很简单:<strong>能效是「算力 ÷ 功耗」,分子错一倍,能效就错一倍</strong>,而能效恰好是「机房功率上限」这个约束下唯一有意义的指标 ——
+              同样 1 MW 供电,按错的数算能装出来的 FP8 峰值是实际的两倍。
+              两点必须讲清楚:<strong>(1) 900 W 仍是我按同代规格推的 <span class="est">※</span> 估值</strong>,华为没有公开 950DT 的整卡 TDP,所以这一格的不确定度在两个方向上都有;
+              <strong>(2) 每瓦峰值不等于每瓦 token</strong> —— 950DT 的 4 TB/s 带宽在 decode 这种访存受限负载上兑现率远高于算力兑现率,它的每瓦 token 位置会显著好于这张图的第 21 名。
+              这也再次说明这张图为什么必须和下一节的 MFU 一起读。
             </span>
           </div>
 
@@ -2215,7 +2223,7 @@
                 <tr><td>MI355X</td><td>ROCm 7 / vLLM / SGLang</td><td>★★★★</td><td>ROCm 官方博客给出 625 FLOP/B 的机器平衡分析,kernel 层文档化程度已接近 NVIDIA</td><td class="num">0.35 <span class="est">※</span></td><td class="num">1.75 PF</td><td class="num">11.8×</td></tr>
                 <tr class="hl"><td><strong>MI350P(PCIe)</strong></td><td>ROCm 7 / vLLM / SGLang</td><td>★★★★</td><td><strong>全表唯一一行有厂商官方 delivered 数字的卡</strong>:datasheet 给出 FP8 1529 TFLOPS(peak 2300 的 66.5%)、BF16 713(62%)、MXFP4 2299(50%)、显存带宽 3.6 TB/s(90%)。同门的 ROCm Gluon 内核博客在 MI355 上把一个 FP16 GEMM 从 520 调到 1489 TFLOPS(<strong>MFMA 单元效率 99%,但只有 datasheet 峰值的 60%</strong>),两个独立来源落在同一条折扣曲线上。AMD 官方另有一篇博客明确<strong>建议 MFU 的分母用 MAF 而不是 peak</strong></td><td class="num">0.35 <span class="est">※</span><br />(对 peak)</td><td class="num">805 TF</td><td class="num">5.4×</td></tr>
                 <tr><td>Trainium3</td><td>Neuron SDK / NKI</td><td>★★★ 编译器路径窄</td><td>官方称相对 Trn2 性能 ×4.4、每瓦 ×4;MFU 未公开</td><td class="num">0.30 <span class="est">※</span></td><td class="num">755 TF</td><td class="num">5.1×</td></tr>
-                <tr class="hl"><td><strong>昇腾 950DT</strong></td><td>CANN / MindSpore / MindSpeed MM / vLLM-Ascend / SGLang</td><td>★★★ 生态在补</td><td>盘古 Ultra 稠密训练 MFU &gt;50%、MoE 41%(910 代、FP16);950 的 FP8/FP4 路径尚无公开 MFU。<strong>2026-07-28 Kimi K3 0day 适配</strong>:训练侧基于 MindSpeed MM 在 Atlas 800 A3 / Atlas 900 A3 SuperPoD 完成减层训练复现(算子、并行加速、显存优化专项),推理侧走 vLLM Ascend + SGLang;官方明确<strong>昇腾 950 超节点支持 FP8/MXFP8/MXFP4 全系列格式,原生支持 K3 的 mxFP4 权重</strong> —— 全榜唯一同时给出训练与推理证据的非 CUDA 平台</td><td class="num">0.30 <span class="est">※</span></td><td class="num">600 TF</td><td class="num">4.1×</td></tr>
+                <tr class="hl"><td><strong>昇腾 950DT</strong></td><td>CANN / MindSpore / MindSpeed MM / vLLM-Ascend / SGLang</td><td>★★★ 生态在补</td><td>盘古 Ultra 稠密训练 MFU &gt;50%、MoE 41%(910 代、FP16);950 的 FP8/FP4 路径尚无公开 MFU。<strong>2026-08-01:峰值分母由 2 PF 更正为白皮书顶档 1.034 PF,有效算力 600 → 310 TF。</strong><strong>2026-07-28 Kimi K3 0day 适配</strong>:训练侧基于 MindSpeed MM 在 Atlas 800 A3 / Atlas 900 A3 SuperPoD 完成减层训练复现(算子、并行加速、显存优化专项),推理侧走 vLLM Ascend + SGLang;官方明确<strong>昇腾 950 超节点支持 FP8/MXFP8/MXFP4 全系列格式,原生支持 K3 的 mxFP4 权重</strong> —— 全榜唯一同时给出训练与推理证据的非 CUDA 平台</td><td class="num">0.30 <span class="est">※</span></td><td class="num">310 TF</td><td class="num">2.1×</td></tr>
                 <tr><td>Gaudi 3</td><td>SynapseAI / oneAPI</td><td>★★☆</td><td>官方称能效相对 H100 有优势,MFU 无第三方公开数据</td><td class="num">0.25 <span class="est">※</span></td><td class="num">459 TF</td><td class="num">3.1×</td></tr>
                 <tr><td>寒武纪 思元690</td><td>Cambricon Neuware</td><td>★★☆</td><td>已支持 TP/PP/SP/DP/EP 5D 并行与 PD 分离,并即时适配 DeepSeek-V4 级模型</td><td class="num">0.25 <span class="est">※</span></td><td class="num">350 TF</td><td class="num">2.4×</td></tr>
                 <tr><td>昇腾 910C</td><td>CANN(相对成熟)</td><td>★★★</td><td>910B 实测 LLaMA 训练 MFU 61.3–71.5%(FP16,与 A100 差 2.6–4.3%);910C 集群完成 1.6 万亿参数 DeepSeek-V4-Pro 全参后训练</td><td class="num">0.42 <span class="est">※</span></td><td class="num">336 TF</td><td class="num">2.3×</td></tr>
@@ -2246,9 +2254,9 @@
               <div class="mfu-row"><span class="nm">TPU 8t</span><span class="mfu-track"><span class="mfu-peak" style="--p: 32%; --c: var(--goo)"></span><span class="mfu-eff" style="--e: 13%; --c: var(--goo); --d: .45s"></span></span><span class="vl">6.3 PF → 2.5 PF</span></div>
               <div class="mfu-row"><span class="nm">Microsoft Maia 200</span><span class="mfu-track"><span class="mfu-peak" style="--p: 25%; --c: var(--ms)"></span><span class="mfu-eff" style="--e: 9%; --c: var(--ms); --d: .5s"></span></span><span class="vl">5.07 PF → 1.77 PF</span></div>
               <div class="mfu-row"><span class="nm">MI355X</span><span class="mfu-track"><span class="mfu-peak" style="--p: 25%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 9%; --c: var(--amd); --d: .55s"></span></span><span class="vl">5 PF → 1.75 PF</span></div>
-              <div class="mfu-row"><span class="nm">MI350P(PCIe)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 11.5%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 4%; --c: var(--amd); --d: .6s"></span></span><span class="vl">2.3 PF → 805 TF</span></div>
               <div class="mfu-row"><span class="nm">Trainium3</span><span class="mfu-track"><span class="mfu-peak" style="--p: 13%; --c: var(--aws)"></span><span class="mfu-eff" style="--e: 4%; --c: var(--aws); --d: .65s"></span></span><span class="vl">2.5 PF → 755 TF</span></div>
-              <div class="mfu-row"><span class="nm">昇腾 950DT</span><span class="mfu-track"><span class="mfu-peak" style="--p: 10%; --c: var(--hw)"></span><span class="mfu-eff" style="--e: 3%; --c: var(--hw); --d: .75s"></span></span><span class="vl">2 PF → 600 TF</span></div>
+              <div class="mfu-row"><span class="nm">MI350P(PCIe)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 11.5%; --c: var(--amd)"></span><span class="mfu-eff" style="--e: 4%; --c: var(--amd); --d: .6s"></span></span><span class="vl">2.3 PF → 805 TF</span></div>
+              <div class="mfu-row"><span class="nm">昇腾 950DT <span class="est">※重算</span></span><span class="mfu-track"><span class="mfu-peak" style="--p: 5.2%; --c: var(--hw)"></span><span class="mfu-eff" style="--e: 1.55%; --c: var(--hw); --d: .75s"></span></span><span class="vl">1.03 PF → 310 TF</span></div>
               <div class="mfu-row"><span class="nm">昇腾 910C(BF16)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 4%; --c: var(--hw)"></span><span class="mfu-eff" style="--e: 1.7%; --c: var(--hw); --d: .85s"></span></span><span class="vl">800 TF → 336 TF</span></div>
               <div class="mfu-row"><span class="nm">H20(基线)</span><span class="mfu-track"><span class="mfu-peak" style="--p: 1.5%; --c: var(--base)"></span><span class="mfu-eff" style="--e: .8%; --c: var(--base); --d: .95s"></span></span><span class="vl">296 TF → 148 TF</span></div>
             </div>
