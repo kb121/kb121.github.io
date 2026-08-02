@@ -437,9 +437,9 @@
           <div class="fig">
             <div class="fig-title">动态图 1:133 TB/s 的分母 —— 三条互不相关的路径都回到 7.39 TB/s(满刻度 8 TB/s,虚线 = 三条路径的交点)</div>
             <div class="load">
-              <div class="load-row"><span class="nm">「133 ÷ 18」倍数分母</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--ms); --d: .05s"></span></span><span class="vl"><b>7.39</b> TB/s · 官方脚注</span></div>
-              <div class="load-row"><span class="nm">「414 ÷ 56」机架 ÷ 卡数</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--intc); --d: .2s"></span></span><span class="vl"><b>7.39</b> TB/s · 机架反推</span></div>
-              <div class="load-row"><span class="nm">6720 bit × 8.8 Gbps</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--alt); --d: .35s"></span></span><span class="vl"><b>7.39</b> TB/s · 位宽反推</span></div>
+              <div class="load-row"><span class="nm">「133 ÷ 18」</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--ms); --d: .05s"></span></span><span class="vl"><b>7.39</b> TB/s · 官方脚注</span></div>
+              <div class="load-row"><span class="nm">「414 ÷ 56」</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--ms); --d: .2s"></span></span><span class="vl"><b>7.39</b> TB/s · 机架反推</span></div>
+              <div class="load-row"><span class="nm">6720 bit × 8.8 Gbps</span><span class="load-track"><span class="load-fill" style="--w: 92.4%; --c: var(--ms); --d: .35s"></span></span><span class="vl"><b>7.39</b> TB/s · 位宽反推</span></div>
               <div class="load-row"><span class="nm">对照:H20 HBM3</span><span class="load-track"><span class="load-fill" style="--w: 51.3%; --c: var(--base); --d: .5s"></span></span><span class="vl"><b>4.10</b> TB/s · 5120 bit</span></div>
               <div class="load-row"><span class="nm">对照:昇腾 950DT</span><span class="load-track"><span class="load-fill" style="--w: 50%; --c: var(--hw); --d: .65s"></span></span><span class="vl"><b>4.00</b> TB/s · 白皮书</span></div>
               <div class="load-gate-layer"><span class="load-gate" style="--g: 92.4%"><b>三条路径交点 7.39 TB/s</b></span></div>
@@ -467,7 +467,7 @@
               <span style="--c: var(--goo)"><i></i>⑤ 卡间 Scale-up 互联(双向)</span><span style="--c: var(--base)"><i></i>基线 H20</span>
             </div>
             <div class="d0">
-              <div class="d0-row"><span class="nm">Cerebras WSE-3 片上 SRAM</span><span class="d0-lane"><span class="d0-bar" style="--x: 88.7%; --c: var(--alt); --d: .05s"></span></span><span class="vl"><b>21</b> PB/s ③</span></div>
+              <div class="d0-row"><span class="nm">Cerebras WSE-3 SRAM</span><span class="d0-lane"><span class="d0-bar" style="--x: 88.7%; --c: var(--alt); --d: .05s"></span></span><span class="vl"><b>21</b> PB/s ③</span></div>
               <div class="d0-row"><span class="nm">Qualcomm AI200 机架聚合</span><span class="d0-lane"><span class="d0-bar" style="--x: 60.3%; --c: var(--intc); --d: .15s"></span></span><span class="vl"><b>414</b> TB/s ②</span></div>
               <div class="d0-row"><span class="nm">Qualcomm AI300 <span class="est">※推算</span></span><span class="d0-lane"><span class="d0-bar" style="--x: 60%; --c: var(--ms); --d: .25s"></span></span><span class="vl"><b>399</b> TB/s ④</span></div>
               <div class="d0-row"><span class="nm">Corsair 性能内存 2 GB</span><span class="d0-lane"><span class="d0-bar" style="--x: 52.9%; --c: var(--alt); --d: .35s"></span></span><span class="vl"><b>150</b> TB/s ③</span></div>
@@ -479,7 +479,7 @@
               <div class="d0-row"><span class="nm">Rubin R200 NVLink6</span><span class="d0-lane"><span class="d0-bar" style="--x: 25.9%; --c: var(--goo); --d: .95s"></span></span><span class="vl"><b>3.6</b> TB/s ⑤</span></div>
               <div class="d0-row"><span class="nm">昇腾 950 灵衢 2.0</span><span class="d0-lane"><span class="d0-bar" style="--x: 21.7%; --c: var(--goo); --d: 1.05s"></span></span><span class="vl"><b>2.0</b> TB/s ⑤</span></div>
               <div class="d0-row"><span class="nm">Corsair 容量内存 256 GB</span><span class="d0-lane"><span class="d0-bar" style="--x: 10%; --c: var(--amd); --d: 1.15s"></span></span><span class="vl"><b>0.4</b> TB/s ①</span></div>
-              <div class="d0-axis"><span style="--p: 0%">0.1</span><span style="--p: 16.67%">1</span><span style="--p: 33.33%">10</span><span style="--p: 50%">100</span><span style="--p: 66.67%">1000</span><span style="--p: 83.33%">1万</span><span style="--p: 100%">10万 TB/s</span></div>
+              <div class="d0-axis"><span style="--p: 0%">0.1 TB/s</span><span style="--p: 16.67%">1</span><span style="--p: 33.33%">10</span><span style="--p: 50%">100</span><span style="--p: 66.67%">1000</span><span style="--p: 83.33%">1万</span><span style="--p: 100%">10万</span></div>
             </div>
             <span class="fig-cap">
               注意<strong>颜色编码的是「这个数在量什么」,不是厂商</strong> —— 同一家高通在图上出现了三种颜色,同一张 Corsair 出现在第 4 行和最后一行。
@@ -500,7 +500,7 @@
               <span style="--c: var(--alt)"><i></i>③ 片上 SRAM</span><span style="--c: var(--ms)"><i></i>④ 近存「等效」</span><span style="--c: var(--base)"><i></i>基线 H20</span>
             </div>
             <div class="race">
-              <div class="race-row"><span class="rk">1</span><span class="nm">Cerebras WSE-3 片上 SRAM</span><span class="race-track"><span class="race-fill" style="--w: 98%; --c: var(--alt); --d: .05s"></span></span><span class="vl">120.0</span></div>
+              <div class="race-row"><span class="rk">1</span><span class="nm">Cerebras WSE-3 SRAM</span><span class="race-track"><span class="race-fill" style="--w: 98%; --c: var(--alt); --d: .05s"></span></span><span class="vl">120.0</span></div>
               <div class="race-row"><span class="rk">2</span><span class="nm">Qualcomm AI200 机架聚合</span><span class="race-track"><span class="race-fill" style="--w: 94.2%; --c: var(--intc); --d: .12s"></span></span><span class="vl">115.4</span></div>
               <div class="race-row"><span class="rk">3</span><span class="nm">Qualcomm AI300 <span class="est">※推算</span></span><span class="race-track"><span class="race-fill" style="--w: 93.6%; --c: var(--ms); --d: .19s"></span></span><span class="vl">114.6</span></div>
               <div class="race-row"><span class="rk">4</span><span class="nm">Corsair 性能内存</span><span class="race-track"><span class="race-fill" style="--w: 76.3%; --c: var(--alt); --d: .26s"></span></span><span class="vl">93.4</span></div>
@@ -530,6 +530,9 @@
 
           <div class="fig">
             <div class="fig-title">动态图 4:装得进 2 GB 与装不进 —— 同一张 Corsair,两侧的带宽差 375 倍(横轴为权重足迹,log₂ 刻度 1 GB → 2 TB)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--alt)"><i></i>住进性能内存 · 150 TB/s</span><span style="--c: var(--intc)"><i></i>落到容量内存 · 400 GB/s</span>
+            </div>
             <div class="load">
               <div class="load-row"><span class="nm">Llama 3 8B</span><span class="load-track"><span class="load-fill" style="--w: 18.2%; --c: var(--alt); --d: .05s"></span></span><span class="vl"><b>4</b> GB · 正好住满</span></div>
               <div class="load-row"><span class="nm">Qwen3 32B</span><span class="load-track"><span class="load-fill" style="--w: 36.4%; --c: var(--intc); --d: .2s"></span></span><span class="vl"><b>16</b> GB · 溢出 4×</span></div>
@@ -542,8 +545,10 @@
               横轴 log₂ 刻度 · 每格 = 翻一倍 · 足迹 = 参数量 × 0.5 B(MXINT4 / MXFP4 权重)· 门槛线取双卡 4 GB(单卡为 2 GB)
             </div>
             <span class="fig-cap">
-              门槛线左边只有一行,而且是<strong>正好压线</strong>:Llama 3 8B 的 MXINT4 权重恰好 4 GB,等于双卡性能内存的容量 ——
-              d-Matrix 官方那个「1 ms/token」的演示用的正是这个模型,这不是巧合,而是<strong>这条路线能拿出的最大模型</strong>。
+              门槛线左边只有一行,而且是<strong>正好压线</strong>:Llama 3 8B 的 MXINT4 权重约 4 GB(8B × 0.5 B,未计微缩放的 scale 开销),正好等于双卡性能内存的容量 ——
+              也就是说<strong>这条路线今天能整个装进 150 TB/s 那一层的最大模型,就在 8B 这个量级</strong>。
+              这一点厂商自己写得很清楚,官方 Product Brief 的原话是「<em>In Performance Mode, Gen AI models fit in Performance Memory and can achieve up to 10x faster interactive latency</em>」——
+              <strong>那个「10 倍交互延迟」是有前置条件的,条件就是装得进。</strong>
               门槛线右边的四行,权重实际住在 400 GB/s 的容量内存里,<strong>比 H20 的 4 TB/s 还慢 10 倍</strong>;
               山脊点(算力/带宽比)也跟着从 <strong>16 FLOP/B 跳到 6000 FLOP/B</strong> —— 同一张卡,一侧是全榜最访存友好的机器,另一侧是全榜最算力过剩的机器。
               这就是第七节把它单列的真正原因:<strong>它的十维输入不是「未公开」,而是「有两套,取决于负载」。</strong>
@@ -563,12 +568,12 @@
               <span style="--c: var(--base)"><i></i>对服务器 CPU 的 spec</span>
             </div>
             <div class="load">
-              <div class="load-row"><span class="nm">200× 容量/W(vs SRAM)</span><span class="load-track"><span class="load-fill" style="--w: 95.6%; --c: var(--intc); --d: .05s"></span></span><span class="vl">机架级归一</span></div>
-              <div class="load-row"><span class="nm">54× 有效带宽(AI300)</span><span class="load-track"><span class="load-fill" style="--w: 71.9%; --c: var(--ms); --d: .2s"></span></span><span class="vl">每卡 · vs AI200</span></div>
-              <div class="load-row"><span class="nm">18× 有效带宽(AI250)</span><span class="load-track"><span class="load-fill" style="--w: 52.1%; --c: var(--ms); --d: .35s"></span></span><span class="vl">每卡 · vs AI200</span></div>
-              <div class="load-row"><span class="nm">8× tokens/(s·W)</span><span class="load-track"><span class="load-fill" style="--w: 37.5%; --c: var(--alt); --d: .5s"></span></span><span class="vl">特选模型的 decode</span></div>
-              <div class="load-row"><span class="nm">6× 带宽/W(vs HBM)</span><span class="load-track"><span class="load-fill" style="--w: 32.3%; --c: var(--amd); --d: .65s"></span></span><span class="vl">卡级归一</span></div>
-              <div class="load-row"><span class="nm">2× perf/W(vs 服务器 CPU)</span><span class="load-track"><span class="load-fill" style="--w: 12.5%; --c: var(--base); --d: .8s"></span></span><span class="vl">按公开 spec 估算</span></div>
+              <div class="load-row"><span class="nm">200× 容量 / W</span><span class="load-track"><span class="load-fill" style="--w: 95.6%; --c: var(--intc); --d: .05s"></span></span><span class="vl">机架级 · vs SRAM</span></div>
+              <div class="load-row"><span class="nm">54× 有效带宽</span><span class="load-track"><span class="load-fill" style="--w: 71.9%; --c: var(--ms); --d: .2s"></span></span><span class="vl">AI300 · vs AI200</span></div>
+              <div class="load-row"><span class="nm">18× 有效带宽</span><span class="load-track"><span class="load-fill" style="--w: 52.1%; --c: var(--ms); --d: .35s"></span></span><span class="vl">AI250 · vs AI200</span></div>
+              <div class="load-row"><span class="nm">8× tokens/(s·W)</span><span class="load-track"><span class="load-fill" style="--w: 37.5%; --c: var(--alt); --d: .5s"></span></span><span class="vl">decode · vs GPU</span></div>
+              <div class="load-row"><span class="nm">6× 带宽 / W</span><span class="load-track"><span class="load-fill" style="--w: 32.3%; --c: var(--amd); --d: .65s"></span></span><span class="vl">卡级 · vs HBM</span></div>
+              <div class="load-row"><span class="nm">2× perf / W</span><span class="load-track"><span class="load-fill" style="--w: 12.5%; --c: var(--base); --d: .8s"></span></span><span class="vl">按 spec · vs CPU</span></div>
             </div>
             <div class="load-note">
               横轴 log₂ 刻度 1× → 256× · 每格 = 翻一倍 · 条形长度只表示倍数大小,<strong>不同颜色的行之间不可比</strong>
