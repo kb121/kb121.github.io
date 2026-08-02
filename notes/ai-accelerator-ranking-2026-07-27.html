@@ -35,7 +35,7 @@
     <title data-zh="商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏" data-en="Commercial AI Accelerator Board & Ranking (H20 as baseline) — Hong Zhuang">商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏</title>
     <meta
       name="description"
-      content="2026-07-30 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 / 曦望 / 奕行智能 共 29 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次新增 AMD Instinct MI350P(PCIe 144GB),并用 MI350P datasheet 的 delivered/peak 双列、AMD 官方 Peak/MAF/Delivered 定义与第三方达成率实测,审查本榜「用峰值当分母」这个前提:峰值算力达成率 44%–93%、显存带宽 81%–90%、Scale-up 互联 70%–85%。"
+      content="2026-08-02 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 / 曦望 / 奕行智能 共 29 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次审查「带宽」这个词本身:榜上出现过的带宽是五种不同的量(主存物理 / 机架聚合 / 片上 SRAM / 近存等效 / 卡间互联),跨五个数量级;高通 AI250 的 133 TB/s 由 133÷18、414÷56、6720bit×8.8Gbps 三条路径闭合到每卡 7.39 TB/s;同一维在五种口径下可取 0–120 分,而榜首总分 417。32 张卡自查通过,本次改分 0。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -378,33 +378,40 @@
 
         <div class="prose">
           <p class="gpu-lede">
-            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-08-01</strong>。覆盖 <strong>29 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯、曦望、奕行智能。
+            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-08-02</strong>。覆盖 <strong>29 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯、曦望、奕行智能。
             排名不看单一峰值,而是把<strong>显存、算力、算力/带宽比、数值格式原生支持、Scale-up 与超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU</strong> 十个维度加权成一个「综合硬件指数」,并统一<strong>以 NVIDIA H20 = 100 为基线</strong>。
             所有关键数字都在表格里给出来源链接;公开信息不足、由我按同代规格推算的单元格标注 <span class="est">※</span>,请不要当成厂商官方口径。
           </p>
           <p class="gpu-lede">
-            <strong>本次复核抓到的是这张榜自己的一处填错,而且错法很典型。</strong>昇腾 950DT 本月上线华为云(原定 2026 Q4,提前了一个季度),
+            <strong>本次复核审的是「带宽」这个词本身。</strong>带宽在本模型里权重 15 分,和 FP8 算力并列最重;而这份榜(含第七节)里出现过的「带宽」其实是<strong>五种不同的量</strong>,跨了五个数量级:
+            主存物理带宽、它的机架聚合值、片上 SRAM 带宽、近存计算的「等效」带宽、卡间互联带宽。
+            以高通 2026-06-24 投资者日新公开的路线图为切口,<strong>AI250 那个「每卡 133 TB/s」的分母被三条互不相关的路径同时锁定在 7.39 TB/s</strong>(133÷18、414÷56、6720 bit × 8.8 Gbps)。
+            把五种口径依次代进打分公式,<strong>同一维可以取 0 到 120 分,而榜首总分才 417</strong>。好消息是自查通过了:榜上 32 张卡的带宽输入全部是第一类,<strong>本次改分 0</strong>,理由与全部对照在第零节。
+          </p>
+          <p class="gpu-lede">
+            <strong>上一次(08-01)复核抓到的是这张榜自己的一处填错,而且错法很典型。</strong>昇腾 950DT 本月上线华为云(原定 2026 Q4,提前了一个季度),
             我按官方《昇腾 950 NPU 架构白皮书》重核它的规格,发现榜上给它填的 FP8 2 PFLOPS / FP4 4 PFLOPS <strong>是下一代昇腾 960 的规格</strong> ——
             白皮书、HC 演讲路线图、Atlas 950 超节点整机口径、单计算柜口径<strong>四个独立来源都指向每卡 ~1 PF / ~2 PF</strong>。
             更值得读的是那张规格表本身:同一颗 Die 印着<strong>三个冗余档位</strong>(算力低档只有顶档的 78%)、<strong>两种算力口径</strong>(Cube+Vector 总算力 vs 仅 Cube)、
             <strong>两种显存容量</strong>(144 / 96 GB 客户选配),六种组合下这张卡的指数在 <strong>210–232 分之间</strong>。综合指数 258 → 232,名次第 10 → 第 12,全部对照在第零之二节。
           </p>
           <p class="gpu-lede">
-            <strong>上一次(07-30)复核审的是这份榜自己的分母。</strong>十个维度里有九个抄的是 datasheet 上的「峰值」,而 07-30 有三份互相独立的材料第一次把「峰值能兑现多少」变成了可引用的数字:
+            <strong>再往前一次(07-30)复核审的是这份榜自己的分母。</strong>十个维度里有九个抄的是 datasheet 上的「峰值」,而 07-30 有三份互相独立的材料第一次把「峰值能兑现多少」变成了可引用的数字:
             AMD Instinct MI350P 的官方规格页<strong>把 delivered 与 peak 两列并排印在同一张 datasheet 上</strong>(折扣率随数值格式在 39%–67% 之间变);
             AMD 官方博客给出 Peak / MAF / Delivered 三层定义并建议<strong>把 MFU 的分母从 peak 换成 MAF</strong>;
             一份第三方白皮书把达成率<strong>拆成算力、显存带宽、Scale-up 互联三条互不相关的曲线</strong>(45%–93% / 81%–90% / 70%–85%)。
             结论是:同一个「4.0 TB/s」写在两家的 datasheet 上不是同一个东西。方法论对照、新入榜的 MI350P(219 分)与两家新厂商都在第零之三节。
+            <strong>四次复核连起来正好是三个层层递进的问题:数字兑现多少(07-30)→ 数字到底是哪一个(08-01)→ 数字在量什么(08-02)。</strong>
           </p>
 
           <div class="gpu-kpis">
-            <div class="gpu-kpi"><b>29</b><span>覆盖厂商(+2)</span></div>
+            <div class="gpu-kpi"><b>29</b><span>覆盖厂商</span></div>
             <div class="gpu-kpi"><b>85</b><span>统计卡型(含未公开规格)</span></div>
-            <div class="gpu-kpi"><b>32</b><span>数据足够、进入排名(+1)</span></div>
-            <div class="gpu-kpi"><b>−26</b><span>本次纠错幅度(950DT,分)</span></div>
+            <div class="gpu-kpi"><b>32</b><span>数据足够、进入排名</span></div>
+            <div class="gpu-kpi"><b>0</b><span>本次改分(自查通过)</span></div>
             <div class="gpu-kpi"><b>10</b><span>评分维度</span></div>
-            <div class="gpu-kpi"><b>32</b><span>动图(+6)</span></div>
-            <div class="gpu-kpi"><b>3</b><span>一颗 Die 的算力档位(白皮书)</span></div>
+            <div class="gpu-kpi"><b>38</b><span>动图(+6)</span></div>
+            <div class="gpu-kpi"><b>5</b><span>「带宽」的不同口径</span></div>
           </div>
 
           <h2>零、2026-08-02 复核:「带宽」这个词,榜上十家厂商在量五种不同的东西 —— 4 TB/s 与 133 TB/s 之间差的不是 33 倍,是分母</h2>
@@ -1709,7 +1716,7 @@
               <tbody>
                 <tr class="hl"><td><strong>Microsoft</strong></td><td>Maia 200(Braga)</td><td>Maia 100</td><td>Cobalt 200(CPU 侧配套)</td><td>2026-01 发布,TSMC 3nm、140 亿+晶体管、216 GB HBM3e / 7 TB/s / 272 MB 片上 SRAM(80 TB/s)、FP4 10.15 PF、750 W;片上 NIC 走以太网 ATL 协议,单域 6144 卡。已在 Iowa / Phoenix 两个 Azure 区域为 GPT-5.2 出 token。<a href="https://techcommunity.microsoft.com/blog/azureinfrastructureblog/deep-dive-into-the-maia-200-architecture/4489312">官方架构解析</a></td></tr>
                 <tr><td><strong>Meta</strong></td><td>MTIA 500</td><td>MTIA 450</td><td>MTIA 400</td><td>2026-03 一口气公布四代路线:MTIA 300 已量产(排序/推荐训练);400 相对 300 提升 FP8 算力 400%、HBM 带宽 51%,72 卡交换背板组成一个 scale-up 域;450 再翻倍 HBM 带宽(2027 初量产);500 用 2×2 计算 chiplet,再 +50% 带宽 / +80% 容量 / +43% MX4 算力。原生建在 PyTorch / vLLM / Triton / OCP 上。<a href="https://about.fb.com/news/2026/03/expanding-metas-custom-silicon-to-power-our-ai-workloads/">Meta 官方</a></td></tr>
-                <tr><td><strong>Qualcomm</strong></td><td>AI300(HBC Gen 2,2028)</td><td>AI250(HBC Gen 1,2027)</td><td>AI200(2026)</td><td>Hexagon NPU 上机架:每卡 <strong>768 GB LPDDR</strong>,PCIe 做 scale-up、以太网做 scale-out、整机架 160 kW 直接液冷。AI250 换成 3D 堆叠 LPDDR 的近存计算(HBC),官方口径「每卡 133 TB/s 有效带宽」。<a href="https://www.theregister.com/systems/2026/06/30/qualcomms-proposed-solution-to-catch-up-in-ai-infra-bury-the-compute-under-the-dram/5264071">The Register 拆解口径水分</a></td></tr>
+                <tr class="hl"><td><strong>Qualcomm</strong></td><td>AI300(HBC Gen 2,FY28 采样)</td><td>AI250(HBC Gen 1,FY27 采样)</td><td>AI200(FY26,在售)</td><td>Hexagon NPU 上机架:每卡 <strong>768 GB LPDDR</strong>、整机架 56 卡 <strong>43 TB / 160 kW</strong>,以太网做 scale-out。<strong>2026-06-24 投资者日的新口径:三代机架容量都是 43 TB、三代都标注「风冷 + 直液冷」,而 scale-up 到 AI300 从 PCIe 换成 UALink + ESUN。</strong>AI250/AI300 用 3D 堆叠 LPDDR 的近存计算(HBC),官方口径分别是 AI200 有效带宽的 <strong>18× / 54×</strong>,其中 18× 对应「每卡 133 TB/s」—— 分母是 7.39 TB/s,拆解见第零节。<a href="https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Investor-Day-2026_TPialis_Data-Center.pdf">官方投资者日演示稿</a> · <a href="https://www.theregister.com/systems/2026/06/30/qualcomms-proposed-solution-to-catch-up-in-ai-infra-bury-the-compute-under-the-dram/5264071">The Register 拆解口径水分</a></td></tr>
                 <tr><td><strong>Cerebras</strong></td><td>WSE-3 / CS-3</td><td>WSE-2 / CS-2</td><td>WSE-1</td><td>晶圆级:46,225 mm²、4 万亿晶体管、90 万核、<strong>44 GB 片上 SRAM @ 21 PB/s</strong>、125 PFLOPS 峰值、整机 23 kW。没有 HBM,靠外挂 1.5 TB–1.2 PB MemoryX。WSE-4 目前只有非官方消息,不计入统计。<a href="https://www.cerebras.ai/press-release/cerebras-announces-third-generation-wafer-scale-engine">Cerebras 官方</a></td></tr>
                 <tr><td><strong>Tenstorrent</strong></td><td>Galaxy Blackhole(32 芯 6U)</td><td>Blackhole p150 单卡</td><td>Galaxy Wormhole</td><td>2026-04 GA,RISC-V Tensix 数据流架构、全栈开源。整机 23 PFLOPS Block FP8 / 6.2 GB SRAM @ 2.9 PB/s / 1 TB GDDR6 @ 16 TB/s / 56×800 GbE,<strong>风冷 8–10 kW,11 万美元起</strong>。宣称 16 台整机跑 DeepSeek-R1 671B 单用户 decode &gt;350 tok/s。<a href="https://tenstorrent.com/en/hardware/galaxy">官方规格</a></td></tr>
                 <tr><td><strong>海光</strong></td><td>深算四号(SG2040)</td><td>深算三号</td><td>深算二号</td><td>深算三号 2025 量产:7nm Chiplet、64 GB HBM3 / 1.6–1.8 TB/s、算子兼容 CUDA &gt;99%;深算四号 2026 量产,7nm+ Chiplet、96–128 GB HBM3e / 3.2 TB/s+、FP32 150 TF / BF16 300+ TF,首次支持 FP8,并补上 HSL 总线与超节点。规格来自券商与媒体汇总,非官方 datasheet <span class="est">※</span>。<a href="https://caifuhao.eastmoney.com/news/1656022829">规格汇总</a></td></tr>
@@ -1786,7 +1793,7 @@
                 <tr><td>NVIDIA Groq 3 LPU(LP30)</td><td class="num">0.5 GB 片上 SRAM<br />(机架另配 12 TB DDR5)</td><td class="num">150 TB/s(SRAM)</td><td class="num">—</td><td class="num">1.2 PF</td><td class="num">无</td><td class="num"><strong>8</strong></td><td class="num">0.003</td></tr>
                 <tr><td>Cerebras WSE-3(晶圆级)</td><td class="num">44 GB 片上 SRAM<br />(外挂 1.5 TB–1.2 PB)</td><td class="num">21 PB/s(SRAM)</td><td class="num">—</td><td class="num">125 PF(峰值 AI 口径)</td><td class="num">无</td><td class="num"><strong>6</strong></td><td class="num">0.002</td></tr>
                 <tr><td>Tenstorrent Blackhole(单芯)</td><td class="num">32 GB GDDR6<br />+ 194 MB SRAM</td><td class="num">0.5 TB/s(整机 16 TB/s)</td><td class="num">未单独公布</td><td class="num">0.719 PF Block FP8</td><td class="num">支持 BFP4(未公布)</td><td class="num">1438</td><td class="num">64.0</td></tr>
-                <tr><td>Qualcomm AI200</td><td class="num">768 GB LPDDR5X</td><td class="num">未公开(机架 414 TB/s「有效」)</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">—</td><td class="num">—</td></tr>
+                <tr><td>Qualcomm AI200</td><td class="num">768 GB LPDDR5X</td><td class="num">7.39 <span class="est">※反推</span><br />(机架 414「有效」÷ 56)</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">未公开</td><td class="num">—</td><td class="num">—</td></tr>
                 <tr><td>海光 深算四号(SG2040)</td><td class="num">96–128 GB HBM3e</td><td class="num">3.2 TB/s <span class="est">※非官方</span></td><td class="num">300+ TF</td><td class="num">~600 TF <span class="est">※</span></td><td class="num">无(支持 INT4)</td><td class="num">188 <span class="est">※</span></td><td class="num">40.0 <span class="est">※</span></td></tr>
                 <tr><td>燧原 L600</td><td class="num">144 GB</td><td class="num">3.6 TB/s</td><td class="num">未公开</td><td class="num">原生 FP8,未公布 TFLOPS<br />(打分取 1.0 PF <span class="est">※</span>)</td><td class="num">无</td><td class="num">278 <span class="est">※</span></td><td class="num">40.0</td></tr>
                 <tr class="hl"><td><strong>东方算芯 巅峯 DF1000</strong></td><td class="num">未公开<br />(3D 键合 DRAM,可堆层扩容)</td><td class="num"><strong>6.4 TB/s</strong>(非 HBM)</td><td class="num">520 TF</td><td class="num">未公开<br />(打分保守代入 BF16 520 TF <span class="est">※</span>)</td><td class="num">未公开</td><td class="num"><strong>81</strong> <span class="est">※</span></td><td class="num">—(容量未公开)</td></tr>
@@ -2126,7 +2133,7 @@
                 <tr class="hl"><td><strong>Maia 200</strong></td><td>片内 NIC + 标准以太网(ATL 协议)</td><td class="num">2.8 TB/s(1.4 双向)</td><td class="num"><strong>6144</strong>(两层)</td><td>包喷洒 + 多路径 + 抗拥塞流控做在传输层;省掉外置 NIC 的功耗与成本</td><td class="src-cell"><a href="https://techcommunity.microsoft.com/blog/azureinfrastructureblog/deep-dive-into-the-maia-200-architecture/4489312">微软官方架构解析</a></td></tr>
                 <tr><td>NVIDIA Groq 3 LPU</td><td>C2C 直连(96×112 Gbps SerDes)</td><td class="num">2.5 TB/s</td><td class="num">256(LPX 机架)</td><td>机架 640 TB/s scale-up;与 Rubin NVL72 配对,GPU 管 prefill、LPU 管 decode</td><td class="src-cell"><a href="https://www.nvidia.com/en-us/data-center/lpx/">NVIDIA LPX 产品页</a></td></tr>
                 <tr><td>壁仞 BR2xx</td><td>BLink 2.0 + NPO 光互联</td><td class="num">未公开</td><td class="num">16 / 128 / <strong>1024</strong></td><td>三级矩阵:整机电互联 → 整柜电互联 → 分布式解耦光互联;内存语义共享 + 在网计算</td><td class="src-cell"><a href="https://www.eefocus.com/article/2053119.html">与非网(WAIC 2026)</a> · <a href="https://hao.cnyes.com/post/259936">鉅亨(方案细节)</a></td></tr>
-                <tr><td>Qualcomm AI200 / AI250</td><td>PCIe 做 scale-up,以太网做 scale-out</td><td class="num">未公开</td><td class="num">未公开(整机架 160 kW)</td><td>唯一用 PCIe 当 scale-up 的机架级方案,带宽天然弱,靠 768 GB/卡 的容量补</td><td class="src-cell"><a href="https://www.datacenterdynamics.com/en/news/qualcomm-launches-ai200-and-ai250-chip-offering-targeting-inferencing-workloads-at-rack-scale/">DCD</a></td></tr>
+                <tr class="hl"><td>Qualcomm AI200 / AI250 / <strong>AI300</strong></td><td>AI200/AI250:PCIe 做 scale-up;<br /><strong>AI300 改用 UALink + ESUN</strong>,scale-out 走铜与光</td><td class="num">未公开</td><td class="num">56 卡 / 机架<br />(43 TB · 160 kW)</td><td><strong>2026-08-02 更新:「唯一用 PCIe 当 scale-up 的机架级方案」这句话到 AI300 不再成立。</strong>AI300 是 UALink 阵营 2026 年拿到的一个分量不轻的名字 —— 它意味着高通不再自己扛互联,而是接进和 AMD MI500 UAL256 同一套标准</td><td class="src-cell"><a href="https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Investor-Day-2026_TPialis_Data-Center.pdf">投资者日演示稿(加速卡路线图页)</a> · <a href="https://www.storagereview.com/news/qualcomm-unveils-dragonfly-data-center-roadmap-c1000-cpu-ai300-accelerator-and-modular-acquisition">StorageReview</a> · <a href="https://www.datacenterdynamics.com/en/news/qualcomm-launches-ai200-and-ai250-chip-offering-targeting-inferencing-workloads-at-rack-scale/">DCD(AI200/250 原口径)</a></td></tr>
                 <tr><td>Tenstorrent Blackhole</td><td>标准以太网(无专有互联)</td><td class="num">10×400 GbE / 芯(整机 32 TB/s)</td><td class="num">32(单机)→ 4–36 机</td><td>scale-up 与 scale-out 是同一张以太网,4 台起步的 supercluster 售价 44 万美元</td><td class="src-cell"><a href="https://tenstorrent.com/en/hardware/galaxy">Tenstorrent 官方规格</a></td></tr>
                 <tr class="hl"><td><strong>B30A</strong> <span class="est">※待许可</span></td><td>NVLink(保留,速率未公开)</td><td class="num">~900 GB/s <span class="est">※</span></td><td class="num">8(HGX)</td><td>保留 NVLink 是它与同期 RTX 6000D(走 GDDR、带宽压到 1398 GB/s)的分水岭:前者能组张量并行,后者只能单卡推理</td><td class="src-cell"><a href="https://www.jonpeddie.com/news/nvidias-new-b30a-chip/">Jon Peddie Research</a></td></tr>
                 <tr class="hl"><td><strong>阿里 真武 M890 / 810E</strong></td><td>自研 ICN + <strong>ICN Switch 1.0</strong></td><td class="num">800 GB/s / 700 GB/s</td><td class="num"><strong>64</strong> / 16</td><td>单超节点实例 9216 GB 显存池、全对称高速互联,一台即可跑十万亿参数级 MoE 推理;外层 HPN 8.0 单集群最高 13 万卡异构混布,可扩到百万卡</td><td class="src-cell"><a href="https://www.ithome.com/0/978/578.htm">IT之家</a> · <a href="https://finance.sina.com.cn/hy/hyjz/2026-07-18/doc-iniifhua1617416.shtml">新浪科技</a></td></tr>
@@ -2302,9 +2309,11 @@
                 <div class="flow" aria-hidden="true"><i style="--y: 40%; --t: 7s; --d: .4s"></i></div>
                 <h5>LPDDR / GDDR 派 —— 极大极慢</h5>
                 <p>
-                  Qualcomm AI200:<strong>768 GB LPDDR5X/卡</strong>,整机架 160 kW 液冷;Intel Crescent Island:160 GB 起、伙伴可做到 480 GB,350 W 风冷 PCIe;Rubin CPX:128 GB GDDR7 @ 2 TB/s;
+                  Qualcomm AI200:<strong>768 GB LPDDR5X/卡</strong>,整机架 56 卡 43 TB / 160 kW,风冷与直液冷两种形态;Intel Crescent Island:160 GB 起、伙伴可做到 480 GB,350 W 风冷 PCIe;Rubin CPX:128 GB GDDR7 @ 2 TB/s;
                   <strong>Tesla AI5:144–192 GB LPDDR5X、384-bit 位宽</strong>(12 颗 SK hynix 模块),这是同一条路线在<strong>车端/机器人端</strong>的实现 —— 整颗 die 全是 8-bit MAC 阵列,连 ISP 都省掉。
-                  容量大到可以把多个模型 + 超长 KV cache 全部常驻,但带宽只有 HBM 卡的 1/5 到 1/15,只能吃<strong>大容量、低并发、算术强度高</strong>的负载。高通的 AI250 试图用 3D 堆叠 LPDDR 的近存计算(HBC)把「有效带宽」拉到 133 TB/s —— 注意这个「有效」是营销口径,The Register 已指出按 LPDDR5X 的位宽根本推不出这个数。
+                  容量大到可以把多个模型 + 超长 KV cache 全部常驻,但带宽只有 HBM 卡的 1/5 到 1/15,只能吃<strong>大容量、低并发、算术强度高</strong>的负载。
+                  高通的 AI250 试图用 3D 堆叠 LPDDR 的近存计算(HBC)把「有效带宽」拉到 133 TB/s —— <strong>2026-08-02 把这个数算清楚了:它的分母是每卡 7.39 TB/s 的物理带宽,133 = 7.39 × 18,而那个 18 是「近存计算避免掉的搬运量」而不是位宽</strong>(三条路径的闭合见第零节动态图 1)。
+                  更值得记的是<strong>这一派的赌注:AI200 / AI250 / AI300 三代的机架容量都是 43 TB,一步没动,全部筹码押在带宽上</strong> —— 如果 HBC 兑现,LPDDR 派会从「极大极慢」变成「极大且不慢」,那才是它真正想改写的定位。
                   <strong>2026-07-30 增量:曦望 启望 S3 把这条路线推进到 LPDDR6</strong>,是国内首款采用 LPDDR6 的 GPGPU 推理芯片,相对 LPDDR5 带宽提升一倍以上、容量大幅提升(官方称显存容量是上一代训推一体卡的 4 倍以上),
                   并且是这一派里少见的<strong>主动论证过取舍</strong>的产品:官方原话是「推理芯片需要的不是极高的内存带宽,而是足够大的内存容量,来装载庞大的模型参数」,理由是训推一体卡为了兼顾训练用了 HBM 与高级封装,而在线推理场景下算力利用率往往只有 5%–10%,那部分成本纯属浪费。
                 </p>
@@ -2345,9 +2354,10 @@
                 <tr class="hl"><td>3D 近存 DRAM</td><td><strong>东方算芯 巅峯 DF1000</strong></td><td class="num">未公开(3D 键合 DRAM)</td><td class="num">6.4 TB/s</td><td class="num">81 <span class="est">※</span></td><td><strong>它已经按卡进了第一节的榜(第 26 名 / 139 分)</strong>,列在这里是因为路线归属:它是全榜唯一一张带宽高于基线却完全不用 HBM 的卡,和 SRAM 派、LPDDR 派同属「换掉 HBM 这个前提」这一类</td><td class="src-cell"><a href="https://www.dfsx.com/products/ai-accelerator/df1000">东方算芯官方</a> · <a href="https://www.eefocus.com/article/2049953.html">与非网(Hybrid Bonding 拆解)</a></td></tr>
                 <tr><td>SRAM 数据流</td><td>NVIDIA Groq 3 LPU(LP30)</td><td class="num">0.5 GB SRAM</td><td class="num">150 TB/s</td><td class="num">8</td><td>单芯 TDP 未公开;容量维度会拿 0 分,但它本来就不打算单芯服务</td><td class="src-cell"><a href="https://developer.nvidia.com/blog/inside-nvidia-groq-3-lpx-the-low-latency-inference-accelerator-for-the-nvidia-vera-rubin-platform/">NVIDIA 技术博客</a> · <a href="https://www.theregister.com/special-features/2026/03/19/a-closer-look-at-nvidias-groq-powered-lpx-rack-systems/5223364">The Register 拆解</a></td></tr>
                 <tr><td>RISC-V 数据流</td><td>Tenstorrent Galaxy Blackhole</td><td class="num">32 GB GDDR6 + 194 MB SRAM</td><td class="num">0.5 TB/s + 90 TB/s <span class="est">※</span></td><td class="num">1438</td><td>已按单芯进榜(第 20 名),但它的卖点是整机 TCO 而不是单芯指标</td><td class="src-cell"><a href="https://tenstorrent.com/en/hardware/galaxy">官方规格</a> · <a href="https://www.forbes.com/sites/davealtavilla/2026/04/28/tenstorrent-unveils-galaxy-ai-platform-targeting-scale-and-efficiency/">Forbes</a></td></tr>
-                <tr><td>LPDDR 机架</td><td>Qualcomm AI200 / AI250</td><td class="num">768 GB LPDDR</td><td class="num">未公开(AI250 称 133 TB/s「有效」)</td><td class="num">—</td><td>算力、单卡带宽、TDP 全部未公开,十个维度里有六个无法取值</td><td class="src-cell"><a href="https://www.datacenterdynamics.com/en/news/qualcomm-launches-ai200-and-ai250-chip-offering-targeting-inferencing-workloads-at-rack-scale/">DCD</a> · <a href="https://www.techpowerup.com/350281/qualcomm-hbc-gen-1-achieves-133-tb-s-bandwidth-by-stacking-lpddr-memory">TechPowerUp(HBC)</a></td></tr>
+                <tr class="hl"><td>LPDDR 机架</td><td><strong>Qualcomm AI200 / AI250 / AI300</strong></td><td class="num">768 GB LPDDR / 卡<br />43 TB / 机架(三代不变)</td><td class="num">7.39 TB/s <span class="est">※反推</span>(AI200 物理)<br />133 TB/s「有效」(AI250 = ×18)<br />~399 TB/s「有效」(AI300 = ×54)<span class="est">※</span></td><td class="num">—</td><td>算力峰值、单卡物理带宽、TDP 全部未公开,十个维度里有六个无法取值。<strong>2026-08-02 补:那个 133 TB/s 属于第 ④ 类「近存等效带宽」,与本榜第 ① 类的物理带宽不可直接比</strong>(见第零节动态图 2、3)</td><td class="src-cell"><a href="https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Investor-Day-2026_TPialis_Data-Center.pdf">高通投资者日演示稿(18× / 54× 与脚注)</a> · <a href="https://www.theregister.com/systems/2026/06/30/qualcomms-proposed-solution-to-catch-up-in-ai-infra-bury-the-compute-under-the-dram/5264071">The Register(6720 bit 反推)</a> · <a href="https://www.datacenterdynamics.com/en/news/qualcomm-launches-ai200-and-ai250-chip-offering-targeting-inferencing-workloads-at-rack-scale/">DCD</a> · <a href="https://www.techpowerup.com/350281/qualcomm-hbc-gen-1-achieves-133-tb-s-bandwidth-by-stacking-lpddr-memory">TechPowerUp(HBC)</a></td></tr>
                 <tr><td>LPDDR 插卡</td><td>Intel Crescent Island</td><td class="num">160–480 GB LPDDR5X</td><td class="num">~1.5 TB/s <span class="est">※</span></td><td class="num">—</td><td>算力未公开;2026 H2 送样、2027 上市,尚未商用</td><td class="src-cell"><a href="https://www.datacenterdynamics.com/en/news/intel-teases-crescent-island-ai-data-center-gpu-supports-up-to-480gb-of-lpddr5x/">DCD</a></td></tr>
-                <tr class="hl"><td>数字存内计算</td><td><strong>d-Matrix Corsair</strong></td><td class="num">4 GB SRAM + ≤512 GB LPDDR5</td><td class="num">300 TB/s + 800 GB/s</td><td class="num">16</td><td>它其实<strong>可以</strong>按卡打分(600–1200 W 的标准 PCIe 卡),但只做 MXINT8/MXINT4、没有 BF16 矩阵单元,十维里的「BF16 算力」「数值格式」两项会严重误导,所以单列</td><td class="src-cell"><a href="https://www.d-matrix.ai/product/">官方规格</a> · <a href="https://www.d-matrix.ai/technology/">d-Matrix:DIMC 技术说明</a> · <a href="https://longbridge.com/en/news/273537723">Raptor 的 3D 堆叠 DRAM 与 Pavehawk 测试芯片</a></td></tr>
+                <tr class="hl"><td>数字存内计算</td><td><strong>d-Matrix Corsair</strong></td><td class="num">4 GB SRAM(性能内存)<br />+ ≤512 GB LPDDR5(容量内存)</td><td class="num">300 TB/s ③<br />+ 800 GB/s ①<br /><strong>差 375 倍</strong></td><td class="num">16 / <strong>6000</strong></td><td>它其实<strong>可以</strong>按卡打分(600–1200 W 的标准 PCIe 卡),但只做 MXINT8/MXINT4、没有 BF16 矩阵单元,十维里的「BF16 算力」「数值格式」两项会严重误导,所以单列。
+                <strong>2026-08-02 补上真正的原因:它的带宽不是「未公开」,而是「有两个,取决于权重住在哪一层」</strong> —— 住得进 2 GB 性能内存(≈4B 参数 MXINT4)时山脊点 16 FLOP/B,住不进时落到 400 GB/s、山脊点跳到 6000 FLOP/B,比 H20 还慢 10 倍(见第零节动态图 4)</td><td class="src-cell"><a href="https://www.d-matrix.ai/product/">官方规格</a> · <a href="https://www.d-matrix.ai/technology/">d-Matrix:DIMC 技术说明</a> · <a href="https://longbridge.com/en/news/273537723">Raptor 的 3D 堆叠 DRAM 与 Pavehawk 测试芯片</a></td></tr>
                 <tr class="hl"><td>transformer 专用 ASIC</td><td><strong>Etched Sohu</strong></td><td class="num">144 GB HBM3E</td><td class="num">~6 TB/s <span class="est">※</span></td><td class="num">—</td><td>不公布 FLOPS,只公布 tok/s;而且<strong>不兼容 CUDA / vLLM / TensorRT-LLM</strong>,峰值算力这个维度对它没有可比性</td><td class="src-cell"><a href="https://markets.financialcontent.com/stocks/article/gnwcq-2026-6-30-etched-emerges-from-stealth-with-working-chip-800m-raised-and-over-1b-in-customer-contracts">官方新闻稿</a> · <a href="https://www.techtimes.com/articles/319393/20260630/transformer-chip-startup-etched-exits-stealth-800m-raised-1b-contracts.htm">Tech Times(吞吐对比与迁移代价)</a></td></tr>
                 <tr><td>车端 / 机器人端</td><td>Tesla AI5</td><td class="num">144–192 GB LPDDR5X</td><td class="num">0.77–1.9 TB/s <span class="est">※口径分歧</span></td><td class="num">—</td><td>不是数据中心卡:算力用 TOPS(INT8)口径、峰值 700–800 W、2027 中后期量产,放这里做 LPDDR 路线对照</td><td class="src-cell"><a href="https://www.techpowerup.com/348241/tesla-tapes-out-ai5-chip-in-partnership-with-tsmc-and-samsung">TechPowerUp</a></td></tr>
                 <tr class="hl"><td>LPDDR6 插卡</td><td><strong>曦望 启望 S3</strong> <span class="est">※新增</span></td><td class="num">未公开<br />(称为上一代训推卡的 4 倍以上)</td><td class="num">未公开<br />(LPDDR6,相对 LPDDR5 &gt;2 倍)</td><td class="num">—</td><td>算力、容量、带宽的<strong>绝对值全部未公开</strong>,只给了相对倍数与成本口径(单位 token 推理成本降约 90%、性价比 &gt;10 倍),十维里有六维无法取值。<strong>寰望 SC3-256 超节点单域 256 卡一跳直连、时延 ~200 ns、全液冷</strong>,这一项本身已经能进第五节的表</td><td class="src-cell"><a href="https://www.qbitai.com/2026/01/373113.html">量子位(S3 与寰望 SC3)</a> · <a href="https://zhidx.com/p/531286.html">智东西(LPDDR6 与算力访存比甜点)</a> · <a href="https://m.21jingji.com/article/20260203/0b76e57e4eaa08c0a36df7af1444a631.html">21 财经(放弃训练的论证)</a></td></tr>
@@ -2410,6 +2420,12 @@
               这件事对 TCO 的含义比它的参数更重要。一个 R200 机架要 45 °C 冷液 + 800 V DC 母排,Helios 参考设计是 246 kW / 385 L·min⁻¹ 冷液 —— 而全世界绝大多数在运机房两样都没有,液冷改造往往是<strong>比卡本身更大的一笔资本开支</strong>。
               850E 把这笔钱省掉的同时保住了 4 TB/s 和 96 卡域,意味着<strong>「能不能用」和「有多强」这两件事第一次可以不冲突</strong>。
               需要留一句保守:华为没公开 850E 的单卡 TDP、配的是哪一代芯片、整柜功率密度,以及 VCE 相变散热在长期满载下的可靠性数据 <span class="est">※</span> —— 相变散热的工程难点恰恰在于长时间高负载后的性能衰减,这一项要等第三方实测。
+            </span>
+            <span class="fig-cap">
+              <strong>2026-08-02 更正一处:本文此前把高通 Dragonfly 机架写成「160 kW 直接液冷」,这不完整。</strong>
+              官方投资者日的加速卡路线图页上,AI200 / AI250 / AI300 <strong>三代都标注「air and direct-liquid cooling」</strong> —— 也就是存在风冷形态,而不是只有液冷。
+              把它和 Atlas 850E、Crescent Island(350 W 风冷 PCIe)、d-Matrix SquadRack(1200 W 卡但整机架风冷)放在一起,「风冷可选」在 2026 下半年已经从<strong>低端产品的特征</strong>变成了<strong>机架级方案的标配选项</strong>:
+              因为真正卡住部署速度的从来不是卡,是机房。这一栏没有 TDP 数字可填(高通至今未公开单卡功耗),但它属于本节的判断范围,所以记在这里而不是第七节。
             </span>
             <span class="fig-cap">
               07-30 新增的 <strong>MI350P 落在 600 W,和昇腾 950PR 同一格,但散热要求差一档:它是被动风冷 —— 卡上没有风扇,靠机箱风道带走 600 W。</strong>
