@@ -654,7 +654,7 @@
               <div class="d0-row"><span class="nm">MI350X · FP8 4600 TF</span><span class="d0-lane"><span class="d0-bar" style="--x: 77.4%; --c: var(--amd); --d: .18s"></span></span><span class="vl"><b>10060</b></span></div>
               <div class="d0-row"><span class="nm">MI300X · FP8 2615 TF</span><span class="d0-lane"><span class="d0-bar" style="--x: 48.7%; --c: var(--amd); --d: .31s"></span></span><span class="vl"><b>6327</b></span></div>
               <div class="d0-row"><span class="nm">MI325X · FP8 2615 TF</span><span class="d0-lane"><span class="d0-bar" style="--x: 32.6%; --c: var(--amd); --d: .44s"></span></span><span class="vl"><b>4235</b></span></div>
-              <div class="d0-axis"><span style="--p: 0%">0 tok/s·卡</span><span style="--p: 30.8%">4000</span><span style="--p: 61.5%">8000</span><span style="--p: 92.3%">12000</span></div>
+              <div class="d0-axis"><span style="--p: 0%">0</span><span style="--p: 30.8%">4000 tok/s·卡</span><span style="--p: 61.5%">8000</span><span style="--p: 92.3%">12000</span></div>
             </div>
             <span class="fig-cap">
               MI325X 是 MI300X 的后继,而 AMD 自己的脚注(MI300-17 / MI325-002)把两张卡的稠密峰值写成了<strong>同一个数:2614.9 TFLOPS FP8、1307.4 TFLOPS FP16</strong>;
@@ -682,26 +682,28 @@
           <div class="fig">
             <div class="fig-title">动态图 7:把软件维换成可审计的覆盖率 —— 前 12 名全部掉分,而名次一位都不动(虚线 = 原指数)</div>
             <div class="fig-legend">
-              <span style="--c: var(--amd)"><i></i>AMD</span><span style="--c: var(--nv)"><i></i>NVIDIA</span>
-              <span style="--c: var(--goo)"><i></i>Google TPU</span><span style="--c: var(--ms)"><i></i>Microsoft</span>
-              <span style="--c: var(--aws)"><i></i>AWS</span><span style="--c: var(--hw)"><i></i>华为昇腾</span>
+              <span style="--c: var(--nv)"><i></i>换口径后仍拿到分(B300,5.41 / 10)</span>
+              <span style="--c: var(--alt)"><i></i>有审计成绩但触底归零(MI355X,2/11)</span>
+              <span style="--c: var(--base)"><i></i>一项未交,直接归零(其余 10 张)</span>
+              <span style="--c: var(--amd)"><i></i>本图颜色编码的是审计状态,不是厂商</span>
             </div>
             <div class="jump">
-              <div class="jump-row"><span class="nm">MI455X</span><span class="jump-track"><span class="jump-new" style="--w: 96.2%; --c: var(--amd); --d: .05s"></span><span class="jump-old" style="--o: 98%"></span></span><span class="vl">417 → <b>409.3</b> · 第 1</span></div>
-              <div class="jump-row"><span class="nm">Rubin R200</span><span class="jump-track"><span class="jump-new" style="--w: 91.4%; --c: var(--nv); --d: .1s"></span><span class="jump-old" style="--o: 93.5%"></span></span><span class="vl">398 → <b>389.1</b> · 第 2</span></div>
-              <div class="jump-row"><span class="nm">TPU 8i</span><span class="jump-track"><span class="jump-new" style="--w: 81.6%; --c: var(--goo); --d: .15s"></span><span class="jump-old" style="--o: 83.4%"></span></span><span class="vl">355 → <b>347.3</b> · 第 3</span></div>
-              <div class="jump-row"><span class="nm">Maia 200</span><span class="jump-track"><span class="jump-new" style="--w: 79.8%; --c: var(--ms); --d: .2s"></span><span class="jump-old" style="--o: 81.3%"></span></span><span class="vl">346 → <b>339.7</b> · 第 4</span></div>
-              <div class="jump-row"><span class="nm">TPU 8t</span><span class="jump-track"><span class="jump-new" style="--w: 79.3%; --c: var(--goo); --d: .25s"></span><span class="jump-old" style="--o: 81.1%"></span></span><span class="vl">345 → <b>337.3</b> · 第 5</span></div>
+              <div class="jump-row"><span class="nm">MI455X</span><span class="jump-track"><span class="jump-new" style="--w: 96.2%; --c: var(--base); --d: .05s"></span><span class="jump-old" style="--o: 98%"></span></span><span class="vl">417 → <b>409.3</b> · 第 1</span></div>
+              <div class="jump-row"><span class="nm">Rubin R200</span><span class="jump-track"><span class="jump-new" style="--w: 91.4%; --c: var(--base); --d: .1s"></span><span class="jump-old" style="--o: 93.5%"></span></span><span class="vl">398 → <b>389.1</b> · 第 2</span></div>
+              <div class="jump-row"><span class="nm">TPU 8i</span><span class="jump-track"><span class="jump-new" style="--w: 81.6%; --c: var(--base); --d: .15s"></span><span class="jump-old" style="--o: 83.4%"></span></span><span class="vl">355 → <b>347.3</b> · 第 3</span></div>
+              <div class="jump-row"><span class="nm">Maia 200</span><span class="jump-track"><span class="jump-new" style="--w: 79.8%; --c: var(--base); --d: .2s"></span><span class="jump-old" style="--o: 81.3%"></span></span><span class="vl">346 → <b>339.7</b> · 第 4</span></div>
+              <div class="jump-row"><span class="nm">TPU 8t</span><span class="jump-track"><span class="jump-new" style="--w: 79.3%; --c: var(--base); --d: .25s"></span><span class="jump-old" style="--o: 81.1%"></span></span><span class="vl">345 → <b>337.3</b> · 第 5</span></div>
               <div class="jump-row"><span class="nm">B300 <span class="est">※有审计</span></span><span class="jump-track"><span class="jump-new" style="--w: 76%; --c: var(--nv); --d: .3s"></span><span class="jump-old" style="--o: 77.1%"></span></span><span class="vl">328 → <b>323.4</b> · 第 6</span></div>
-              <div class="jump-row"><span class="nm">TPU7x Ironwood</span><span class="jump-track"><span class="jump-new" style="--w: 70.6%; --c: var(--goo); --d: .35s"></span><span class="jump-old" style="--o: 72.4%"></span></span><span class="vl">308 → <b>300.3</b> · 第 7</span></div>
-              <div class="jump-row"><span class="nm">MI355X <span class="est">※有审计</span></span><span class="jump-track"><span class="jump-new" style="--w: 65.9%; --c: var(--amd); --d: .4s"></span><span class="jump-old" style="--o: 67.7%"></span></span><span class="vl">288 → <b>280.3</b> · 第 8</span></div>
-              <div class="jump-row"><span class="nm">Trainium3</span><span class="jump-track"><span class="jump-new" style="--w: 60%; --c: var(--aws); --d: .45s"></span><span class="jump-old" style="--o: 61.1%"></span></span><span class="vl">260 → <b>255.1</b> · 第 9</span></div>
-              <div class="jump-row"><span class="nm">Rubin CPX</span><span class="jump-track"><span class="jump-new" style="--w: 57.7%; --c: var(--nv); --d: .5s"></span><span class="jump-old" style="--o: 59.5%"></span></span><span class="vl">253 → <b>245.3</b> · 第 10</span></div>
-              <div class="jump-row"><span class="nm">B30A</span><span class="jump-track"><span class="jump-new" style="--w: 55%; --c: var(--nv); --d: .55s"></span><span class="jump-old" style="--o: 57.3%"></span></span><span class="vl">244 → <b>234.0</b> · 第 11</span></div>
-              <div class="jump-row"><span class="nm">昇腾 950DT</span><span class="jump-track"><span class="jump-new" style="--w: 53.4%; --c: var(--hw); --d: .6s"></span><span class="jump-old" style="--o: 54.5%"></span></span><span class="vl">232 → <b>227.1</b> · 第 12</span></div>
+              <div class="jump-row"><span class="nm">TPU7x Ironwood</span><span class="jump-track"><span class="jump-new" style="--w: 70.6%; --c: var(--base); --d: .35s"></span><span class="jump-old" style="--o: 72.4%"></span></span><span class="vl">308 → <b>300.3</b> · 第 7</span></div>
+              <div class="jump-row"><span class="nm">MI355X <span class="est">※有审计</span></span><span class="jump-track"><span class="jump-new" style="--w: 65.9%; --c: var(--alt); --d: .4s"></span><span class="jump-old" style="--o: 67.7%"></span></span><span class="vl">288 → <b>280.3</b> · 第 8</span></div>
+              <div class="jump-row"><span class="nm">Trainium3</span><span class="jump-track"><span class="jump-new" style="--w: 60%; --c: var(--base); --d: .45s"></span><span class="jump-old" style="--o: 61.1%"></span></span><span class="vl">260 → <b>255.1</b> · 第 9</span></div>
+              <div class="jump-row"><span class="nm">Rubin CPX</span><span class="jump-track"><span class="jump-new" style="--w: 57.7%; --c: var(--base); --d: .5s"></span><span class="jump-old" style="--o: 59.5%"></span></span><span class="vl">253 → <b>245.3</b> · 第 10</span></div>
+              <div class="jump-row"><span class="nm">B30A</span><span class="jump-track"><span class="jump-new" style="--w: 55%; --c: var(--base); --d: .55s"></span><span class="jump-old" style="--o: 57.3%"></span></span><span class="vl">244 → <b>234.0</b> · 第 11</span></div>
+              <div class="jump-row"><span class="nm">昇腾 950DT</span><span class="jump-track"><span class="jump-new" style="--w: 53.4%; --c: var(--base); --d: .6s"></span><span class="jump-old" style="--o: 54.5%"></span></span><span class="vl">232 → <b>227.1</b> · 第 12</span></div>
             </div>
             <span class="fig-cap">
-              条形长度 = 新指数 ÷ 417 × 98%,虚线 = 原指数的位置。跌幅从 <strong>4.59 分(B300)到 10.00 分(B30A)</strong>,
+              条形长度 = 新指数 ÷ 417 × 98%,虚线 = 原指数的位置。<strong>这张图的颜色编码的是审计状态而不是厂商</strong> ——
+              灰色那 10 行是「一项都没交,所以这一维归零」,和它们的硅厂是谁无关。跌幅从 <strong>4.59 分(B300)到 10.00 分(B30A)</strong>,
               <strong>而前 12 名的顺序一位都没变。</strong>算术上的原因很直白:这一维最多值 10 分,而榜上相邻两名的间隔多在 5–20 分之间,
               所以「几乎所有卡同时掉一个相近的量」在排序上是恒等变换。
             </span>
