@@ -35,7 +35,7 @@
     <title data-zh="商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏" data-en="Commercial AI Accelerator Board & Ranking (H20 as baseline) — Hong Zhuang">商用 AI 加速卡统计与排名(以 H20 为基线) — 庄宏</title>
     <meta
       name="description"
-      content="2026-08-02 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 / 曦望 / 奕行智能 共 29 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次审查「带宽」这个词本身:榜上出现过的带宽是五种不同的量(主存物理 / 机架聚合 / 片上 SRAM / 近存等效 / 卡间互联),跨五个数量级;高通 AI250 的 133 TB/s 由 133÷18、414÷56、6720bit×8.8Gbps 三条路径闭合到每卡 7.39 TB/s;同一维在五种口径下可取 0–120 分,而榜首总分 417。32 张卡自查通过,本次改分 0。"
+      content="2026-08-03 复核:统计 NVIDIA / AMD / 昇腾 / TPU / Trainium / Microsoft Maia / Meta MTIA / 阿里平头哥真武 / Tesla AI5 / SambaNova / d-Matrix / Etched / FuriosaAI / Rebellions / Qualcomm / Cerebras / Tenstorrent / Intel / 昆仑芯 / 寒武纪 / 摩尔线程 / 沐曦 / 海光 / 壁仞 / 燧原 / 天数智芯 / 东方算芯 / 曦望 / 奕行智能 共 29 家厂商最新三款商用加速卡,按显存、算力、算力带宽比、数值格式原生支持、Scale-up 超节点域、片上 SRAM、TDP 与液冷、软件栈成熟度与实测 MFU 打分排名,以 NVIDIA H20 为基线。本次审查每一格数字的出处:这 100 分权重里 90 分抄的是厂商自报规格、10 分是本文判断、经过第三方审计的是 0 分;MLPerf 两轮 v6.0 归并到硅厂只有 3 家 / 2 家,榜上 32 张卡只有 B300 与 MI355X 能查到审计成绩,基线 H20 一条都没有;同一颗 B300、同一测试项、同为 8 卡单节点,换个提交方每卡吞吐差 1.705 倍。敏感度实测名次一位不动,本次改分 0。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -370,7 +370,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-08-02 复核 · 2026-07-27 首发</span>
+            <span>2026-08-03 复核 · 2026-07-27 首发</span>
             <span class="tags"><span>GPU</span><span>NPU</span><span>Hardware</span><span>Ranking</span><span>Roofline</span><span>Interconnect</span><span>MFU</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">商用 AI 加速卡统计与排名:以 NVIDIA H20 为基线</span><span lang="en" class="i18n-en">Commercial AI Accelerator Board &amp; Ranking, with NVIDIA H20 as the Baseline</span></h1>
@@ -378,30 +378,41 @@
 
         <div class="prose">
           <p class="gpu-lede">
-            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-08-02</strong>。覆盖 <strong>29 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯、曦望、奕行智能。
+            这是一份滚动更新的商用 AI 加速卡统计,本次快照 <strong>2026-08-03</strong>。覆盖 <strong>29 家厂商、每家最新 3 款卡</strong>:NVIDIA、AMD、华为昇腾、Google TPU、AWS Trainium、Intel、Microsoft、Meta、阿里平头哥、Tesla、SambaNova、d-Matrix、Etched、FuriosaAI、Rebellions、Qualcomm、Cerebras、Tenstorrent、百度昆仑芯、寒武纪、摩尔线程、沐曦、海光、壁仞、燧原、天数智芯、东方算芯、曦望、奕行智能。
             排名不看单一峰值,而是把<strong>显存、算力、算力/带宽比、数值格式原生支持、Scale-up 与超节点域、片上 SRAM/L2、TDP 与液冷、软件栈成熟度与实测 MFU</strong> 十个维度加权成一个「综合硬件指数」,并统一<strong>以 NVIDIA H20 = 100 为基线</strong>。
             所有关键数字都在表格里给出来源链接;公开信息不足、由我按同代规格推算的单元格标注 <span class="est">※</span>,请不要当成厂商官方口径。
           </p>
           <p class="gpu-lede">
-            <strong>本次复核审的是「带宽」这个词本身。</strong>带宽在本模型里权重 15 分,和 FP8 算力并列最重;而这份榜(含第七节)里出现过的「带宽」其实是<strong>五种不同的量</strong>,跨了五个数量级:
-            主存物理带宽、它的机架聚合值、片上 SRAM 带宽、近存计算的「等效」带宽、卡间互联带宽。
-            以高通 2026-06-24 投资者日新公开的路线图为切口,<strong>AI250 那个「每卡 133 TB/s」的分母被三条互不相关的路径同时锁定在 7.39 TB/s</strong>(133÷18、414÷56、6720 bit × 8.8 Gbps)。
-            把五种口径依次代进打分公式,<strong>同一维可以取 0 到 120 分,而榜首总分才 417</strong>。好消息是自查通过了:榜上 32 张卡的带宽输入全部是第一类,<strong>本次改分 0</strong>,理由与全部对照在第零之二节。
+            <strong>本次复核审的是每一格数字的出处 ——「这个数是谁测的」。</strong>前四轮追问的都是数字本身,而它们有一个共同的天花板:
+            <strong>这份榜的 100 分权重里,90 分抄的是厂商自己公布的规格、10 分是我给的软件栈星级,经过第三方审计的是 0 分。</strong>
+            2026 年唯一成规模的审计机制是 MLPerf,我把它两轮 v6.0 的官方结果仓库逐行数了一遍:
+            <strong>Inference v6.0 的 520 条结果来自 29 种加速器型号,归并到硅厂只有 3 家;Training v6.0 官方口径的 13 种加速器,归并后只有 2 家</strong> ——
+            连 Google 自己两轮提交的都是 NVIDIA 系统,TPU 一条成绩都没有,而 TPU 在本榜占了前七名里的三席。
+            <strong>榜上 32 张卡只有 2 张(B300、MI355X)能查到审计成绩,基线 H20 一条都没有。</strong>
+            拿这 2 张卡回头检验本榜:指数比 1.139 落在实测的 0.961–1.347 之间,方向对了,但区间宽度反而成了「名次相差 2 位以内不分高下」的第三个独立佐证。
+            而审计数据自己揭出的最大一件事是:<strong>同一颗 B300、同一个测试项、同为 8 卡单节点,换个提交方每卡吞吐差 1.705 倍</strong>,
+            折成本模型的尺度是 7.70 分 —— 恰好等于一张 ★★★★ 卡软件维的全部得分。<strong>本次改分 0</strong>,对照与拒绝换口径的三条理由在第零节。
           </p>
           <p class="gpu-lede">
-            <strong>上一次(08-01)复核抓到的是这张榜自己的一处填错,而且错法很典型。</strong>昇腾 950DT 本月上线华为云(原定 2026 Q4,提前了一个季度),
+            <strong>上一次(08-02)复核审的是「带宽」这个词本身。</strong>带宽在本模型里权重 15 分,和 FP8 算力并列最重;而这份榜(含第七节)里出现过的「带宽」其实是<strong>五种不同的量</strong>,跨了五个数量级:
+            主存物理带宽、它的机架聚合值、片上 SRAM 带宽、近存计算的「等效」带宽、卡间互联带宽。
+            以高通 2026-06-24 投资者日新公开的路线图为切口,<strong>AI250 那个「每卡 133 TB/s」的分母被三条互不相关的路径同时锁定在 7.39 TB/s</strong>(133÷18、414÷56、6720 bit × 8.8 Gbps)。
+            把五种口径依次代进打分公式,<strong>同一维可以取 0 到 120 分,而榜首总分才 417</strong>。好消息是自查通过了:榜上 32 张卡的带宽输入全部是第一类,<strong>那一轮改分 0</strong>,理由与全部对照在第零之二节。
+          </p>
+          <p class="gpu-lede">
+            <strong>再往前一次(08-01)复核抓到的是这张榜自己的一处填错,而且错法很典型。</strong>昇腾 950DT 本月上线华为云(原定 2026 Q4,提前了一个季度),
             我按官方《昇腾 950 NPU 架构白皮书》重核它的规格,发现榜上给它填的 FP8 2 PFLOPS / FP4 4 PFLOPS <strong>是下一代昇腾 960 的规格</strong> ——
             白皮书、HC 演讲路线图、Atlas 950 超节点整机口径、单计算柜口径<strong>四个独立来源都指向每卡 ~1 PF / ~2 PF</strong>。
             更值得读的是那张规格表本身:同一颗 Die 印着<strong>三个冗余档位</strong>(算力低档只有顶档的 78%)、<strong>两种算力口径</strong>(Cube+Vector 总算力 vs 仅 Cube)、
             <strong>两种显存容量</strong>(144 / 96 GB 客户选配),六种组合下这张卡的指数在 <strong>210–232 分之间</strong>。综合指数 258 → 232,名次第 10 → 第 12,全部对照在第零之三节。
           </p>
           <p class="gpu-lede">
-            <strong>再往前一次(07-30)复核审的是这份榜自己的分母。</strong>十个维度里有九个抄的是 datasheet 上的「峰值」,而 07-30 有三份互相独立的材料第一次把「峰值能兑现多少」变成了可引用的数字:
+            <strong>更早一次(07-30)复核审的是这份榜自己的分母。</strong>十个维度里有九个抄的是 datasheet 上的「峰值」,而 07-30 有三份互相独立的材料第一次把「峰值能兑现多少」变成了可引用的数字:
             AMD Instinct MI350P 的官方规格页<strong>把 delivered 与 peak 两列并排印在同一张 datasheet 上</strong>(折扣率随数值格式在 39%–67% 之间变);
             AMD 官方博客给出 Peak / MAF / Delivered 三层定义并建议<strong>把 MFU 的分母从 peak 换成 MAF</strong>;
             一份第三方白皮书把达成率<strong>拆成算力、显存带宽、Scale-up 互联三条互不相关的曲线</strong>(45%–93% / 81%–90% / 70%–85%)。
             结论是:同一个「4.0 TB/s」写在两家的 datasheet 上不是同一个东西。方法论对照、新入榜的 MI350P(219 分)与两家新厂商都在第零之四节。
-            <strong>四次复核连起来正好是三个层层递进的问题:数字兑现多少(07-30)→ 数字到底是哪一个(08-01)→ 数字在量什么(08-02)。</strong>
+            <strong>五次复核连起来正好是四个层层递进的问题:数字兑现多少(07-30)→ 数字到底是哪一个(08-01)→ 数字在量什么(08-02)→ 数字是谁测的(08-03)。</strong>
           </p>
 
           <div class="gpu-kpis">
@@ -410,8 +421,9 @@
             <div class="gpu-kpi"><b>32</b><span>数据足够、进入排名</span></div>
             <div class="gpu-kpi"><b>0</b><span>本次改分(自查通过)</span></div>
             <div class="gpu-kpi"><b>10</b><span>评分维度</span></div>
-            <div class="gpu-kpi"><b>38</b><span>动图(+6)</span></div>
-            <div class="gpu-kpi"><b>5</b><span>「带宽」的不同口径</span></div>
+            <div class="gpu-kpi"><b>45</b><span>动图(+7)</span></div>
+            <div class="gpu-kpi"><b>2 / 32</b><span>有第三方审计成绩的卡</span></div>
+            <div class="gpu-kpi"><b>1.70×</b><span>同卡换提交方的极差</span></div>
           </div>
 
           <h2>零、2026-08-03 复核:「这个数是谁测的」—— 榜上 32 张卡只有 2 张有第三方审计过的成绩,而同一颗芯片换个提交方就差 1.70 倍</h2>
@@ -742,7 +754,7 @@
           <p>
             就在写这一节的同一天(2026-08-03),又多了一个刚好落在 L2 的样本:<strong>壁仞科技宣布基于 SGLang 完成 MiniMax H3 在壁砺™ 系列上的「Day0」适配与调优</strong>。
             公告里有框架、有模型、有「调优」两个字,<strong>没有任何一个数字</strong> —— 没有吞吐、没有时延、没有折损率、没有卡数。
-            按第零之五节建立的 Day-0 证据梯度,它落在最低那一档「可用性,而非效率」;而壁仞至今没公布 BR20X 的显存 / 带宽 / TFLOPS,所以它连进榜都还进不了(见口径声明 (3))。
+            按第九节 07-29 那一轮建立的 Day-0 证据梯度,它落在最低那一档「可用性,而非效率」;而壁仞至今没公布 BR20X 的显存 / 带宽 / TFLOPS,所以它连进榜都还进不了(见口径声明 (3))。
             把它和 07-28 那一轮对照着看就很清楚:<strong>同一个词(Day-0)在不同厂商嘴里,证据等级能差三档,而三档之间的差别不在硬件,在愿不愿意给数字。</strong>
           </p>
 
@@ -1989,6 +2001,14 @@
             把它们依次代进本维的公式 <code>15 × clamp(1 + log₂(带宽/4.0), 0, 8)</code>,<strong>同一维可以取 0 到 120 分,而榜首总分才 417</strong>:
             Cerebras 的 21 PB/s 片上带宽会直接顶满 120,高通 AI250 的 133 TB/s「有效」拿 90.8,而 d-Matrix Corsair 容量内存的 0.4 TB/s 触底拿 0。
             这次把 32 张进榜卡的带宽输入逐张核了一遍,<strong>全部属于第一类,没有一张混进其他四类,所以 08-02 这一轮一分未改</strong> —— 对照与理由在第零之二节。
+            (7) <strong>这张条形图的每一格都是厂商自述,没有一格经过第三方审计(2026-08-03 量化)。</strong>
+            上面那 100 分权重里,<strong>90 分抄的是厂商 datasheet、10 分是我给的软件栈星级、经过审计的是 0 分</strong>;
+            2026 年唯一成规模的审计机制 MLPerf,两轮 v6.0 加起来只覆盖 <strong>2–3 家硅厂</strong>,榜上 <strong>32 张卡命中 2 张</strong>(B300 第 6、MI355X 第 8),
+            <strong>连基线 H20 都没有一条审计成绩</strong> —— 也就是说这张图的原点本身是未经验证的。
+            这 2 张卡给出的检验结果是双面的:本榜说 B300 比 MI355X 高 1.139 倍,八个共同测试项的实测比落在 <strong>0.961–1.347</strong>,
+            <strong>区间比它想分辨的差距还宽,而这两张卡在榜上恰好相差 2 位</strong> —— 请把它当作第 (5) 条那句「相差 2 位以内不分高下」的第三个独立佐证。
+            更要紧的是:<strong>同一颗 B300、同一个测试项、同为 8 卡单节点,换个提交方每卡吞吐差 1.705 倍</strong>,折成本模型的尺度是 7.70 分,
+            而本模型给软件栈的全部权重只有 10 分(占榜首 417 分的 2.4%)。<strong>这张图排的是硅,而你买的是系统 —— 两者之间差着一个 1.7 倍的、这张图量不到的量。</strong>全部对照在第零节。
           </div>
 
           <h2>二、各厂商最新 3 款卡清单</h2>
@@ -2950,6 +2970,22 @@
               第零之四节动态图 24 那个端到端实测就是两者相乘之后的东西:MI300X 纸面算力比 H100 高 32%,端到端只剩 49%–80%。
               <strong>所以看到「某卡 MFU 40%」这种说法时,先问一句分母是 peak 还是 MAF —— 这两个答案之间差着将近两倍。</strong>
             </span>
+            <span class="fig-cap">
+              <strong>2026-08-03:这张表的第四列(公开 MFU 证据)现在有了一个可数的分级。</strong>
+              全表 30 多行证据里,<strong>没有一行来自第三方审计</strong> —— MLPerf v6.0 两轮里能查到成绩的只有 B300 与 MI355X 两张卡,
+              而它们在本表里引的仍然是厂商自己的训练 MFU 区间与 ROCm 博客,不是 MLPerf 成绩。
+              按第零节那张五级表,本列绝大多数格子落在 <strong>L2(厂商自测,只给结论)</strong>:
+              「官方称 ×5」「实测折损 &lt;12%」「MFU &gt;50%」「拉起并稳定运行」这些说法<strong>都缺分母</strong> —— 缺模型版本、并发数、上下文长度、软件版本。
+              少数几行够得上 <strong>L3(给了数字也给了跑法)</strong>:MI350P 的 datasheet delivered 列、ROCm 的 Gluon 内核博客、FuriosaAI 的 <code>furiosa-mlperf</code> 容器。
+              <strong>请把第四列当成「这家愿意公开到什么程度」的排序,而不是「这家跑得多快」的排序 —— 两者在这张表里几乎不相关。</strong>
+            </span>
+            <span class="fig-cap">
+              还有一个可数的替代指标值得记下来:<strong>v6.0 的 11 个 datacenter 测试项里,一张卡交了几项</strong>。
+              B200 交了 10 项、B300 8 项、GB200 8 项,而 <strong>MI355X 只交了 2 项</strong>(GPT-OSS 120B 与 Llama 2 70B),
+              连 Intel 那张 24 GB 显存的 Arc Pro B60 都交了 4 项。这个数测的不是硅有多快,而是<strong>这套栈能把多少种模型跑到达标并愿意公开</strong> ——
+              和本表第三列(成熟度星级)想说的是同一件事,只不过它是可数的(第零节动态图 3)。
+              我没有把它换进模型,理由写在口径声明 (17):<strong>它把「没参加」和「跑不动」混成了同一个 0 分。</strong>
+            </span>
           </div>
 
           <h2>十、代际节奏</h2>
@@ -3066,6 +3102,15 @@
             <li><strong>Kimi K3 的 Day-0 适配竞赛(2026-07-29 新增)</strong>:<a href="https://m.21jingji.com/article/20260729/28ee398c17ef4e57c61b6d6851a925d9.html">21 财经:数十家 AI 基础设施厂商首日适配汇总,阿里云真武 M890 首 token 时延 −35% / 单卡解码吞吐 ×1.8 / 1M 上下文</a>、<a href="https://www.guancha.cn/economy/2026_07_28_825302.shtml">观察者网:昇腾 0day 适配与昇腾 950 超节点原生支持 mxFP4;海外 Nebius / Baseten / Fireworks / Modal / Together / GMI 与 vLLM / SGLang 同步</a>、<a href="https://www.itbear.com.cn/html/2026-07/1468893.html">ITBear:华为官宣昇腾 0day 支持 K3 训练适配与推理部署(MindSpeed MM + Atlas 800 A3 / 900 A3 SuperPoD)</a>、<a href="https://news.aibase.com/zh/news/29966">AIbase:摩尔线程基于 MTT S5000 与 MUSA 栈完成 K3 极速适配</a>。</li>
             <li><strong>曦望 Sunrise(第 28 家厂商,2026-07-30 新增)</strong>:<a href="https://www.ithome.com/0/916/950.htm">IT之家/界面新闻:启望 S3 发布 —— FP16→FP4 多精度切换、LPDDR6、显存容量较上一代 ×4、单位 Token 成本降约 90%、寰望 SC3-256 超节点</a> · <a href="https://news.qq.com/rain/a/20260128A07WVR00">芯东西:LPDDR6 相对 LPDDR5 带宽 ×2 以上、寰望 SC3 单域 256 卡一级互联、全液冷、16–256 卡可组、直出 RDMA 可上千卡</a>、<a href="https://m.21jingji.com/article/20260203/0b76e57e4eaa08c0a36df7af1444a631.html">21 财经:商汤大芯片部门分拆、约 30 亿元融资、「放弃训练只做推理」的取舍论证与「在线推理利用率仅 5%–10%」的口径</a>、<a href="https://zhidx.com/p/531286.html">智东西:国内首款 LPDDR6 GPGPU、单芯性能 ×5、算力访存比「甜点」、16–256 卡超节点</a>、<a href="https://finance.sina.com.cn/tech/digi/2026-01-27/doc-inhiucrw4491945.shtml">新浪科技/IT之家:DeepSeek V3/R1 满血版单位 Token 成本降约 90%、寰望 SC3-256 超节点与「百万 Token 一分钱」计划</a>。</li>
             <li><strong>奕行智能(第 29 家厂商,2026-07-30 新增)</strong>:<a href="https://36kr.com/p/3903359692342918">36氪:WAIC 2026 业界首个 RISC-V AI 算力超节点 —— ELink 单芯 3.2T、正交无背板零线缆、互联成本降 80%、时延百纳秒级、PUE 优化 20%、一代已量产、二代单柜 128 卡 / 单 Pod 16384 卡</a>、<a href="http://www.semi-insights.com/s/bdt/15/50502.shtml">半导体行业观察:Epoch 是国内首颗大规模量产的 RISC-V 云端大算力 AI 芯片(类 TPU 架构、原生分块量化 FP8、VISA 虚拟指令集),板卡矩阵 E100 / E150 / E200-C / E200-L,次代扩展 EXFP4 / MXFP4</a>。</li>
+            <li><strong>第三方审计基准:MLPerf(2026-08-03 新增的方法论来源)</strong>:<a href="https://mlcommons.org/2026/04/mlperf-inference-v6-0-results/">MLCommons 官方:MLPerf Inference v6.0 结果发布(2026-04)</a> —— 24 家提交方、11 个 datacenter 测试项中 5 项为新增或更新(GPT-OSS 120B、扩展的 DeepSeek-R1 含投机解码的 Interactive 场景、DLRMv3、首个文生视频、Shopify 商品目录的 VLM)、新 harness LoadGen++、最大系统 72 节点 288 卡、多节点提交较 v5.1 增长 30%;
+            <a href="https://github.com/mlcommons/inference_results_v6.0"><strong>官方结果仓库 inference_results_v6.0</strong></a> —— 本节全部逐行统计的一手来源(<code>summary_results.json</code>:520 条结果 · closed 504 / open 16 · datacenter 465 / edge 55 · available 511 / preview 9 · <strong>29 种加速器字符串归并为 NVIDIA / AMD / Intel 三家硅厂</strong> · <code>has_power</code> 全为 false · 权重口径 FP4 系 333 条占 64% · Google 提交的是 DGX B200 与 GB200 NVL72 而非 TPU · B300 在 DeepSeek-R1 / Server 上七次提交的每卡吞吐 7551.7 → 4429.5 即 <strong>1.705 倍极差</strong> · MI355X 在 Llama 2 70B / Server 上九次提交 12535 → 9545 即 1.313 倍);
+            <a href="https://mlcommons.org/2026/06/mlperf-training-v6-0-results/">MLCommons 官方:MLPerf Training v6.0 结果(2026-06-16)</a> —— 24 家提交方、<strong>95 个独特系统 / 13 种硬件加速器 / 19 种主机处理器 / 60% 多节点</strong>、新增 DeepSeek V3(671B 总参 / 37B 激活)与 GPT-OSS 20B 两项 MoE 基准、「多种 FP4 配方并存」;
+            <a href="https://github.com/mlcommons/training_results_v6.0">官方结果仓库 training_results_v6.0</a> —— 各提交方 <code>systems/*.json</code> 共 121 份系统描述,<strong>accelerator_model_name 归并后只有 NVIDIA 与 AMD 两家</strong>,Google 提交的是 GB200;
+            <a href="https://www.globenewswire.com/news-release/2026/06/16/3312818/0/en/MLCommons-Releases-MLPerf-Training-v6-0-Results.html">GlobeNewswire 原始新闻稿(提交方完整名单)</a>、<a href="https://www.readaitime.com/news/2026-06-16/1nuyuhxn">读懂 AI 时代:中文报道</a>、<a href="https://docs.mlcommons.org/inference/index_gh/">MLPerf Inference 官方文档(v6.0 提交截止 2026-02-13、各测试项的参考实现与数据集)</a>、<a href="https://mlcommons.org/2026/05/deepseek-v3-training-v6-0/">MLCommons:DeepSeek-V3 训练基准说明</a>。</li>
+            <li><strong>「证据等级」的两个样本(2026-08-03 新增)</strong>:<a href="https://hc2024.hotchips.org/assets/program/conference/day1/83_HC2024.Furiosa.JunePaik.Final.pdf">FuriosaAI Hot Chips 2024 演示稿(PDF)</a> —— <strong>全篇唯一逐格标注证据来源的厂商材料</strong>:GPT-J 6B 对比表在 RNGD / L40S / Gaudi 2 / TPU v5e 四列下专门列出 <code>Data source</code> 一行(measured / measured / MLPerf 3.1 / MLPerf 4.0),并注明「Unverified by MLPerf」;
+            <a href="https://developer.furiosa.ai/v2025.2.0/en/getting_started/furiosa_mlperf.html">FuriosaAI 开发者文档:<code>furiosa-mlperf</code> 容器与复现步骤(L3 级证据的样子 —— 给了数字也给了跑法)</a>;
+            <a href="https://www.yicai.com/news/103302612.html">第一财经(2026-08-03):壁仞科技基于 SGLang 完成 MiniMax H3 在壁砺™ 系列上的 Day0 适配与调优 —— 有框架有模型,无任何吞吐 / 时延 / 折损数字,落在 L2 最低档</a>;
+            <a href="https://www.amd.com/en/products/accelerators/instinct/mi300/mi325x.html">AMD MI325X 官方规格页(脚注 MI325-002:2614.9 TFLOPS 稠密 FP8 / 1307.4 TFLOPS FP16)</a>、<a href="https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html">AMD MI300X 官方规格页(脚注 MI300-17/18:同为 2614.9 TFLOPS 稠密 FP8)—— 代际倒挂那张图的峰值来源</a>。</li>
             <li><strong>MFU 与实测</strong>:<a href="https://newsletter.semianalysis.com/p/h100-vs-gb200-nvl72-training-benchmarks">SemiAnalysis:H100 FP8 MFU 29.5% → 39.5%、集群规模对 MFU 的影响</a>、<a href="https://nebius.com/blog/posts/inside-the-nebius-pytorch-deepseek-v3-recipe">Nebius:256 卡 B200 上 DeepSeek-V3 MFU 11.2% → 14.0%</a>、<a href="https://pytorch.org/blog/enabling-up-to-41-faster-pre-training-mxfp8-and-deepep-for-deepseek-v3-on-b200-with-torchtitan/">PyTorch:MXFP8 + DeepEP 使吞吐 +41%</a>、<a href="https://mlcommons.org/2026/05/deepseek-v3-training-v6-0/">MLPerf Training v6.0 DeepSeek-V3 基准</a>、<a href="https://inferencex.semianalysis.com/zh/compare/qwen-3-5-h100-vs-mi355x">InferenceX:Qwen3.5 在 H100 与 MI355X 上的推理对比</a>、<a href="https://www.starverse-ai.com/guide/archives/3770">昇腾 910B LLaMA 训练 MFU 实测(第三方)</a>。</li>
           </ul>
 
@@ -3075,7 +3120,7 @@
             (3) <strong>某个维度没有公开数据时按基线取值(<em>r</em> = 1)</strong>,既不加分也不减分 —— 这个约定让披露少的卡天然贴近 100 分。所以低分要区分「确实弱」和「没数据」:壁仞 BR20X、天数智芯天垓300、昆仑芯 M100/M300、MI430X、Crescent Island、Qualcomm AI200 是后者,它们根本没进榜。
             (4) 机架级 / 晶圆级产品(Cerebras CS-3、Groq LPX、Qualcomm Dragonfly)不按「卡」归一化,单列第七节讨论;Tenstorrent 按单芯进榜,但它真正的卖点是整机 TCO。
             (5) 厂商自定义的「有效带宽」不与物理带宽混用:高通 AI250 的 133 TB/s、AI200 机架的 414 TB/s 均按官方口径原样引用并注明。
-            (6) 数据快照时间 <strong>2026-08-02</strong>(首发 07-27),厂商在发布前修改规格是常态(NVIDIA 自己就把 R200 的 HBM4 速率从 6.4 Gbps 上调到 10 Gbps)。
+            (6) 数据快照时间 <strong>2026-08-03</strong>(首发 07-27),厂商在发布前修改规格是常态(NVIDIA 自己就把 R200 的 HBM4 速率从 6.4 Gbps 上调到 10 Gbps)。
             (7) 07-28 新增的六张进榜卡里,<strong>B30A 尚未获得出口许可、规格未最终锁定,真武 M890 有四个维度未公开(按基线取值)</strong>,两者的分数比其他卡更容易被后续官方数据推翻。
             Etched Sohu、d-Matrix Corsair、Tesla AI5、Cerebras WSE-4 按第七节的口径不参与「按卡」排名:前两者不公布可比的浮点峰值,AI5 不是数据中心卡,WSE-4 只有第三方汇总。
             (8) 第零之六节的「装载校验」是我按公开权重规模与显存容量做的算术,不是任何厂商或月之暗面的官方部署建议;真实部署还要考虑激活值峰值、并发数、上下文长度与 KV 卸载策略。
@@ -3110,7 +3155,20 @@
             <strong>⑤ Scale-up 互联带宽</strong>(独立一维,权重 8)。这条口径的敏感度是 <strong>0 到 120 分</strong>,是本模型里最大的一处 —— 比 (11) 的 27 分和 (14) 的 22 分都大一个量级,原因是它跨的不是档位或达成率,而是定义。<br />
             同一次自查还核了 Scale-up 那一维的<strong>双向 / 单向</strong>问题:NVLink 900 GB/s、灵衢 2016 GB/s、UALink 与 PCIe Gen5 ×16 的 128 GB/s <strong>全部是双向聚合口径,全榜一致</strong>;
             而本模型算的是比值,分子分母同时折半后 <em>r</em> 不变,<strong>统一换算成单向后 32 张卡的分数变化精确为 0.00</strong>。
-            这两件事合起来是一条值得记住的性质:<strong>对数比值模型对「统一的单位约定」免疫,对「混用的定义」毫无抵抗力</strong> —— 所以要盯的从来不是单位,是定义。
+            这两件事合起来是一条值得记住的性质:<strong>对数比值模型对「统一的单位约定」免疫,对「混用的定义」毫无抵抗力</strong> —— 所以要盯的从来不是单位,是定义。<br />
+            (17) <strong>2026-08-03 的证据来源口径:本榜十个维度全部使用厂商自己公开的数字,不采用第三方基准成绩,也不因某卡有 / 没有基准成绩而加减分。</strong>
+            这条声明必须写出来,因为它是一个<strong>选择</strong>而不是疏忽:2026 年唯一成规模的第三方审计是 MLPerf,而两轮 v6.0 里榜上 32 张卡只命中 2 张、基线 H20 命中 0 张,
+            所以「用审计数据打分」在今天等价于「只给 NVIDIA 和 AMD 打分」。拒绝换口径的三条具体理由:
+            <strong>①</strong> 覆盖率把「没参加」和「参加了但跑得差」压成同一个 0 分,而绝大多数厂商缺席的原因是不参加(TPU、昇腾、昆仑芯、寒武纪、Trainium、Maia、Gaudi 全部缺席),不是跑不动;
+            <strong>②</strong> 它会让「披露更多的厂商分数更低」,这与第 (11) 条拒绝 delivered 口径的理由完全相同;
+            <strong>③</strong> 敏感度实测下来它<strong>一位名次都不改</strong> —— 把软件维从星级换成「v6.0 覆盖项数 ÷ 11」,前 12 名全部掉 4.59–10.00 分而顺序不变(第零节动态图 7)。
+            但拒绝换口径不等于可以无视它,以下三条是本榜必须承认的偏差:
+            <strong>(a)</strong> 十维里 <strong>9 维 90 分是厂商自述、1 维 10 分是本文判断、0 维经过审计</strong>;
+            <strong>(b)</strong> 「能效」这一维在全行业范围内没有审计对照物 —— Inference v6.0 的 520 条结果<strong>实测功耗为 0 条</strong>,它只能由 TDP 算出;
+            <strong>(c)</strong> 唯一能被审计的证据说明<strong>提交方本身值 1.705 倍</strong>(同一颗 B300、同一测试项、同为 8 卡单节点),折成本模型是 7.70 分,
+            而软件栈的全部权重是 10 分。<strong>这是本模型的结构性上限,不是某一格的输入错误:它排的是硅,而采购买到的是系统。</strong>
+            另外提醒一件与 (11) 相反方向的事:<strong>审计过的数字也不能直接当芯片能力用</strong> ——
+            MI300X 与 MI325X 的官方稠密峰值是同一个数(2614.9 TFLOPS FP8),而 v6.0 上后一代的每卡吞吐低 33%,原因是两次提交的节点规模与工程投入不同(第零节动态图 6)。
           </div>
         </div>
       </article>
