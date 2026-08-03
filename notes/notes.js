@@ -69,10 +69,10 @@ window.NOTES = [
       en: "AI Infra / LLM Radar: Multi-window Signals and Trends",
     },
     summary: {
-      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-08-02:当天关注 llama.cpp / LiteLLM / FlashInfer 高频工程信号,一周内聚焦 vLLM 0.26、Kimi K3 day-0 serving、MCP stateless core、KV 数据层与 GW 级算力供给。",
-      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-08-02: today focuses on llama.cpp / LiteLLM / FlashInfer engineering signals, while the week highlights vLLM 0.26, Kimi K3 day-0 serving, MCP stateless core, the KV data layer, and gigawatt-scale compute supply.",
+      zh: "稳定 URL 滚动更新:统计 AI Infra 和大模型相关的当天、一周、一个月、半年、一年热点,结合 GitHub release、新闻和官方博客证据分析历史、当下与未来趋势。2026-08-03:当天关注 llama.cpp b10242/b10241、FlashInfer 20260803 nightly、SGLang Kimi K3 tool-call parser、OpenAI Georgia 3.2GW 数据中心,一周内聚焦 vLLM 0.26、Kimi K3 day-0 serving、MCP/LiteLLM OAuth、KV 数据层与 GW 级算力供给。",
+      en: "Stable-URL rolling update: AI Infra and LLM signals across day/week/month/half-year/year windows, with GitHub releases, news, and official-blog evidence for historical, current, and future trends. 2026-08-03: today focuses on llama.cpp b10242/b10241, FlashInfer 20260803 nightly, SGLang Kimi K3 tool-call parsers, and OpenAI Georgia's 3.2GW data center, while the week highlights vLLM 0.26, Kimi K3 day-0 serving, MCP/LiteLLM OAuth, the KV data layer, and gigawatt-scale compute supply.",
     },
-    date: "2026-08-02",
+    date: "2026-08-03",
     tags: ["AI Infra", "LLM", "Inference", "KV Cache", "Agents", "Trend Analysis"],
     category: "industry",
   },
