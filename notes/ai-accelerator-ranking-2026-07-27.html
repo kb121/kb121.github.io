@@ -426,6 +426,299 @@
             <div class="gpu-kpi"><b>1.70×</b><span>同卡换提交方的极差</span></div>
           </div>
 
+          <h2>零、2026-08-05 复核:「这个数什么时候能买到」—— 榜单前五名今天一张都拿不到,而排第 10 的那张卡四个月前就被厂商从路线图上删了</h2>
+          <p>
+            前五次复核审的都是数字:它兑现多少(07-30)、它到底是哪一个(08-01)、它在量什么(08-02)、它是谁测的(08-03)。
+            这一次审的是这份榜标题里的两个字 ——<strong>商用</strong>。
+            首发那天我给自己定的进榜门槛是「已公布完整规格的商用产品」,但从来没有量化过「商用」在 2026 年具体意味着什么:
+            <strong>能下单买到卡,还是只能在某家云上租到,还是厂商自己在用而你连租都租不到,还是发布会开完了但要再等一个季度?</strong>
+            这四件事在本模型里得到的待遇完全一样 —— 十个维度里没有任何一维记录它。
+          </p>
+          <p>
+            先把结论摊开,它比我预想的难看:<strong>榜上前五名今天一张都拿不到。</strong>
+            第 1 的 MI455X 已量产但首批客户出货要等到 Q3 末;第 2 的 Rubin R200 已向指定客户发货,合作伙伴系统与云实例的公开开放定在今年秋季;
+            第 3、第 5 的 TPU 8i / 8t 在官方口径里是「今年内 GA」,今天仍是 preview;第 4 的 Maia 200 已经在 Iowa 的机房里跑生产负载,但它只服务微软和 OpenAI 自己的模型。
+            <strong>今天真能买到卡的最高分是第 6 名 B300 的 328 分,比榜首低 89 分</strong> —— 而这 89 分,是本榜已发布的误差量级(22–27 分)的三到四倍。
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 1:榜单前 12 名的「今天能不能拿到」(条长仍是综合指数,颜色是可得性)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--nv)"><i></i>① 能买到卡</span><span style="--c: var(--goo)"><i></i>② 只能租</span>
+              <span style="--c: var(--cn)"><i></i>③ 厂商自用</span><span style="--c: var(--hw)"><i></i>④ 已发布未开卖</span>
+              <span style="--c: var(--amd)"><i></i>⑤ 受阻 / 已取消</span>
+              <span style="--c: var(--base)"><i></i>本图颜色编码的是可得性,不是厂商</span>
+            </div>
+            <div class="d0">
+              <div class="d0-row"><span class="nm">AMD MI455X</span><span class="d0-lane"><span class="d0-bar" style="--x: 100%; --c: var(--hw); --d: .05s"></span></span><span class="vl">④ 未开卖</span></div>
+              <div class="d0-row"><span class="nm">NVIDIA Rubin R200</span><span class="d0-lane"><span class="d0-bar" style="--x: 95.4%; --c: var(--hw); --d: .1s"></span></span><span class="vl">④ 未开卖</span></div>
+              <div class="d0-row"><span class="nm">Google TPU 8i</span><span class="d0-lane"><span class="d0-bar" style="--x: 85.1%; --c: var(--hw); --d: .15s"></span></span><span class="vl">④ preview</span></div>
+              <div class="d0-row"><span class="nm">Microsoft Maia 200</span><span class="d0-lane"><span class="d0-bar" style="--x: 83%; --c: var(--cn); --d: .2s"></span></span><span class="vl">③ 厂商自用</span></div>
+              <div class="d0-row"><span class="nm">Google TPU 8t</span><span class="d0-lane"><span class="d0-bar" style="--x: 82.7%; --c: var(--hw); --d: .25s"></span></span><span class="vl">④ preview</span></div>
+              <div class="d0-row"><span class="nm">NVIDIA B300</span><span class="d0-lane"><span class="d0-bar" style="--x: 78.7%; --c: var(--nv); --d: .3s"></span></span><span class="vl"><b>① 能买</b></span></div>
+              <div class="d0-row"><span class="nm">TPU7x Ironwood</span><span class="d0-lane"><span class="d0-bar" style="--x: 73.9%; --c: var(--goo); --d: .35s"></span></span><span class="vl"><b>② 能租</b></span></div>
+              <div class="d0-row"><span class="nm">AMD MI355X</span><span class="d0-lane"><span class="d0-bar" style="--x: 69.1%; --c: var(--nv); --d: .4s"></span></span><span class="vl"><b>① 能买</b></span></div>
+              <div class="d0-row"><span class="nm">AWS Trainium3</span><span class="d0-lane"><span class="d0-bar" style="--x: 62.4%; --c: var(--goo); --d: .45s"></span></span><span class="vl"><b>② 能租</b></span></div>
+              <div class="d0-row"><span class="nm">NVIDIA B30A</span><span class="d0-lane"><span class="d0-bar" style="--x: 58.5%; --c: var(--amd); --d: .5s"></span></span><span class="vl">⑤ 待许可</span></div>
+              <div class="d0-row"><span class="nm">昇腾 950DT</span><span class="d0-lane"><span class="d0-bar" style="--x: 55.6%; --c: var(--hw); --d: .55s"></span></span><span class="vl">④ 承诺本月</span></div>
+              <div class="d0-row"><span class="nm">AMD MI350P</span><span class="d0-lane"><span class="d0-bar" style="--x: 52.5%; --c: var(--nv); --d: .6s"></span></span><span class="vl"><b>① 能买</b></span></div>
+              <div class="d0-axis"><span style="--p: 0%">0</span><span style="--p: 24%">100 分</span><span style="--p: 48%">200</span><span style="--p: 71.9%">300</span><span style="--p: 95.9%">400</span></div>
+            </div>
+            <span class="fig-cap">
+              读法:条形长度与第一节的排名图完全一致(指数 ÷ 417),<strong>唯一新增的信息是颜色</strong> —— 因为每一行的卡名已经写在左边,颜色用来编码行名说不出的那件事。
+              前五名是四个橙色(已发布未开卖)加一个紫色(厂商自用),<strong>绿色第一次出现要等到第 6 行</strong>。
+            </span>
+            <span class="fig-cap">
+              需要说清三处口径。<strong>Rubin R200 归在 ④ 而不是 ①</strong>:NVIDIA 已确认它进入全量产并向 Google / Microsoft / Oracle / CoreWeave 等客户发货,
+              但「已经在某个超大规模客户的机房里」与「你能下单」是两件事,合作伙伴系统与八家云的公开开放口径是「今年秋季」,企业渠道的排队要到 2027。
+              <strong>TPU 8i / 8t 归在 ④ 而且它们永远不会进 ①</strong>:Google 不外售 TPU,它们最好的结局是进 ②(云上可租)。
+              <strong>昇腾 950DT 的 ④ 带一个日期</strong>:华为云在 6 月明确说它「提前至 8 月上线」(原定 Q4),而截至本文快照 2026-08-05,我没有查到华为云开放该实例的公告 <span class="est">※本文核查</span>。
+            </span>
+          </div>
+
+          <p>
+            这五档不是我自己发明的。<strong>2026 年唯一成规模的第三方审计机制 MLPerf,在它的提交规则里就把「可得性」写成了一个强制字段</strong>,而且分法与上图的前两档完全同构:
+            <code>Available in cloud</code>(可在云上租)与 <code>Available on premise</code>(可购买)是两个并列的类别,
+            达不到的进 <code>Preview</code>,连 preview 都达不到的进 <code>RDI</code>(研究 / 开发 / 内部用)。
+            更关键的是它给了「什么时候能买到」一个<strong>可执行的定义</strong>:
+          </p>
+
+          <div class="tbl-scroll">
+            <table class="mini-table" style="min-width: 780px">
+              <thead>
+                <tr><th>档</th><th>本节的定义(以 2026-08-05 为准)</th><th>MLPerf 提交规则里的对应类别与硬约束</th><th>榜上卡数</th><th>代表卡</th></tr>
+              </thead>
+              <tbody>
+                <tr class="hl"><td class="num"><strong>①</strong></td><td><strong>能买到卡</strong>:卡或整机可下单,自建机房能拿到硬件</td><td><code>Available on premise</code> —— 「可供购买」</td><td class="num"><strong>16</strong> 张<br />51.6%</td><td>B300 · MI355X · MI350P · 昇腾 950PR / Atlas 350 · 昇腾 910C · Gaudi 3 · Gaudi 2 · 曦云 C600 · 燧原 L600 · 思元690 · MTT S5000 · P800 · Blackhole · 深算四号 · RNGD · H20</td></tr>
+                <tr class="hl"><td class="num"><strong>②</strong></td><td><strong>只能租</strong>:厂商不外售,但云上有公开可用的实例</td><td><code>Available in cloud</code> —— 「可在云上租用」</td><td class="num"><strong>5</strong> 张<br />16.1%</td><td>TPU7x Ironwood · Trainium3 · Trainium2 · 真武 M890 · 真武 810E</td></tr>
+                <tr><td class="num">③</td><td><strong>厂商自用</strong>:已在生产环境跑,但外部既不能买也不能租</td><td>规则里没有这一档 —— 它连 <code>RDI</code> 都不是,因为 RDI 至少还会被提交</td><td class="num">1 张<br />3.2%</td><td>Maia 200</td></tr>
+                <tr><td class="num">④</td><td><strong>已发布未开卖</strong>:规格公开、日期在未来(含已量产未出货、preview)</td><td><code>Preview</code> —— <strong>必须在下一轮提交、或 140 天(取较长者)内变成可买 / 可租</strong>,否则成绩不能再以 available 身份存在</td><td class="num"><strong>8</strong> 张<br />25.8%</td><td>MI455X · Rubin R200 · TPU 8i · TPU 8t · 昇腾 950DT · SN50 · REBEL-Quad · DF1000</td></tr>
+                <tr><td class="num">⑤</td><td><strong>受阻 / 已取消</strong>:监管未放行,或已被厂商从路线图移除</td><td>无对应类别(取消的产品不可能出现在任何一轮结果里)</td><td class="num">1 张<br />3.2%</td><td>B30A(待出口许可)· <s>Rubin CPX</s>(已取消,本轮退榜)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            MLPerf 那条 <strong>140 天</strong>规则值得单独说:它是我在整个 2026 年的公开材料里找到的<strong>唯一一处让「什么时候能买到」带上后果的写法</strong>。
+            厂商说「2026 下半年」「FY27 sampling」「今年内 GA」时,没有任何机制在日期到了之后回头对账;而 MLPerf 的 preview 成绩如果没在期限内兑现成可买 / 可租,
+            这条成绩就失去 available 身份。<strong>同一套语料里还有一个更有意思的数字:</strong>
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 2:「拿不到」的占比 —— 审计语料里 1.7%,本榜 32.3%,本榜前五名 100%</div>
+            <div class="fig-legend">
+              <span style="--c: var(--alt)"><i></i>三行是同一个量(不可得的占比),所以用同一种颜色;外框 = 总数,实心 = 其中拿不到的</span>
+            </div>
+            <div class="nest">
+              <div class="nest-row"><span class="nm">MLPerf Inference v6.0</span><span class="nest-track"><span class="nest-a" style="--c: var(--alt)"></span><span class="nest-c" style="--e: 1.7%; --c: var(--alt); --d: .05s"></span></span><span class="vl"><b>9</b> / 520 条是 preview<br />= <b>1.7%</b>,且同出一台机器</span></div>
+              <div class="nest-row"><span class="nm">本榜 31 张进榜卡</span><span class="nest-track"><span class="nest-a" style="--c: var(--alt)"></span><span class="nest-c" style="--e: 32.3%; --c: var(--alt); --d: .25s"></span></span><span class="vl"><b>10</b> / 31 张属于 ③④⑤<br />= <b>32.3%</b></span></div>
+              <div class="nest-row"><span class="nm">本榜前 5 名</span><span class="nest-track"><span class="nest-a" style="--c: var(--alt)"></span><span class="nest-c" style="--e: 100%; --c: var(--alt); --d: .45s"></span></span><span class="vl"><b>5</b> / 5 张拿不到<br />= <b>100%</b></span></div>
+            </div>
+            <span class="fig-cap">
+              第一行的 9 条 preview 我逐条看了提交记录:<strong>它们全部来自同一台机器 —— Intel 的 4 卡 Arc Pro B70 工作站</strong>(<code>1-node-4x-BMG-B70</code>,gpt-oss-120b / llama2-70b / llama3.1-8b / whisper 共 9 个测试项场景)。
+              换句话说,2026 年唯一的第三方审计语料里,「还买不到的硬件」只有一款,而且是一张工作站级的卡。<strong>剩下 511 条成绩,跑的都是今天就能买到或租到的机器。</strong>
+            </span>
+            <span class="fig-cap">
+              这一行和 08-03 那一轮的结论正好互补:上次的发现是「本榜只有 2 张卡有审计成绩」,而现在能补上后半句 ——
+              <strong>那 2 张卡(B300 第 6、MI355X 第 8)恰好也是唯二拿到了第三方「可得性」认证的卡</strong>,因为 MLPerf 的 available 标注本身就是提交方在规则约束下对「这台机器现在能买 / 能租」的声明,并要接受同行审查。
+              于是「有审计成绩」与「买得到」在 2026 年高度重合,这不是巧合:<strong>能被第三方复跑的前提,就是第三方拿得到机器。</strong>
+            </span>
+          </div>
+
+          <p>
+            把 ③④⑤ 三档筛掉,剩下的就是「今天真能拿到算力」的那张榜。它和第一节那张榜是同一批指数、同一个模型,只是少了 10 行:
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 3:今日可得榜(只保留 ① 能买 + ② 能租,条长与第一节同尺度)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--nv)"><i></i>① 能买到卡</span><span style="--c: var(--goo)"><i></i>② 只能租(不外售)</span>
+            </div>
+            <div class="race">
+              <div class="race-row"><span class="rk">1</span><span class="nm">NVIDIA B300</span><span class="race-track"><span class="race-fill" style="--w: 77.1%; --c: var(--nv); --d: .05s"></span></span><span class="vl">328</span></div>
+              <div class="race-row"><span class="rk">2</span><span class="nm">TPU7x Ironwood</span><span class="race-track"><span class="race-fill" style="--w: 72.4%; --c: var(--goo); --d: .1s"></span></span><span class="vl">308</span></div>
+              <div class="race-row"><span class="rk">3</span><span class="nm">AMD MI355X</span><span class="race-track"><span class="race-fill" style="--w: 67.7%; --c: var(--nv); --d: .15s"></span></span><span class="vl">288</span></div>
+              <div class="race-row"><span class="rk">4</span><span class="nm">AWS Trainium3</span><span class="race-track"><span class="race-fill" style="--w: 61.1%; --c: var(--goo); --d: .2s"></span></span><span class="vl">260</span></div>
+              <div class="race-row"><span class="rk">5</span><span class="nm">AMD MI350P</span><span class="race-track"><span class="race-fill" style="--w: 51.5%; --c: var(--nv); --d: .25s"></span></span><span class="vl">219</span></div>
+              <div class="race-row"><span class="rk">6</span><span class="nm">昇腾 950PR</span><span class="race-track"><span class="race-fill" style="--w: 48.2%; --c: var(--nv); --d: .3s"></span></span><span class="vl">205</span></div>
+              <div class="race-row"><span class="rk">7</span><span class="nm">Intel Gaudi 3</span><span class="race-track"><span class="race-fill" style="--w: 42.5%; --c: var(--nv); --d: .35s"></span></span><span class="vl">181</span></div>
+              <div class="race-row"><span class="rk">8</span><span class="nm">AWS Trainium2</span><span class="race-track"><span class="race-fill" style="--w: 42.3%; --c: var(--goo); --d: .4s"></span></span><span class="vl">180</span></div>
+              <div class="race-row"><span class="rk">9</span><span class="nm">昇腾 910C</span><span class="race-track"><span class="race-fill" style="--w: 42.3%; --c: var(--nv); --d: .45s"></span></span><span class="vl">180</span></div>
+              <div class="race-row"><span class="rk">10</span><span class="nm">沐曦 曦云 C600</span><span class="race-track"><span class="race-fill" style="--w: 42.1%; --c: var(--nv); --d: .5s"></span></span><span class="vl">179</span></div>
+            </div>
+            <span class="fig-cap">
+              这张图最该看的是<strong>它的顶端有多低</strong>:第一名 328 分,而第一节那张榜的顶端是 417 分。
+              <strong>89 分的落差意味着什么?</strong>在本模型里每一维翻一倍加 1 分再乘权重,89 分大致相当于「显存带宽翻 6 倍」或者「FP8 算力翻 6 倍」——
+              也就是说,今天能买到的最强卡与纸面最强卡之间,差的不是一两个百分点,而是一整个代际。
+              第 6 行的<strong>昇腾 950PR / Atlas 350(205 分)是中国大陆买家今天能买到的最强单卡</strong>,与榜首差 <strong>212 分</strong>,正好是榜首的一半。
+            </span>
+            <span class="fig-cap">
+              另一件值得注意的事:这 10 行里 <strong>7 行是 ①(能买到卡)、3 行是 ②(只能租)</strong>,而 ② 的三张(TPU7x、Trainium3、Trainium2)<strong>全部来自云厂商自研芯片</strong>,
+              它们的「可得」是租而不是买 —— 也就是说
+              <strong>你能买到的东西和你能租到的东西,在 2026 年已经是两个不同的硬件集合</strong>,而第一节那张榜把它们混在一起排。
+            </span>
+          </div>
+
+          <p>
+            ④ 档那 8 张卡都带着一个日期。把这些日期换算成「从今天起还要等多少天」,会看到一件比日期本身更值得警惕的事 ——
+            <strong>同一颗芯片的可得日期,在不同来源之间能差一整年。</strong>
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 4:从 2026-08-05 起还要等多少天(轴上 140 天那一格是 MLPerf 给 preview 的硬期限)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--hw)"><i></i>厂商自己给的日期</span><span style="--c: var(--base)"><i></i>第三方按产能推算的日期</span>
+            </div>
+            <div class="d0">
+              <div class="d0-row"><span class="nm">昇腾 950DT · 本月上云</span><span class="d0-lane"><span class="d0-bar" style="--x: 4.6%; --c: var(--hw); --d: .05s"></span></span><span class="vl"><b>26</b> 天</span></div>
+              <div class="d0-row"><span class="nm">Rubin R200 · 今年秋季</span><span class="d0-lane"><span class="d0-bar" style="--x: 8.6%; --c: var(--hw); --d: .15s"></span></span><span class="vl"><b>48</b> 天 <span class="est">※</span></span></div>
+              <div class="d0-row"><span class="nm">MI455X · Q3 末首批出货</span><span class="d0-lane"><span class="d0-bar" style="--x: 10%; --c: var(--hw); --d: .25s"></span></span><span class="vl"><b>56</b> 天</span></div>
+              <div class="d0-row"><span class="nm">SN50 · 2026 下半年</span><span class="d0-lane"><span class="d0-bar" style="--x: 26.4%; --c: var(--hw); --d: .35s"></span></span><span class="vl">≤ <b>148</b> 天</span></div>
+              <div class="d0-row"><span class="nm">TPU 8i 官方 · 今年内 GA</span><span class="d0-lane"><span class="d0-bar" style="--x: 26.4%; --c: var(--hw); --d: .45s"></span></span><span class="vl">≤ <b>148</b> 天</span></div>
+              <div class="d0-row"><span class="nm">TPU 8i 第三方 · 2027 年底</span><span class="d0-lane"><span class="d0-bar" style="--x: 91.6%; --c: var(--base); --d: .55s"></span></span><span class="vl"><b>513</b> 天 <span class="est">※</span></span></div>
+              <div class="d0-axis"><span style="--p: 0%">0</span><span style="--p: 25%">140 天</span><span style="--p: 50%">280</span><span style="--p: 75%">420</span><span style="--p: 100%">560</span></div>
+            </div>
+            <span class="fig-cap">
+              最后两行是<strong>同一颗芯片</strong>。Google 官方在 2026-04-22 的 Cloud Next 上说 TPU 8t 与 8i「将在今年内于 GCP 以实例形式正式可用」,
+              而第三方按 TSMC 2nm 的量产节奏给出的口径是<strong>面向 Google 以外客户要到 2027 年底</strong> —— 两者相差 <strong>365 天</strong>。
+              这不是谁在说谎:官方说的是「Google 云上可用」,第三方说的是「你能拿到」,<strong>同一个「可用」在这两句话里指的是不同的事</strong>,和 08-02 那轮「带宽」的毛病一模一样。
+            </span>
+            <span class="fig-cap">
+              轴上 140 天那一格是 MLPerf 给 preview 的兑现期限。把它当尺子量一下:<strong>前五行全部落在期限之内,只有第三方口径的那一行落在期限之外三倍远。</strong>
+              也就是说,如果这些厂商的日期都算数,那么今天榜上前五名里有四张会在 140 天内变成 ①②;如果不算数,本模型没有任何机制会知道。
+              <span class="est">※</span> 的两行是我按「秋季 = 9 月下旬」「2027 年底 = 12 月」折算的天数,不是厂商给的精确日期。
+            </span>
+          </div>
+
+          <p>
+            现在说本轮最难看的那件事。<strong>榜上排第 10 的 Rubin CPX,在 2026 年 3 月的 GTC 上就已经不在 NVIDIA 的路线图里了。</strong>
+            NVIDIA 负责 Hyperscale 与 HPC 的副总裁 Ian Buck 在 GTC 的圆桌上确认:CPX 这条路线让位给了以 200 亿美元从 Groq 拿到的 LPU ——
+            公司的重心从「压低首 token 时延」换成了「把 token 吐得更快」,而这件事 LPX 机架比 CPX 更合适;CPX 的想法要等到下一代 Feynman 再回来。
+            供应链侧的旁证同向:到 5 月底,CPX 所需的 GDDR7 与基板都没有下单迹象。
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 5:Rubin CPX 的完整生命周期 —— 它在本榜上活得比在路线图上更久</div>
+            <div class="tl">
+              <div class="st"><div class="yr">2025-09</div><div class="lb">AI Infra Summit 发布<br />首个「只做 prefill」的 SKU</div></div>
+              <div class="st"><div class="yr">2026-03</div><div class="lb"><strong>GTC 路线图上消失</strong><br />LPX 机架顶上,官方确认转向</div></div>
+              <div class="st"><div class="yr">2026-05</div><div class="lb">供应链:GDDR7 与基板<br />均无下单迹象</div></div>
+              <div class="st"><div class="yr">2026-07-27</div><div class="lb"><strong>本榜首发,规格进榜</strong><br />来源:NVIDIA 官方技术博客</div></div>
+              <div class="st"><div class="yr">2026-08-01</div><div class="lb">复核动了它的名次<br />第 11 → 第 10(被动上移)</div></div>
+              <div class="st"><div class="yr">2026-08-05</div><div class="lb"><strong>移出排名</strong><br />进榜卡 32 → 31</div></div>
+            </div>
+            <span class="fig-cap">
+              这条时间线是本节真正的结论。<strong>本榜首发比 CPX 退出路线图晚了四个月</strong>,而此后五轮复核 —— 达成率、档位、带宽定义、证据来源 ——
+              每一轮都在核它那一格数字对不对,<strong>没有一轮问过「这个产品还在不在」</strong>。08-01 那轮甚至还动过它的名次(第 11 → 第 10),因为它上面那张卡掉了下去。
+            </span>
+            <span class="fig-cap">
+              为什么会漏掉四个月?因为<strong>datasheet 不会因为产品取消而下线。</strong>本榜给 CPX 那一行引的 NVIDIA 官方技术博客,
+              今天(2026-08-05)依然能正常打开,依然写着 128 GB GDDR7、30 PFLOPS NVFP4、1M token 上下文 —— 一个字都没改。
+              08-03 那轮建立的五级证据梯度(L0–L4)量的是「这个数是谁测的」,而它<strong>量不到「这个数描述的东西是否还存在」</strong>:
+              一格数字可以同时做到出处一流、口径干净、来源是厂商自己的官方页面,而所描述的产品已经死了四个月。<strong>这是证据等级之外的一个独立失效模式。</strong>
+            </span>
+          </div>
+
+          <p>
+            所以本轮的正式动作是:<strong>Rubin CPX(253 分)移出排名</strong>,进榜卡从 32 张变成 31 张,原第 11 至第 32 名<strong>整体上移一位</strong>
+            (B30A 第 11 → 第 10、昇腾 950DT 第 12 → 第 11、MI350P 第 13 → 第 12,依此类推到真武 810E 第 32 → 第 31)。
+            它的<strong>指数、规格与来源全部保留</strong>:第三节的规格表、第五节的 Scale-up 表、第六节的山脊点图与气泡图里它仍在,只是加上「已取消」标注,并在第七节的不进榜清单里补一行。
+            理由是这些图讲的是「PD 分离时代硬件如何分化」,CPX 作为一个<strong>被放弃的设计选择</strong>比作为一张卡更有价值 —— 但它不能再占排名里的一个位次。
+            这条规则写进了口径声明 (19)。
+          </p>
+          <p>
+            接下来是本节必须回答的方法论问题:<strong>既然可得性这么要紧,为什么不把它做成第 11 个维度?</strong>
+            我按本模型的惯例试了一遍 —— 权重 10 分(与软件栈同重),① = 1.00、② = 0.85、③ = 0.60、④ = 0.50、⑤ = 0.40,
+            仍用 <code>s = clamp(1 + log₂ f, 0, 8)</code> 折算,于是 ① 加 10.00 分、② 加 7.66 分、③ 加 2.63 分、④⑤ 触底加 0 分:
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 6:把可得性做成权重 10 的第 11 维 —— 前 12 名 0 次换位(虚线 = 原分数)</div>
+            <div class="fig-legend">
+              <span style="--c: var(--base)"><i></i>加上可得性维之后的分数</span>
+              <span style="--c: var(--nv)"><i></i>虚线是原分数,重合 = 这张卡一分没加</span>
+            </div>
+            <div class="jump">
+              <div class="jump-row"><span class="nm">AMD MI455X</span><span class="jump-track"><span class="jump-new" style="--w: 98%; --c: var(--base); --d: .05s"></span><span class="jump-old" style="--o: 98%"></span></span><span class="vl">417 → <b>417.0</b> · 第 1</span></div>
+              <div class="jump-row"><span class="nm">NVIDIA Rubin R200</span><span class="jump-track"><span class="jump-new" style="--w: 93.5%; --c: var(--base); --d: .1s"></span><span class="jump-old" style="--o: 93.5%"></span></span><span class="vl">398 → <b>398.0</b> · 第 2</span></div>
+              <div class="jump-row"><span class="nm">Google TPU 8i</span><span class="jump-track"><span class="jump-new" style="--w: 83.4%; --c: var(--base); --d: .15s"></span><span class="jump-old" style="--o: 83.4%"></span></span><span class="vl">355 → <b>355.0</b> · 第 3</span></div>
+              <div class="jump-row"><span class="nm">Microsoft Maia 200</span><span class="jump-track"><span class="jump-new" style="--w: 81.9%; --c: var(--base); --d: .2s"></span><span class="jump-old" style="--o: 81.3%"></span></span><span class="vl">346 → <b>348.6</b> · 第 4</span></div>
+              <div class="jump-row"><span class="nm">Google TPU 8t</span><span class="jump-track"><span class="jump-new" style="--w: 81.1%; --c: var(--base); --d: .25s"></span><span class="jump-old" style="--o: 81.1%"></span></span><span class="vl">345 → <b>345.0</b> · 第 5</span></div>
+              <div class="jump-row"><span class="nm">NVIDIA B300</span><span class="jump-track"><span class="jump-new" style="--w: 79.4%; --c: var(--base); --d: .3s"></span><span class="jump-old" style="--o: 77.1%"></span></span><span class="vl">328 → <b>338.0</b> · 第 6</span></div>
+              <div class="jump-row"><span class="nm">TPU7x Ironwood</span><span class="jump-track"><span class="jump-new" style="--w: 74.2%; --c: var(--base); --d: .35s"></span><span class="jump-old" style="--o: 72.4%"></span></span><span class="vl">308 → <b>315.7</b> · 第 7</span></div>
+              <div class="jump-row"><span class="nm">AMD MI355X</span><span class="jump-track"><span class="jump-new" style="--w: 70%; --c: var(--base); --d: .4s"></span><span class="jump-old" style="--o: 67.7%"></span></span><span class="vl">288 → <b>298.0</b> · 第 8</span></div>
+              <div class="jump-row"><span class="nm">AWS Trainium3</span><span class="jump-track"><span class="jump-new" style="--w: 62.9%; --c: var(--base); --d: .45s"></span><span class="jump-old" style="--o: 61.1%"></span></span><span class="vl">260 → <b>267.7</b> · 第 9</span></div>
+              <div class="jump-row"><span class="nm">NVIDIA B30A</span><span class="jump-track"><span class="jump-new" style="--w: 57.3%; --c: var(--base); --d: .5s"></span><span class="jump-old" style="--o: 57.3%"></span></span><span class="vl">244 → <b>244.0</b> · 第 10</span></div>
+              <div class="jump-row"><span class="nm">昇腾 950DT</span><span class="jump-track"><span class="jump-new" style="--w: 54.5%; --c: var(--base); --d: .55s"></span><span class="jump-old" style="--o: 54.5%"></span></span><span class="vl">232 → <b>232.0</b> · 第 11</span></div>
+              <div class="jump-row"><span class="nm">AMD MI350P</span><span class="jump-track"><span class="jump-new" style="--w: 53.8%; --c: var(--base); --d: .6s"></span><span class="jump-old" style="--o: 51.5%"></span></span><span class="vl">219 → <b>229.0</b> · 第 12</span></div>
+            </div>
+            <span class="fig-cap">
+              结果和 08-03 那次软件维敏感度一样让人扫兴:<strong>前 12 名一位都没变。</strong>全榜 31 张卡里只有 7 张动了名次,而且全部发生在第 13 名以后,
+              <strong>最大位移正好是 2 位</strong>(Trainium2 第 17 → 第 19)—— 而「名次相差 2 位以内不构成高下之分」是本榜自己发布的误差规则。
+              也就是说,这一维的全部效果都落在自家误差带以内。最接近换位的地方是第 11 / 12 名:昇腾 950DT 232 分对 MI350P 229 分,只差 <strong>3 分</strong>。
+            </span>
+            <span class="fig-cap">
+              为什么会这样,08-03 已经给出过一般性答案:<strong>本模型任何单一维度最多值 15 分,而相邻名次通常差 5–20 分,所以一维改不动大局。</strong>
+              但可得性这件事把这条规律推到了一个更有用的结论上 ——
+              <strong>同一个事实,当维度用值 10 分,当筛子用值 89 分(动态图 3 的顶端落差),差 8.9 倍。</strong>
+              原因是它不是程度问题而是有无问题:一张买不到的卡不是「差一点」,而是压根不在候选集里。<strong>有些事实的正确用法是筛子,不是维度。</strong>
+              这就是口径声明 (18) 的全部内容:可得性不进任何一维,只作为一个视图发布,并且随快照日期变化 —— 因为硬件不变而日历会翻。
+            </span>
+          </div>
+
+          <p>
+            最后是本轮顺带做的一次输入自查,结论干净但过程值得留档。AMD 在 07-23 的 Advancing AI 发布会上同时上线了两份官方材料,
+            而它们给 MI455X 的显存带宽<strong>写了两个不同的数</strong>:发布博客的架构图写 <strong>23.3 TB/s</strong>(本榜采用的值),
+            Helios 机架产品页写 <strong>「每 GPU 最高 19.6 TB/s」</strong>。两份都是 amd.com,同一天,同一颗芯片。
+            判定它的方法不是投票,而是用 08-02 那轮学到的招:<strong>拿厂商自己的机架级聚合值去除卡数。</strong>
+          </p>
+
+          <div class="fig">
+            <div class="fig-title">动态图 7:MI455X 的 19.6 还是 23.3?用官方机架聚合值 ÷ 72 卡来定</div>
+            <div class="fig-legend">
+              <span style="--c: var(--goo)"><i></i>两行互相印证(同一个量的两条路径)</span>
+              <span style="--c: var(--amd)"><i></i>与官方机架数对不上的那一行</span>
+            </div>
+            <div class="d0">
+              <div class="d0-row"><span class="nm">官方产品页 19.6 × 72</span><span class="d0-lane"><span class="d0-bar" style="--x: 70.6%; --c: var(--amd); --d: .05s"></span></span><span class="vl"><b>1.41</b> PB/s</span></div>
+              <div class="d0-row"><span class="nm">官方发布博客 23.3 × 72</span><span class="d0-lane"><span class="d0-bar" style="--x: 83.9%; --c: var(--goo); --d: .2s"></span></span><span class="vl"><b>1.68</b> PB/s</span></div>
+              <div class="d0-row"><span class="nm">官方机架聚合口径</span><span class="d0-lane"><span class="d0-bar" style="--x: 85%; --c: var(--goo); --d: .35s"></span></span><span class="vl"><b>1.7</b> PB/s</span></div>
+              <div class="d0-axis"><span style="--p: 0%">0</span><span style="--p: 25%">0.5 PB/s</span><span style="--p: 50%">1.0</span><span style="--p: 75%">1.5</span><span style="--p: 100%">2.0</span></div>
+            </div>
+            <span class="fig-cap">
+              AMD 自己在同一篇博客里给了 Helios 机架的聚合口径:<strong>31 TB HBM4 容量 + 1.7 PB/s 聚合带宽 / 72 GPU</strong>。
+              23.3 × 72 = 1.678 PB/s,四舍五入正好是 1.7;19.6 × 72 = 1.411 PB/s,若为真那句话应该写成「1.4 PB/s」。
+              <strong>所以 23.3 TB/s 与厂商自己的机架数自洽,19.6 是那个对不上的数。</strong>本榜维持 23.3,<strong>本次改分 0</strong>。
+              顺带一个校验:31 TB ÷ 72 = 430 GB,与单卡 432 GB HBM4 同样自洽 —— 说明这份机架口径整体可信。
+            </span>
+            <span class="fig-cap">
+              这是第三次用「机架 ÷ 卡数」这招做交叉验证了(08-01 昇腾 1024 卡 ÷ 1 EFLOPS、08-02 高通 414 TB/s ÷ 56 芯、本轮 1.7 PB/s ÷ 72 卡),三次都定住了争议。
+              值得记下的经验是:<strong>厂商的机架级数字比单卡数字更难造假</strong>,因为它要同时和卡数、功耗、机柜尺寸对上;
+              而单卡的某一格可以在不同页面上写不同版本,还都是「官方」。
+            </span>
+          </div>
+
+          <div class="tbl-scroll">
+            <table class="mini-table" style="min-width: 860px">
+              <thead>
+                <tr><th>类别</th><th>2026-08-05 这一轮的具体结论</th><th>对榜单的处置</th><th>来源</th></tr>
+              </thead>
+              <tbody>
+                <tr class="hl"><td class="num">改榜<br />(首次)</td><td><strong>Rubin CPX 已被 NVIDIA 从路线图移除</strong>(2026-03 GTC,VP Ian Buck 确认转向 Groq LPU;5 月底供应链无 GDDR7 / 基板订单)。本榜从 07-27 首发起把它排在前 12,五轮复核无一问过产品是否还存在</td><td><strong>移出排名:进榜卡 32 → 31,原第 11–32 名整体上移一位</strong>;指数与规格保留在第三 / 五 / 六 / 七节并标「已取消」;新增口径声明 (19)</td><td class="src-cell"><a href="https://www.computerbase.de/news/wirtschaft/nvidias-cpx-chip-fuer-rubin-gestrichen-bei-feynman-eventuell-wieder-da.96593/">ComputerBase(Ian Buck 圆桌 · 路线图前后对比图)</a> · <a href="https://www.theregister.com/special-features/2026/03/16/nvidia-slaps-groq-into-new-lpx-racks-for-faster-ai-response/5219629">The Register(LPX 取代 CPX)</a> · <a href="https://www.thelec.net/news/articleView.html?idxno=10763">The Elec(供应链无订单)</a></td></tr>
+                <tr class="hl"><td class="num">口径新增</td><td><strong>把「商用」从一个门槛词变成五档可得性</strong>:① 能买 16 张 / ② 能租 5 张 / ③ 厂商自用 1 张 / ④ 已发布未开卖 8 张 / ⑤ 受阻或取消 1 张。<strong>前五名 0 张可得,今日可得榜顶端 328 分,与榜首差 89 分</strong>;中国大陆能买到的最强单卡是昇腾 950PR / Atlas 350(205 分)</td><td>新增口径声明 (18):<strong>可得性不进入任何一维,只作为筛子 / 视图发布</strong>;敏感度实测前 12 名 0 次换位,全榜 7 张卡动、最大位移 2 位</td><td class="src-cell"><a href="https://github.com/mlcommons/policies/blob/master/submission_rules.adoc">MLPerf 提交规则(available in cloud / on premise / preview 140 天 / RDI 221 天)</a> · <a href="https://docs.mlcommons.org/inference/submission/">MLPerf 提交指南</a></td></tr>
+                <tr><td class="num">新统计</td><td><strong>v6.0 的 520 条结果里 preview 只有 9 条(1.7%),且全部出自同一台 4 卡 Intel Arc Pro B70</strong>;其余 511 条跑的都是当时可买或可租的机器。审计过的 2 张卡(B300、MI355X)同时也是唯二有第三方可得性声明的卡</td><td>不改分;作为 08-03「只有 2 张卡有审计成绩」的后半句写入第零节与第九节</td><td class="src-cell"><a href="https://github.com/mlcommons/inference_results_v6.0">官方结果仓库 <code>summary_results.json</code>(<code>Availability</code> 字段逐行统计)</a></td></tr>
+                <tr><td class="num">自查<br />(不改分)</td><td><strong>MI455X 的显存带宽在 AMD 两个官方页面上是 19.6 与 23.3 两个数</strong>;用官方机架聚合值 1.7 PB/s ÷ 72 = 23.6 TB/s 判定 23.3 自洽(19.6 × 72 只有 1.41 PB/s),容量侧 31 TB ÷ 72 = 430 GB 同样自洽</td><td><strong>维持 23.3 TB/s,本次改分 0</strong>;「机架 ÷ 卡数」交叉验证第三次生效</td><td class="src-cell"><a href="https://www.amd.com/en/blogs/2026/amd-launches-helios-the-highest-performing-rackscale-ai-infrastructure-solution.html">AMD 发布博客(23.3 TB/s · 31 TB · 1.7 PB/s · 72 GPU)</a> · <a href="https://www.amd.com/en/products/rackscale-solutions/helios.html">AMD Helios 产品页(「每 GPU 最高 19.6 TB/s」)</a></td></tr>
+                <tr><td class="num">口径冲突<br />(记录在案)</td><td><strong>TPU 8i / 8t 的可得日期在官方与第三方之间差 365 天</strong>:Google 在 2026-04-22 说「今年内于 GCP 以实例形式 GA」,第三方按 TSMC 2nm 节奏给的是「Google 以外客户 2027 年底」</td><td>不改分(可得性不进维);两个口径并列写进动态图 4,并注明两句话里的「可用」指的不是同一件事</td><td class="src-cell"><a href="https://www.theregister.com/software/2026/04/22/google-dual-tracks-tpu-8-to-conquer-training-and-inference/5228292">The Register(官方口径:今年内 GA)</a> · <a href="https://thenextweb.com/news/google-ironwood-tpu-inference-cloud-next">TNW(2nm 与 2027 年底口径)</a> · <a href="https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/eighth-generation-tpu-agentic-era/">Google 官方博客</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>六轮复核连起来,问题是这样一级一级往外走的:</strong>数字兑现多少(07-30)→ 数字到底是哪一个(08-01)→ 数字在量什么(08-02)→ 数字是谁测的(08-03)→
+            <strong>数字描述的东西什么时候能买到、还在不在(08-05)</strong>。
+            前四问都在数字内部,这一问第一次走到了数字外面:一格数据可以出处一流、口径干净、来源是厂商官方页面,而它描述的产品已经不存在了四个月。
+            下一级问题已经能看到轮廓 ——<strong>「这个数是几张卡的」</strong>:MLPerf v6.0 里同一款加速器有 1 卡、8 卡、24 卡、72 卡、288 卡的提交,
+            每卡吞吐随规模变化的那条曲线,本榜一个字都没写。
+          </p>
+
           <h2>零之二、2026-08-03 复核:「这个数是谁测的」—— 榜上 32 张卡只有 2 张有第三方审计过的成绩,而同一颗芯片换个提交方就差 1.70 倍</h2>
           <p>
             前四次复核审的都是「数字本身」:它兑现多少(07-30)、它到底是哪一个(08-01)、它在量什么(08-02)。
