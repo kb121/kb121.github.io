@@ -495,15 +495,15 @@
           </p>
 
           <div class="tbl-scroll">
-            <table class="mini-table" style="min-width: 780px">
+            <table class="mini-table">
               <thead>
                 <tr><th>档</th><th>本节的定义(以 2026-08-05 为准)</th><th>MLPerf 提交规则里的对应类别与硬约束</th><th>榜上卡数</th><th>代表卡</th></tr>
               </thead>
               <tbody>
-                <tr class="hl"><td class="num"><strong>①</strong></td><td><strong>能买到卡</strong>:卡或整机可下单,自建机房能拿到硬件</td><td><code>Available on premise</code> —— 「可供购买」</td><td class="num"><strong>16</strong> 张<br />51.6%</td><td>B300 · MI355X · MI350P · 昇腾 950PR / Atlas 350 · 昇腾 910C · Gaudi 3 · Gaudi 2 · 曦云 C600 · 燧原 L600 · 思元690 · MTT S5000 · P800 · Blackhole · 深算四号 · RNGD · H20</td></tr>
+                <tr class="hl"><td class="num"><strong>①</strong></td><td><strong>能买到卡</strong>:卡或整机可下单,自建机房能拿到硬件</td><td><code>Available on premise</code> —— 「可供购买」</td><td class="num"><strong>16</strong> 张<br />51.6%</td><td>B300 · MI355X · MI350P · 昇腾 950PR / Atlas 350 · 昇腾 910C · Gaudi 3 · 曦云 C600 · 思元690 · P800 · RNGD · H20 等</td></tr>
                 <tr class="hl"><td class="num"><strong>②</strong></td><td><strong>只能租</strong>:厂商不外售,但云上有公开可用的实例</td><td><code>Available in cloud</code> —— 「可在云上租用」</td><td class="num"><strong>5</strong> 张<br />16.1%</td><td>TPU7x Ironwood · Trainium3 · Trainium2 · 真武 M890 · 真武 810E</td></tr>
                 <tr><td class="num">③</td><td><strong>厂商自用</strong>:已在生产环境跑,但外部既不能买也不能租</td><td>规则里没有这一档 —— 它连 <code>RDI</code> 都不是,因为 RDI 至少还会被提交</td><td class="num">1 张<br />3.2%</td><td>Maia 200</td></tr>
-                <tr><td class="num">④</td><td><strong>已发布未开卖</strong>:规格公开、日期在未来(含已量产未出货、preview)</td><td><code>Preview</code> —— <strong>必须在下一轮提交、或 140 天(取较长者)内变成可买 / 可租</strong>,否则成绩不能再以 available 身份存在</td><td class="num"><strong>8</strong> 张<br />25.8%</td><td>MI455X · Rubin R200 · TPU 8i · TPU 8t · 昇腾 950DT · SN50 · REBEL-Quad · DF1000</td></tr>
+                <tr><td class="num">④</td><td><strong>已发布未开卖</strong>:规格公开、日期在未来(含已量产未出货、preview)</td><td><code>Preview</code> —— <strong>必须在下一轮提交、或 140 天(取较长者)内变成可买 / 可租</strong>,否则成绩不能再以 available 身份存在</td><td class="num"><strong>8</strong> 张<br />25.8%</td><td>MI455X · Rubin R200 · TPU 8i · TPU 8t<br />昇腾 950DT · SN50 · REBEL-Quad · DF1000</td></tr>
                 <tr><td class="num">⑤</td><td><strong>受阻 / 已取消</strong>:监管未放行,或已被厂商从路线图移除</td><td>无对应类别(取消的产品不可能出现在任何一轮结果里)</td><td class="num">1 张<br />3.2%</td><td>B30A(待出口许可)· <s>Rubin CPX</s>(已取消,本轮退榜)</td></tr>
               </tbody>
             </table>
@@ -646,7 +646,7 @@
             <div class="fig-title">动态图 6:把可得性做成权重 10 的第 11 维 —— 前 12 名 0 次换位(虚线 = 原分数)</div>
             <div class="fig-legend">
               <span style="--c: var(--base)"><i></i>加上可得性维之后的分数</span>
-              <span style="--c: var(--nv)"><i></i>虚线是原分数,重合 = 这张卡一分没加</span>
+              <span style="--c: var(--text)"><i></i>虚线是原分数,重合 = 这张卡一分没加</span>
             </div>
             <div class="jump">
               <div class="jump-row"><span class="nm">AMD MI455X</span><span class="jump-track"><span class="jump-new" style="--w: 98%; --c: var(--base); --d: .05s"></span><span class="jump-old" style="--o: 98%"></span></span><span class="vl">417 → <b>417.0</b> · 第 1</span></div>
@@ -709,7 +709,7 @@
           </div>
 
           <div class="tbl-scroll">
-            <table class="mini-table" style="min-width: 860px">
+            <table class="mini-table">
               <thead>
                 <tr><th>类别</th><th>2026-08-05 这一轮的具体结论</th><th>对榜单的处置</th><th>来源</th></tr>
               </thead>
