@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  KV 池化与 KVConnector —— vLLM 里 KV cache 如何从「私有」变成「共享资源」
+  -------------------------------------------------------------------------
+  API 方法名与语义以 vLLM v1 的 KVConnectorBase_V1 源码为准(见正文链接)。
+  分层卸载部分对应 RFC #38260,其中 TieringManager / SecondaryTierManager
+  为设计阶段接口,落地范围以上游合入为准,正文已标注。
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="KV 池化与 KVConnector — 庄宏" data-en="KV Pooling & the KVConnector API — Hong Zhuang">KV 池化与 KVConnector — 庄宏</title>
+    <meta
+      name="description"
+      content="图文 + 动图拆解 KV cache 池化:为什么要把 KV 从实例私有变成共享资源,vLLM v1 的 KVConnector 接口如何切分调度器与 Worker 的职责,一次请求经过连接器的完整生命周期,以及分层卸载 / PD 分离 / 全局共享池三种形态的取舍。"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ===== 本篇作用域样式 ===== */
+      .kvpool-note {
+        --gpu: #22d3ee;
+        --cpu: #a78bfa;
+        --disk: #fbbf24;
+        --net: #34d399;
+        --warn: #fb7185;
+        --on-accent: #08101c;
+        --inset: color-mix(in srgb, var(--surface-strong), transparent 30%);
+      }
+      [data-theme="light"] .kvpool-note {
+        --gpu: #0e7490;
+        --cpu: #6d28d9;
+        --disk: #b45309;
+        --net: #047857;
+        --warn: #be123c;
+        --on-accent: #fff;
+      }
+
+      .kvpool-note .kv-lede { font-size: 1.02rem; line-height: 1.85; }
+
+      .kv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(146px, 1fr)); gap: 10px; margin: 1.2rem 0 1.6rem; }
+      .kv-kpi { padding: 13px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .kv-kpi b { display: block; font-family: var(--font-mono); font-size: 1.28rem; color: var(--accent-1); }
+      .kv-kpi span { display: block; margin-top: 4px; font-size: .76rem; color: var(--text-muted); line-height: 1.5; }
+
+      .kv-fig { margin: 1.6rem 0; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); overflow: hidden; }
+      .kv-fig .fig-title { margin-bottom: 14px; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .02em; color: var(--accent-1); }
+      .kv-fig .fig-cap { display: block; margin-top: 12px; font-size: .8rem; line-height: 1.65; color: var(--text-muted); }
+      .kv-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 12px; font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); }
+      .kv-legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 3px; background: var(--c, var(--accent-1)); }
+
+      /* ---------- 动图 1:池化前 / 池化后 ---------- */
+      .kv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 760px) { .kv-split { grid-template-columns: 1fr; } }
+      .kv-pane { padding: 14px; border: 1px solid var(--border); border-radius: 13px; background: var(--inset); }
+      .kv-pane h5 { margin: 0 0 3px; font-size: .84rem; }
+      .kv-pane h5.bad { color: var(--warn); }
+      .kv-pane h5.good { color: var(--net); }
+      .kv-pane .sub { margin-bottom: 12px; font-family: var(--font-mono); font-size: .6rem; color: var(--text-dim); }
+      .kv-insts { display: flex; gap: 9px; justify-content: center; }
+      .kv-inst { flex: 1; max-width: 96px; padding: 8px 6px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); text-align: center; }
+      .kv-inst .nm { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); }
+      .kv-inst .bar { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
+      .kv-inst .blk { width: 8px; height: 18px; border-radius: 2px; background: var(--gpu); opacity: .85; }
+      .kv-inst .blk.dup { background: var(--warn); animation: kv-flash 2.2s ease-in-out infinite; }
+      @keyframes kv-flash { 0%, 100% { opacity: .9; } 50% { opacity: .25; } }
+      .kv-xmark { margin-top: 10px; text-align: center; font-family: var(--font-mono); font-size: .62rem; color: var(--warn); }
+      .kv-pool-box { margin-top: 10px; padding: 9px; border: 1px dashed color-mix(in srgb, var(--net), transparent 45%); border-radius: 9px; background: color-mix(in srgb, var(--net), transparent 92%); text-align: center; }
+      .kv-pool-box .lbl { font-family: var(--font-mono); font-size: .6rem; color: var(--net); }
+      .kv-pool-box .bar { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
+      .kv-pool-box .blk { width: 8px; height: 18px; border-radius: 2px; background: var(--net); }
+      .kv-arrows { position: relative; height: 26px; }
+      .kv-arrows span { position: absolute; top: 0; width: 1px; height: 26px; background: linear-gradient(var(--net), transparent); }
+      .kv-arrows span::after { content: ""; position: absolute; left: -2.5px; width: 6px; height: 6px; border-radius: 999px; background: var(--net); animation: kv-drop 1.9s ease-in-out var(--d, 0s) infinite; }
+      @keyframes kv-drop { 0% { top: 0; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 20px; opacity: 0; } }
+
+      /* ---------- 动图 2:生命周期时序 ---------- */
+      .kv-life-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+      .kv-badge { display: flex; align-items: center; gap: 10px; }
+      .kv-side { padding: 6px 10px; border-radius: 7px; font-family: var(--font-mono); font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+      .kv-side.sch { border: 1px solid color-mix(in srgb, var(--cpu), transparent 65%); background: color-mix(in srgb, var(--cpu), transparent 88%); color: var(--cpu); }
+      .kv-side.wrk { border: 1px solid color-mix(in srgb, var(--gpu), transparent 65%); background: color-mix(in srgb, var(--gpu), transparent 88%); color: var(--gpu); }
+      .kv-badge .api { font-family: var(--font-mono); font-size: .84rem; font-weight: 600; }
+      .kv-life-desc { min-height: 60px; margin: 0 0 16px; font-size: .84rem; line-height: 1.72; color: var(--text-muted); }
+      .kv-life-desc em { font-style: normal; font-weight: 600; color: var(--text); }
+
+      .kv-lane { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 12px; margin-bottom: 8px; }
+      .kv-lane .lab { font-family: var(--font-mono); font-size: .62rem; text-align: right; color: var(--text-muted); }
+      .kv-lane .lab b { display: block; font-size: .74rem; }
+      .kv-lane.sch .lab b { color: var(--cpu); }
+      .kv-lane.wrk .lab b { color: var(--gpu); }
+      .kv-steps { display: flex; gap: 4px; }
+      .kv-step { flex: 1; height: 30px; border: 1px solid var(--border); border-radius: 7px; background: var(--inset); display: grid; place-items: center; font-family: var(--font-mono); font-size: .56rem; color: var(--text-dim); transition: .28s; overflow: hidden; text-align: center; padding: 0 2px; }
+      .kv-step.void { border-style: dashed; opacity: .3; }
+      .kv-step.done { color: var(--text-muted); }
+      .kv-lane.sch .kv-step.done { border-color: color-mix(in srgb, var(--cpu), transparent 60%); background: color-mix(in srgb, var(--cpu), transparent 90%); }
+      .kv-lane.wrk .kv-step.done { border-color: color-mix(in srgb, var(--gpu), transparent 60%); background: color-mix(in srgb, var(--gpu), transparent 90%); }
+      .kv-step.on { color: var(--text); font-weight: 700; transform: translateY(-2px); }
+      .kv-lane.sch .kv-step.on { border-color: var(--cpu); background: color-mix(in srgb, var(--cpu), transparent 76%); box-shadow: 0 8px 22px -12px var(--cpu); }
+      .kv-lane.wrk .kv-step.on { border-color: var(--gpu); background: color-mix(in srgb, var(--gpu), transparent 76%); box-shadow: 0 8px 22px -12px var(--gpu); }
+
+      .kv-flow { position: relative; height: 58px; margin: 12px 0 6px; border: 1px solid var(--border); border-radius: 11px; background: var(--inset); overflow: hidden; }
+      .kv-flow .node { position: absolute; top: 50%; transform: translateY(-50%); padding: 7px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
+      .kv-flow .node.gpu { left: 14px; border-color: color-mix(in srgb, var(--gpu), transparent 55%); color: var(--gpu); }
+      .kv-flow .node.ext { right: 14px; border-color: color-mix(in srgb, var(--net), transparent 55%); color: var(--net); }
+      .kv-flow .wire { position: absolute; top: 50%; left: 108px; right: 108px; height: 1px; background: var(--border-strong); }
+      .kv-pkt { position: absolute; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 3px; opacity: 0; }
+      .kv-pkt.load { background: var(--net); animation: kv-toleft 1.5s linear infinite; }
+      .kv-pkt.save { background: var(--disk); animation: kv-toright 1.5s linear infinite; }
+      @keyframes kv-toleft { 0% { left: calc(100% - 118px); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 108px; opacity: 0; } }
+      @keyframes kv-toright { 0% { left: 108px; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: calc(100% - 118px); opacity: 0; } }
+      .kv-flow .idle { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: .62rem; color: var(--text-dim); }
+
+      .kv-ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 16px; }
+      .kvpool-note button { padding: 9px 14px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-strong); color: var(--text); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: .16s; }
+      .kvpool-note button:hover { border-color: var(--border-strong); background: color-mix(in srgb, var(--surface-strong), var(--text) 6%); }
+      .kvpool-note button.primary { border-color: transparent; background: var(--accent-grad); color: #06121c; font-weight: 700; }
+      .kvpool-note button.primary:hover { filter: brightness(1.1); }
+      .kv-seg { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+      .kvpool-note .kv-seg button { border: 0; border-radius: 0; padding: 9px 13px; background: transparent; font-weight: 600; }
+      .kvpool-note .kv-seg button.on { background: color-mix(in srgb, var(--gpu), transparent 84%); color: var(--gpu); }
+
+      /* ---------- 动图 3:三种形态 ---------- */
+      .kv-topo { position: relative; min-height: 250px; margin-top: 12px; }
+      .kv-topo-panel { display: none; }
+      .kv-topo-panel.on { display: block; animation: kv-fadein .35s ease; }
+      @keyframes kv-fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      .kv-tiers { display: grid; gap: 8px; }
+      .kv-tier { display: grid; grid-template-columns: 128px 1fr 120px; align-items: center; gap: 11px; }
+      .kv-tier .nm { font-family: var(--font-mono); font-size: .68rem; color: var(--text); }
+      .kv-tier .nm small { display: block; font-size: .56rem; color: var(--text-dim); }
+      .kv-tier-bar { position: relative; height: 24px; border: 1px solid var(--border); border-radius: 7px; background: var(--inset); overflow: hidden; }
+      .kv-tier-fill { position: absolute; inset: 0 auto 0 0; width: var(--w); transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, color-mix(in srgb, var(--c), transparent 55%), var(--c)); animation: kv-grow 1.15s cubic-bezier(.2, .7, .2, 1) var(--d, 0s) forwards; }
+      @keyframes kv-grow { to { transform: scaleX(1); } }
+      .kv-tier .meta { font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); text-align: right; }
+      .kv-cascade { position: absolute; left: 0; width: 7px; height: 7px; border-radius: 999px; background: var(--disk); animation: kv-cascade 2.6s ease-in-out var(--d, 0s) infinite; }
+      @keyframes kv-cascade { 0% { left: 2%; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 94%; opacity: 0; } }
+
+      .kv-pd { display: grid; grid-template-columns: 1fr 96px 1fr; align-items: center; gap: 10px; }
+      @media (max-width: 700px) { .kv-pd { grid-template-columns: 1fr; } }
+      .kv-pool-card { padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--inset); text-align: center; }
+      .kv-pool-card h6 { margin: 0 0 3px; font-size: .8rem; }
+      .kv-pool-card h6.p { color: var(--net); }
+      .kv-pool-card h6.d { color: var(--warn); }
+      .kv-pool-card .desc { font-family: var(--font-mono); font-size: .58rem; color: var(--text-dim); line-height: 1.6; }
+      .kv-gpus { display: flex; gap: 5px; justify-content: center; margin-top: 9px; }
+      .kv-gpus i { width: 18px; height: 24px; border-radius: 4px; background: var(--c); opacity: .28; animation: kv-busy 1.8s ease-in-out var(--d, 0s) infinite; }
+      @keyframes kv-busy { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+      .kv-link { position: relative; height: 44px; }
+      .kv-link .rail { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--net), var(--warn)); border-radius: 2px; }
+      .kv-link .tag { position: absolute; top: calc(50% + 8px); left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: .55rem; color: var(--text-dim); white-space: nowrap; }
+      .kv-link .zip { position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 999px; background: var(--net); box-shadow: 0 0 10px var(--net); animation: kv-zip 1.5s linear var(--d, 0s) infinite; }
+      @keyframes kv-zip { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+      .kv-hub { position: relative; display: grid; place-items: center; min-height: 220px; }
+      .kv-hub-core { width: 128px; padding: 14px 10px; border: 1px solid color-mix(in srgb, var(--net), transparent 45%); border-radius: 14px; background: color-mix(in srgb, var(--net), transparent 90%); text-align: center; }
+      .kv-hub-core b { display: block; font-family: var(--font-mono); font-size: .68rem; color: var(--net); }
+      .kv-hub-core span { font-family: var(--font-mono); font-size: .54rem; color: var(--text-dim); }
+      .kv-sats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+      .kv-sat { padding: 7px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); font-family: var(--font-mono); font-size: .58rem; color: var(--text-muted); position: relative; }
+      .kv-sat::after { content: ""; position: absolute; left: 50%; top: -12px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 999px; background: var(--net); animation: kv-up 2.1s ease-in-out var(--d, 0s) infinite; }
+      @keyframes kv-up { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateY(-6px); opacity: 0; } }
+      .kv-hit { margin-top: 12px; font-family: var(--font-mono); font-size: .6rem; color: var(--text-dim); text-align: center; }
+
+      /* ---------- 动图 4:布局对比 ---------- */
+      .kv-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 760px) { .kv-layout { grid-template-columns: 1fr; } }
+      .kv-lay { padding: 13px; border: 1px solid var(--border); border-radius: 12px; background: var(--inset); }
+      .kv-lay h5 { margin: 0 0 3px; font-size: .8rem; }
+      .kv-lay h5.old { color: var(--warn); }
+      .kv-lay h5.new { color: var(--net); }
+      .kv-lay .sub { margin-bottom: 11px; font-family: var(--font-mono); font-size: .56rem; color: var(--text-dim); }
+      .kv-chunks { display: flex; flex-wrap: wrap; gap: 3px; min-height: 46px; }
+      .kv-chunk { height: 20px; border-radius: 3px; background: var(--warn); opacity: .8; animation: kv-hop 2.4s ease-in-out var(--d, 0s) infinite; }
+      @keyframes kv-hop { 0%, 100% { transform: translateY(0); opacity: .55; } 50% { transform: translateY(-4px); opacity: 1; } }
+      .kv-onechunk { height: 20px; border-radius: 4px; background: linear-gradient(90deg, color-mix(in srgb, var(--net), transparent 45%), var(--net)); animation: kv-sweepx 2.4s ease-in-out infinite; }
+      @keyframes kv-sweepx { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+      .kv-dma { margin-top: 11px; font-family: var(--font-mono); font-size: .6rem; color: var(--text-muted); }
+      .kv-dma b { color: var(--text); }
+
+      /* ---------- 表格 / 代码 ---------- */
+      .kv-table-wrap { overflow-x: auto; margin: 1.3rem 0; }
+      .kvpool-note table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+      .kvpool-note table th, .kvpool-note table td { padding: 9px 11px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+      .kvpool-note table th { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-1); white-space: nowrap; }
+      .kvpool-note table td code { font-size: .74rem; white-space: nowrap; }
+      .kvpool-note table tbody tr:hover { background: var(--inset); }
+
+      .kv-takes { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 13px; margin: 1.4rem 0; }
+      .kv-take { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .kv-take .n { margin-bottom: 9px; font-family: var(--font-mono); font-size: .7rem; font-weight: 700; color: var(--text-dim); }
+      .kv-take h5 { margin: 0 0 8px; font-size: .92rem; }
+      .kv-take p { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .kvpool-note *, .kvpool-note *::before, .kvpool-note *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page kvpool-note">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-08-11</span>
+            <span class="tags"><span>KV Cache</span><span>vLLM</span><span>Inference</span><span>Distributed</span><span>PD Disaggregation</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">KV 池化与 KVConnector</span><span lang="en" class="i18n-en">KV Pooling &amp; the KVConnector API</span></h1>
+        </header>
+
+        <div class="prose">
+          <p class="kv-lede">
+            上一篇 <a href="qkv-lifecycle-256k.html">Q / K / V 在 256K 对话窗口中的一生</a> 算过一笔账:一个满窗口会攒下 80 GiB 的 KV cache。
+            这篇讲的是这 80 GiB 的<strong>归属权</strong>问题 —— 它默认属于某一个 vLLM 进程,进程之间看不见彼此,请求一结束就蒸发。
+            <strong>池化(pooling)</strong>就是把它从「实例私有的临时显存」改造成「可共享、可分层、可跨节点流动的资源」,
+            而 vLLM v1 里承接这件事的接口,就是 <strong>KVConnector</strong>。
+          </p>
+
+          <div class="kv-kpis">
+            <div class="kv-kpi"><b>2</b><span>职责侧:Scheduler / Worker</span></div>
+            <div class="kv-kpi"><b>8</b><span>一次请求经过的关键回调</span></div>
+            <div class="kv-kpi"><b>3</b><span>池化形态:分层 / PD / 共享池</span></div>
+            <div class="kv-kpi"><b>2·L</b><span>连续布局带来的块放大倍数</span></div>
+            <div class="kv-kpi"><b>0.9.0</b><span>连接器转为异步的版本</span></div>
+          </div>
+
+          <h2>一、为什么 KV 需要池化</h2>
+
+          <p>
+            默认状态下,KV cache 有三个「反资源化」的性质,每一个都在浪费算力:
+          </p>
+
+          <ul>
+            <li><strong>私有</strong> —— 实例 A 算过的系统提示词 KV,实例 B 用不上,只能自己再算一遍。同一个 20K 的公司知识库前缀,10 个副本就要算 10 次。</li>
+            <li><strong>易失</strong> —— 请求结束、或被抢占(preempt)时块被回收,下一轮对话回来,历史前缀得从头 prefill。</li>
+            <li><strong>同构</strong> —— prefill 是算力密集的大 GEMM,decode 是访存密集的 GEMV。两者挤在同一张卡上,prefill 的长尾会直接拉高 decode 的 ITL。</li>
+          </ul>
+
+          <div class="kv-fig">
+            <div class="fig-title">动图 1:池化前 vs 池化后 —— 同一个前缀被算了几次</div>
+            <div class="kv-legend">
+              <span><i style="--c: var(--gpu)"></i>实例本地 KV</span>
+              <span><i style="--c: var(--warn)"></i>重复计算的相同前缀</span>
+              <span><i style="--c: var(--net)"></i>共享池中的唯一副本</span>
+            </div>
+            <div class="kv-split">
+              <div class="kv-pane">
+                <h5 class="bad">池化前:各算各的</h5>
+                <div class="sub">3 个实例 × 同一段前缀 = 3 份重复</div>
+                <div class="kv-insts">
+                  <div class="kv-inst"><div class="nm">vLLM #1</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
+                  <div class="kv-inst"><div class="nm">vLLM #2</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
+                  <div class="kv-inst"><div class="nm">vLLM #3</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
+                </div>
+                <div class="kv-xmark">✕ 彼此不可见,红块是同一段前缀算了 3 遍</div>
+              </div>
+              <div class="kv-pane">
+                <h5 class="good">池化后:算一次,大家用</h5>
+                <div class="sub">前缀落到共享池,命中即跳过 prefill</div>
+                <div class="kv-insts">
+                  <div class="kv-inst"><div class="nm">vLLM #1</div><div class="bar"><i class="blk"></i></div></div>
+                  <div class="kv-inst"><div class="nm">vLLM #2</div><div class="bar"><i class="blk"></i></div></div>
+                  <div class="kv-inst"><div class="nm">vLLM #3</div><div class="bar"><i class="blk"></i></div></div>
+                </div>
+                <div class="kv-arrows">
+                  <span style="left: 18%; --d: 0s"></span>
+                  <span style="left: 50%; --d: .5s"></span>
+                  <span style="left: 82%; --d: 1s"></span>
+                </div>
+                <div class="kv-pool-box">
+                  <div class="lbl">SHARED KV POOL</div>
+                  <div class="bar"><i class="blk"></i><i class="blk"></i></div>
+                </div>
+              </div>
+            </div>
+            <span class="fig-cap">池化解决的不是「KV 太大」,而是「同一份 KV 被算了很多遍、又很快被丢掉」。容量问题靠 GQA 和量化,重复问题只能靠共享。</span>
+          </div>
+
+          <h2>二、KVConnector:调度器与 Worker 的分工</h2>
+
+          <p>
+            vLLM 没有把池化写死成某一种存储,而是抽了一个接口
+            <a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/base.py" target="_blank" rel="noopener"><code>KVConnectorBase_V1</code></a>,
+            让 LMCache、Mooncake、NIXL 这些后端各自去实现。这个接口最关键的设计是<strong>按进程切成两侧</strong>:
+          </p>
+
+          <div class="kv-table-wrap">
+            <table>
+              <thead>
+                <tr><th>侧</th><th>跑在哪</th><th>负责什么</th><th>代表方法</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color: var(--cpu)">Scheduler 侧</strong></td>
+                  <td>调度器进程<br />(单点)</td>
+                  <td>做<strong>决策与记账</strong>:外部有多少 token 可省、块怎么分配、元数据怎么打包给 Worker、请求结束后块归谁释放。不碰张量。</td>
+                  <td><code>get_num_new_matched_tokens</code><br /><code>update_state_after_alloc</code><br /><code>build_connector_meta</code><br /><code>request_finished</code></td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--gpu)">Worker 侧</strong></td>
+                  <td>每个 Worker<br />(TP/PP 各一份)</td>
+                  <td>做<strong>搬运</strong>:按元数据把 KV 从外部拉进 paged buffer、把新算出的 KV 推出去。全部尽量异步,与前向计算重叠。</td>
+                  <td><code>start_load_kv</code><br /><code>wait_for_layer_load</code><br /><code>save_kv_layer</code><br /><code>wait_for_save</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            这个切分的意义在于:<strong>调度器只需要知道「能省多少」这个数字就能排程,不必等数据真的到位</strong>。
+            所以 <code>get_num_new_matched_tokens</code> 被要求是<strong>无副作用</strong>的 —— 它可能被同一个请求反复调用,
+            而且允许返回 <code>None</code> 表示「还没查完,下个调度周期再问我」。
+          </p>
+
+          <h2>三、一次请求的完整生命周期</h2>
+
+          <p>
+            下面这张时序图把两侧的回调按真实顺序串起来。点「单步」逐个看,注意
+            <strong>加载/保存都是按层进行的</strong> —— 第 <em>i</em> 层的数据还在路上时,第 <em>i-1</em> 层已经在算了,这是延迟能被吃掉的关键。
+          </p>
+
+          <div class="kv-fig">
+            <div class="fig-title">动图 2:KVConnector 回调时序(可交互)</div>
+            <div class="kv-life-top">
+              <div class="kv-badge">
+                <span class="kv-side sch" id="lifeSide">SCHEDULER</span>
+                <span class="api" id="lifeApi">get_num_new_matched_tokens()</span>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-dim)" id="lifeIdx">1 / 8</span>
+            </div>
+
+            <p class="kv-life-desc" id="lifeDesc"></p>
+
+            <div class="kv-lane sch">
+              <div class="lab"><b>Scheduler</b><small>决策</small></div>
+              <div class="kv-steps" id="laneSch"></div>
+            </div>
+            <div class="kv-lane wrk">
+              <div class="lab"><b>Worker</b><small>搬运</small></div>
+              <div class="kv-steps" id="laneWrk"></div>
+            </div>
+
+            <div class="kv-flow" id="lifeFlow">
+              <div class="node gpu">GPU paged KV</div>
+              <div class="wire"></div>
+              <div class="node ext">外部 KV 池</div>
+              <div class="idle" id="flowIdle">—— 本步无数据搬运 ——</div>
+            </div>
+
+            <div class="kv-ctrls">
+              <button class="primary" id="lifePlay">暂停</button>
+              <button id="lifeStep">单步 →</button>
+              <button id="lifeReset">重置</button>
+              <div class="kv-seg" id="lifeSpeed">
+                <button data-s="3200">慢</button>
+                <button data-s="2100" class="on">正常</button>
+                <button data-s="1200">快</button>
+              </div>
+            </div>
+            <span class="fig-cap">
+              <code>request_finished()</code> 的返回值常被忽略,但它决定了<strong>块由谁释放</strong>:
+              若连接器接管异步发送(比如 PD 里 prefill 端还在往外推数据),调度器就不能立刻回收这些块,否则会把正在传输的数据覆盖掉。
+            </span>
+          </div>
+
+          <h2>四、池化的三种形态</h2>
+
+          <p>
+            同一个接口下,「池」可以是三种完全不同的东西。它们解决的问题不一样,也可以用
+            <code>MultiConnector</code> 叠在一起用(典型组合:PD 传输走 NIXL,同时各自向本地 LMCache 卸载)。
+          </p>
+
+          <div class="kv-fig">
+            <div class="fig-title">动图 3:三种池化拓扑(点标签切换)</div>
+            <div class="kv-ctrls" style="margin: 0 0 6px">
+              <div class="kv-seg" id="topoTabs">
+                <button data-t="tier" class="on">① 分层卸载</button>
+                <button data-t="pd">② PD 分离</button>
+                <button data-t="hub">③ 全局共享池</button>
+              </div>
+            </div>
+
+            <div class="kv-topo">
+              <div class="kv-topo-panel on" data-panel="tier">
+                <div class="kv-tiers">
+                  <div class="kv-tier">
+                    <div class="nm">HBM<small>GPU paged KV</small></div>
+                    <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 12%; --c: var(--gpu); --d: .05s"></i></div>
+                    <div class="meta">~80 GB · 3.35 TB/s</div>
+                  </div>
+                  <div class="kv-tier">
+                    <div class="nm">DRAM<small>Primary Tier</small></div>
+                    <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 34%; --c: var(--cpu); --d: .2s"></i><span class="kv-cascade" style="--d: .4s"></span></div>
+                    <div class="meta">TB 级 · ~64 GB/s</div>
+                  </div>
+                  <div class="kv-tier">
+                    <div class="nm">本地 NVMe<small>Secondary Tier</small></div>
+                    <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 66%; --c: var(--disk); --d: .35s"></i><span class="kv-cascade" style="--d: 1s"></span></div>
+                    <div class="meta">十 TB 级 · ~7 GB/s</div>
+                  </div>
+                  <div class="kv-tier">
+                    <div class="nm">对象存储<small>Secondary Tier</small></div>
+                    <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 96%; --c: var(--net); --d: .5s"></i><span class="kv-cascade" style="--d: 1.6s"></span></div>
+                    <div class="meta">PB 级 · 网络受限</div>
+                  </div>
+                </div>
+                <span class="fig-cap">
+                  容量越往下越大,带宽越往下越小。规则是<strong>只有 Primary Tier(CPU)能碰 GPU 显存</strong>,
+                  二级层通过 CPU 内存的<strong>零拷贝视图</strong>读写,数据向下逐级异步级联。
+                  多层设计见 <a href="https://github.com/vllm-project/vllm/issues/38260" target="_blank" rel="noopener">RFC #38260</a>(部分接口仍在推进中)。
+                </span>
+              </div>
+
+              <div class="kv-topo-panel" data-panel="pd">
+                <div class="kv-pd">
+                  <div class="kv-pool-card">
+                    <h6 class="p">Prefill 池</h6>
+                    <div class="desc">算力密集 · 大 GEMM<br />kv_role = kv_producer</div>
+                    <div class="kv-gpus">
+                      <i style="--c: var(--net); --d: 0s"></i><i style="--c: var(--net); --d: .2s"></i><i style="--c: var(--net); --d: .4s"></i>
+                    </div>
+                  </div>
+                  <div class="kv-link">
+                    <div class="rail"></div>
+                    <span class="zip" style="--d: 0s"></span>
+                    <span class="zip" style="--d: .5s"></span>
+                    <span class="zip" style="--d: 1s"></span>
+                    <div class="tag">NIXL / RDMA</div>
+                  </div>
+                  <div class="kv-pool-card">
+                    <h6 class="d">Decode 池</h6>
+                    <div class="desc">访存密集 · GEMV<br />kv_role = kv_consumer</div>
+                    <div class="kv-gpus">
+                      <i style="--c: var(--warn); --d: .1s"></i><i style="--c: var(--warn); --d: .3s"></i><i style="--c: var(--warn); --d: .5s"></i>
+                    </div>
+                  </div>
+                </div>
+                <span class="fig-cap">
+                  把两个特性相反的阶段拆到不同机器上,TTFT 和 ITL 就能各自独立调参、独立扩缩容,decode 也不再被 prefill 的长尾干扰。
+                  代价是 KV 必须跨节点搬,所以传输层要用
+                  <a href="https://github.com/ai-dynamo/nixl" target="_blank" rel="noopener">NIXL</a> 这类 RDMA 库压住延迟。
+                  多轮对话还可反向拉取(<code>bidirectional_kv_xfer</code>):D 端已有的历史 KV 让 P 端直接取,免得重算。
+                </span>
+              </div>
+
+              <div class="kv-topo-panel" data-panel="hub">
+                <div class="kv-hub">
+                  <div>
+                    <div class="kv-hub-core">
+                      <b>KV Store</b>
+                      <span>LMCache / Mooncake</span>
+                    </div>
+                    <div class="kv-sats">
+                      <span class="kv-sat" style="--d: 0s">vLLM #1</span>
+                      <span class="kv-sat" style="--d: .35s">vLLM #2</span>
+                      <span class="kv-sat" style="--d: .7s">vLLM #3</span>
+                      <span class="kv-sat" style="--d: 1.05s">vLLM #4</span>
+                    </div>
+                    <div class="kv-hit">任一实例算过的前缀,其余实例直接命中</div>
+                  </div>
+                </div>
+                <span class="fig-cap">
+                  把 KV 提到集群级的独立服务,前缀复用就从「单实例内」变成「全集群」。
+                  <a href="https://github.com/kvcache-ai/Mooncake" target="_blank" rel="noopener">Mooncake</a>
+                  进一步把多机的 DRAM 与 SSD 聚成一个分布式池;
+                  <a href="https://docs.lmcache.ai/mp/disaggregated_prefill.html" target="_blank" rel="noopener">LMCache MP</a>
+                  则用独立进程持有 KV,让多个 vLLM 实例共享。查找顺序通常是:本地 GPU → 共享池 → 重算。
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <h2>五、两处决定成败的工程细节</h2>
+
+          <p>
+            池化听起来只是「把数据搬走再搬回来」,但它能不能用,取决于两件很具体的事。
+          </p>
+
+          <p>
+            <strong>其一,搬运必须是异步的。</strong> 连接器 API 最早是同步的:vLLM 在读写外部 KV 时整个引擎是阻塞的,
+            省下的 prefill 时间还不够赔上等待时间。0.9.0 起 API 扩展为支持异步加载与保存,搬运才真正能和前向计算重叠 —— 
+            这也是为什么接口里 <code>start_load_kv</code> 和 <code>wait_for_layer_load</code> 是分开的两个方法。
+          </p>
+
+          <p>
+            <strong>其二,显存布局决定了 DMA 效率。</strong> 这一点最不直观:KV 在显存里怎么摆,对模型计算的性能几乎没有影响,
+            但对卸载是致命的。原本每层的 K、V 各自成块,一次搬运被切成 <code>2 × num_layers</code> 个小片,DMA 全耗在发起开销上。
+            改成「一个连续物理块装下所有层」之后,有效块大小放大了 <code>2 × num_layers</code> 倍,
+            卸载吞吐<strong>提升了一个数量级</strong>。
+          </p>
+
+          <div class="kv-fig">
+            <div class="fig-title">动图 4:KV 显存布局 —— 碎片化 vs 连续</div>
+            <div class="kv-layout">
+              <div class="kv-lay">
+                <h5 class="old">改造前:按层切碎</h5>
+                <div class="sub">2 × num_layers 个独立小块</div>
+                <div class="kv-chunks" id="chunksOld"></div>
+                <div class="kv-dma">DMA 发起次数:<b>160</b> · 每次搬 <b>2 KiB</b> 量级</div>
+              </div>
+              <div class="kv-lay">
+                <h5 class="new">改造后:全层连续</h5>
+                <div class="sub">1 个大块,涵盖全部 80 层的 K 与 V</div>
+                <div class="kv-chunks"><i class="kv-onechunk" style="width: 100%"></i></div>
+                <div class="kv-dma">DMA 发起次数:<b>1</b> · 一次搬 <b>320 KiB</b> 量级</div>
+              </div>
+            </div>
+            <span class="fig-cap">
+              左边每个小块都要单独发起一次拷贝,带宽被发起开销吃光;右边一次连续大拷贝才能把 DMA 跑满。
+              细节见 vLLM 官方博客
+              <a href="https://blog.vllm.ai/2026/01/08/kv-offloading-connector.html" target="_blank" rel="noopener">Inside vLLM's New KV Offloading Connector</a>。
+            </span>
+          </div>
+
+          <h2>六、配置速查与选型</h2>
+
+          <p>
+            三种形态都通过同一个启动参数 <code>--kv-transfer-config</code> 打开,区别只在 <code>kv_connector</code> 和 <code>kv_role</code>:
+          </p>
+
+          <pre><code># ① 分层卸载:把溢出的 KV 异步卸到 CPU 内存
+vllm serve MODEL --kv-transfer-config '{
+  "kv_connector": "OffloadingConnector",
+  "kv_role": "kv_both",
+  "kv_connector_extra_config": {"num_cpu_blocks": 100000}
+}'
+
+# ② PD 分离:prefill 端产,decode 端消,走 NIXL
+vllm serve MODEL --kv-transfer-config '{
+  "kv_connector": "NixlConnector",
+  "kv_role": "kv_producer",
+  "kv_load_failure_policy": "fail"
+}'
+# decode 实例同上,仅 kv_role 改成 "kv_consumer"
+
+# ③ 组合:PD 传输走 NIXL,同时各自向共享池卸载
+#    kv_connector 设为 "MultiConnector",
+#    子连接器列在 kv_connector_extra_config.connectors 里</code></pre>
+
+          <p>
+            两个容易踩的参数:<code>kv_role</code> 有 <code>kv_producer</code> / <code>kv_consumer</code> / <code>kv_both</code> 三种,
+            分层卸载要用 <code>kv_both</code>(既存又取),PD 才是一产一消。
+            <code>kv_load_failure_policy</code> 默认是 <code>fail</code> —— 传输失败直接报错,而不是
+            <code>recompute</code> 悄悄回退去重算,因为在 decode 实例上临时插一段 prefill 会打乱低延迟调度、造成抖动。
+          </p>
+
+          <div class="kv-table-wrap">
+            <table>
+              <thead>
+                <tr><th>你的瓶颈</th><th>选哪种</th><th>主要收益</th><th>主要代价</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>显存不够,前缀反复被挤掉</td><td>① 分层卸载</td><td>扩大有效缓存容量,命中即省 prefill</td><td>PCIe 带宽,冷数据回取有延迟</td></tr>
+                <tr><td>TTFT 与 ITL 互相拖累</td><td>② PD 分离</td><td>两阶段独立扩缩容,decode 尾延迟稳</td><td>需要 RDMA 网络,运维复杂度上一个台阶</td></tr>
+                <tr><td>多副本重复算同一前缀</td><td>③ 全局共享池</td><td>集群级前缀复用,副本越多越划算</td><td>多一跳网络,需维护独立存储服务</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>七、六个要点</h2>
+
+          <div class="kv-takes">
+            <div class="kv-take"><div class="n">01</div><h5>池化治的是重复,不是容量</h5>
+              <p>KV 太大靠 GQA、量化、稀疏来压;而<strong>同一份 KV 被反复计算又被丢弃</strong>,只能靠共享和持久化解决。这是两类正交的优化,别混为一谈。</p></div>
+            <div class="kv-take"><div class="n">02</div><h5>接口按进程切,而不是按功能切</h5>
+              <p>Scheduler 侧只做决策与记账、不碰张量,Worker 侧只管搬运。这让调度器<strong>拿到「能省多少 token」这个数字就能排程</strong>,不必等数据落地。</p></div>
+            <div class="kv-take"><div class="n">03</div><h5>查询必须无副作用</h5>
+              <p><code>get_num_new_matched_tokens</code> 会被同一请求反复调用,实现里不能改状态。它还能返回 <code>None</code> 表示「查询未完成」,让调度器下轮再问 —— 这是远端查询不阻塞调度的关键。</p></div>
+            <div class="kv-take"><div class="n">04</div><h5>逐层流水是延迟能被吃掉的原因</h5>
+              <p>加载和保存都以层为粒度:<code>wait_for_layer_load(i)</code> 只挡住第 <em>i</em> 层。前面的层在算,后面的层在传,搬运时间被计算掩盖掉。</p></div>
+            <div class="kv-take"><div class="n">05</div><h5>布局比算法更能决定吞吐</h5>
+              <p>把 KV 改成「全层一个连续块」,有效块放大 <code>2 × num_layers</code> 倍,卸载吞吐提升一个数量级。对计算无感的排布方式,对 DMA 是生死线。</p></div>
+            <div class="kv-take"><div class="n">06</div><h5>谁释放块,是正确性问题</h5>
+              <p><code>request_finished()</code> 要回答「现在能不能回收这些块」。连接器若还在异步外推,块就得由它接管释放,否则正在传输的数据会被下一个请求覆盖。</p></div>
+          </div>
+
+          <blockquote>
+            API 方法名与语义以 vLLM v1 <code>KVConnectorBase_V1</code> 源码为准;分层卸载的 TieringManager / SecondaryTierManager 属设计阶段接口,
+            落地范围以上游合入为准。容量与带宽为量级示意,非实测。
+          </blockquote>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+
+    <script>
+      (function () {
+        /* ============ 动图 2:生命周期时序 ============ */
+        (function () {
+          var STEPS = [
+            {
+              side: 'sch', slot: 0, api: 'get_num_new_matched_tokens()', flow: 'none',
+              desc: '调度器问连接器:「除了本地已算的 <em>num_computed_tokens</em>,外部还能再给我多少个 token?」返回一个数字加一个布尔值(是否异步加载)。这个方法<em>必须无副作用</em>,因为同一请求可能被反复问;也可以返回 <em>None</em> 表示还没查完,下轮再来。'
+            },
+            {
+              side: 'sch', slot: 1, api: 'update_state_after_alloc()', flow: 'none',
+              desc: 'CacheManager 按上一步的答复分配好块之后回调。注意判断依据是 <em>num_external_tokens</em> 而不是 blocks 是否为空 —— 在 MultiConnector 下,没被选中的子连接器同样会收到真实的 blocks。'
+            },
+            {
+              side: 'sch', slot: 2, api: 'build_connector_meta()', flow: 'none',
+              desc: '把这一轮所有请求的搬运计划打包成 <em>KVConnectorMetadata</em>,随 scheduler output 一起发给各个 Worker。到这里调度侧的活就干完了,它自始至终没有碰过一个张量。'
+            },
+            {
+              side: 'wrk', slot: 0, api: 'start_load_kv()', flow: 'load',
+              desc: 'Worker 在前向开始前发起加载,把外部 KV 异步拉进 vLLM 的 paged buffer。<em>只是发起,不等待</em> —— 这样传输就能和随后的计算重叠起来。'
+            },
+            {
+              side: 'wrk', slot: 1, api: 'wait_for_layer_load(i)', flow: 'load',
+              desc: '算到第 <em>i</em> 层时才阻塞等这一层的数据到位。粒度是层而不是整个请求,所以第 1 层算完时第 5 层可能还在路上 —— <em>逐层流水</em>正是搬运延迟能被计算掩盖的原因。'
+            },
+            {
+              side: 'wrk', slot: 2, api: 'save_kv_layer(i)', flow: 'save',
+              desc: '第 <em>i</em> 层刚算出来的 KV,立刻从 attention 层内部发起异步外推。同样是<em>发起即返回</em>,不阻塞后面几层继续计算。'
+            },
+            {
+              side: 'wrk', slot: 3, api: 'wait_for_save()', flow: 'save',
+              desc: '前向结束前的兜底屏障:阻塞直到所有保存完成。少了这一步,paged buffer 会在数据还没推完时就被下一批请求覆盖掉。'
+            },
+            {
+              side: 'sch', slot: 3, api: 'request_finished()', flow: 'none',
+              desc: '请求结束时调用一次,返回值回答「块现在能不能释放」。若连接器还在异步外推(比如 PD 里 prefill 端仍在发送),它就<em>接管块的释放责任</em>,调度器必须放手,否则会覆盖正在传输的数据。'
+            },
+          ];
+          var SCH_LABELS = ['matched_tokens', 'after_alloc', 'build_meta', 'finished'];
+          var WRK_LABELS = ['start_load', 'wait_layer', 'save_layer', 'wait_save'];
+
+          var laneSch = document.getElementById('laneSch');
+          var laneWrk = document.getElementById('laneWrk');
+          var elSide = document.getElementById('lifeSide');
+          var elApi = document.getElementById('lifeApi');
+          var elDesc = document.getElementById('lifeDesc');
+          var elIdx = document.getElementById('lifeIdx');
+          var flow = document.getElementById('lifeFlow');
+          var flowIdle = document.getElementById('flowIdle');
+
+          function build(lane, labels) {
+            lane.innerHTML = '';
+            labels.forEach(function (t) {
+              var d = document.createElement('div');
+              d.className = 'kv-step';
+              d.textContent = t;
+              lane.appendChild(d);
+            });
+          }
+          build(laneSch, SCH_LABELS);
+          build(laneWrk, WRK_LABELS);
+
+          var idx = 0, timer = null, period = 2100, playing = true;
+
+          function clearPkts() {
+            [].slice.call(flow.querySelectorAll('.kv-pkt')).forEach(function (p) { p.remove(); });
+          }
+
+          function render() {
+            var s = STEPS[idx];
+            elSide.textContent = s.side === 'sch' ? 'SCHEDULER' : 'WORKER';
+            elSide.className = 'kv-side ' + s.side;
+            elApi.textContent = s.api;
+            elDesc.innerHTML = s.desc;
+            elIdx.textContent = (idx + 1) + ' / ' + STEPS.length;
+
+            // 已完成 / 当前 / 未开始
+            STEPS.forEach(function (st, i) {
+              var lane = st.side === 'sch' ? laneSch : laneWrk;
+              var cell = lane.children[st.slot];
+              if (!cell) return;
+              cell.classList.remove('on', 'done', 'void');
+              if (i < idx) cell.classList.add('done');
+              else if (i === idx) cell.classList.add('on');
+              else cell.classList.add('void');
+            });
+
+            clearPkts();
+            if (s.flow === 'none') {
+              flowIdle.style.display = 'grid';
+            } else {
+              flowIdle.style.display = 'none';
+              for (var k = 0; k < 3; k++) {
+                var p = document.createElement('span');
+                p.className = 'kv-pkt ' + s.flow;
+                p.style.animationDelay = (k * 0.5) + 's';
+                flow.appendChild(p);
+              }
+            }
+          }
+
+          function next() { idx = (idx + 1) % STEPS.length; render(); }
+          function loop() { clearInterval(timer); if (playing) timer = setInterval(next, period); }
+
+          document.getElementById('lifePlay').addEventListener('click', function (e) {
+            playing = !playing;
+            e.target.textContent = playing ? '暂停' : '继续';
+            loop();
+          });
+          document.getElementById('lifeStep').addEventListener('click', function () {
+            playing = false;
+            document.getElementById('lifePlay').textContent = '继续';
+            clearInterval(timer);
+            next();
+          });
+          document.getElementById('lifeReset').addEventListener('click', function () {
+            idx = 0; render(); loop();
+          });
+          document.getElementById('lifeSpeed').addEventListener('click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            period = +b.dataset.s;
+            loop();
+          });
+
+          render();
+          loop();
+        })();
+
+        /* ============ 动图 3:拓扑切换 ============ */
+        (function () {
+          var tabs = document.getElementById('topoTabs');
+          var panels = [].slice.call(document.querySelectorAll('.kv-topo-panel'));
+          tabs.addEventListener('click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            [].forEach.call(tabs.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            panels.forEach(function (p) {
+              p.classList.toggle('on', p.dataset.panel === b.dataset.t);
+            });
+          });
+        })();
+
+        /* ============ 动图 4:碎片化布局 ============ */
+        (function () {
+          var box = document.getElementById('chunksOld');
+          // 80 层 × K/V = 160 个小块,这里画 40 个代表,避免视觉噪音
+          for (var i = 0; i < 40; i++) {
+            var c = document.createElement('i');
+            c.className = 'kv-chunk';
+            c.style.width = '9px';
+            c.style.setProperty('--d', (i % 12) * 0.09 + 's');
+            box.appendChild(c);
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

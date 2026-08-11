@@ -35,6 +35,20 @@
 
 window.NOTES = [
   {
+    slug: "kv-pooling-kv-connector",
+    title: {
+      zh: "KV 池化与 KVConnector:让 KV cache 从私有变成共享资源",
+      en: "KV Pooling & the KVConnector API: Turning KV Cache into a Shared Resource",
+    },
+    summary: {
+      zh: "图文 + 4 张动图拆解 KV 池化:为什么问题不是「KV 太大」而是「同一份 KV 被反复算了又丢」;vLLM v1 的 KVConnectorBase_V1 如何按进程切成 Scheduler(决策)与 Worker(搬运)两侧;一次请求经过的 8 个回调及其逐层流水;分层卸载 / PD 分离 / 全局共享池三种形态的取舍;以及「全层连续布局把卸载吞吐拉高一个数量级」这类决定成败的工程细节。",
+      en: "Four animated figures unpack KV pooling: the real problem is not that KV cache is large but that the same KV gets recomputed and thrown away repeatedly. Covers how vLLM v1's KVConnectorBase_V1 splits along process boundaries into a scheduler side (decisions) and a worker side (transfers), the eight callbacks a request passes through and their per-layer pipelining, the trade-offs between tiered offloading / PD disaggregation / a global shared pool, and why an all-layer contiguous KV layout raises offloading throughput by an order of magnitude.",
+    },
+    date: "2026-08-11",
+    tags: ["KV Cache", "vLLM", "Inference", "Distributed", "PD Disaggregation"],
+    category: "tech",
+  },
+  {
     slug: "qkv-lifecycle-256k",
     title: {
       zh: "Q / K / V 在 256K 对话窗口中的一生",
