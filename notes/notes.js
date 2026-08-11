@@ -35,6 +35,20 @@
 
 window.NOTES = [
   {
+    slug: "triton-gemm-step-by-step",
+    title: {
+      zh: "从 0 到 1 写一个 Triton GEMM,再一步步调快",
+      en: "A Triton GEMM from Scratch, Then Tuned Step by Step",
+    },
+    summary: {
+      zh: "按真实调优顺序走一遍:先建立「program 是 tile 不是 thread」的心智模型,写出能跑的最简分块 GEMM,再每次只改一件事 —— 边界 mask 与 fp32 累加、L2 友好的分组发射顺序、num_stages 软件流水、autotune,最后到 persistent kernel / TMA / warp 专业化。含 5 张动图,其中发射顺序那张可交互,能复现官方 9×9 分块下 90 → 54 块的加载量差异。",
+      en: "Walks the real tuning path: first the mental shift that a Triton program owns a tile rather than a thread, then a minimal blocked GEMM that runs, then one change at a time — boundary masks and fp32 accumulation, an L2-friendly grouped launch order, num_stages software pipelining, autotune, and finally persistent kernels / TMA / warp specialization. Five animated figures, including an interactive launch-order demo that reproduces the official 90 → 54 block-load reduction on a 9×9 tiling.",
+    },
+    date: "2026-08-11",
+    tags: ["Triton", "GEMM", "CUDA", "Performance", "Kernel"],
+    category: "tech",
+  },
+  {
     slug: "kv-pooling-kv-connector",
     title: {
       zh: "KV 池化与 KVConnector:让 KV cache 从私有变成共享资源",
