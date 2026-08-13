@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="从一份 config 读懂并行切分:TP=4 / PP=4 / EP=4(以 Hy3 为例) — 庄宏" data-en="Reading Parallelism off a config.json: TP=4 / PP=4 / EP=4 on Hy3 — Hong Zhuang">从一份 config 读懂并行切分:TP=4 / PP=4 / EP=4(以 Hy3 为例) — 庄宏</title>
+    <meta name="description" content="以 tencent/Hy3 的 config.json 为底,图文 + 动图讲清 TP / PP / EP 各自切模型的哪一维:为什么 TP 切 head 数而不切 head_dim,PP 怎么切层,EP 怎么切专家,以及 DP / SP / CP 等其余并行维度。" />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      /* ---- Scoped diagrams for this note (图 + 动图) ---- */
+      .pz-mono { font-family: var(--font-mono); }
+
+      /* rank color tokens */
+      .r0 { --rc: #38bdf8; } .r1 { --rc: #a855f7; } .r2 { --rc: #22c55e; } .r3 { --rc: #f59e0b; }
+      .rank-key { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-muted); }
+      .rank-key i { width: 13px; height: 13px; border-radius: 4px; background: var(--rc); display: inline-block; }
+      .keyrow { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 14px; }
+
+      /* ---------- 动图 1: TP head dealing ---------- */
+      .tp-heads { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 4px 0 2px; }
+      .tp-head {
+        width: 26px; height: 48px; border-radius: 6px;
+        border: 1px solid var(--border-strong);
+        background: var(--surface-strong);
+        position: relative; overflow: hidden;
+        animation: tp-fill 6s ease-in-out infinite;
+      }
+      .tp-head::after {
+        content: ""; position: absolute; inset: 0;
+        background: color-mix(in srgb, var(--rc) 55%, transparent);
+        opacity: 0; animation: tp-tint 6s ease-in-out infinite;
+      }
+      @keyframes tp-fill { 0%, 8% { border-color: var(--border-strong); } 24%, 92% { border-color: var(--rc); } 100% { border-color: var(--border-strong); } }
+      @keyframes tp-tint { 0%, 8% { opacity: 0; } 24%, 92% { opacity: 1; } 100% { opacity: 0; } }
+      .tp-head .hd-label { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-family: var(--font-mono); font-size: 0.52rem; color: var(--text); z-index: 2; }
+      .tp-dimbar {
+        margin: 10px auto 0; max-width: 520px;
+        border: 1px dashed #ef4444; border-radius: 8px;
+        padding: 8px 12px; text-align: center;
+        font-family: var(--font-mono); font-size: 0.76rem; color: #ef4444;
+        background: color-mix(in srgb, #ef4444 8%, transparent);
+      }
+      .tp-split-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
+      @media (max-width: 640px) { .tp-split-demo { grid-template-columns: 1fr; } }
+      .tp-pane { border-radius: 12px; border: 1px solid var(--border); background: var(--surface-strong); padding: 14px; }
+      .tp-pane .pt { font-family: var(--font-mono); font-size: 0.72rem; margin-bottom: 10px; }
+      .tp-pane.ok { border-top: 3px solid #22c55e; } .tp-pane.ok .pt { color: #22c55e; }
+      .tp-pane.no { border-top: 3px solid #ef4444; } .tp-pane.no .pt { color: #ef4444; }
+      .tp-chain { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.72rem; }
+      .tp-chain .op { padding: 4px 7px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface); }
+      .tp-chain .cut { border-color: #ef4444; color: #ef4444; }
+      .tp-chain .ar { color: var(--accent-2); }
+      .tp-warn-pulse { animation: tp-warn 1.4s ease-in-out infinite; }
+      @keyframes tp-warn { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+      /* ---------- 动图 2: PP pipeline bubbles ---------- */
+      .pp-grid { display: grid; grid-template-columns: 72px 1fr; gap: 6px 10px; align-items: center; }
+      .pp-lane-name { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); text-align: right; }
+      .pp-lane { display: flex; gap: 3px; height: 26px; }
+      .pp-cell { flex: 1 1 0; border-radius: 4px; background: var(--surface-strong); border: 1px solid var(--border); }
+      .pp-cell.mb { border-color: var(--rc); background: color-mix(in srgb, var(--rc) 45%, transparent); animation: pp-run 4.4s ease-in-out infinite; opacity: 0; }
+      .pp-cell.bub { background: repeating-linear-gradient(45deg, transparent, transparent 4px, color-mix(in srgb, var(--border-strong) 70%, transparent) 4px, color-mix(in srgb, var(--border-strong) 70%, transparent) 8px); }
+      @keyframes pp-run { 0%, 4% { opacity: 0; } 12%, 82% { opacity: 1; } 92%, 100% { opacity: 0; } }
+      .pp-time { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim); text-align: center; margin-top: 8px; }
+
+      /* ---------- 动图 3: EP all-to-all ---------- */
+      .ep-wrap { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+      .ep-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+      .ep-box {
+        min-width: 116px; border-radius: 10px; padding: 9px 10px;
+        border: 1px solid var(--rc); background: color-mix(in srgb, var(--rc) 12%, transparent);
+        font-family: var(--font-mono); font-size: 0.7rem; text-align: center;
+      }
+      .ep-box .eb-h { color: var(--rc); font-weight: 600; }
+      .ep-box .eb-s { color: var(--text-muted); font-size: 0.66rem; margin-top: 3px; }
+      .ep-svg { width: 100%; max-width: 560px; height: 74px; overflow: visible; display: block; }
+      .ep-line { fill: none; stroke-width: 2; stroke-dasharray: 5 8; animation: ep-dash 1.1s linear infinite; }
+      @keyframes ep-dash { to { stroke-dashoffset: -26; } }
+      .ep-a2a-tag { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-2); text-align: center; }
+      .ep-tok { display: inline-flex; gap: 4px; }
+      .ep-tok i {
+        width: 15px; height: 15px; border-radius: 4px; display: inline-block;
+        background: var(--rc); animation: ep-blink 2.2s ease-in-out infinite;
+      }
+      @keyframes ep-blink { 0%, 100% { opacity: 0.28; } 50% { opacity: 1; } }
+
+      /* ---------- 3D layout grid ---------- */
+      .grid16 { display: grid; grid-template-columns: 78px repeat(4, 1fr); gap: 7px; font-family: var(--font-mono); font-size: 0.66rem; }
+      .grid16 .gh { color: var(--text-dim); text-align: center; padding-bottom: 2px; font-size: 0.64rem; }
+      .grid16 .rl { color: var(--text-muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 2px; text-align: right; }
+      .gcell { border-radius: 8px; padding: 7px 4px; text-align: center; border: 1px solid var(--rc); background: color-mix(in srgb, var(--rc) 14%, transparent); line-height: 1.35; }
+      .gcell b { color: var(--rc); font-weight: 600; display: block; font-size: 0.68rem; }
+      .gcell span { color: var(--text-muted); font-size: 0.6rem; }
+
+      /* shard formula rows */
+      .shard-tbl { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.78rem; }
+      .shard-tbl th, .shard-tbl td { padding: 8px 9px; border-bottom: 1px solid var(--border); text-align: left; }
+      .shard-tbl th { color: var(--accent-1); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .shard-tbl td.keep { color: #ef4444; }
+      .shard-tbl td.cut { color: #22c55e; }
+
+      .eq {
+        font-family: var(--font-mono); background: var(--surface-strong);
+        border: 1px solid var(--border); border-radius: var(--radius);
+        padding: 13px 15px; font-size: 0.88rem; line-height: 1.75; overflow-x: auto;
+      }
+      .eq .hl { color: var(--accent-2); font-weight: 600; }
+      .eq .hl-k { color: #22c55e; font-weight: 600; }
+      .eq .hl-r { color: #ef4444; font-weight: 600; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .tp-head, .tp-head::after, .pp-cell.mb, .ep-line, .ep-tok i, .tp-warn-pulse { animation: none !important; }
+        .tp-head { border-color: var(--rc) !important; }
+        .tp-head::after { opacity: 1 !important; }
+        .pp-cell.mb { opacity: 1 !important; }
+        .ep-tok i { opacity: 1 !important; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-08-13</span>
+            <span class="tags"><span>Distributed</span><span>Parallelism</span><span>MoE</span><span>LLM</span><span>Inference</span></span>
+          </div>
+          <h1>从一份 config 读懂并行切分:<code>TP=4 / PP=4 / EP=4</code></h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            并行策略这件事,光看名词很容易糊涂:<strong>TP 到底切的是什么?切 <code>head_dim</code> 还是切 head 数?EP 和 TP 是不是一回事?</strong> 这篇笔记不讲抽象定义,直接拿一份真实的 <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">tencent/Hy3 <code>config.json</code></a> 当底稿,把 <strong>TP=4、PP=4、EP=4</strong> 落到每一个张量的 shape 上,配动图看清数据怎么流。最后在 <strong>Extra</strong> 里补齐 DP / SP / CP 等其余维度。
+          </p>
+
+          <div class="callout key">
+            <strong>一句话总览:</strong> 三种并行切的是<strong>三个完全正交的维度</strong>——<strong>TP 切"宽度"</strong>(一层之内的 head 数 / FFN 中间维),<strong>PP 切"深度"</strong>(80 层分成 4 段),<strong>EP 切"专家数"</strong>(192 个专家分给 4 组)。而 <code>head_dim=128</code> 是<strong>唯一那个谁都不许切</strong>的维度。
+          </div>
+
+          <h2>0 · 先把这份 config 读明白</h2>
+          <p>只挑和并行相关的字段,其余(token id、rope、norm)先略过:</p>
+
+          <pre><code>{
+  "hidden_size": 4096,            // 残差流宽度 d_model
+  "head_dim": 128,                // ← 注意:显式给出,不是 hidden/heads
+  "num_attention_heads": 64,      // Q head 数
+  "num_key_value_heads": 8,       // KV head 数 → GQA,8 个 Q 共享 1 个 KV
+  "num_hidden_layers": 80,        // 层数 → PP 切这里
+  "intermediate_size": 13312,     // dense FFN 中间维
+  "first_k_dense_replace": 1,     // 第 0 层是 dense FFN,第 1~79 层是 MoE
+  "num_experts": 192,             // 路由专家数 → EP 切这里
+  "num_experts_per_tok": 8,       // top-k:每 token 选 8 个专家
+  "num_shared_experts": 1,        // 共享专家,每 token 必过
+  "moe_intermediate_size": 1536,  // 单个专家的中间维
+  "vocab_size": 120832,
+  "max_position_embeddings": 262144,
+  "num_nextn_predict_layers": 1,  // MTP(多 token 预测)层
+  "dtype": "bfloat16"
+}</code></pre>
+
+          <p>由这些字段先把规模算出来,后面所有切分都围绕它转:</p>
+          <div class="eq">
+            单层 attn = 4096&times;8192 + 2&times;(4096&times;1024) + 8192&times;4096 = <span class="hl">75.5M</span><br />
+            单个专家 = 3 &times; 4096 &times; 1536 = <span class="hl">18.87M</span>&nbsp;&nbsp;|&nbsp;&nbsp;单个 MoE 层 = 192 个专家 + 1 共享 + router = <span class="hl">3.64B</span><br />
+            总参数 &asymp; 80&times;75.5M + 163.6M + 79&times;3.64B + 2&times;(120832&times;4096) &asymp; <span class="hl-k">295B</span><br />
+            每 token 激活 &asymp; 6.0B(attn) + 79&times;(8+1)&times;18.87M + emb/head &asymp; <span class="hl-k">20.2B</span>&nbsp;&nbsp;(<span class="hl">6.8%</span>)
+          </div>
+
+          <div class="callout info">
+            <strong>这是一个 ~295B 总参 / ~20B 激活的稀疏 MoE。</strong> 295B 的 bf16 权重 = 590 GB,单卡绝无可能;而 20B 的激活量又意味着<u>算力需求远小于显存需求</u>。这正是"必须并行、且要用 EP 而不是纯 TP"的根本原因。
+          </div>
+
+          <h2>1 · 第一个陷阱:<code>head_dim</code> ≠ <code>hidden_size / num_heads</code></h2>
+          <p>
+            绝大多数人读 config 会下意识地算 <code>4096 / 64 = 64</code>,认为 <code>head_dim=64</code>。但这份 config <strong>显式写了 <code>head_dim: 128</code></strong>。两者对不上:
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">图 1 · attention 内部维度是 hidden 的 2 倍</div>
+            <div class="eq">
+              num_attention_heads &times; head_dim = 64 &times; 128 = <span class="hl">8192</span><br />
+              hidden_size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="hl-k">4096</span>&nbsp;&nbsp;&nbsp;&nbsp;&rarr; 比值 <span class="hl-r">2.0&times;</span>
+            </div>
+            <p style="margin-top:14px;font-size:0.92rem;color:var(--text-muted)">
+              也就是说 <code>q_proj</code> 是一个 <strong>4096 → 8192 的升维投影</strong>,<code>o_proj</code> 再 <strong>8192 → 4096 降回来</strong>。KV 侧因为 GQA 只有 8 个 head,所以 <code>k_proj/v_proj</code> 是 4096 → 1024。
+            </p>
+            <span class="fig-cap">读 config 永远以显式的 head_dim 为准,别用 hidden/heads 反推</span>
+          </figure>
+
+          <div class="callout warn">
+            <strong>为什么这个细节对并行很关键?</strong> 因为切分的分母是 <code>num_heads</code>,而张量的宽度是 <code>num_heads × head_dim</code>。如果你按 <code>hidden_size/TP</code> 去算 q_proj 的分片大小,会得到 1024,而正确答案是 <strong>8192/4 = 2048</strong>——差了整整一倍,shape 直接对不上。
+          </div>
+
+          <h2>2 · TP=4:切的是 <u>head 的个数</u>,不是 head_dim</h2>
+          <p>
+            这是本文最想讲清的一点。张量并行在 attention 上的切法是:<strong>把 64 个 head 发牌一样分给 4 张卡,每卡 16 个完整的 head</strong>。每个 head 内部的 <code>head_dim=128</code> <u>原封不动</u>。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · TP=4 把 64 个 head 发牌给 4 张卡(head_dim 保持完整)</div>
+            <div class="tp-heads" aria-hidden="true">
+              <div class="tp-head r0" style="animation-delay:0s"><span class="hd-label">h0</span></div>
+              <div class="tp-head r1" style="animation-delay:.12s"><span class="hd-label">h1</span></div>
+              <div class="tp-head r2" style="animation-delay:.24s"><span class="hd-label">h2</span></div>
+              <div class="tp-head r3" style="animation-delay:.36s"><span class="hd-label">h3</span></div>
+              <div class="tp-head r0" style="animation-delay:.48s"><span class="hd-label">h4</span></div>
+              <div class="tp-head r1" style="animation-delay:.6s"><span class="hd-label">h5</span></div>
+              <div class="tp-head r2" style="animation-delay:.72s"><span class="hd-label">h6</span></div>
+              <div class="tp-head r3" style="animation-delay:.84s"><span class="hd-label">h7</span></div>
+              <div class="tp-head r0" style="animation-delay:.96s"><span class="hd-label">…</span></div>
+              <div class="tp-head r1" style="animation-delay:1.08s"><span class="hd-label">…</span></div>
+              <div class="tp-head r2" style="animation-delay:1.2s"><span class="hd-label">h62</span></div>
+              <div class="tp-head r3" style="animation-delay:1.32s"><span class="hd-label">h63</span></div>
+            </div>
+            <div class="tp-dimbar tp-warn-pulse">↕ 每根竖条的高度 = head_dim 128 &nbsp;·&nbsp; ❌ 切分永远不会横穿这个方向</div>
+            <div class="keyrow" style="justify-content:center">
+              <span class="rank-key r0"><i></i> rank0 · 16 heads</span>
+              <span class="rank-key r1"><i></i> rank1 · 16 heads</span>
+              <span class="rank-key r2"><i></i> rank2 · 16 heads</span>
+              <span class="rank-key r3"><i></i> rank3 · 16 heads</span>
+            </div>
+            <span class="fig-cap">图 2 · head 是「发牌」的最小单位,一张牌不能撕成两半</span>
+          </figure>
+
+          <h3>为什么 head_dim 切不得?</h3>
+          <p>因为一个 head 内部是一条<strong>不可分割的规约链</strong>:<code>QK<sup>T</sup></code> 要沿 head_dim 做点积,softmax 又要沿序列做归一化。若把 head_dim 切开,每算一个注意力分数都得跨卡 all-reduce:</p>
+
+          <div class="tp-split-demo">
+            <div class="tp-pane ok">
+              <div class="pt">✅ 按 head 切(TP 的做法)</div>
+              <div class="tp-chain">
+                <span class="op">Q<sub>[16h,128]</sub></span><span class="ar">×</span><span class="op">K<sup>T</sup></span>
+                <span class="ar">→</span><span class="op">softmax</span><span class="ar">→</span><span class="op">×V</span>
+              </div>
+              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)">
+                整条链<strong>全在本卡完成</strong>,16 个 head 各算各的。只在最后 <code>o_proj</code> 之后做<strong>一次 all-reduce</strong> 把 4 张卡的部分和加起来。通信 = 每层 1 次。
+              </p>
+            </div>
+            <div class="tp-pane no">
+              <div class="pt">❌ 按 head_dim 切(没人这么干)</div>
+              <div class="tp-chain">
+                <span class="op cut">Q<sub>[64h,32]</sub></span><span class="ar">×</span><span class="op cut">K<sup>T</sup></span>
+                <span class="ar tp-warn-pulse">⇅ all-reduce</span><span class="ar">→</span><span class="op">softmax</span>
+              </div>
+              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)">
+                点积被劈成 4 段部分和,<strong>每个 token、每个 head 的每个分数</strong>都要跨卡求和才能进 softmax。通信量爆炸,而且 QK-norm(<code>qk_norm: true</code>)也要沿 head_dim 归一化,同样被劈开。
+              </p>
+            </div>
+          </div>
+
+          <h3>TP=4 下每个张量的真实 shape</h3>
+          <table class="shard-tbl">
+            <thead>
+              <tr><th>张量</th><th>完整 shape</th><th>TP=4 每卡</th><th>切法</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>q_proj</td><td>[4096, 64&times;128=8192]</td><td>[4096, <b>2048</b>] · 16 heads</td><td class="cut">列并行(切 head)</td></tr>
+              <tr><td>k_proj / v_proj</td><td>[4096, 8&times;128=1024]</td><td>[4096, <b>256</b>] · 2 kv heads</td><td class="cut">列并行(切 kv head)</td></tr>
+              <tr><td>o_proj</td><td>[8192, 4096]</td><td>[<b>2048</b>, 4096]</td><td class="cut">行并行 + all-reduce</td></tr>
+              <tr><td><b>head_dim</b></td><td>128</td><td><b>128</b>(不变)</td><td class="keep">✖ 永不切分</td></tr>
+              <tr><td>dense FFN gate/up<br /><span style="color:var(--text-dim)">(仅第 0 层)</span></td><td>[4096, 13312]</td><td>[4096, <b>3328</b>]</td><td class="cut">列并行</td></tr>
+              <tr><td>dense FFN down</td><td>[13312, 4096]</td><td>[<b>3328</b>, 4096]</td><td class="cut">行并行 + all-reduce</td></tr>
+              <tr><td>embedding / lm_head</td><td>[120832, 4096]</td><td>[<b>30208</b>, 4096]</td><td class="cut">词表并行</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout tip">
+            <strong>GQA 的自洽性检查:</strong> 64 个 Q head 配 8 个 KV head,组大小 = 8。TP=4 后每卡是 16 Q + 2 KV,组大小还是 <strong>16/2 = 8</strong> ✅。这说明 TP 必须<strong>整除 <code>num_key_value_heads</code></strong>——本模型 KV head 只有 8,所以 <code>TP ∈ {1,2,4,8}</code> 是干净的;<strong>TP=16 就会不够分</strong>,只能把 KV head 复制到多卡(浪费显存)或改用别的策略。<u>MoE 大模型 TP 开不大,这是主因之一。</u>
+          </div>
+
+          <h2>3 · PP=4:切的是"深度"</h2>
+          <p>流水线并行不动任何一个张量的 shape,它只是把 <strong>80 层按顺序切成 4 段</strong>,每段 20 层放一张(组)卡上。注意 <code>first_k_dense_replace: 1</code> 让第 0 层是 dense FFN,其余 79 层才是 MoE:</p>
+
+          <figure class="fig">
+            <div class="fig-title">图 3 · 80 层 → 4 个 stage,每段 20 层</div>
+            <div class="ep-row" style="align-items:stretch">
+              <div class="ep-box r0" style="min-width:130px">
+                <div class="eb-h">Stage 0</div>
+                <div class="eb-s">embedding<br />layer 0 <b>(dense)</b><br />layer 1–19 (MoE)</div>
+              </div>
+              <div class="ep-box r1" style="min-width:130px">
+                <div class="eb-h">Stage 1</div>
+                <div class="eb-s">layer 20–39<br />(全 MoE)</div>
+              </div>
+              <div class="ep-box r2" style="min-width:130px">
+                <div class="eb-h">Stage 2</div>
+                <div class="eb-s">layer 40–59<br />(全 MoE)</div>
+              </div>
+              <div class="ep-box r3" style="min-width:130px">
+                <div class="eb-h">Stage 3</div>
+                <div class="eb-s">layer 60–79<br />final norm + lm_head<br /><b>+ MTP 层</b></div>
+              </div>
+            </div>
+            <span class="fig-cap">stage 间只传一个 [batch, seq, 4096] 的 hidden state — 通信量极小(P2P)</span>
+          </figure>
+
+          <p>PP 的代价不是通信,而是 <strong>bubble(气泡)</strong>:stage 3 必须等 stage 0/1/2 都算完才能开工。解法是把 batch 拆成 micro-batch 流水起来:</p>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · PP=4 流水线:micro-batch 错峰填满 4 个 stage</div>
+            <div class="pp-grid" aria-hidden="true">
+              <div class="pp-lane-name">Stage 0</div>
+              <div class="pp-lane">
+                <div class="pp-cell mb r0" style="animation-delay:0s"></div>
+                <div class="pp-cell mb r1" style="animation-delay:.35s"></div>
+                <div class="pp-cell mb r2" style="animation-delay:.7s"></div>
+                <div class="pp-cell mb r3" style="animation-delay:1.05s"></div>
+                <div class="pp-cell bub"></div><div class="pp-cell bub"></div><div class="pp-cell bub"></div>
+              </div>
+              <div class="pp-lane-name">Stage 1</div>
+              <div class="pp-lane">
+                <div class="pp-cell bub"></div>
+                <div class="pp-cell mb r0" style="animation-delay:.35s"></div>
+                <div class="pp-cell mb r1" style="animation-delay:.7s"></div>
+                <div class="pp-cell mb r2" style="animation-delay:1.05s"></div>
+                <div class="pp-cell mb r3" style="animation-delay:1.4s"></div>
+                <div class="pp-cell bub"></div><div class="pp-cell bub"></div>
+              </div>
+              <div class="pp-lane-name">Stage 2</div>
+              <div class="pp-lane">
+                <div class="pp-cell bub"></div><div class="pp-cell bub"></div>
+                <div class="pp-cell mb r0" style="animation-delay:.7s"></div>
+                <div class="pp-cell mb r1" style="animation-delay:1.05s"></div>
+                <div class="pp-cell mb r2" style="animation-delay:1.4s"></div>
+                <div class="pp-cell mb r3" style="animation-delay:1.75s"></div>
+                <div class="pp-cell bub"></div>
+              </div>
+              <div class="pp-lane-name">Stage 3</div>
+              <div class="pp-lane">
+                <div class="pp-cell bub"></div><div class="pp-cell bub"></div><div class="pp-cell bub"></div>
+                <div class="pp-cell mb r0" style="animation-delay:1.05s"></div>
+                <div class="pp-cell mb r1" style="animation-delay:1.4s"></div>
+                <div class="pp-cell mb r2" style="animation-delay:1.75s"></div>
+                <div class="pp-cell mb r3" style="animation-delay:2.1s"></div>
+              </div>
+            </div>
+            <div class="pp-time">时间 →&nbsp;&nbsp;&nbsp;斜纹格 = bubble(该 stage 空转)</div>
+            <div class="keyrow" style="justify-content:center">
+              <span class="rank-key r0"><i></i> micro-batch 1</span>
+              <span class="rank-key r1"><i></i> mb 2</span>
+              <span class="rank-key r2"><i></i> mb 3</span>
+              <span class="rank-key r3"><i></i> mb 4</span>
+            </div>
+            <span class="fig-cap">图 4 · bubble 占比 ≈ (PP−1)/(micro-batch 数 + PP−1),所以 micro-batch 要远多于 stage 数</span>
+          </figure>
+
+          <div class="callout warn">
+            <strong>本模型 PP 切分的隐藏坑:负载不均。</strong> Stage 0 多背一个 embedding(120832×4096 ≈ 0.49B),Stage 3 多背 lm_head(又 0.49B)<u>加上</u> <code>num_nextn_predict_layers: 1</code> 的 MTP 层。所以"每段 20 层"看似整齐,实际首尾两段更重。生产上常用<strong>不均匀切分</strong>(如 21/20/20/19)把首尾的额外负担摊平。
+          </div>
+
+          <h2>4 · EP=4:切的是"专家数"</h2>
+          <p>
+            MoE 层里 192 个专家总共 3.62B 参数,但每个 token 只激活 8 个。<strong>专家并行的思路是:与其把每个专家都切碎(TP),不如让每张卡各自拿着一整批完整的专家。</strong> 192 / 4 = <strong>每卡 48 个完整专家</strong>。
+          </p>
+
+          <figure class="fig">
+            <div class="fig-title">动图 · EP=4:token 经 All-to-All 派发到专家所在卡,算完再收回</div>
+            <div class="ep-wrap">
+              <div class="ep-row">
+                <div class="ep-box r0"><div class="eb-h">GPU 0</div><div class="eb-s">token 批次 A</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:0s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i></div></div>
+                <div class="ep-box r1"><div class="eb-h">GPU 1</div><div class="eb-s">token 批次 B</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.3s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.7s"></i></div></div>
+                <div class="ep-box r2"><div class="eb-h">GPU 2</div><div class="eb-s">token 批次 C</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.6s"></i><i style="animation-delay:.8s"></i><i style="animation-delay:1s"></i></div></div>
+                <div class="ep-box r3"><div class="eb-h">GPU 3</div><div class="eb-s">token 批次 D</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.9s"></i><i style="animation-delay:1.1s"></i><i style="animation-delay:1.3s"></i></div></div>
+              </div>
+
+              <div class="ep-a2a-tag">▼ router 选 top-8 &nbsp;·&nbsp; All-to-All <b>dispatch</b> ▼</div>
+              <svg class="ep-svg" viewBox="0 0 560 74" aria-hidden="true">
+                <g stroke="#38bdf8" class="ep-line"><path d="M70 4 C 70 40, 70 40, 70 70" /><path d="M70 4 C 70 40, 210 40, 210 70" /><path d="M70 4 C 70 40, 350 40, 350 70" /><path d="M70 4 C 70 40, 490 40, 490 70" /></g>
+                <g stroke="#a855f7" class="ep-line" style="animation-delay:.2s"><path d="M210 4 C 210 40, 70 40, 70 70" /><path d="M210 4 C 210 40, 210 40, 210 70" /><path d="M210 4 C 210 40, 350 40, 350 70" /></g>
+                <g stroke="#22c55e" class="ep-line" style="animation-delay:.4s"><path d="M350 4 C 350 40, 70 40, 70 70" /><path d="M350 4 C 350 40, 350 40, 350 70" /><path d="M350 4 C 350 40, 490 40, 490 70" /></g>
+                <g stroke="#f59e0b" class="ep-line" style="animation-delay:.6s"><path d="M490 4 C 490 40, 210 40, 210 70" /><path d="M490 4 C 490 40, 490 40, 490 70" /></g>
+              </svg>
+
+              <div class="ep-row">
+                <div class="ep-box r0"><div class="eb-h">专家 0–47</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
+                <div class="ep-box r1"><div class="eb-h">专家 48–95</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
+                <div class="ep-box r2"><div class="eb-h">专家 96–143</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
+                <div class="ep-box r3"><div class="eb-h">专家 144–191</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
+              </div>
+              <div class="ep-a2a-tag">▲ 算完再 All-to-All <b>combine</b> 把结果送回原卡 ▲</div>
+            </div>
+            <span class="fig-cap">图 5 · 每 token 的 8 个专家可能散落在 4 张卡上,所以必须两次 All-to-All</span>
+          </figure>
+
+          <div class="cols2">
+            <div class="col-card good">
+              <h4>EP 的优点</h4>
+              <ul>
+                <li>专家权重<strong>完整不切</strong>,GEMM 形状规整(1536 不用再除以 4),kernel 效率高。</li>
+                <li>显存线性下降:每卡只存 48 个专家。</li>
+                <li>通信量 ∝ <strong>激活的 token 数</strong>,与专家总数无关——192 个专家和 1920 个专家通信一样多。</li>
+              </ul>
+            </div>
+            <div class="col-card bad">
+              <h4>EP 的代价</h4>
+              <ul>
+                <li>两次 <strong>All-to-All</strong>(dispatch + combine),延迟敏感、对网络拓扑挑剔。</li>
+                <li><strong>负载不均</strong>:热门专家所在卡被打爆,其余卡空等(见 Extra 的 EPLB)。</li>
+                <li>需要 <code>capacity factor</code> / 丢 token 策略,或做 padding 浪费算力。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout info">
+            <strong>共享专家怎么处理?</strong> <code>num_shared_experts: 1</code> 意味着有 1 个专家<u>每个 token 都要过</u>。它不参与 EP 切分(切了等于所有 token 都得跨卡),通常是<strong>在每张卡上按 TP 切分并复制一份</strong>——即每卡持有 <code>1536/4 = 384</code> 的中间维分片。这样它和 attention 一样走 all-reduce,不进 All-to-All。
+          </div>
+
+          <h2>5 · 三者合体:16 张卡怎么摆</h2>
+          <p>
+            <code>TP=4, PP=4, EP=4</code> 最常见的落法(也是 vLLM <code>--tensor-parallel-size 4 --pipeline-parallel-size 4 --enable-expert-parallel</code> 的语义)是:<strong>EP 复用 TP 那一组卡</strong>。世界大小 = <code>TP × PP = 16</code> 张卡,而不是 4×4×4=64。
+          </p>
+
+          <div class="callout info">
+            <strong>EP 不是独立乘上去的一维。</strong> vLLM 里 <code>enable_expert_parallel</code> 的注释写得很直白——<em>"Use expert parallelism <u>instead of</u> tensor parallelism for MoE layers"</em>。也就是说同一批卡:<strong>attention 层按 TP 切,MoE 层改按 EP 切</strong>,EP size = <code>TP × DP</code>。所以别把 4×4×4 当成 64 卡去规划机器。
+          </div>
+
+          <figure class="fig">
+            <div class="fig-title">图 6 · 16 卡布局:纵向 PP 切层,横向同一组 4 卡「attention 走 TP,MoE 走 EP」</div>
+            <div class="grid16">
+              <div></div>
+              <div class="gh">TP/EP rank 0</div><div class="gh">rank 1</div><div class="gh">rank 2</div><div class="gh">rank 3</div>
+
+              <div class="rl">Stage 0<br />L0–19</div>
+              <div class="gcell r0"><b>GPU 0</b><span>16 heads<br />专家 0–47</span></div>
+              <div class="gcell r0"><b>GPU 1</b><span>16 heads<br />专家 48–95</span></div>
+              <div class="gcell r0"><b>GPU 2</b><span>16 heads<br />专家 96–143</span></div>
+              <div class="gcell r0"><b>GPU 3</b><span>16 heads<br />专家 144–191</span></div>
+
+              <div class="rl">Stage 1<br />L20–39</div>
+              <div class="gcell r1"><b>GPU 4</b><span>16 heads<br />专家 0–47</span></div>
+              <div class="gcell r1"><b>GPU 5</b><span>16 heads<br />专家 48–95</span></div>
+              <div class="gcell r1"><b>GPU 6</b><span>16 heads<br />专家 96–143</span></div>
+              <div class="gcell r1"><b>GPU 7</b><span>16 heads<br />专家 144–191</span></div>
+
+              <div class="rl">Stage 2<br />L40–59</div>
+              <div class="gcell r2"><b>GPU 8</b><span>16 heads<br />专家 0–47</span></div>
+              <div class="gcell r2"><b>GPU 9</b><span>16 heads<br />专家 48–95</span></div>
+              <div class="gcell r2"><b>GPU 10</b><span>16 heads<br />专家 96–143</span></div>
+              <div class="gcell r2"><b>GPU 11</b><span>16 heads<br />专家 144–191</span></div>
+
+              <div class="rl">Stage 3<br />L60–79</div>
+              <div class="gcell r3"><b>GPU 12</b><span>16 heads<br />专家 0–47</span></div>
+              <div class="gcell r3"><b>GPU 13</b><span>16 heads<br />专家 48–95</span></div>
+              <div class="gcell r3"><b>GPU 14</b><span>16 heads<br />专家 96–143</span></div>
+              <div class="gcell r3"><b>GPU 15</b><span>16 heads<br />专家 144–191</span></div>
+            </div>
+            <div class="keyrow">
+              <span class="rank-key" style="--rc:var(--accent-1)"><i></i> 行内(横向 4 卡)= TP 组 + EP 组:attn 用 all-reduce,MoE 用 all-to-all</span>
+              <span class="rank-key" style="--rc:var(--accent-2)"><i></i> 列间(纵向)= PP:只传 hidden state,P2P</span>
+            </div>
+            <span class="fig-cap">同一批 4 张卡,在 attention 部分扮演 TP 组,在 MoE 部分扮演 EP 组</span>
+          </figure>
+
+          <p>一个 token 穿过<strong>一层</strong>时,通信是这样发生的:</p>
+          <div class="flow">
+            <div class="flow-step">
+              <span class="s-n">① attn</span>
+              <div class="s-h">TP 组内</div>
+              <div class="s-d">各算 16 个 head → <code>o_proj</code> 后 <b>all-reduce</b></div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">② router</span>
+              <div class="s-h">本地</div>
+              <div class="s-d">sigmoid 打分,选 top-8 / 192</div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">③ MoE</span>
+              <div class="s-h">EP 组内</div>
+              <div class="s-d"><b>all-to-all</b> 派发 → 专家计算 → <b>all-to-all</b> 收回</div>
+            </div>
+            <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
+            <div class="flow-step">
+              <span class="s-n">④ 跨层</span>
+              <div class="s-h">PP 边界</div>
+              <div class="s-d">每 20 层一次 <b>P2P</b> 送 hidden state</div>
+            </div>
+          </div>
+
+          <h2>6 · 显存账:这样切之后每张卡装什么</h2>
+          <p>按上面 16 卡布局,取中间一个 stage(20 个 MoE 层)算单卡权重:</p>
+          <div class="eq">
+            attn:&nbsp;&nbsp;20 层 &times; 75.5M / 4 &nbsp;=&nbsp; <span class="hl">0.38B</span><br />
+            专家:&nbsp;&nbsp;20 层 &times; 48 个 &times; 18.87M &nbsp;=&nbsp; <span class="hl">18.1B</span>&nbsp;&nbsp;&larr; 绝对大头<br />
+            共享专家 + router:&nbsp;20 层 &times; (18.87M/4 + 0.79M) &nbsp;&asymp;&nbsp; <span class="hl">0.11B</span><br />
+            ────────────────────────<br />
+            单卡权重 &asymp; <span class="hl-k">18.6B</span> &times; 2 bytes(bf16) &asymp; <span class="hl-k">34.7 GiB</span>
+          </div>
+
+          <p>再看 KV cache。<code>num_key_value_heads=8</code> 的 GQA 已经把它压得很小,但 <code>max_position_embeddings=262144</code> 依然吓人:</p>
+          <div class="eq">
+            整模型每 token = 2(K,V) &times; 8 kv_head &times; 128 &times; 80 层 &times; 2 B = <span class="hl">320 KiB</span><br />
+            单卡每 token = 320 KiB / TP4 / PP4 = <span class="hl-k">20 KiB</span><br />
+            <span class="hl-r">一条 262144 的满长序列 = 80 GiB(全局) / 5 GiB(单卡)</span>
+          </div>
+
+          <div class="callout tip">
+            单卡 34.7 GiB 权重 + KV cache,在 80 GB 卡上还剩约 40 GiB 给 KV,也就是<strong>约 8 条满长上下文</strong>的并发。想再提高并发,要么继续压 KV(量化到 fp8 直接减半),要么调 <code>gpu-memory-utilization</code> 把余额榨出来——那部分我在 <a href="vllm-gpu-memory-utilization.html">《vLLM 的 gpu-memory-utilization 到底管什么》</a> 里拆过。K/V 一路堆到 80 GiB 的完整过程,则在 <a href="qkv-lifecycle-256k.html">《Q / K / V 在 256K 对话窗口中的一生》</a> 里逐步演示过。
+          </div>
+
+          <h2>7 · Extra:其余并行维度</h2>
+          <p>TP / PP / EP 之外,实际系统里还叠着好几层并行。这里按"切什么"归类速览:</p>
+
+          <table>
+            <thead>
+              <tr><th>维度</th><th>切什么</th><th>通信</th><th>在这个模型上的意义</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DP</strong><br />数据并行</td>
+                <td>切 <strong>batch</strong>,模型整份复制</td>
+                <td>训练:梯度 all-reduce<br />推理:无</td>
+                <td>295B 权重单份就 590 GB,<strong>朴素 DP 完全不可行</strong>,必须配 ZeRO/FSDP 分片。</td>
+              </tr>
+              <tr>
+                <td><strong>Attention-DP</strong><br />(DeepSeek 式)</td>
+                <td>attention 部分按 <strong>请求</strong> 切,MoE 部分共用 EP</td>
+                <td>MoE 前后 all-to-all</td>
+                <td><strong>对本模型很划算</strong>:KV head 只有 8,TP 越大 KV 复制/碎片越严重;改用 attention-DP 让每个 DP rank 管自己的 KV,再共享 EP 专家池。vLLM 的 <code>--data-parallel-size</code> 就是这个。</td>
+              </tr>
+              <tr>
+                <td><strong>SP</strong><br />序列并行</td>
+                <td>切 <strong>序列长度</strong>(Megatron-SP 切 norm/dropout 那段激活)</td>
+                <td>all-gather + reduce-scatter</td>
+                <td>TP 的免费搭档:把 LayerNorm 处那份没被 TP 切的激活也切开,省激活显存。</td>
+              </tr>
+              <tr>
+                <td><strong>CP</strong><br />上下文并行<br />(Ring / Ulysses)</td>
+                <td>切 <strong>序列长度</strong>,含 attention 本身</td>
+                <td>Ring: P2P 传 KV<br />Ulysses: all-to-all</td>
+                <td><code>max_position_embeddings=262144</code> ⇒ 长上下文训练<strong>绕不开 CP</strong>。细节见 <a href="sequence-parallel-and-comms.html">《主流序列并行方案对比》</a>。</td>
+              </tr>
+              <tr>
+                <td><strong>ZeRO / FSDP</strong></td>
+                <td>切 <strong>优化器状态 / 梯度 / 参数</strong></td>
+                <td>参数 all-gather</td>
+                <td>训练必备:295B 用 AdamW 的优化器状态是权重的数倍,不切根本放不下。</td>
+              </tr>
+              <tr>
+                <td><strong>EPLB</strong><br />专家负载均衡</td>
+                <td>不是并行,是 EP 的<strong>补丁</strong></td>
+                <td>—</td>
+                <td>把热门专家<strong>复制到多张卡</strong>、冷门专家合并,拉平 all-to-all 的长尾。<code>moe_router_enable_expert_bias: true</code> 说明这个模型训练时就带了 bias 式均衡。</td>
+              </tr>
+              <tr>
+                <td><strong>MTP</strong><br />多 token 预测</td>
+                <td><code>num_nextn_predict_layers: 1</code></td>
+                <td>—</td>
+                <td>额外一个预测头,推理时可做<strong>自投机解码</strong>。放在最后一个 PP stage,是 stage 3 负载偏重的原因之一。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>一张表收尾:谁切哪一维</h3>
+          <table>
+            <thead>
+              <tr><th>并行</th><th>切的维度</th><th>本模型的数字</th><th>约束</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><b>TP</b></td><td>head 数 / FFN 中间维 / 词表</td><td>64→16 heads,13312→3328</td><td>须整除 <code>num_key_value_heads=8</code></td></tr>
+              <tr><td><b>PP</b></td><td>层数(深度)</td><td>80→20 层/stage</td><td>micro-batch 要远多于 stage 数</td></tr>
+              <tr><td><b>EP</b></td><td>专家个数</td><td>192→48 个/卡</td><td>须整除 <code>num_experts=192</code></td></tr>
+              <tr><td><b>DP</b></td><td>batch / 请求</td><td>—</td><td>需配 ZeRO 才放得下</td></tr>
+              <tr><td><b>CP/SP</b></td><td>序列长度</td><td>最长 262144</td><td>attention 需 Ring/Ulysses 改写</td></tr>
+              <tr><td style="color:#ef4444"><b>(无)</b></td><td style="color:#ef4444"><code>head_dim</code></td><td style="color:#ef4444">128 恒定</td><td style="color:#ef4444">切了就要在点积内部跨卡规约</td></tr>
+            </tbody>
+          </table>
+
+          <hr />
+          <p style="color:var(--text-dim);font-size:0.9rem">
+            数据来源:<a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">huggingface.co/tencent/Hy3 · config.json</a>。文中参数量为按 config 字段推算的理论值(不含 norm / bias 等小项),与实际 checkpoint 可能有零点几个 B 的出入。
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>

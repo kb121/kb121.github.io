@@ -35,6 +35,20 @@
 
 window.NOTES = [
   {
+    slug: "hy3-parallelism-tp-pp-ep",
+    title: {
+      zh: "从一份 config 读懂并行切分:TP=4 / PP=4 / EP=4",
+      en: "Reading Parallelism off a config.json: TP=4 / PP=4 / EP=4",
+    },
+    summary: {
+      zh: "拿 tencent/Hy3 的 config.json 当底稿,把三种并行落到每个张量的 shape 上:为什么 TP 切的是 head 个数而 head_dim=128 谁都不许切、PP 怎么把 80 层切成 4 段又为何首尾偏重、EP 怎么把 192 个专家分成每卡 48 个并换来两次 All-to-All;含 3 张动图,并算清 16 卡布局下单卡 34.7 GiB 权重与 20 KiB/token 的 KV 账。DP / Attention-DP / SP / CP / ZeRO / EPLB 等其余维度放在 Extra。",
+      en: "Uses tencent/Hy3's config.json to ground three parallelism schemes in actual tensor shapes: why TP splits the head count while head_dim=128 can never be cut, how PP slices 80 layers into 4 stages and why the ends are heavier, and how EP shards 192 experts into 48 per GPU at the cost of two All-to-Alls. Three animated figures, plus the memory math for a 16-GPU layout (34.7 GiB of weights per GPU, 20 KiB/token of KV). DP / Attention-DP / SP / CP / ZeRO / EPLB are covered in Extra.",
+    },
+    date: "2026-08-13",
+    tags: ["Distributed", "Parallelism", "MoE", "LLM", "Inference"],
+    category: "tech",
+  },
+  {
     slug: "triton-gemm-step-by-step",
     title: {
       zh: "从 0 到 1 写一个 Triton GEMM,再一步步调快",
