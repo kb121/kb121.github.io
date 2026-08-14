@@ -41,8 +41,8 @@ window.NOTES = [
       en: "Hunyuan 3 Model Architecture Analysis",
     },
     summary: {
-      zh: "不下载一个权重字节,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json 把这个 300B-A20B MoE 还原到字节级对账:参数量逐项推算、从 30720 字节的差值反推出 expert_bias 存成了 fp32、81 个层号里藏着的 MTP 模块(295B 与 298.79B 的差别就在这)、14.5 倍稀疏度与 97.8% 的专家张量占比,以及 8 卡 H100 在 bf16 下连一条满上下文请求都服务不了的硬约束。含可交互的显存预算图。",
-      en: "Without downloading a single weight byte, tencent/Hy3's config.json and model.safetensors.index.json are enough to reconstruct this 300B-A20B MoE down to a byte-exact parameter count: a term-by-term budget, a 30,720-byte discrepancy that reveals expert_bias is stored in fp32, an MTP module hiding among the 81 layer indices (the difference between 295B and 298.79B), 14.5x sparsity with 97.8% of tensors being experts, and the hard limit that eight H100s in bf16 cannot serve even one full-context request. Includes an interactive memory-budget figure.",
+      zh: "不下载一个权重字节,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json 把这个 295B-A21B MoE 还原到字节级,并独立复现模型卡上的 295B / 3.8B / 21B 三个官方数字:参数量逐项推算、从 30720 字节的差值反推出 expert_bias 存成了 fp32(规格表未写)、81 个层号里藏着的 MTP 模块、14.5 倍稀疏度与 97.8% 的专家张量占比,以及 8 卡 H100 在 BF16 下连一条满上下文请求都服务不了 —— 这正是官方推荐 H20-3e 的原因。含可交互的显存预算图。",
+      en: "Without downloading a single weight byte, tencent/Hy3's config.json and model.safetensors.index.json are enough to reconstruct this 295B-A21B MoE down to a byte-exact parameter count, independently reproducing the model card's 295B / 3.8B / 21B figures: a term-by-term budget, a 30,720-byte discrepancy that reveals expert_bias is stored in fp32 (absent from the spec table), an MTP module hiding among the 81 layer indices, 14.5x sparsity with 97.8% of tensors being experts, and the hard limit that eight H100s in BF16 cannot serve even one full-context request — which is exactly why the card recommends H20-3e. Includes an interactive memory-budget figure.",
     },
     date: "2026-08-14",
     tags: ["MoE", "Model Anatomy", "KV Cache", "Memory", "Inference"],

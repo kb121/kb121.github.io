@@ -33,7 +33,7 @@
     <title data-zh="混元3模型结构分析 — 庄宏" data-en="Hunyuan 3 Model Architecture Analysis — Hong Zhuang">混元3模型结构分析 — 庄宏</title>
     <meta
       name="description"
-      content="不加载任何权重,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json,把这个 300B-A20B MoE 的结构还原到字节级:参数量对账、30720 字节差值背后的 fp32 expert_bias、81 个层号里藏着的 MTP 模块、14.5 倍稀疏度,以及 8 卡 H100 在 bf16 下连一条满上下文请求都服务不了的硬约束。"
+      content="不加载任何权重,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json,把这个 295B-A21B MoE 的结构还原到字节级,并独立复现模型卡上的官方数字:参数量对账、30720 字节差值背后的 fp32 expert_bias、81 个层号里藏着的 3.8B MTP 模块、14.5 倍稀疏度,以及 8 卡 H100 在 BF16 下连一条满上下文请求都服务不了(这正是官方推荐 H20-3e 的原因)。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -209,9 +209,9 @@
 
         <div class="prose">
           <p class="hy-lede">
-            分析对象是腾讯混元 3,模型卡
+            分析对象是腾讯混元团队的 <strong>Hy3</strong>,模型卡
             <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a>,
-            架构名 <code>HYV3ForCausalLM</code>,一个 300B-A20B 的 MoE。
+            架构名 <code>HYV3ForCausalLM</code>,Apache-2.0。
             全文结论只来自模型卡上的两个元数据文件:
             <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
             给出各处维度,
@@ -220,13 +220,31 @@
           </p>
 
           <p>
+            模型卡自己也列了一张规格表,所以这篇有个现成的对照组:<strong>先只看这两个文件推算,再回头和官方数字比</strong>。
+            结果是全部对上,而且推算还能补出规格表没写的东西 —— 比如权重实际是怎么存的。
+          </p>
+
+          <div class="hy-tw">
+            <table>
+              <thead><tr><th>项</th><th class="num">模型卡口径</th><th class="num">本文由元数据推算</th><th>说明</th></tr></thead>
+              <tbody>
+                <tr><td>总参数量</td><td class="num">295 B</td><td class="num">295.03 B</td><td>均<strong>不含</strong> MTP 层</td></tr>
+                <tr><td>MTP 层参数</td><td class="num">3.8 B</td><td class="num">3.75 B</td><td>模型卡单独列出</td></tr>
+                <tr><td>激活参数</td><td class="num">21 B</td><td class="num">20.68 B</td><td>含词嵌入与 lm_head</td></tr>
+                <tr><td>磁盘上的总量</td><td class="num">—</td><td class="num"><strong>298.79 B</strong></td><td>= 295 + 3.8,规格表未给</td></tr>
+                <tr><td>权重存储格式</td><td class="num">BF16</td><td class="num">BF16 + fp32 bias</td><td>见第三节</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
             同一份 config 我之前从<strong>并行切分</strong>的角度写过一篇
             <a href="hy3-parallelism-tp-pp-ep.html">TP=4 / PP=4 / EP=4</a>,那篇关心的是「切完之后每张卡装什么」;
             这篇关心的是「这份 checkpoint 里到底有什么」。两篇可以对着看。
           </p>
 
           <div class="hy-kpis">
-            <div class="hy-kpi"><b>298.79 B</b><span>总参数(推算 = 声明)</span></div>
+            <div class="hy-kpi"><b>298.79 B</b><span>磁盘总量 = 295 B + 3.8 B MTP</span></div>
             <div class="hy-kpi"><b>20.68 B</b><span>每 token 激活</span></div>
             <div class="hy-kpi"><b>14.5×</b><span>稀疏度</span></div>
             <div class="hy-kpi"><b>97.8%</b><span>张量条目是专家</span></div>
@@ -330,10 +348,11 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
             <div class="hy-strip" id="strip"></div>
             <div class="hy-strip-info" id="stripInfo"></div>
             <span class="fig-cap">
-              MTP 模块自带完整的注意力和 192 个专家,本身就有 <strong>3.75 B</strong> 参数。
-              它在训练时提供额外的预测信号,在推理时可以拿来做投机解码 —— 但如果不用,这 7.5 GB 权重是可以不加载的。
-              顺带说明:按 config 的 80 层直接推,会得到 <strong>295.03 B</strong>,那是<strong>不含这一层</strong>的数;
-              checkpoint 里实际躺着的是 <strong>298.79 B</strong>。
+              MTP 模块自带完整的注意力和 192 个专家,本身就有 <strong>3.75 B</strong> 参数 —— 模型卡把它单独列为
+              <strong>3.8 B</strong>,对得上。这也解释了那张规格表为什么写「总参数 295B」却又单列一行 MTP:
+              <strong>295 B 是不含它的数,磁盘上实际躺着 295 + 3.8 = 298.79 B</strong>。
+              按 <code>num_hidden_layers: 80</code> 去分配显存,就会少算这 7.5 GB。
+              它也不是可选摆设 —— 官方的 vLLM 与 SGLang 启动脚本都默认开着它做投机解码。
             </span>
           </div>
 
@@ -406,16 +425,21 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
             <div class="hy-scale"><span>0</span><span id="poolLabel">—</span></div>
 
             <div class="hy-ctrls">
-              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted)">权重精度</span>
-              <div class="hy-seg" id="precSeg">
-                <button data-p="2" class="on">bf16</button>
-                <button data-p="1">fp8</button>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted)">卡型</span>
+              <div class="hy-seg" id="cardSeg">
+                <button data-c="80" class="on">H100 80GB</button>
+                <button data-c="141">H20-3e 141GB</button>
               </div>
               <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px">卡数</span>
               <div class="hy-seg" id="gpuSeg">
-                <button data-g="8" class="on">8×H100</button>
-                <button data-g="16">16×</button>
-                <button data-g="32">32×</button>
+                <button data-g="8" class="on">8</button>
+                <button data-g="16">16</button>
+                <button data-g="32">32</button>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px">权重精度</span>
+              <div class="hy-seg" id="precSeg">
+                <button data-p="2" class="on">BF16</button>
+                <button data-p="1">FP8</button>
               </div>
             </div>
 
@@ -423,14 +447,22 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
 
             <span class="fig-cap">
               只算权重与 KV,未计激活、通信缓冲与框架 workspace,所以这是个<strong>乐观上界</strong> ——
-              真实可用容量还要再打折。H100 按 80 GB 计。
+              真实可用容量还要再打折。显存按标称值计:H100 80 GB、H20-3e 141 GB。
             </span>
           </div>
 
           <p>
             结论比较硬:<strong>8 卡 H100 在 bf16 下连一条满上下文请求都服务不了</strong>。
             权重装完只剩约 39.5 GiB,而一条 256K 序列的 KV 就要 80 GiB —— 缺口整整一倍。
-            实际可行的路径无非三条:把权重量化到 FP8(立刻腾出约 318 GiB)、扩到 16 卡以上、
+            <strong>这一点在模型卡上得到了印证。</strong>官方部署建议原文是:「Hy3 共 295B 参数,若要用 8 卡部署,
+            我们推荐 H20-3e 或其他<strong>显存容量更大</strong>的卡。」H20-3e 是 141 GB 版本,8 张合计 1050 GiB,
+            装完权重还剩约 494 GiB —— 够放 6 条满窗口序列。<strong>不是官方不推荐 H100,是 80 GB 这个容量根本放不下。</strong>
+            在上图把卡型切到 H20-3e 就能看到这个差别。
+          </p>
+
+          <p>
+            其余可行路径:扩到 16 卡以上、把权重量化到 FP8(模型卡标注的支持精度只有 BF16,量化要自己做,
+            官方给了 <a href="https://github.com/tencent/AngelSlim" target="_blank" rel="noopener">AngelSlim</a> 工具链)、
             或者用 <a href="kv-pooling-kv-connector.html">KV 池化</a>把 cache 卸到 GPU 之外。
           </p>
 
@@ -463,11 +495,11 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
 
           <div class="hy-takes">
             <div class="hy-take"><div class="n">01</div><h5>元数据足够还原结构</h5>
-              <p>不下载一个权重字节,只靠维度和 <code>total_size</code> 交叉验证,就能把 300B 模型的结构钉到<strong>字节级对得上</strong>。审模型、估显存、排查加载问题,都不必先拉 600 GB。</p></div>
+              <p>不下载一个权重字节,只靠维度和 <code>total_size</code> 交叉验证,就能<strong>独立复现模型卡上的 295 B / 3.8 B / 21 B 三个数字</strong>,还能补出规格表没写的存储格式。审模型、估显存、排查加载问题,都不必先拉 600 GB。</p></div>
             <div class="hy-take"><div class="n">02</div><h5>对不上的那一点最有价值</h5>
               <p>30,720 字节的差值反推出 <code>expert_bias</code> 用 fp32 存 —— 这是 config 里没写、只能从字节数看出来的实现选择,背后是均衡机制怕被 bf16 舍入吃掉。</p></div>
-            <div class="hy-take"><div class="n">03</div><h5>层数会骗人</h5>
-              <p>config 写 80 层,权重里有 81 个层号。多出来的是 MTP 模块,自带注意力和全套专家、独占 3.75 B 参数。按 config 分配显存会直接少算 7.5 GB。</p></div>
+            <div class="hy-take"><div class="n">03</div><h5>层数和参数量都要看口径</h5>
+              <p><code>num_hidden_layers</code> 是 80,权重里却有 81 个层号;「总参数 295B」也不含那一层。MTP 自带注意力和全套专家、独占 3.75 B。照 config 分配显存会少算 7.5 GB。</p></div>
             <div class="hy-take"><div class="n">04</div><h5>稀疏省的是算力,不是显存</h5>
               <p>每 token 只激活 6.9% 的参数,但 97.8% 的张量必须常驻。MoE 换来的是<strong>算力效率</strong>,显存账单一分没少 —— 这决定了它的部署形态。</p></div>
             <div class="hy-take"><div class="n">05</div><h5>先算显存,再谈优化</h5>
@@ -477,9 +509,10 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           </div>
 
           <blockquote>
-            全部结论仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,未加载任何权重。
-            参数量为按维度独立推算后与 index 声明的 <code>total_size</code> 对账所得。
-            显存部分按 H100 80 GB 计,只算权重与 KV,未计激活与框架 workspace,属乐观上界。
+            结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,未加载任何权重;
+            推算完成后才与模型卡的规格表核对。规格表数字、部署建议与支持精度引自
+            <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a> 模型卡。
+            显存部分只算权重与 KV,未计激活、通信缓冲与框架 workspace,属乐观上界;GPU 容量按标称值(H100 80 GB / H20-3e 141 GB)计。
           </blockquote>
         </div>
       </article>
@@ -621,7 +654,8 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           var bar = document.getElementById('budget');
           var poolLabel = document.getElementById('poolLabel');
           var verdict = document.getElementById('budgetVerdict');
-          var bytesPerParam = 2, gpus = 8;
+          var bytesPerParam = 2, gpus = 8, cardGB = 80;
+          var CARD_NAME = { 80: 'H100 80GB', 141: 'H20-3e 141GB' };
 
           function weightBytes(bpp) {
             // expert_bias 恒为 fp32
@@ -629,7 +663,7 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           }
 
           function render() {
-            var pool = gpus * 80e9;
+            var pool = gpus * cardGB * 1e9;
             var w = weightBytes(bytesPerParam);
             var kvFull = KV_PER_TOK * CTX;
             var free = pool - w;
@@ -652,7 +686,7 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
             seg('free', rest, rest / denom > 0.08 ? '剩余 ' + fmtGiB(rest) : '');
             seg('over', over, over / denom > 0.06 ? '超出 ' + fmtGiB(over) : '!');
 
-            poolLabel.textContent = gpus + '×H100 = ' + fmtGiB(pool) +
+            poolLabel.textContent = gpus + '×' + CARD_NAME[cardGB] + ' = ' + fmtGiB(pool) +
               (over > 0 ? '（刻度已拉伸以显示超出部分）' : '');
 
             var seqs = free / kvFull;
@@ -667,7 +701,12 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
               verdict.className = 'hy-verdict good';
               verdict.innerHTML = '装完权重还剩 <b>' + fmtGiB(free) + '</b>,可容纳约 <b>' +
                 seqs.toFixed(1) + '</b> 条满窗口序列的 KV(合计 ' + toks.toLocaleString('en-US') +
-                ' token)。' + (bytesPerParam === 1 ? 'FP8 把权重砍掉一半,腾出的空间几乎全部转化成了并发能力。' : '');
+                ' token)。' +
+                (bytesPerParam === 1
+                  ? 'FP8 把权重砍掉一半,腾出的空间几乎全部转化成并发能力 —— 但模型卡标注的支持精度只有 BF16,走 FP8 需要自己量化。'
+                  : (cardGB === 141 && gpus === 8
+                    ? '这正是模型卡推荐「8 卡请用 H20-3e 或更大显存」的原因。'
+                    : ''));
             }
           }
 
@@ -677,6 +716,14 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
             [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
             b.classList.add('on');
             bytesPerParam = +b.dataset.p;
+            render();
+          });
+          document.getElementById('cardSeg').addEventListener('click', function (e) {
+            var b = e.target.closest('button');
+            if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+            cardGB = +b.dataset.c;
             render();
           });
           document.getElementById('gpuSeg').addEventListener('click', function (e) {
