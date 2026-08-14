@@ -37,8 +37,8 @@ window.NOTES = [
   {
     slug: "hy3-anatomy",
     title: {
-      zh: "只用两个元数据文件,拆解一个 300B MoE",
-      en: "Reverse-Engineering a 300B MoE from Two Metadata Files",
+      zh: "混元3模型结构分析",
+      en: "Hunyuan 3 Model Architecture Analysis",
     },
     summary: {
       zh: "不下载一个权重字节,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json 把这个 300B-A20B MoE 还原到字节级对账:参数量逐项推算、从 30720 字节的差值反推出 expert_bias 存成了 fp32、81 个层号里藏着的 MTP 模块(295B 与 298.79B 的差别就在这)、14.5 倍稀疏度与 97.8% 的专家张量占比,以及 8 卡 H100 在 bf16 下连一条满上下文请求都服务不了的硬约束。含可交互的显存预算图。",

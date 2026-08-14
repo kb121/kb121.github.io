@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   =========================================================================
-  只用两个元数据文件,把一个 300B MoE 拆到字节级 —— HYV3 结构剖析
+  混元3模型结构分析 —— 只用两个元数据文件,把 tencent/Hy3 拆到字节级
   -------------------------------------------------------------------------
   全部结论仅由 config.json 与 model.safetensors.index.json 推导,未加载权重。
   参数量为按维度独立推算后与 index 的 total_size 对账所得,字节级吻合。
@@ -30,7 +30,7 @@
       })();
     </script>
 
-    <title data-zh="只用两个元数据文件拆解一个 300B MoE(tencent/Hy3)— 庄宏" data-en="Reverse-Engineering a 300B MoE from Two Metadata Files (tencent/Hy3) — Hong Zhuang">只用两个元数据文件拆解一个 300B MoE(tencent/Hy3)— 庄宏</title>
+    <title data-zh="混元3模型结构分析 — 庄宏" data-en="Hunyuan 3 Model Architecture Analysis — Hong Zhuang">混元3模型结构分析 — 庄宏</title>
     <meta
       name="description"
       content="不加载任何权重,只凭 tencent/Hy3 的 config.json 与 model.safetensors.index.json,把这个 300B-A20B MoE 的结构还原到字节级:参数量对账、30720 字节差值背后的 fp32 expert_bias、81 个层号里藏着的 MTP 模块、14.5 倍稀疏度,以及 8 卡 H100 在 bf16 下连一条满上下文请求都服务不了的硬约束。"
@@ -204,7 +204,7 @@
             <span>2026-08-14</span>
             <span class="tags"><span>MoE</span><span>Model Anatomy</span><span>KV Cache</span><span>Memory</span><span>Inference</span></span>
           </div>
-          <h1><span lang="zh-CN" class="i18n-zh">只用两个元数据文件,拆解一个 300B MoE</span><span lang="en" class="i18n-en">Reverse-Engineering a 300B MoE from Two Metadata Files</span></h1>
+          <h1><span lang="zh-CN" class="i18n-zh">混元3模型结构分析</span><span lang="en" class="i18n-en">Hunyuan 3 Model Architecture Analysis</span></h1>
         </header>
 
         <div class="prose">
