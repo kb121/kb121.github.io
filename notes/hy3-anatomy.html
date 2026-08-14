@@ -209,15 +209,14 @@
 
         <div class="prose">
           <p class="hy-lede">
-            对象是
-            <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a>
-            (架构名 <code>HYV3ForCausalLM</code>)。手上只有
+            分析对象是腾讯混元 3,模型卡
+            <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a>,
+            架构名 <code>HYV3ForCausalLM</code>,一个 300B-A20B 的 MoE。
+            全文结论只来自模型卡上的两个元数据文件:
             <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
-            和
+            给出各处维度,
             <a href="https://huggingface.co/tencent/Hy3/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>
-            两个文件,<strong>一个权重字节都没下载</strong>。这篇记录怎么只凭这两份元数据,把结构还原到<strong>字节级对得上账</strong> ——
-            并且在对账差出来的 30,720 个字节里,读出一个不写在 config 里的实现细节。
-            最后落到真正要命的问题:这东西到底跑不跑得起来。
+            给出每个张量的名字、所在分片和总字节数。两者交叉验证足以把结构钉死,<strong>没有下载任何权重</strong>。
           </p>
 
           <p>
@@ -234,11 +233,10 @@
             <div class="hy-kpi"><b>0.49</b><span>8×H100 能放下的满窗口序列数</span></div>
           </div>
 
-          <h2>一、起点:两个文件,零权重</h2>
+          <h2>一、config 里的关键字段</h2>
 
           <p>
-            <code>config.json</code> 给出维度,<code>index.json</code> 给出<strong>每个张量叫什么、在第几个分片、以及总字节数</strong>。
-            两者交叉验证,足够把结构完全钉死。先看 config 里的关键项:
+            后面所有推算都基于这几项:
           </p>
 
           <div class="hy-tw">
@@ -390,7 +388,7 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           <h2>七、真正卡脖子的是显存</h2>
 
           <p>
-            前面都是结构,这一节是能不能上线的问题。权重 bf16 要 <strong>556.5 GiB</strong>,
+            权重 bf16 要 <strong>556.5 GiB</strong>,
             而<a href="qkv-lifecycle-256k.html">满 256K 上下文的 KV cache 还要 80 GiB</a>。
             把两者放进同一个显存池里看:
           </p>
