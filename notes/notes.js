@@ -35,6 +35,20 @@
 
 window.NOTES = [
   {
+    slug: "parallelism-comm-cost",
+    title: {
+      zh: "并行策略的通信量账本:DP / TP / PP / EP / CP",
+      en: "The Communication Bill of Parallelism: DP / TP / PP / EP / CP",
+    },
+    summary: {
+      zh: "把五种并行策略放进同一套符号里各算一遍通信量:各自用什么原语、每卡每步传多少字节、与 B/S/H/L 和并行度成什么比例。含五种通信原语的数据流动图、可交互的通信量对比计算器、Ulysses 与 Ring 在 N≈4–8 处交叉的定量分析、按通信量决定谁进 NVLink 域的排布原则,以及训练与推理的最小卡数公式和并行组合合法性检查。",
+      en: "Puts five parallelism strategies under one set of symbols and works out the communication cost of each: which primitive it uses, how many bytes per GPU per step, and how that scales with B/S/H/L and the degree. Includes animated data flows for the five collectives, an interactive cost comparator, a quantitative look at why Ulysses and Ring cross over around N≈4–8, the placement rule for deciding what goes inside the NVLink domain, and minimum-GPU formulas for training and inference with a legality check on the parallel decomposition.",
+    },
+    date: "2026-08-18",
+    tags: ["Distributed", "Parallelism", "Communication", "Training", "LLM"],
+    category: "tech",
+  },
+  {
     slug: "hy3-anatomy",
     title: {
       zh: "混元3模型结构分析",
