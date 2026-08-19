@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  卡间怎么对话 —— DP / TP / PP / EP / SP·CP 的交互编排
+  -------------------------------------------------------------------------
+  姊妹篇《并行策略的通信量账本》讲"传多少字节",这篇讲"谁跟谁、什么时候传、
+  挡不挡路"。1F1B 时间线由页面内的调度模拟真实排出,气泡率与
+  (N-1)/(M+N-1) 逐一核对一致。前向/反向按等长计,是排布图的通行简化。
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="卡间怎么对话:五种并行的交互编排 — 庄宏" data-en="How GPUs Talk: The Choreography of Five Parallelism Schemes — Hong Zhuang">卡间怎么对话:五种并行的交互编排 — 庄宏</title>
+    <meta
+      name="description"
+      content="不算字节,只看编排:DP / TP / PP / EP / SP·CP 各自是谁跟谁通信、在前向反向的哪个时刻通信、挡不挡住计算。含六张动图,包括真实排出的 1F1B 流水线时间线(气泡率与公式逐一核对)、DP 的桶式重叠、EP 的动态路由与负载长尾,以及 Megatron-SP / Ulysses / Ring 三种切序列方式的交互对比。"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      .px-note {
+        --dp: #34d399;
+        --tp: #22d3ee;
+        --pp: #a78bfa;
+        --ep: #fbbf24;
+        --cp: #f472b6;
+        --warn: #fb7185;
+        --on-accent: #08101c;
+        --inset: color-mix(in srgb, var(--surface-strong), transparent 30%);
+      }
+      [data-theme="light"] .px-note {
+        --dp: #047857; --tp: #0e7490; --pp: #6d28d9; --ep: #b45309; --cp: #be185d; --warn: #be123c;
+        --on-accent: #fff;
+      }
+
+      .px-note .px-lede { font-size: 1.02rem; line-height: 1.85; }
+
+      .px-fig { margin: 1.6rem 0; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); overflow: hidden; }
+      .px-fig .fig-title { margin-bottom: 13px; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .02em; color: var(--accent-1); }
+      .px-fig .fig-cap { display: block; margin-top: 12px; font-size: .8rem; line-height: 1.65; color: var(--text-muted); }
+
+      .px-note button { padding: 9px 13px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-strong); color: var(--text); font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; transition: .16s; }
+      .px-note button:hover { border-color: var(--border-strong); }
+      .px-note button.primary { border-color: transparent; background: var(--accent-grad); color: #06121c; font-weight: 700; }
+      .px-seg { display: flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+      .px-note .px-seg button { border: 0; border-radius: 0; padding: 9px 12px; background: transparent; }
+      .px-note .px-seg button.on { background: color-mix(in srgb, var(--tp), transparent 84%); color: var(--tp); }
+      .px-ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 14px; }
+      .px-note input[type="range"] { flex: 1; min-width: 120px; height: 5px; border-radius: 999px; background: var(--surface-strong); outline: none; -webkit-appearance: none; appearance: none; }
+      .px-note input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 999px; background: var(--tp); cursor: pointer; box-shadow: 0 0 0 4px color-mix(in srgb, var(--tp), transparent 82%); }
+      .px-note input[type="range"]::-moz-range-thumb { width: 15px; height: 15px; border: 0; border-radius: 999px; background: var(--tp); cursor: pointer; }
+
+      /* 通用 GPU 方块 */
+      .px-gpus { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+      .px-gpu { width: 62px; padding: 9px 4px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--inset); text-align: center; font-family: var(--font-mono); font-size: .58rem; color: var(--text-muted); transition: .25s; }
+      .px-gpu.act { border-color: var(--c); background: color-mix(in srgb, var(--c), transparent 84%); color: var(--c); }
+      .px-gpu .bar { display: flex; gap: 2px; justify-content: center; margin-top: 6px; height: 14px; }
+      .px-gpu .bar i { width: 7px; border-radius: 2px; background: color-mix(in srgb, var(--c), transparent 65%); }
+      .px-gpu .bar i.f { background: var(--c); }
+
+      /* 动图 1:三种拓扑 */
+      .px-topo3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 13px; }
+      .px-tcard { padding: 14px; border: 1px solid var(--border); border-radius: 13px; background: var(--inset); }
+      .px-tcard h5 { margin: 0 0 2px; font-size: .82rem; color: var(--c); }
+      .px-tcard .sub { margin-bottom: 11px; font-family: var(--font-mono); font-size: .56rem; color: var(--text-dim); }
+      .px-svg { width: 100%; height: 118px; display: block; }
+      .px-svg .nd { fill: color-mix(in srgb, var(--c), transparent 55%); stroke: var(--c); stroke-width: 1.2; }
+      .px-svg .lk { stroke: color-mix(in srgb, var(--c), transparent 55%); stroke-width: 1.2; fill: none; }
+      .px-svg .dot { fill: var(--c); }
+      .px-tcard p { margin: 10px 0 0; font-size: .74rem; line-height: 1.6; color: var(--text-muted); }
+
+      /* 时间线通用 */
+      .px-tl { display: grid; gap: 5px; overflow-x: auto; }
+      .px-tlrow { display: grid; grid-template-columns: 62px 1fr; align-items: center; gap: 9px; }
+      .px-tlrow .lab { font-family: var(--font-mono); font-size: .6rem; color: var(--text-muted); text-align: right; }
+      .px-cells { display: grid; gap: 2px; }
+      .px-cell { height: 22px; border-radius: 3px; display: grid; place-items: center; font-family: var(--font-mono); font-size: .48rem; color: var(--on-accent); background: var(--surface-strong); transition: .18s; }
+      .px-cell.f { background: var(--tp); }
+      .px-cell.b { background: var(--pp); }
+      .px-cell.c { background: var(--dp); }
+      .px-cell.bub { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--warn), transparent 80%) 0 4px, transparent 4px 8px); border: 1px dashed color-mix(in srgb, var(--warn), transparent 60%); }
+      .px-cell.now { outline: 2px solid var(--text); outline-offset: 1px; }
+      .px-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 11px; font-family: var(--font-mono); font-size: .62rem; color: var(--text-muted); }
+      .px-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 3px; vertical-align: -1px; }
+
+      .px-stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 10px; margin-top: 13px; }
+      .px-st { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--inset); text-align: center; }
+      .px-st .kk { font-family: var(--font-mono); font-size: .54rem; letter-spacing: .1em; color: var(--text-dim); text-transform: uppercase; }
+      .px-st .vv { margin-top: 4px; font-family: var(--font-mono); font-size: .95rem; font-weight: 700; }
+
+      /* EP 路由 */
+      .px-route { position: relative; height: 200px; }
+      .px-rank { position: absolute; width: 84px; padding: 7px 5px; border: 1px solid var(--border-strong); border-radius: 9px; background: var(--inset); text-align: center; font-family: var(--font-mono); font-size: .56rem; color: var(--text-muted); }
+      .px-rank .load { display: block; height: 5px; margin-top: 5px; border-radius: 99px; background: var(--ep); }
+      .px-tok { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 2px; background: var(--ep); box-shadow: 0 0 6px var(--ep); }
+
+      /* 表格 */
+      .px-tw { overflow-x: auto; margin: 1.3rem 0; }
+      .px-note table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+      .px-note table th, .px-note table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+      .px-note table th { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-1); white-space: nowrap; }
+      .px-note table td code { font-size: .73rem; }
+      .px-note table tbody tr:hover { background: var(--inset); }
+
+      .px-takes { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 13px; margin: 1.4rem 0; }
+      .px-take { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .px-take .n { margin-bottom: 9px; font-family: var(--font-mono); font-size: .7rem; font-weight: 700; color: var(--text-dim); }
+      .px-take h5 { margin: 0 0 8px; font-size: .92rem; }
+      .px-take p { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .px-note *, .px-note *::before, .px-note *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page px-note">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-08-19</span>
+            <span class="tags"><span>Distributed</span><span>Parallelism</span><span>Communication</span><span>Pipeline</span><span>MoE</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">卡间怎么对话:五种并行的交互编排</span><span lang="en" class="i18n-en">How GPUs Talk: The Choreography of Five Parallelism Schemes</span></h1>
+        </header>
+
+        <div class="prose">
+          <p class="px-lede">
+            上一篇<a href="parallelism-comm-cost.html">通信量账本</a>算的是<strong>传多少字节</strong>。
+            这篇换个视角,只看<strong>编排</strong>:谁跟谁通信、在前向反向的哪个时刻通信、通信的时候计算是停着还是照跑。
+            两张卡传 1 GiB,和八张卡各传 128 MiB 却要全体对齐 —— 字节数一样,对性能的影响完全是两回事。
+          </p>
+
+          <h2>一、先分清三种交互形态</h2>
+
+          <p>
+            五种并行的通信看起来五花八门,但拓扑上只有三类。<strong>认出是哪一类,就知道它能不能跨节点、卡多了会不会崩。</strong>
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 1:三种交互拓扑</div>
+            <div class="px-topo3">
+              <div class="px-tcard" style="--c: var(--dp)">
+                <h5>① 副本组内规约</h5>
+                <div class="sub">DP · ZeRO</div>
+                <svg class="px-svg" viewBox="0 0 200 118" id="topoA"></svg>
+                <p>每张卡算的是<strong>不同数据、相同模型</strong>,最后把梯度对齐。全组参与,但一个 step 只做一次,而且能和反向重叠。</p>
+              </div>
+              <div class="px-tcard" style="--c: var(--tp)">
+                <h5>② 全组交换</h5>
+                <div class="sub">TP · EP · Ulysses</div>
+                <svg class="px-svg" viewBox="0 0 200 118" id="topoB"></svg>
+                <p>每张卡都要<strong>和组里所有卡</strong>换数据。全连接、高频、强同步 —— 谁慢一点全组都得等。卡数一多就吃不消。</p>
+              </div>
+              <div class="px-tcard" style="--c: var(--pp)">
+                <h5>③ 邻居传递</h5>
+                <div class="sub">PP · Ring-Attention</div>
+                <svg class="px-svg" viewBox="0 0 200 118" id="topoC"></svg>
+                <p>只跟<strong>左右邻居</strong>说话,点对点,不需要全局同步。天然适合跨节点,也最容易和计算重叠。</p>
+              </div>
+            </div>
+            <span class="fig-cap">
+              一句话记法:<strong>① 一步一次,② 层层都要,③ 只找隔壁</strong>。
+              后面每种策略的性格,基本都能由它属于哪一类推出来。
+            </span>
+          </div>
+
+          <h2>二、DP:各算各的,最后对一次账</h2>
+
+          <p>
+            DP 是交互最"稀疏"的一种:整个前向反向期间各卡<strong>互不打扰</strong>,只在反向结束时把梯度对齐一次。
+            ring all-reduce 分两个半程 —— 先 Reduce-Scatter 绕一圈让每卡持有一段的最终和,再 All-Gather 绕一圈把结果散开。
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 2:ring all-reduce 的两个半程</div>
+            <div class="px-gpus" id="dpGpus"></div>
+            <div class="px-stat">
+              <div class="px-st"><div class="kk">阶段</div><div class="vv" style="color: var(--dp)" id="dpPhase">—</div></div>
+              <div class="px-st"><div class="kk">已绕圈数</div><div class="vv" id="dpStep">—</div></div>
+              <div class="px-st"><div class="kk">每卡累计收发</div><div class="vv" id="dpVol">—</div></div>
+            </div>
+            <div class="px-ctrls">
+              <button class="primary" id="dpPlay">暂停</button>
+              <button id="dpStepBtn">单步 →</button>
+            </div>
+            <span class="fig-cap">
+              两个半程各绕 <code>N−1</code> 步,所以 All-Reduce 的每卡收发是 <code>2·(N−1)/N·X</code>。
+              实际框架会把梯度<strong>分桶</strong>:某一层反向一算完就立刻发它的桶,不等整个反向结束 ——
+              于是这一大坨通信被藏在了反向计算背后,这是 DP 能扩到几千卡的关键。
+            </span>
+          </div>
+
+          <h2>三、TP:每层两次会合,谁都不能先走</h2>
+
+          <p>
+            TP 是另一个极端。每张卡只持有权重的一片,算出来的是<strong>部分和</strong>,必须拼起来才有意义。
+            于是每层要停两次:attention 的 <code>o_proj</code> 之后一次,FFN 的 <code>down_proj</code> 之后一次。
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 3:TP 组的同步点(每层两次)</div>
+            <div class="px-legend">
+              <span><i style="background: var(--tp)"></i>本地计算</span>
+              <span><i style="background: var(--dp)"></i>All-Reduce(全组同步)</span>
+              <span><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>等待(算得快的干等)</span>
+            </div>
+            <div class="px-tl" id="tpTl"></div>
+            <div class="px-stat">
+              <div class="px-st"><div class="kk">同步点 / 层</div><div class="vv" style="color: var(--tp)">2</div></div>
+              <div class="px-st"><div class="kk">80 层共计</div><div class="vv" style="color: var(--warn)">320 次</div></div>
+              <div class="px-st"><div class="kk">可否重叠</div><div class="vv" style="color: var(--warn)">否</div></div>
+            </div>
+            <span class="fig-cap">
+              关键不在字节数,在<strong>阻塞</strong>:All-Reduce 的结果是下一步计算的输入,没法拿计算去盖住它。
+              而且它是集合通信,<strong>整组以最慢的那张卡为准</strong>。斜纹区就是快卡在干等。
+              320 个硬同步点摊在一次前向反向里,这就是 TP 必须待在 NVLink 域内的真正原因。
+            </span>
+          </div>
+
+          <h2>四、PP:只跟左右邻居说话</h2>
+
+          <p>
+            PP 的交互最简单 —— <code>send</code> 给下一段,<code>recv</code> 上一段的,仅此而已。
+            没有集合通信,没有全局同步。代价换到了另一个地方:<strong>排队</strong>。
+          </p>
+
+          <p>
+            下面这张是真实排出来的 1F1B 调度,不是示意图 —— 页面里跑了一遍调度模拟,
+            依赖关系(stage <em>s</em> 的 F<sub>m</sub> 要等 stage <em>s−1</em> 的 F<sub>m</sub>,B<sub>m</sub> 要等 stage <em>s+1</em> 的 B<sub>m</sub>)逐条满足。
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 4:1F1B 流水线时间线(可调 stage 数与 micro-batch 数)</div>
+            <div class="px-legend">
+              <span><i style="background: var(--tp)"></i>前向 F</span>
+              <span><i style="background: var(--pp)"></i>反向 B</span>
+              <span><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>气泡(闲置)</span>
+            </div>
+            <div class="px-tl" id="ppTl"></div>
+            <div class="px-stat">
+              <div class="px-st"><div class="kk">总时长</div><div class="vv" id="ppT">—</div></div>
+              <div class="px-st"><div class="kk">实测气泡</div><div class="vv" style="color: var(--warn)" id="ppBub">—</div></div>
+              <div class="px-st"><div class="kk">公式 (N−1)/(M+N−1)</div><div class="vv" id="ppForm">—</div></div>
+            </div>
+            <div class="px-ctrls">
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)">stage 数 N</span>
+              <div class="px-seg" id="ppN">
+                <button data-n="2">2</button>
+                <button data-n="4" class="on">4</button>
+                <button data-n="8">8</button>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">micro-batch M</span>
+              <input type="range" id="ppM" min="2" max="24" value="8" />
+              <span style="font-family: var(--font-mono); font-size: .68rem; color: var(--tp)" id="ppMv">8</span>
+            </div>
+            <span class="fig-cap">
+              实测气泡和 <code>(N−1)/(M+N−1)</code> <strong>始终相等</strong>,拖动 M 可以自己验证。
+              这也解释了为什么救 PP 的办法是<strong>加 micro-batch</strong> 而不是减 stage:分母涨得比分子快。
+              前向反向按等长计,是排布图的通行简化;真实反向约为前向的两倍。
+            </span>
+          </div>
+
+          <h2>五、EP:谁跟谁通信是动态的</h2>
+
+          <p>
+            前面四种的通信对象在开跑前就定死了。EP 不一样:<strong>token 去哪张卡,由 router 当场决定</strong>。
+            这带来了两个别处没有的麻烦。
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 5:token 路由与 All-to-All 的长尾</div>
+            <div class="px-route" id="epRoute"></div>
+            <div class="px-stat">
+              <div class="px-st"><div class="kk">阶段</div><div class="vv" style="color: var(--ep)" id="epPhase">—</div></div>
+              <div class="px-st"><div class="kk">最忙 / 最闲</div><div class="vv" id="epSkew">—</div></div>
+              <div class="px-st"><div class="kk">全组等待</div><div class="vv" style="color: var(--warn)" id="epWait">—</div></div>
+            </div>
+            <div class="px-ctrls">
+              <button class="primary" id="epPlay">暂停</button>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">路由倾斜</span>
+              <input type="range" id="epSkewR" min="0" max="100" value="45" />
+            </div>
+            <span class="fig-cap">
+              第一个麻烦是<strong>形状不确定</strong>:每张卡收到多少 token 事先不知道,缓冲要按最坏情况开。
+              第二个是<strong>长尾</strong>:All-to-All 要等最慢的一对完成,只要有一张卡收到的 token 明显偏多,
+              整组就被它拖住。拖动倾斜度能看到等待时间怎么被放大 —— 这就是 EPLB 把热门专家复制到多卡的理由。
+            </span>
+          </div>
+
+          <h2>六、SP / CP:三种切序列,三种交互</h2>
+
+          <p>
+            切序列这条轴上有三种做法,名字容易混,但<strong>交互方式完全不同</strong>。
+            机制细节见<a href="sequence-parallel-and-comms.html">序列并行方案对比</a>,这里只看卡间怎么动。
+          </p>
+
+          <div class="px-fig">
+            <div class="fig-title">动图 6:三种切序列方式的卡间动作(点标签切换)</div>
+            <div class="px-ctrls" style="margin: 0 0 12px">
+              <div class="px-seg" id="spTabs">
+                <button data-s="mega" class="on">Megatron-SP</button>
+                <button data-s="uly">DeepSpeed-Ulysses</button>
+                <button data-s="ring">Ring-Attention / CP</button>
+              </div>
+            </div>
+            <div class="px-tl" id="spTl"></div>
+            <div id="spInfo" style="margin-top: 12px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--inset); font-size: .81rem; line-height: 1.75; color: var(--text-muted);"></div>
+            <span class="fig-cap">
+              最值得注意的是第三种:<strong>Ring 是唯一能把通信藏进计算里的</strong>。
+              收到上一块 K/V 的同时就开始算本地那部分注意力,下一块在后台传 —— 通信量虽然不随 N 下降,
+              但只要单块计算时间盖得住单跳传输,墙钟时间就几乎不涨。前两种做不到:它们的通信结果是下一步的输入。
+            </span>
+          </div>
+
+          <h2>七、横向对比</h2>
+
+          <div class="px-tw">
+            <table>
+              <thead>
+                <tr><th>策略</th><th>拓扑</th><th>频率</th><th>能否与计算重叠</th><th>卡多了会怎样</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong style="color: var(--dp)">DP</strong></td><td>副本组内规约</td><td>每 step 1 次</td>
+                  <td><strong>能</strong>(分桶,边反向边发)</td><td>每卡量不降,但可被计算盖住</td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--tp)">TP</strong></td><td>全连接</td><td>每层 2 次(反向再 2 次)</td>
+                  <td><strong>不能</strong>(结果即下一步输入)</td><td>同步点不变但每次更慢,迅速劣化</td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--pp)">PP</strong></td><td>邻居 P2P</td><td>每 micro-batch 每边界</td>
+                  <td><strong>能</strong>(与其他 micro-batch 重叠)</td><td>气泡变大,要同步加 M</td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--ep)">EP</strong></td><td>全连接(动态)</td><td>每 MoE 层 2 次</td>
+                  <td>部分(需要分块流水)</td><td>长尾放大,依赖负载均衡</td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--cp)">Ulysses</strong></td><td>全连接</td><td>每层 4 次</td>
+                  <td><strong>不能</strong></td><td>受 head 数封顶,切不动</td>
+                </tr>
+                <tr>
+                  <td><strong style="color: var(--cp)">Ring / CP</strong></td><td>邻居环</td><td>每层 N−1 跳</td>
+                  <td><strong>能</strong>(边收边算)</td><td>跳数变多,但可被计算掩盖</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            把这张表读一遍会发现一个规律:<strong>"能否重叠"比"传多少"更能决定它扩不扩得动</strong>。
+            DP 每 step 要传上 TB 却能扩到几千卡,TP 每次只传几十 MiB 却出了机柜就崩 —— 差别全在这一列。
+          </p>
+
+          <h2>八、组合起来:交互的层次</h2>
+
+          <p>
+            实际系统是几种叠在一起的。排布原则可以直接从上面的性格推出来:
+            <strong>不能重叠、又是全连接的往里放;能重叠、只找邻居的往外放。</strong>
+          </p>
+
+          <div class="px-tw">
+            <table>
+              <thead><tr><th>层次</th><th>放什么</th><th>为什么</th></tr></thead>
+              <tbody>
+                <tr><td>节点内 NVLink</td><td><strong>TP</strong>,其次 EP</td><td>全连接 + 不可重叠 + 每层两次,只有 NVLink 扛得住</td></tr>
+                <tr><td>节点间 IB</td><td><strong>CP</strong>、<strong>DP</strong></td><td>Ring 能边收边算;DP 每 step 一次且可分桶重叠</td></tr>
+                <tr><td>最外层</td><td><strong>PP</strong></td><td>纯 P2P、只找邻居,对拓扑最不挑</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            量化版本(每种到底多少字节、最小卡数怎么算)在<a href="parallelism-comm-cost.html">通信量账本</a>那篇;
+            具体到某个模型怎么切成 shape,在 <a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 那篇</a>。
+          </p>
+
+          <h2>九、要点</h2>
+
+          <div class="px-takes">
+            <div class="px-take"><div class="n">01</div><h5>拓扑只有三类</h5>
+              <p>副本组规约(DP)、全组交换(TP / EP / Ulysses)、邻居传递(PP / Ring)。认出属于哪一类,就能推出它能不能跨节点、卡多了会不会崩。</p></div>
+            <div class="px-take"><div class="n">02</div><h5>能否重叠比传多少更要命</h5>
+              <p>DP 每 step 传上 TB 却能扩到几千卡,TP 每次几十 MiB 却出机柜就崩。区别是 DP 能藏在反向后面,而 TP 的结果就是下一步的输入,藏无可藏。</p></div>
+            <div class="px-take"><div class="n">03</div><h5>集合通信按最慢的那张卡计</h5>
+              <p>TP 和 EP 都是全组同步,快卡只能干等。所以真正的敌人往往不是带宽,是<strong>抖动和不均衡</strong> —— EP 尤其明显。</p></div>
+            <div class="px-take"><div class="n">04</div><h5>PP 的气泡只能靠 M 救</h5>
+              <p><code>(N−1)/(M+N−1)</code>,分母涨得比分子快。加 micro-batch 有效,减 stage 反而可能放不下模型。动图 4 里可以自己拖着验证。</p></div>
+            <div class="px-take"><div class="n">05</div><h5>EP 的通信对象是运行时才知道的</h5>
+              <p>其他四种在开跑前就定死了收发关系,EP 由 router 当场决定。于是缓冲要按最坏情况开,长尾还会拖住整组 —— 这两件事都是别处没有的。</p></div>
+            <div class="px-take"><div class="n">06</div><h5>Ring 用步数换重叠</h5>
+              <p>它绕 <code>N−1</code> 跳,总量不随 N 下降,看账本是亏的。但它是切序列里唯一能边收边算的,只要计算盖得住单跳,墙钟时间几乎不涨。</p></div>
+          </div>
+
+          <blockquote>
+            1F1B 时间线由页面内的调度模拟按依赖关系真实排出,气泡率与 <code>(N−1)/(M+N−1)</code> 逐一核对一致;
+            前向与反向按等长计,是排布图的通行简化,真实反向约为前向两倍。其余动图为交互形态示意,不表示真实耗时比例。
+          </blockquote>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+
+    <script>
+      (function () {
+        var NS = 'http://www.w3.org/2000/svg';
+        function el(tag, attrs) {
+          var e = document.createElementNS(NS, tag);
+          Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+          return e;
+        }
+
+        /* ===== 动图 1:三种拓扑 ===== */
+        (function () {
+          var pts = [[40, 30], [160, 30], [40, 88], [160, 88]];
+          // A:副本组规约 —— 四点向中心汇聚
+          var a = document.getElementById('topoA');
+          pts.forEach(function (p) {
+            a.appendChild(el('line', { x1: p[0], y1: p[1], x2: 100, y2: 59, class: 'lk' }));
+          });
+          pts.forEach(function (p) { a.appendChild(el('rect', { x: p[0] - 14, y: p[1] - 10, width: 28, height: 20, rx: 4, class: 'nd' })); });
+          a.appendChild(el('circle', { cx: 100, cy: 59, r: 7, class: 'dot' }));
+          [0, 1, 2, 3].forEach(function (i) {
+            var d = el('circle', { cx: pts[i][0], cy: pts[i][1], r: 3.5, class: 'dot' });
+            var an = el('animateMotion', { dur: '2.2s', repeatCount: 'indefinite', begin: (i * 0.25) + 's',
+              path: 'M0,0 L' + (100 - pts[i][0]) + ',' + (59 - pts[i][1]) });
+            d.appendChild(an); a.appendChild(d);
+          });
+
+          // B:全连接
+          var b = document.getElementById('topoB');
+          for (var i = 0; i < 4; i++) for (var j = i + 1; j < 4; j++) {
+            b.appendChild(el('line', { x1: pts[i][0], y1: pts[i][1], x2: pts[j][0], y2: pts[j][1], class: 'lk' }));
+          }
+          pts.forEach(function (p) { b.appendChild(el('rect', { x: p[0] - 14, y: p[1] - 10, width: 28, height: 20, rx: 4, class: 'nd' })); });
+          [[0, 3], [1, 2], [0, 1], [2, 3]].forEach(function (pair, i) {
+            var d = el('circle', { cx: pts[pair[0]][0], cy: pts[pair[0]][1], r: 3.5, class: 'dot' });
+            d.appendChild(el('animateMotion', { dur: '1.6s', repeatCount: 'indefinite', begin: (i * 0.2) + 's',
+              path: 'M0,0 L' + (pts[pair[1]][0] - pts[pair[0]][0]) + ',' + (pts[pair[1]][1] - pts[pair[0]][1]) }));
+            b.appendChild(d);
+          });
+
+          // C:环 / 邻居
+          var c = document.getElementById('topoC');
+          var order = [0, 1, 3, 2];
+          for (var k = 0; k < 4; k++) {
+            var p1 = pts[order[k]], p2 = pts[order[(k + 1) % 4]];
+            c.appendChild(el('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], class: 'lk' }));
+          }
+          pts.forEach(function (p) { c.appendChild(el('rect', { x: p[0] - 14, y: p[1] - 10, width: 28, height: 20, rx: 4, class: 'nd' })); });
+          for (var m = 0; m < 4; m++) {
+            var q1 = pts[order[m]], q2 = pts[order[(m + 1) % 4]];
+            var dd = el('circle', { cx: q1[0], cy: q1[1], r: 3.5, class: 'dot' });
+            dd.appendChild(el('animateMotion', { dur: '1.4s', repeatCount: 'indefinite', begin: (m * 0.35) + 's',
+              path: 'M0,0 L' + (q2[0] - q1[0]) + ',' + (q2[1] - q1[1]) }));
+            c.appendChild(dd);
+          }
+        })();
+
+        /* ===== 动图 2:ring all-reduce ===== */
+        (function () {
+          var N = 4, host = document.getElementById('dpGpus');
+          var elPhase = document.getElementById('dpPhase'), elStep = document.getElementById('dpStep'), elVol = document.getElementById('dpVol');
+          for (var i = 0; i < N; i++) {
+            var d = document.createElement('div');
+            d.className = 'px-gpu';
+            d.style.setProperty('--c', 'var(--dp)');
+            d.innerHTML = 'GPU' + i + '<div class="bar">' + '<i></i>'.repeat(N) + '</div>';
+            host.appendChild(d);
+          }
+          var t = 0, timer = null, playing = true;
+          var TOTAL = 2 * (N - 1);
+
+          // ring 规约:RS 走 N-1 步后每卡恰好持有 1 段的最终和,AG 再走 N-1 步把它散开
+          var BASE = N - 2; // RS 结束时,距离为 BASE 的那一段是完整的
+
+          function render() {
+            var isRS = t < N - 1;
+            var step = isRS ? t + 1 : t - (N - 2);
+            elPhase.textContent = isRS ? 'Reduce-Scatter' : 'All-Gather';
+            elStep.textContent = step + ' / ' + (N - 1);
+            // 每步搬 X/N,两个半程共 2(N-1) 步 → 合计 2(N-1)/N·X
+            elVol.textContent = ((t + 1) / N).toFixed(2) + '·X';
+
+            [].forEach.call(host.children, function (g, gi) {
+              var bars = g.querySelectorAll('.bar i');
+              g.classList.add('act');
+              for (var s = 0; s < N; s++) {
+                var d = ((gi - s) % N + N) % N;
+                var contrib, done;
+                if (isRS) {
+                  contrib = d < step ? Math.min(d + 2, N) : 1;
+                  done = contrib >= N;
+                } else {
+                  done = ((d - BASE) % N + N) % N <= step;
+                  contrib = done ? N : Math.min(d + 2, N - 1);
+                }
+                bars[s].classList.toggle('f', done);
+                bars[s].style.height = (4 + 10 * (contrib / N)) + 'px';
+              }
+            });
+          }
+          function next() { t = (t + 1) % TOTAL; render(); }
+          function loop() { clearInterval(timer); if (playing) timer = setInterval(next, 1100); }
+          document.getElementById('dpPlay').addEventListener('click', function (e) {
+            playing = !playing; e.target.textContent = playing ? '暂停' : '继续'; loop();
+          });
+          document.getElementById('dpStepBtn').addEventListener('click', function () {
+            playing = false; document.getElementById('dpPlay').textContent = '继续'; clearInterval(timer); next();
+          });
+          render(); loop();
+        })();
+
+        /* ===== 动图 3:TP 同步点 ===== */
+        (function () {
+          var host = document.getElementById('tpTl');
+          // 每卡:计算(长度不同,模拟抖动) -> 等待 -> AllReduce(对齐) -> 计算 -> 等待 -> AllReduce
+          var COMPUTE = [[3, 4], [4, 3], [2, 5], [4, 4]];
+          var SLOTS = 16;
+          for (var g = 0; g < 4; g++) {
+            var row = document.createElement('div');
+            row.className = 'px-tlrow';
+            var cells = '';
+            var cursor = 0;
+            var seq = [];
+            [0, 1].forEach(function (half) {
+              var c = COMPUTE[g][half];
+              var maxc = Math.max.apply(null, COMPUTE.map(function (x) { return x[half]; }));
+              for (var i = 0; i < c; i++) seq.push('f');
+              for (var j = 0; j < maxc - c; j++) seq.push('bub');
+              seq.push('c'); seq.push('c');
+            });
+            while (seq.length < SLOTS) seq.push('');
+            seq.slice(0, SLOTS).forEach(function (k, i) {
+              cells += '<div class="px-cell ' + k + '">' + (k === 'c' ? 'AR' : '') + '</div>';
+            });
+            row.innerHTML = '<div class="lab">GPU' + g + '</div><div class="px-cells" style="grid-template-columns: repeat(' + SLOTS + ', 1fr)">' + cells + '</div>';
+            host.appendChild(row);
+          }
+        })();
+
+        /* ===== 动图 4:1F1B 时间线 ===== */
+        (function () {
+          var INF = Infinity;
+          var host = document.getElementById('ppTl');
+          var elT = document.getElementById('ppT'), elB = document.getElementById('ppBub'), elF = document.getElementById('ppForm');
+          var N = 4, M = 8;
+
+          function schedule(N, M) {
+            var ops = [];
+            for (var s = 0; s < N; s++) {
+              var warm = Math.min(N - 1 - s, M), seq = [];
+              for (var w = 0; w < warm; w++) seq.push(['F', w]);
+              for (var i = 0; i < M - warm; i++) { seq.push(['F', warm + i]); seq.push(['B', i]); }
+              for (var j = M - warm; j < M; j++) seq.push(['B', j]);
+              ops.push(seq);
+            }
+            var end = {}, start = {}, free = new Array(N).fill(0);
+            var rem = ops.map(function (o) { return o.slice(); });
+            var total = ops.reduce(function (a, o) { return a + o.length; }, 0), placed = 0, t = 0;
+            function E(s, k, m) { var v = end[s + '|' + k + '|' + m]; return v === undefined ? INF : v; }
+            while (placed < total && t < 5000) {
+              for (var s2 = 0; s2 < N; s2++) {
+                if (!rem[s2].length || free[s2] > t) continue;
+                var kind = rem[s2][0][0], m2 = rem[s2][0][1], dep;
+                if (kind === 'F') dep = s2 === 0 ? 0 : E(s2 - 1, 'F', m2);
+                else dep = Math.max(s2 === N - 1 ? 0 : E(s2 + 1, 'B', m2), E(s2, 'F', m2));
+                if (dep <= t) {
+                  start[s2 + '|' + kind + '|' + m2] = t;
+                  end[s2 + '|' + kind + '|' + m2] = t + 1;
+                  free[s2] = t + 1; rem[s2].shift(); placed++;
+                }
+              }
+              t++;
+            }
+            var T = 0;
+            Object.keys(end).forEach(function (k) { if (end[k] > T) T = end[k]; });
+            return { start: start, T: T, busy: total };
+          }
+
+          function render() {
+            var r = schedule(N, M);
+            host.innerHTML = '';
+            var grid = {};
+            Object.keys(r.start).forEach(function (k) {
+              var p = k.split('|');
+              grid[p[0] + ',' + r.start[k]] = p[1] + p[2];
+            });
+            for (var s = 0; s < N; s++) {
+              var row = document.createElement('div');
+              row.className = 'px-tlrow';
+              var cells = '';
+              for (var t = 0; t < r.T; t++) {
+                var v = grid[s + ',' + t];
+                if (v) {
+                  cells += '<div class="px-cell ' + (v[0] === 'F' ? 'f' : 'b') + '">' + v + '</div>';
+                } else {
+                  cells += '<div class="px-cell bub"></div>';
+                }
+              }
+              row.innerHTML = '<div class="lab">stage' + s + '</div>' +
+                '<div class="px-cells" style="grid-template-columns: repeat(' + r.T + ', minmax(15px, 1fr))">' + cells + '</div>';
+              host.appendChild(row);
+            }
+            var bub = 1 - r.busy / (N * r.T);
+            var form = (N - 1) / (M + N - 1);
+            elT.textContent = r.T;
+            elB.textContent = (bub * 100).toFixed(1) + '%';
+            elF.textContent = (form * 100).toFixed(1) + '%';
+            elF.style.color = Math.abs(bub - form) < 1e-9 ? 'var(--dp)' : 'var(--warn)';
+          }
+
+          document.getElementById('ppN').addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on'); N = +b.dataset.n; render();
+          });
+          document.getElementById('ppM').addEventListener('input', function (e) {
+            M = +e.target.value; document.getElementById('ppMv').textContent = M; render();
+          });
+          render();
+        })();
+
+        /* ===== 动图 5:EP 路由 ===== */
+        (function () {
+          var host = document.getElementById('epRoute');
+          var elPhase = document.getElementById('epPhase'), elSkew = document.getElementById('epSkew'), elWait = document.getElementById('epWait');
+          var N = 4, skew = 45, playing = true, phase = 0, timer = null;
+          var srcY = 12, dstY = 74;
+
+          function build() {
+            host.innerHTML = '';
+            for (var i = 0; i < N; i++) {
+              var x = 6 + i * 24;
+              var s = document.createElement('div');
+              s.className = 'px-rank';
+              s.style.left = x + '%'; s.style.top = srcY + '%';
+              s.innerHTML = 'rank' + i + ' 的 token';
+              host.appendChild(s);
+              var d = document.createElement('div');
+              d.className = 'px-rank';
+              d.style.left = x + '%'; d.style.top = dstY + '%';
+              d.dataset.dst = i;
+              d.innerHTML = '专家组 ' + i + '<span class="load" style="width:0%"></span>';
+              host.appendChild(d);
+            }
+          }
+          build();
+
+          function loads() {
+            // skew=0 均匀;skew=100 极度倾斜到 rank0
+            var base = 1 / N, out = [];
+            for (var i = 0; i < N; i++) {
+              var w = base + (skew / 100) * (i === 0 ? (1 - base) : -base / (N - 1) * 1);
+              out.push(Math.max(0.02, w));
+            }
+            var sum = out.reduce(function (a, b) { return a + b; }, 0);
+            return out.map(function (v) { return v / sum; });
+          }
+
+          function fly(fromI, toI, delay, dur) {
+            var t = document.createElement('div');
+            t.className = 'px-tok';
+            host.appendChild(t);
+            var x0 = 6 + fromI * 24 + 5, x1 = 6 + toI * 24 + 5;
+            var t0 = null;
+            function step(ts) {
+              if (!host.contains(t)) return;
+              if (t0 === null) t0 = ts + delay;
+              var u = (ts - t0) / dur;
+              if (u < 0) { requestAnimationFrame(step); return; }
+              if (u > 1) { t.remove(); return; }
+              t.style.left = (x0 + (x1 - x0) * u) + '%';
+              t.style.top = (srcY + 8 + (dstY - srcY - 6) * u) + '%';
+              requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+          }
+
+          function tick() {
+            var L = loads();
+            var maxL = Math.max.apply(null, L), minL = Math.min.apply(null, L);
+            [].forEach.call(host.querySelectorAll('[data-dst]'), function (d) {
+              var i = +d.dataset.dst;
+              d.querySelector('.load').style.width = (L[i] / maxL * 100) + '%';
+              d.style.borderColor = L[i] === maxL && skew > 10 ? 'var(--warn)' : '';
+            });
+            elSkew.textContent = (maxL / minL).toFixed(1) + '×';
+            elWait.textContent = '+' + ((maxL * N - 1) * 100).toFixed(0) + '%';
+            phase = 1 - phase;
+            elPhase.textContent = phase === 0 ? 'dispatch(派发)' : 'combine(回收)';
+            for (var f = 0; f < N; f++) {
+              for (var d2 = 0; d2 < N; d2++) {
+                var n = Math.round(L[d2] * 6);
+                for (var q = 0; q < n; q++) {
+                  if (phase === 0) fly(f, d2, q * 90 + f * 40, 900);
+                  else fly(d2, f, q * 90 + f * 40, 900);
+                }
+              }
+            }
+          }
+          function loop() { clearInterval(timer); if (playing) timer = setInterval(tick, 1800); }
+          document.getElementById('epPlay').addEventListener('click', function (e) {
+            playing = !playing; e.target.textContent = playing ? '暂停' : '继续'; loop();
+          });
+          document.getElementById('epSkewR').addEventListener('input', function (e) { skew = +e.target.value; tick(); });
+          tick(); loop();
+        })();
+
+        /* ===== 动图 6:三种切序列 ===== */
+        (function () {
+          var host = document.getElementById('spTl');
+          var info = document.getElementById('spInfo');
+          var N = 4;
+          var MODES = {
+            mega: {
+              rows: [
+                ['c:AG', 'f', 'f', 'f', 'c:RS', 'f', 'f', 'c:AG', 'f', 'f', 'f', 'c:RS'],
+              ],
+              per: true,
+              text: '<b>Megatron-SP</b> —— 和 TP 绑在一起用。在 LayerNorm / Dropout 这些没被 TP 切到的地方,沿<b>序列维</b>把激活切开;进 TP 区之前 All-Gather 还原,出来之后 Reduce-Scatter 再切。' +
+                '卡间动作和 TP 一样是<b>全组集合通信、且挡在计算路径上</b>,只是把原来的一次 All-Reduce 拆成了 AG+RS —— <b>通信量分毫未变,白拿一份激活显存</b>。',
+            },
+            uly: {
+              rows: [
+                ['c:A2A', 'c:A2A', 'f', 'f', 'f', 'f', 'c:A2A', 'f', 'f', 'f', 'f', 'f'],
+              ],
+              per: true,
+              text: '<b>DeepSpeed-Ulysses</b> —— 进 attention 前做一次 All-to-All,把「每卡一段序列、全部 head」<b>转置</b>成「每卡全部序列、一部分 head」;算完再转置回来。' +
+                '注意力本身是<b>完整的本地计算</b>,不需要跨卡。代价是并行度<b>不能超过 head 数</b>,而且 All-to-All 的结果就是下一步输入,<b>盖不住</b>。',
+            },
+            ring: {
+              rows: null,
+              per: false,
+              text: '<b>Ring-Attention / CP</b> —— 序列按卡切开,K/V 分块沿环传递 <code>N−1</code> 跳。每收到一块就和本地 Q 算一次局部注意力,' +
+                '<b>算的同时下一块已经在路上</b>。这是切序列里唯一能把通信藏进计算的做法:只要单块计算时间盖得住单跳传输,墙钟时间几乎不涨。' +
+                '代价是跳数随 N 增长,而且 causal mask 下各卡负载天然不均(要用 ZigZag 之类的重排补)。',
+            },
+          };
+
+          function rowHTML(lab, cells) {
+            var s = '';
+            cells.forEach(function (k) {
+              if (k === 'f') s += '<div class="px-cell f">算</div>';
+              else if (k === '') s += '<div class="px-cell"></div>';
+              else if (k.indexOf('c:') === 0) s += '<div class="px-cell c">' + k.slice(2) + '</div>';
+              else if (k === 'ov') s += '<div class="px-cell f" style="background:linear-gradient(135deg,var(--tp) 50%,var(--dp) 50%)">算+传</div>';
+              else s += '<div class="px-cell bub"></div>';
+            });
+            return '<div class="px-tlrow"><div class="lab">' + lab + '</div>' +
+              '<div class="px-cells" style="grid-template-columns: repeat(' + cells.length + ', minmax(30px,1fr))">' + s + '</div></div>';
+          }
+
+          function draw(mode) {
+            var m = MODES[mode];
+            info.innerHTML = m.text;
+            var html = '';
+            if (mode === 'ring') {
+              // 每卡:N-1 跳,每跳"算+传"并行
+              for (var g = 0; g < N; g++) {
+                var cells = [];
+                for (var h = 0; h < N; h++) cells.push('ov');
+                cells.push('c:out');
+                html += rowHTML('GPU' + g, cells);
+              }
+            } else {
+              for (var g2 = 0; g2 < N; g2++) html += rowHTML('GPU' + g2, m.rows[0]);
+            }
+            host.innerHTML = html;
+          }
+
+          document.getElementById('spTabs').addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b) return;
+            [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+            b.classList.add('on'); draw(b.dataset.s);
+          });
+          draw('mega');
+        })();
+      })();
+    </script>
+  </body>
+</html>

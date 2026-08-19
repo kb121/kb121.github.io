@@ -35,6 +35,20 @@
 
 window.NOTES = [
   {
+    slug: "parallelism-interaction",
+    title: {
+      zh: "卡间怎么对话:五种并行的交互编排",
+      en: "How GPUs Talk: The Choreography of Five Parallelism Schemes",
+    },
+    summary: {
+      zh: "不算字节,只看编排:DP / TP / PP / EP / SP·CP 各自是谁跟谁通信、在前向反向的哪个时刻通信、挡不挡住计算。先把拓扑归成三类(副本组规约 / 全组交换 / 邻居传递),再逐个拆:DP 的 ring all-reduce 两个半程与分桶重叠、TP 每层两次不可重叠的硬同步、真实排出的 1F1B 流水线时间线(气泡率与公式逐一核对)、EP 运行时才确定收发关系带来的形状不确定与长尾,以及 Megatron-SP / Ulysses / Ring 三种切序列方式的卡间动作对比。",
+      en: "Not bytes but choreography: for DP / TP / PP / EP / SP·CP, who talks to whom, at which point in the forward and backward pass, and whether compute stalls while it happens. Topologies reduce to three families (replica reduction, all-to-all exchange, neighbour passing), then each scheme is unpacked: the two halves of DP's ring all-reduce and its bucketed overlap, TP's two non-overlappable hard syncs per layer, a genuinely scheduled 1F1B pipeline timeline whose bubble ratio is checked against the formula, EP's runtime-determined peers with the resulting shape uncertainty and tail latency, and a side-by-side of what Megatron-SP, Ulysses and Ring actually make the GPUs do.",
+    },
+    date: "2026-08-19",
+    tags: ["Distributed", "Parallelism", "Communication", "Pipeline", "MoE"],
+    category: "tech",
+  },
+  {
     slug: "parallelism-comm-cost",
     title: {
       zh: "并行策略的通信量账本:DP / TP / PP / EP / CP",
