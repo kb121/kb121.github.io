@@ -2,7 +2,7 @@
    notes-list.js — renders the knowledge-notes index from window.NOTES.
    Handles: bilingual cards (zh/en spans so the global lang toggle works),
    date sorting, tag filter chips, live text search, and splitting the list
-   into 技术笔记 / 行业分析 sections (see `category` in notes/notes.js).
+   into topic sections (see `category` in notes/notes.js).
    Loaded after notes/notes.js (the data) and works with the shared app.js
    for theme + language toggles.
    ========================================================================= */
@@ -13,12 +13,18 @@
   const root = document.getElementById('notes-groups');
   if (!root) return;
 
-  // Section order is deliberate: evergreen technical notes first, so the
-  // rolling industry snapshots don't bury them at the top of the page.
+  // Section order is deliberate: the evergreen technical topics come first so
+  // the rolling industry snapshots don't bury them at the top of the page.
   const GROUPS = [
-    { key: 'tech', zh: '技术笔记', en: 'Technical Notes', descZh: '原理拆解与工程实践,长期有效', descEn: 'Explainers and engineering practice — built to last' },
-    { key: 'industry', zh: '行业分析', en: 'Industry Analysis', descZh: '榜单、趋势与硬件对比,带时间戳的快照', descEn: 'Leaderboards, trends, and hardware comparisons — timestamped snapshots' },
+    { key: 'inference', zh: '推理引擎', en: 'Inference Engines', descZh: 'vLLM 内部机制、KV cache 与显存', descEn: 'vLLM internals, KV cache, and GPU memory' },
+    { key: 'parallel', zh: '分布式与并行', en: 'Distributed & Parallelism', descZh: '切分方式、通信量与卡间编排', descEn: 'Sharding schemes, communication cost, and inter-GPU choreography' },
+    { key: 'model', zh: '模型与算子', en: 'Models & Kernels', descZh: '模型结构剖析与 kernel 编写', descEn: 'Model anatomy and kernel authoring' },
+    { key: 'industry', zh: '行业分析', en: 'Industry Analysis', descZh: '榜单与趋势,带时间戳的快照', descEn: 'Leaderboards and trends — timestamped snapshots' },
   ];
+  const KNOWN = GROUPS.map((g) => g.key);
+  // Anything with a missing or unrecognised category still gets rendered here,
+  // so a typo in the manifest can never make a note silently disappear.
+  const OTHER = { key: '__other', zh: '其他', en: 'Other', descZh: '未归类', descEn: 'Uncategorised' };
 
   const notes = Array.isArray(window.NOTES) ? window.NOTES.slice() : [];
   const searchInput = document.getElementById('notes-search');
@@ -147,10 +153,13 @@
 
     // Only render a section that still has matches, so filtering never
     // leaves a stranded heading behind.
-    root.innerHTML = GROUPS.map((g) => {
-      const items = visible.filter((n) => (n.category || 'tech') === g.key);
+    const html = GROUPS.map((g) => {
+      const items = visible.filter((n) => n.category === g.key);
       return items.length ? section(g, items) : '';
-    }).join('');
+    });
+    const stray = visible.filter((n) => !KNOWN.includes(n.category));
+    if (stray.length) html.push(section(OTHER, stray));
+    root.innerHTML = html.join('');
   }
 
   if (tagBar) {

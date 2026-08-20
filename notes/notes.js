@@ -14,17 +14,20 @@
        summary:  { zh: "一句话摘要", en: "One-line summary" },
        date:     "2026-05-29",                     // ISO date, used for sorting
        tags:     ["LLM", "Training"],              // free-form, also build the filter bar
-       category: "tech"                            // "tech" | "industry" (see below)
+       category: "inference"                       // see the four values below
      }
 
-   `category` splits the index page into two sections:
-     "tech"     — 技术笔记 / Technical Notes.  Long-lived explainers: how a
-                  system works, why a design is the way it is. This is the
-                  default when `category` is omitted.
-     "industry" — 行业分析 / Industry Analysis.  Time-stamped snapshots that
-                  go stale: leaderboards, hardware rankings, trend radars.
-   Keeping them apart stops the rolling snapshots from burying the
-   evergreen technical notes at the top of the list.
+   `category` decides which section of the index page a note lands in:
+     "inference" — 推理引擎.  vLLM internals, KV cache, GPU memory.
+     "parallel"  — 分布式与并行.  Sharding schemes, communication cost,
+                   inter-GPU choreography.
+     "model"     — 模型与算子.  Model anatomy, kernel authoring.
+     "industry"  — 行业分析.  Time-stamped snapshots that go stale:
+                   leaderboards, hardware rankings, trend radars.
+
+   Section order is fixed in scripts/notes-list.js, with 行业分析 last so the
+   rolling snapshots don't bury the evergreen notes. A note whose category is
+   missing or misspelled is not dropped — it shows up under 其他 / Other.
 
    Notes are sorted by `date` descending automatically — order here doesn't
    matter, but keeping newest on top is tidy.
@@ -46,7 +49,7 @@ window.NOTES = [
     },
     date: "2026-08-19",
     tags: ["Distributed", "Parallelism", "Communication", "Pipeline", "MoE"],
-    category: "tech",
+    category: "parallel",
   },
   {
     slug: "parallelism-comm-cost",
@@ -60,7 +63,7 @@ window.NOTES = [
     },
     date: "2026-08-18",
     tags: ["Distributed", "Parallelism", "Communication", "Training", "LLM"],
-    category: "tech",
+    category: "parallel",
   },
   {
     slug: "hy3-anatomy",
@@ -74,7 +77,7 @@ window.NOTES = [
     },
     date: "2026-08-14",
     tags: ["MoE", "Model Anatomy", "KV Cache", "Memory", "Inference"],
-    category: "tech",
+    category: "model",
   },
   {
     slug: "hy3-parallelism-tp-pp-ep",
@@ -88,7 +91,7 @@ window.NOTES = [
     },
     date: "2026-08-13",
     tags: ["Distributed", "Parallelism", "MoE", "LLM", "Inference"],
-    category: "tech",
+    category: "parallel",
   },
   {
     slug: "triton-gemm-step-by-step",
@@ -102,7 +105,7 @@ window.NOTES = [
     },
     date: "2026-08-11",
     tags: ["Triton", "GEMM", "CUDA", "Performance", "Kernel"],
-    category: "tech",
+    category: "model",
   },
   {
     slug: "kv-pooling-kv-connector",
@@ -116,7 +119,7 @@ window.NOTES = [
     },
     date: "2026-08-11",
     tags: ["KV Cache", "vLLM", "Inference", "Distributed", "PD Disaggregation"],
-    category: "tech",
+    category: "inference",
   },
   {
     slug: "qkv-lifecycle-256k",
@@ -130,7 +133,7 @@ window.NOTES = [
     },
     date: "2026-07-31",
     tags: ["Attention", "KV Cache", "GQA", "Long Context", "Inference"],
-    category: "tech",
+    category: "inference",
   },
   {
     slug: "ai-infra-llm-radar-2026-06-22",
@@ -158,7 +161,7 @@ window.NOTES = [
     },
     date: "2026-07-03",
     tags: ["vLLM", "KV Cache", "Memory", "Inference"],
-    category: "tech",
+    category: "inference",
   },
   {
     slug: "llm-leaderboard-2026-06-30",
@@ -186,7 +189,7 @@ window.NOTES = [
     },
     date: "2026-06-11",
     tags: ["Distributed", "Sequence Parallel", "LLM", "Communication"],
-    category: "tech",
+    category: "parallel",
   },
   {
     slug: "github-daily-trending",
@@ -214,7 +217,7 @@ window.NOTES = [
     },
     date: "2026-06-05",
     tags: ["CUDA", "vLLM", "Inference", "Performance"],
-    category: "tech",
+    category: "inference",
   },
   {
     slug: "vllm-architecture",
@@ -228,7 +231,7 @@ window.NOTES = [
     },
     date: "2026-05-29",
     tags: ["vLLM", "LLM", "Inference", "System"],
-    category: "tech",
+    category: "inference",
   },
   {
     slug: "example-sequence-parallel",
@@ -242,7 +245,7 @@ window.NOTES = [
     },
     date: "2026-05-20",
     tags: ["LLM", "Distributed", "Training"],
-    category: "tech",
+    category: "parallel",
   },
   {
     slug: "example-deblurgan",
@@ -256,6 +259,6 @@ window.NOTES = [
     },
     date: "2026-04-08",
     tags: ["Computer Vision", "GAN", "Research"],
-    category: "tech",
+    category: "model",
   },
 ];
