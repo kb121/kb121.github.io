@@ -38,6 +38,20 @@
 
 window.NOTES = [
   {
+    slug: "hpc-node-programming-models",
+    title: {
+      zh: "节点级编程模型:OpenMP GPU、SIMD、同步、OpenCL、SYCL 与 CUDA",
+      en: "Node-Level Programming Models: OpenMP GPU, SIMD, Sync, OpenCL, SYCL, CUDA",
+    },
+    summary: {
+      zh: "写给 LRZ BEAST 实验课上课前的自己:大纲里的六件事收成一层执行层次 + 四个 API + 两个横切机制。含 team/block/work-group 对照表、同一份 SAXPY 的四种写法,以及 Intel / AMD / NVIDIA / Marvell / Fujitsu 上分别能跑什么。",
+      en: "A pre-lab map for the LRZ BEAST course: the six syllabus names collapse into one execution hierarchy, four APIs, and two cross-cutting mechanisms. Includes a team/block/work-group Rosetta table, the same SAXPY in four models, and which stacks actually run on Intel / AMD / NVIDIA / Marvell / Fujitsu nodes.",
+    },
+    date: "2026-09-01",
+    tags: ["HPC", "OpenMP", "SIMD", "CUDA", "OpenCL", "SYCL"],
+    category: "parallel",
+  },
+  {
     slug: "parallelism-interaction",
     title: {
       zh: "卡间怎么对话:五种并行的交互编排",

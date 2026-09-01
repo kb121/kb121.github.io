@@ -63,10 +63,11 @@
   }
 
   function fmtDate(iso) {
+    // Keep the calendar date as authored. Parsing as local midnight and
+    // printing UTC via toISOString() shifts the day west of UTC (e.g. CST).
     if (!iso) return '';
-    const d = new Date(iso + 'T00:00:00');
-    if (isNaN(d)) return iso;
-    return d.toISOString().slice(0, 10);
+    const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : String(iso);
   }
 
   // Collect tags for the filter bar.
