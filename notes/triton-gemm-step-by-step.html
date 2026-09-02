@@ -233,61 +233,61 @@
         </header>
 
         <div class="prose">
-          <p class="tg-lede">
-            这篇按真实的调优顺序走一遍:先建立「<strong>一个 program 负责一块 tile,而不是一个标量</strong>」的心智模型,
+          <p class="tg-lede"><span lang="zh-CN" class="i18n-zh">这篇按真实的调优顺序走一遍:先建立「<strong>一个 program 负责一块 tile,而不是一个标量</strong>」的心智模型,
             写出能跑但很慢的第一版;然后每次只改一件事 —— 补边界、换发射顺序、开软件流水、交给 autotune ——
-            看每一步各自解决了什么瓶颈。最有意思的一步<strong>一行计算都没改</strong>,只是换了 program 的编号方式。
-          </p>
+            看每一步各自解决了什么瓶颈。最有意思的一步<strong>一行计算都没改</strong>,只是换了 program 的编号方式。</span><span lang="en" class="i18n-en">This note walks the real tuning order: first build the mental model that <strong>one program owns a tile, not a scalar</strong>,
+            and write a first version that runs but is slow; then change exactly one thing at a time — add bounds handling, change the launch order, turn on software pipelining, hand it to autotune —
+            and see what each step actually fixes. The most interesting step <strong>changes not a single line of computation</strong>; it only renumbers the programs.</span></p>
 
           <div class="tg-kpis">
-            <div class="tg-kpi"><b>1</b><span>program 负责的 tile 数</span></div>
-            <div class="tg-kpi"><b>90→54</b><span>换发射顺序后的块加载量</span></div>
-            <div class="tg-kpi"><b>3</b><span>K 循环里的关键语句</span></div>
-            <div class="tg-kpi"><b>4</b><span>autotune 要搜的旋钮</span></div>
-            <div class="tg-kpi"><b>fp32</b><span>累加器必须的精度</span></div>
+            <div class="tg-kpi"><b>1</b><span><span lang="zh-CN" class="i18n-zh">program 负责的 tile 数</span><span lang="en" class="i18n-en">tiles a program owns</span></span></div>
+            <div class="tg-kpi"><b>90→54</b><span><span lang="zh-CN" class="i18n-zh">换发射顺序后的块加载量</span><span lang="en" class="i18n-en">block loads after reordering the launch</span></span></div>
+            <div class="tg-kpi"><b>3</b><span><span lang="zh-CN" class="i18n-zh">K 循环里的关键语句</span><span lang="en" class="i18n-en">key statements in the K loop</span></span></div>
+            <div class="tg-kpi"><b>4</b><span><span lang="zh-CN" class="i18n-zh">autotune 要搜的旋钮</span><span lang="en" class="i18n-en">knobs for autotune to search</span></span></div>
+            <div class="tg-kpi"><b>fp32</b><span><span lang="zh-CN" class="i18n-zh">累加器必须的精度</span><span lang="en" class="i18n-en">precision the accumulator must have</span></span></div>
           </div>
 
-          <h2>一、先换脑子:program 是 tile,不是 thread</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、先换脑子:program 是 tile,不是 thread</span><span lang="en" class="i18n-en">1 · Rewire first: a program is a tile, not a thread</span></h2>
 
-          <p>
-            写 CUDA 时你操心的是「这个<strong>线程</strong>算哪个元素」,于是要手写 shared memory 搬运、bank conflict、
+          <p><span lang="zh-CN" class="i18n-zh">写 CUDA 时你操心的是「这个<strong>线程</strong>算哪个元素」,于是要手写 shared memory 搬运、bank conflict、
             <code>__syncthreads()</code>。Triton 把抽象层级抬高了一级:你操心的是「这个 <strong>program</strong> 算哪一<strong>块</strong>」,
-            块内的向量化、寄存器分配、共享内存排布交给编译器。
-          </p>
+            块内的向量化、寄存器分配、共享内存排布交给编译器。</span><span lang="en" class="i18n-en">In CUDA you worry about which element <strong>this thread</strong> computes, which means writing shared-memory staging, bank conflicts and
+            <code>__syncthreads()</code> by hand. Triton raises the abstraction one level: you worry about which <strong>tile</strong> <strong>this program</strong> computes,
+            and vectorisation, register allocation and shared-memory layout within the tile are the compiler's problem.</span></p>
 
           <div class="tg-fig">
-            <div class="fig-title">动图 1:两种编程模型的粒度差</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:两种编程模型的粒度差</span><span lang="en" class="i18n-en">Figure 1: the granularity gap between the two models</span></div>
             <div class="tg-model">
               <div class="tg-mcard">
-                <h5 class="cuda">CUDA:你管到每个线程</h5>
-                <div class="sub">threadIdx / blockIdx → 单个元素</div>
+                <h5 class="cuda"><span lang="zh-CN" class="i18n-zh">CUDA:你管到每个线程</span><span lang="en" class="i18n-en">CUDA: you manage every thread</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">threadIdx / blockIdx → 单个元素</span><span lang="en" class="i18n-en">threadIdx / blockIdx → a single element</span></div>
                 <div class="tg-dots" id="tgDots"></div>
-                <div class="tg-mnote">索引、边界、共享内存搬运、同步,全部手写。控制力最强,心智负担也最大。</div>
+                <div class="tg-mnote"><span lang="zh-CN" class="i18n-zh">索引、边界、共享内存搬运、同步,全部手写。控制力最强,心智负担也最大。</span><span lang="en" class="i18n-en">Indexing, bounds, shared-memory staging and synchronisation, all by hand. Maximum control, maximum cognitive load.</span></div>
               </div>
               <div class="tg-mcard">
-                <h5 class="tri">Triton:你管到每个 tile</h5>
-                <div class="sub">tl.program_id → 一整块 [BLOCK_M, BLOCK_N]</div>
+                <h5 class="tri"><span lang="zh-CN" class="i18n-zh">Triton:你管到每个 tile</span><span lang="en" class="i18n-en">Triton: you manage every tile</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">tl.program_id → 一整块 [BLOCK_M, BLOCK_N]</span><span lang="en" class="i18n-en">tl.program_id → a whole [BLOCK_M, BLOCK_N]</span></div>
                 <div class="tg-tiles" id="tgTiles"></div>
-                <div class="tg-mnote">你只写「取这块、乘、累加」,块内怎么排布由编译器决定。少写九成代码,但也少了九成微调余地。</div>
+                <div class="tg-mnote"><span lang="zh-CN" class="i18n-zh">你只写「取这块、乘、累加」,块内怎么排布由编译器决定。少写九成代码,但也少了九成微调余地。</span><span lang="en" class="i18n-en">You write only "fetch this block, multiply, accumulate"; how it is laid out inside the block is the compiler's call. Ninety percent less code, and ninety percent less room to micro-tune.</span></div>
               </div>
             </div>
-            <span class="fig-cap">这个差别决定了后面所有优化的形态:在 Triton 里你能调的不是「线程怎么排」,而是<strong>块多大、块按什么顺序发射、流水开几级</strong>。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">这个差别决定了后面所有优化的形态:在 Triton 里你能调的不是「线程怎么排」,而是<strong>块多大、块按什么顺序发射、流水开几级</strong>。</span><span lang="en" class="i18n-en">That difference shapes every optimisation below: what you can tune in Triton is not how threads are arranged but <strong>how big the blocks are, in what order they launch, and how many pipeline stages to run</strong>.</span></span>
           </div>
 
-          <h2>二、v0:先让它跑起来</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、v0:先让它跑起来</span><span lang="en" class="i18n-en">2 · v0: make it run first</span></h2>
 
-          <p>
-            GEMM 的分块形式很直白:每个 program 负责 C 的一个 <code>[BLOCK_M, BLOCK_N]</code> tile,
+          <p><span lang="zh-CN" class="i18n-zh">GEMM 的分块形式很直白:每个 program 负责 C 的一个 <code>[BLOCK_M, BLOCK_N]</code> tile,
             沿 K 方向循环,每次取 A 的一个 <code>[BLOCK_M, BLOCK_K]</code> 和 B 的一个 <code>[BLOCK_K, BLOCK_N]</code>,
-            乘完累加进去。整个主循环只有三句话。
-          </p>
+            乘完累加进去。整个主循环只有三句话。</span><span lang="en" class="i18n-en">The tiled form of GEMM is straightforward: each program owns one <code>[BLOCK_M, BLOCK_N]</code> tile of C,
+            loops along K, taking a <code>[BLOCK_M, BLOCK_K]</code> of A and a <code>[BLOCK_K, BLOCK_N]</code> of B each time,
+            multiplying and accumulating. The whole main loop is three statements.</span></p>
 
           <div class="tg-fig">
-            <div class="fig-title">动图 2:主循环 —— A 的行块 × B 的列块,沿 K 滑动累加</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:主循环 —— A 的行块 × B 的列块,沿 K 滑动累加</span><span lang="en" class="i18n-en">Figure 2: the main loop — A's row block × B's column block, sliding along K and accumulating</span></div>
             <div class="tg-legend">
-              <span><i style="--k: var(--a)"></i>A 当前块</span>
-              <span><i style="--k: var(--b)"></i>B 当前块</span>
-              <span><i style="--k: var(--c)"></i>C 累加中的 tile</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--a)"></i>A 当前块</span><span lang="en" class="i18n-en"><i style="--k: var(--a)"></i>A, current block</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--b)"></i>B 当前块</span><span lang="en" class="i18n-en"><i style="--k: var(--b)"></i>B, current block</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--c)"></i>C 累加中的 tile</span><span lang="en" class="i18n-en"><i style="--k: var(--c)"></i>C, the tile being accumulated</span></span>
             </div>
             <div class="tg-loop">
               <div class="tg-mat"><div class="cap">A [M, K]</div><div class="tg-grid" id="matA"></div></div>
@@ -298,14 +298,14 @@
             </div>
             <div class="tg-acc" id="loopAcc">k = 0 / 6 &nbsp;·&nbsp; accumulator += <b>tl.dot(a, b)</b></div>
             <div class="tg-ctrls">
-              <button class="primary" id="loopPlay">暂停</button>
-              <button id="loopStep">单步 →</button>
-              <button id="loopReset">重置</button>
+              <button class="primary" id="loopPlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <button id="loopStep"><span lang="zh-CN" class="i18n-zh">单步 →</span><span lang="en" class="i18n-en">Step →</span></button>
+              <button id="loopReset"><span lang="zh-CN" class="i18n-zh">重置</span><span lang="en" class="i18n-en">Reset</span></button>
             </div>
-            <span class="fig-cap">注意 C 那块<strong>自始至终不动</strong> —— 它一直待在寄存器里的累加器上,只有 A、B 在沿 K 滑动。这就是分块 GEMM 省访存的根本原因。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">注意 C 那块<strong>自始至终不动</strong> —— 它一直待在寄存器里的累加器上,只有 A、B 在沿 K 滑动。这就是分块 GEMM 省访存的根本原因。</span><span lang="en" class="i18n-en">Notice that the C block <strong>never moves</strong> — it lives in an accumulator in registers the whole time, and only A and B slide along K. This is fundamentally why tiled GEMM saves memory traffic.</span></span>
           </div>
 
-          <pre><code>@triton.jit
+          <pre><code><span lang="zh-CN" class="i18n-zh">@triton.jit
 def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
                   stride_am, stride_ak, stride_bk, stride_bn,
                   stride_cm, stride_cn,
@@ -339,20 +339,51 @@ def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
     offs_cn = pid_n * BLOCK_SIZE_N + tl.arange(0, BLOCK_SIZE_N)
     c_ptrs = (c_ptr + stride_cm * offs_cm[:, None]
                     + stride_cn * offs_cn[None, :])
-    tl.store(c_ptrs, c)</code></pre>
+    tl.store(c_ptrs, c)</span><span lang="en" class="i18n-en">@triton.jit
+def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
+                  stride_am, stride_ak, stride_bk, stride_bn,
+                  stride_cm, stride_cn,
+                  BLOCK_SIZE_M: tl.constexpr,
+                  BLOCK_SIZE_N: tl.constexpr,
+                  BLOCK_SIZE_K: tl.constexpr):
+    # v0: the naive row-major mapping, one program per C tile
+    pid = tl.program_id(axis=0)
+    grid_n = tl.cdiv(N, BLOCK_SIZE_N)
+    pid_m = pid // grid_n
+    pid_n = pid % grid_n
 
-          <p>
-            这版能出正确结果,但有两个前提:<strong>M、N、K 都得能被块大小整除</strong>,否则会越界读写。先补上这个。
-          </p>
+    offs_am = pid_m * BLOCK_SIZE_M + tl.arange(0, BLOCK_SIZE_M)
+    offs_bn = pid_n * BLOCK_SIZE_N + tl.arange(0, BLOCK_SIZE_N)
+    offs_k = tl.arange(0, BLOCK_SIZE_K)
+    a_ptrs = (a_ptr + offs_am[:, None] * stride_am
+                    + offs_k[None, :] * stride_ak)
+    b_ptrs = (b_ptr + offs_k[:, None] * stride_bk
+                    + offs_bn[None, :] * stride_bn)
 
-          <h2>三、v1:两个必修补丁 —— 边界与精度</h2>
+    acc = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
+    for k in range(0, tl.cdiv(K, BLOCK_SIZE_K)):
+        a = tl.load(a_ptrs)
+        b = tl.load(b_ptrs)
+        acc = tl.dot(a, b, acc)          # ← lands on the Tensor Cores
+        a_ptrs += BLOCK_SIZE_K * stride_ak
+        b_ptrs += BLOCK_SIZE_K * stride_bk
 
-          <p>
-            <strong>边界。</strong> 真实的 shape 不会那么听话。Triton 的做法是给 <code>tl.load</code> 加 <code>mask</code>,
-            越界的位置填 0(填 0 对乘加是安全的,不影响结果);写回时同样用 mask 挡住越界行列:
-          </p>
+    c = acc.to(tl.float16)
+    offs_cm = pid_m * BLOCK_SIZE_M + tl.arange(0, BLOCK_SIZE_M)
+    offs_cn = pid_n * BLOCK_SIZE_N + tl.arange(0, BLOCK_SIZE_N)
+    c_ptrs = (c_ptr + stride_cm * offs_cm[:, None]
+                    + stride_cn * offs_cn[None, :])
+    tl.store(c_ptrs, c)</span></code></pre>
 
-          <pre><code>    # K 方向:最后一个块可能不满,越界处填 0
+          <p><span lang="zh-CN" class="i18n-zh">这版能出正确结果,但有两个前提:<strong>M、N、K 都得能被块大小整除</strong>,否则会越界读写。先补上这个。</span><span lang="en" class="i18n-en">This version produces correct results, but only on two conditions: <strong>M, N and K must all divide evenly by the block sizes</strong>, or it reads and writes out of bounds. Fix that first.</span></p>
+
+          <h2><span lang="zh-CN" class="i18n-zh">三、v1:两个必修补丁 —— 边界与精度</span><span lang="en" class="i18n-en">3 · v1: two mandatory patches — bounds and precision</span></h2>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>边界。</strong> 真实的 shape 不会那么听话。Triton 的做法是给 <code>tl.load</code> 加 <code>mask</code>,
+            越界的位置填 0(填 0 对乘加是安全的,不影响结果);写回时同样用 mask 挡住越界行列:</span><span lang="en" class="i18n-en"><strong>Bounds.</strong> Real shapes are not that obliging. Triton's answer is a <code>mask</code> on <code>tl.load</code>,
+            filling out-of-range positions with 0 (safe for multiply-accumulate, and it does not change the result); the store is masked the same way against out-of-range rows and columns:</span></p>
+
+          <pre><code><span lang="zh-CN" class="i18n-zh"># K 方向:最后一个块可能不满,越界处填 0
     a = tl.load(a_ptrs,
                 mask=offs_k[None, :] &lt; K - k * BLOCK_SIZE_K, other=0.0)
     b = tl.load(b_ptrs,
@@ -360,52 +391,60 @@ def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
 
     # 写回:M、N 两个方向都要挡
     c_mask = (offs_cm[:, None] &lt; M) &amp; (offs_cn[None, :] &lt; N)
-    tl.store(c_ptrs, c, mask=c_mask)</code></pre>
+    tl.store(c_ptrs, c, mask=c_mask)</span><span lang="en" class="i18n-en"># Along K: the last block may be partial, out-of-range filled with 0
+    a = tl.load(a_ptrs,
+                mask=offs_k[None, :] &lt; K - k * BLOCK_SIZE_K, other=0.0)
+    b = tl.load(b_ptrs,
+                mask=offs_k[:, None] &lt; K - k * BLOCK_SIZE_K, other=0.0)
 
-          <p>
-            <strong>精度。</strong> 上面 <code>acc</code> 已经声明成 <code>tl.float32</code> 了,这不是随手写的。
+    # Store: both M and N need guarding
+    c_mask = (offs_cm[:, None] &lt; M) &amp; (offs_cn[None, :] &lt; N)
+    tl.store(c_ptrs, c, mask=c_mask)</span></code></pre>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>精度。</strong> 上面 <code>acc</code> 已经声明成 <code>tl.float32</code> 了,这不是随手写的。
             输入是 fp16/bf16,但累加必须在 fp32 上做 —— K 有几千轮,用 fp16 累加会一路吃掉低位,误差肉眼可见。
             正确姿势是<strong>整个 K 循环都用 fp32 累加,循环结束后再转回 fp16</strong>。顺带一提,
-            如果要融激活函数,也应该在<strong>转换之前</strong>做,精度更好还省一次读写。
-          </p>
+            如果要融激活函数,也应该在<strong>转换之前</strong>做,精度更好还省一次读写。</span><span lang="en" class="i18n-en"><strong>Precision.</strong> The <code>acc</code> above is already declared <code>tl.float32</code>, and that was not casual.
+            The inputs are fp16/bf16, but the accumulation has to happen in fp32 — with thousands of K iterations, accumulating in fp16 eats the low bits all the way down and the error becomes visible.
+            The correct form is to <strong>accumulate in fp32 through the whole K loop and convert back to fp16 afterwards</strong>. Incidentally,
+            if you are fusing an activation, do it <strong>before</strong> the conversion: better precision, and one fewer round trip.</span></p>
 
-          <h2>四、v2:只改发射顺序,不改一行计算</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、v2:只改发射顺序,不改一行计算</span><span lang="en" class="i18n-en">4 · v2: change only the launch order, not one line of computation</span></h2>
 
-          <p>
-            这是整条优化路径上性价比最高的一步。v0 用的是行优先映射:<code>pid_m = pid // grid_n</code>。
+          <p><span lang="zh-CN" class="i18n-zh">这是整条优化路径上性价比最高的一步。v0 用的是行优先映射:<code>pid_m = pid // grid_n</code>。
             问题在于,<strong>相邻的 program 几乎同时在跑</strong>,而行优先意味着它们横着扫过 C 的一整行 ——
-            这些 program 共享同一行 A,但要用掉<strong>所有</strong>列的 B。B 把 L2 冲刷了一遍,复用率极差。
-          </p>
+            这些 program 共享同一行 A,但要用掉<strong>所有</strong>列的 B。B 把 L2 冲刷了一遍,复用率极差。</span><span lang="en" class="i18n-en">This is the highest-return step on the whole path. v0 uses a row-major mapping: <code>pid_m = pid // grid_n</code>.
+            The problem is that <strong>adjacent programs run at roughly the same time</strong>, and row-major means they sweep across an entire row of C —
+            those programs share one row of A but consume <strong>every</strong> column of B. B flushes L2 once through, and reuse is terrible.</span></p>
 
-          <p>
-            换个编号方式:先在纵向吃满 <code>GROUP_SIZE_M</code> 行,再往右挪一列。同时在跑的 program 就聚成了一个方块,
-            A 和 B 的加载量都降下来。下面这张图可以自己拖:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">换个编号方式:先在纵向吃满 <code>GROUP_SIZE_M</code> 行,再往右挪一列。同时在跑的 program 就聚成了一个方块,
+            A 和 B 的加载量都降下来。下面这张图可以自己拖:</span><span lang="en" class="i18n-en">Renumber them: fill <code>GROUP_SIZE_M</code> rows vertically first, then move one column right. The concurrently running programs now cluster into a square,
+            and the load volume drops for both A and B. The figure below is draggable:</span></p>
 
           <div class="tg-fig">
-            <div class="fig-title">动图 3:发射顺序对 L2 的影响(可交互)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:发射顺序对 L2 的影响(可交互)</span><span lang="en" class="i18n-en">Figure 3: how launch order affects L2 (interactive)</span></div>
             <div class="tg-legend">
-              <span><i style="--k: var(--a)"></i>需要加载的 A 块</span>
-              <span><i style="--k: var(--b)"></i>需要加载的 B 块</span>
-              <span><i style="--k: var(--c)"></i>已发射的 program(C tile)</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--a)"></i>需要加载的 A 块</span><span lang="en" class="i18n-en"><i style="--k: var(--a)"></i>A blocks that must be loaded</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--b)"></i>需要加载的 B 块</span><span lang="en" class="i18n-en"><i style="--k: var(--b)"></i>B blocks that must be loaded</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--c)"></i>已发射的 program(C tile)</span><span lang="en" class="i18n-en"><i style="--k: var(--c)"></i>programs already launched (C tiles)</span></span>
             </div>
             <div class="tg-swz">
-              <div class="tg-mat"><div class="cap">A(9×9 块)</div><div class="tg-sgrid" id="swzA"></div></div>
-              <div class="tg-mat"><div class="cap">C —— 数字 = 发射次序</div><div class="tg-sgrid" id="swzC"></div></div>
-              <div class="tg-mat"><div class="cap">B(9×9 块)</div><div class="tg-sgrid" id="swzB"></div></div>
+              <div class="tg-mat"><div class="cap"><span lang="zh-CN" class="i18n-zh">A(9×9 块)</span><span lang="en" class="i18n-en">A (9×9 blocks)</span></div><div class="tg-sgrid" id="swzA"></div></div>
+              <div class="tg-mat"><div class="cap"><span lang="zh-CN" class="i18n-zh">C —— 数字 = 发射次序</span><span lang="en" class="i18n-en">C — the number is launch order</span></div><div class="tg-sgrid" id="swzC"></div></div>
+              <div class="tg-mat"><div class="cap"><span lang="zh-CN" class="i18n-zh">B(9×9 块)</span><span lang="en" class="i18n-en">B (9×9 blocks)</span></div><div class="tg-sgrid" id="swzB"></div></div>
             </div>
 
             <div class="tg-readout">
-              <div class="tg-ro"><div class="kk">已发射 program</div><div class="vv t" id="swzN">9</div></div>
-              <div class="tg-ro"><div class="kk">需加载 A 块</div><div class="vv a" id="swzAn">—</div></div>
-              <div class="tg-ro"><div class="kk">需加载 B 块</div><div class="vv b" id="swzBn">—</div></div>
-              <div class="tg-ro"><div class="kk">合计</div><div class="vv win" id="swzT">—</div></div>
+              <div class="tg-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">已发射 program</span><span lang="en" class="i18n-en">Programs launched</span></div><div class="vv t" id="swzN">9</div></div>
+              <div class="tg-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">需加载 A 块</span><span lang="en" class="i18n-en">A blocks needed</span></div><div class="vv a" id="swzAn">—</div></div>
+              <div class="tg-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">需加载 B 块</span><span lang="en" class="i18n-en">B blocks needed</span></div><div class="vv b" id="swzBn">—</div></div>
+              <div class="tg-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">合计</span><span lang="en" class="i18n-en">Total</span></div><div class="vv win" id="swzT">—</div></div>
             </div>
 
             <div class="tg-ctrls">
               <span style="font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted)">GROUP_SIZE_M</span>
               <div class="tg-seg" id="swzGroup">
-                <button data-g="1" class="on">1(行优先)</button>
+                <button data-g="1" class="on"><span lang="zh-CN" class="i18n-zh">1(行优先)</span><span lang="en" class="i18n-en">1 (row-major)</span></button>
                 <button data-g="2">2</button>
                 <button data-g="3">3</button>
                 <button data-g="4">4</button>
@@ -413,25 +452,24 @@ def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
               </div>
             </div>
             <div class="tg-ctrls">
-              <span style="font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted)">发射数</span>
-              <input type="range" id="swzRange" min="1" max="81" value="9" aria-label="已发射 program 数" />
+              <span style="font-family: var(--font-mono); font-size: .68rem; color: var(--text-muted)"><span lang="zh-CN" class="i18n-zh">发射数</span><span lang="en" class="i18n-en">Programs launched</span></span>
+              <input type="range" id="swzRange" min="1" max="81" value="9" aria-label="Programs launched" />
             </div>
 
             <div class="tg-verdict" id="swzVerdict"></div>
 
-            <span class="fig-cap">
-              保持发射数 = 9 不动,只切 <code>GROUP_SIZE_M</code>:行优先要加载 <b>90</b> 块,分组为 3 时只要 <b>54</b> 块 ——
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">保持发射数 = 9 不动,只切 <code>GROUP_SIZE_M</code>:行优先要加载 <b>90</b> 块,分组为 3 时只要 <b>54</b> 块 ——
               这正是
               <a href="https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html" target="_blank" rel="noopener">Triton 官方教程</a>
-              给出的两个数字。最优值出现在 <code>GROUP_SIZE_M ≈ √(网格边长)</code> 处,两侧都变差。
-            </span>
+              给出的两个数字。最优值出现在 <code>GROUP_SIZE_M ≈ √(网格边长)</code> 处,两侧都变差。</span><span lang="en" class="i18n-en">Hold the launch count at 9 and vary only <code>GROUP_SIZE_M</code>: row-major loads <b>90</b> blocks, grouping by 3 loads only <b>54</b> —
+              exactly the two numbers given in the
+              <a href="https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html" target="_blank" rel="noopener">official Triton tutorial</a>.
+              The optimum sits around <code>GROUP_SIZE_M ≈ √(grid side)</code> and gets worse on either side.</span></span>
           </div>
 
-          <p>
-            换算成代码,就是把 v0 那两行索引换成下面这段。<strong>计算部分一个字符都不用动</strong>:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">换算成代码,就是把 v0 那两行索引换成下面这段。<strong>计算部分一个字符都不用动</strong>:</span><span lang="en" class="i18n-en">In code, this replaces v0's two index lines with the following. <strong>Not one character of the computation changes</strong>:</span></p>
 
-          <pre><code>    pid = tl.program_id(axis=0)
+          <pre><code><span lang="zh-CN" class="i18n-zh">pid = tl.program_id(axis=0)
     num_pid_m = tl.cdiv(M, BLOCK_SIZE_M)
     num_pid_n = tl.cdiv(N, BLOCK_SIZE_N)
     num_pid_in_group = GROUP_SIZE_M * num_pid_n
@@ -441,54 +479,61 @@ def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
     group_size_m = min(num_pid_m - first_pid_m, GROUP_SIZE_M)
     # 组内按列优先走
     pid_m = first_pid_m + ((pid % num_pid_in_group) % group_size_m)
-    pid_n = (pid % num_pid_in_group) // group_size_m</code></pre>
+    pid_n = (pid % num_pid_in_group) // group_size_m</span><span lang="en" class="i18n-en">pid = tl.program_id(axis=0)
+    num_pid_m = tl.cdiv(M, BLOCK_SIZE_M)
+    num_pid_n = tl.cdiv(N, BLOCK_SIZE_N)
+    num_pid_in_group = GROUP_SIZE_M * num_pid_n
+    group_id = pid // num_pid_in_group
+    first_pid_m = group_id * GROUP_SIZE_M
+    # The last group may be partial
+    group_size_m = min(num_pid_m - first_pid_m, GROUP_SIZE_M)
+    # Column-major within the group
+    pid_m = first_pid_m + ((pid % num_pid_in_group) % group_size_m)
+    pid_n = (pid % num_pid_in_group) // group_size_m</span></code></pre>
 
-          <p>
-            收益有多大?官方文档给的是<strong>在某些架构上超过 10%</strong>(A100 上 220 → 245 TFLOPS)。
+          <p><span lang="zh-CN" class="i18n-zh">收益有多大?官方文档给的是<strong>在某些架构上超过 10%</strong>(A100 上 220 → 245 TFLOPS)。
             PyTorch 团队在 MoE 的 grouped GEMM 里报告过更极端的情况:<strong>1.33 倍加速,L2 命中率 +60%</strong>。
             差异这么大,是因为收益完全取决于矩阵形状和 L2 容量的比例关系 —— 所以
-            <code>GROUP_SIZE_M</code> 该设多少,最后还是得实测。
-          </p>
+            <code>GROUP_SIZE_M</code> 该设多少,最后还是得实测。</span><span lang="en" class="i18n-en">How much does it buy? The docs say <strong>over 10% on some architectures</strong> (220 → 245 TFLOPS on A100).
+            The PyTorch team reported something more extreme in a MoE grouped GEMM: <strong>1.33× speedup and +60% L2 hit rate</strong>.
+            The spread is that wide because the gain depends entirely on the ratio between matrix shape and L2 capacity — so what
+            <code>GROUP_SIZE_M</code> should be still comes down to measurement.</span></p>
 
-          <h2>五、v3:num_stages —— 让搬运和计算重叠</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、v3:num_stages —— 让搬运和计算重叠</span><span lang="en" class="i18n-en">5 · v3: num_stages — overlapping movement with computation</span></h2>
 
-          <p>
-            到这一步,数据的<strong>去向</strong>已经优化好了,但<strong>时机</strong>还没有。
-            v0 的循环是严格串行的:取 A、取 B、算,再取下一块。从 HBM 取数要几百个周期,这期间 Tensor Core 完全闲着。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">到这一步,数据的<strong>去向</strong>已经优化好了,但<strong>时机</strong>还没有。
+            v0 的循环是严格串行的:取 A、取 B、算,再取下一块。从 HBM 取数要几百个周期,这期间 Tensor Core 完全闲着。</span><span lang="en" class="i18n-en">By this point the <strong>destination</strong> of the data is optimised, but the <strong>timing</strong> is not.
+            v0's loop is strictly serial: fetch A, fetch B, compute, then fetch the next block. A fetch from HBM takes hundreds of cycles, and the Tensor Cores sit idle throughout.</span></p>
 
-          <p>
-            解法是软件流水:<strong>算第 k 块的同时,把第 k+1 块预取到共享内存</strong>。
-            Triton 不用你手写,给 <code>num_stages</code> 一个大于 1 的值,编译器会自动做循环展开与异步拷贝插入。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">解法是软件流水:<strong>算第 k 块的同时,把第 k+1 块预取到共享内存</strong>。
+            Triton 不用你手写,给 <code>num_stages</code> 一个大于 1 的值,编译器会自动做循环展开与异步拷贝插入。</span><span lang="en" class="i18n-en">The fix is software pipelining: <strong>prefetch block k+1 into shared memory while computing block k</strong>.
+            Triton does not make you write it — give <code>num_stages</code> a value above 1 and the compiler unrolls the loop and inserts the asynchronous copies.</span></p>
 
           <div class="tg-fig">
-            <div class="fig-title">动图 4:num_stages 的作用(时间轴)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:num_stages 的作用(时间轴)</span><span lang="en" class="i18n-en">Figure 4: what num_stages does (timeline)</span></div>
             <div class="tg-pipe">
               <div class="tg-prow">
-                <div class="lab">num_stages=1<br /><small style="color: var(--hot)">串行</small></div>
+                <div class="lab"><span lang="zh-CN" class="i18n-zh">num_stages=1<br /><small style="color: var(--hot)">串行</small></span><span lang="en" class="i18n-en">num_stages=1<br /><small style="color: var(--hot)">serial</small></span></div>
                 <div class="tg-ptrack" id="pipe1"></div>
               </div>
               <div class="tg-prow">
-                <div class="lab">num_stages=3<br /><small style="color: var(--ok)">三级流水</small></div>
+                <div class="lab"><span lang="zh-CN" class="i18n-zh">num_stages=3<br /><small style="color: var(--ok)">三级流水</small></span><span lang="en" class="i18n-en">num_stages=3<br /><small style="color: var(--ok)">three-stage pipeline</small></span></div>
                 <div class="tg-ptrack" id="pipe3"></div>
               </div>
             </div>
             <div class="tg-ptime" id="pipeNote">—</div>
-            <span class="fig-cap">
-              上排每算一块都要先干等一次搬运(斜纹为空转);下排把搬运藏到了上一块的计算背后,Tensor Core 基本不断流。
-              代价是共享内存要同时装下多级缓冲,所以 <code>num_stages</code> 不能无限加 —— 开太大会因 SMEM 不够而降低 occupancy,反而变慢。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">上排每算一块都要先干等一次搬运(斜纹为空转);下排把搬运藏到了上一块的计算背后,Tensor Core 基本不断流。
+              代价是共享内存要同时装下多级缓冲,所以 <code>num_stages</code> 不能无限加 —— 开太大会因 SMEM 不够而降低 occupancy,反而变慢。</span><span lang="en" class="i18n-en">The top row waits for a transfer before every block (hatched cells are idle); the bottom row hides the transfer behind the previous block's computation, keeping the Tensor Cores essentially fed.
+              The cost is that shared memory must hold several buffers at once, so <code>num_stages</code> cannot grow without limit — too large and insufficient SMEM lowers occupancy, making it slower instead.</span></span>
           </div>
 
-          <h2>六、v4:剩下的交给 autotune</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、v4:剩下的交给 autotune</span><span lang="en" class="i18n-en">6 · v4: leave the rest to autotune</span></h2>
 
-          <p>
-            <code>BLOCK_SIZE_M/N/K</code>、<code>GROUP_SIZE_M</code>、<code>num_stages</code>、<code>num_warps</code>
-            这几个旋钮互相牵制,最优解随 shape 和卡型变化,手调不现实。Triton 直接提供了搜索器:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh"><code>BLOCK_SIZE_M/N/K</code>、<code>GROUP_SIZE_M</code>、<code>num_stages</code>、<code>num_warps</code>
+            这几个旋钮互相牵制,最优解随 shape 和卡型变化,手调不现实。Triton 直接提供了搜索器:</span><span lang="en" class="i18n-en"><code>BLOCK_SIZE_M/N/K</code>, <code>GROUP_SIZE_M</code>, <code>num_stages</code> and <code>num_warps</code>
+            constrain one another, and the optimum shifts with shape and GPU, so hand-tuning is not practical. Triton ships a search for it:</span></p>
 
-          <pre><code>@triton.autotune(
+          <pre><code><span lang="zh-CN" class="i18n-zh">@triton.autotune(
     configs=[
         triton.Config({'BLOCK_SIZE_M': 128, 'BLOCK_SIZE_N': 256,
                        'BLOCK_SIZE_K': 64, 'GROUP_SIZE_M': 8},
@@ -505,110 +550,125 @@ def matmul_kernel(a_ptr, b_ptr, c_ptr, M, N, K,
 )
 @triton.jit
 def matmul_kernel(...):
-    ...</code></pre>
+    ...</span><span lang="en" class="i18n-en">@triton.autotune(
+    configs=[
+        triton.Config({'BLOCK_SIZE_M': 128, 'BLOCK_SIZE_N': 256,
+                       'BLOCK_SIZE_K': 64, 'GROUP_SIZE_M': 8},
+                      num_stages=3, num_warps=8),
+        triton.Config({'BLOCK_SIZE_M': 64, 'BLOCK_SIZE_N': 256,
+                       'BLOCK_SIZE_K': 32, 'GROUP_SIZE_M': 8},
+                      num_stages=4, num_warps=4),
+        triton.Config({'BLOCK_SIZE_M': 128, 'BLOCK_SIZE_N': 128,
+                       'BLOCK_SIZE_K': 32, 'GROUP_SIZE_M': 8},
+                      num_stages=4, num_warps=4),
+        # ... the tutorial lists a dozen more
+    ],
+    key=['M', 'N', 'K'],   # re-search only when these change
+)
+@triton.jit
+def matmul_kernel(...):
+    ...</span></code></pre>
 
           <div class="tg-tw">
             <table>
               <thead>
-                <tr><th>旋钮</th><th>调大的好处</th><th>调大的代价</th></tr>
+                <tr><th><span lang="zh-CN" class="i18n-zh">旋钮</span><span lang="en" class="i18n-en">Knob</span></th><th><span lang="zh-CN" class="i18n-zh">调大的好处</span><span lang="en" class="i18n-en">What increasing it buys</span></th><th><span lang="zh-CN" class="i18n-zh">调大的代价</span><span lang="en" class="i18n-en">What increasing it costs</span></th></tr>
               </thead>
               <tbody>
-                <tr><td><code>BLOCK_SIZE_M/N</code></td><td>算术强度更高,每块搬运摊得更薄</td><td>寄存器与 SMEM 吃紧,occupancy 下降;尾块浪费更多</td></tr>
-                <tr><td><code>BLOCK_SIZE_K</code></td><td>K 循环轮次变少,循环开销摊薄</td><td>单次搬运量变大,流水缓冲更占 SMEM</td></tr>
-                <tr><td><code>GROUP_SIZE_M</code></td><td>L2 复用变好(见动图 3)</td><td>过大反而退化,最优在 √ 附近</td></tr>
-                <tr><td><code>num_stages</code></td><td>搬运被计算掩盖</td><td>多级缓冲挤占 SMEM,过大掉 occupancy</td></tr>
-                <tr><td><code>num_warps</code></td><td>块内并行度更高</td><td>每线程可用寄存器变少,可能溢出到 local memory</td></tr>
+                <tr><td><code>BLOCK_SIZE_M/N</code></td><td><span lang="zh-CN" class="i18n-zh">算术强度更高,每块搬运摊得更薄</span><span lang="en" class="i18n-en">Higher arithmetic intensity; each transfer amortises further</span></td><td><span lang="zh-CN" class="i18n-zh">寄存器与 SMEM 吃紧,occupancy 下降;尾块浪费更多</span><span lang="en" class="i18n-en">Registers and SMEM get tight, occupancy drops; more waste in tail blocks</span></td></tr>
+                <tr><td><code>BLOCK_SIZE_K</code></td><td><span lang="zh-CN" class="i18n-zh">K 循环轮次变少,循环开销摊薄</span><span lang="en" class="i18n-en">Fewer K iterations, less loop overhead</span></td><td><span lang="zh-CN" class="i18n-zh">单次搬运量变大,流水缓冲更占 SMEM</span><span lang="en" class="i18n-en">Larger transfers per step, pipeline buffers take more SMEM</span></td></tr>
+                <tr><td><code>GROUP_SIZE_M</code></td><td><span lang="zh-CN" class="i18n-zh">L2 复用变好(见动图 3)</span><span lang="en" class="i18n-en">Better L2 reuse (see Figure 3)</span></td><td><span lang="zh-CN" class="i18n-zh">过大反而退化,最优在 √ 附近</span><span lang="en" class="i18n-en">Too large degenerates; the optimum is near the square root</span></td></tr>
+                <tr><td><code>num_stages</code></td><td><span lang="zh-CN" class="i18n-zh">搬运被计算掩盖</span><span lang="en" class="i18n-en">Transfers hide behind computation</span></td><td><span lang="zh-CN" class="i18n-zh">多级缓冲挤占 SMEM,过大掉 occupancy</span><span lang="en" class="i18n-en">Multi-stage buffers crowd SMEM; too large costs occupancy</span></td></tr>
+                <tr><td><code>num_warps</code></td><td><span lang="zh-CN" class="i18n-zh">块内并行度更高</span><span lang="en" class="i18n-en">More parallelism within a block</span></td><td><span lang="zh-CN" class="i18n-zh">每线程可用寄存器变少,可能溢出到 local memory</span><span lang="en" class="i18n-en">Fewer registers per thread, risking spills to local memory</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            两个实践提醒:<code>key</code> 里列的参数一变就会触发重新搜索,所以<strong>上线前要先 warm up</strong>,
+          <p><span lang="zh-CN" class="i18n-zh">两个实践提醒:<code>key</code> 里列的参数一变就会触发重新搜索,所以<strong>上线前要先 warm up</strong>,
             否则第一个请求会被搜索过程拖成长尾;另外 autotune 是在<strong>真实 shape 上实测</strong>选优,
-            这也意味着 shape 抖动大的场景(比如变长序列)要考虑做分桶。
-          </p>
+            这也意味着 shape 抖动大的场景(比如变长序列)要考虑做分桶。</span><span lang="en" class="i18n-en">Two practical notes: changing any parameter listed in <code>key</code> triggers a re-search, so <strong>warm up before going live</strong>,
+            or the first request gets dragged into the tail by the search; and autotune selects by <strong>measuring on the real shape</strong>,
+            which means shape-jittery workloads (variable-length sequences, say) should consider bucketing.</span></p>
 
-          <h2>七、天花板之上:persistent、TMA 与 warp 专业化</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、天花板之上:persistent、TMA 与 warp 专业化</span><span lang="en" class="i18n-en">7 · Above the ceiling: persistent kernels, TMA and warp specialisation</span></h2>
 
-          <p>
-            上面几步做完,通常已经能摸到 cuBLAS 的量级。再往上就要动执行模型本身了,这几项都依赖较新的硬件:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">上面几步做完,通常已经能摸到 cuBLAS 的量级。再往上就要动执行模型本身了,这几项都依赖较新的硬件:</span><span lang="en" class="i18n-en">With the steps above done you are usually in cuBLAS territory. Going further means changing the execution model itself, and these all depend on newer hardware:</span></p>
 
           <ul>
-            <li><strong>Persistent kernel</strong> —— 不再「一个 tile 一个 CTA」,而是发射恰好等于 SM 数量的 program,每个在内部循环领取多个 tile。省掉大量 CTA 启动与调度开销,也让流水能跨 tile 摊薄。注意官方教程提到:persistent 化之后 <strong>L2 命中率反而会掉约 10%</strong>,因此仍需在 tile 调度器里做分组,和动图 3 是同一个道理。</li>
-            <li><strong>TMA(Tensor Memory Accelerator)</strong> —— Hopper 起的硬件搬运引擎。用 <code>tl.make_block_ptr</code> 或 tensor descriptor,编译器能发出异步的批量拷贝,还省掉对齐 tile 的越界 mask 开销。</li>
-            <li><strong>Warp 专业化</strong> —— 把一个 CTA 里的 warp 分工:生产者 warp 组专职搬数,消费者 warp 组专职算。开关是 <code>warp_specialize=True</code>。官方在 09 号教程里同时给了 naive / persistent / TMA / descriptor 几个版本可以对拍。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>Persistent kernel</strong> —— 不再「一个 tile 一个 CTA」,而是发射恰好等于 SM 数量的 program,每个在内部循环领取多个 tile。省掉大量 CTA 启动与调度开销,也让流水能跨 tile 摊薄。注意官方教程提到:persistent 化之后 <strong>L2 命中率反而会掉约 10%</strong>,因此仍需在 tile 调度器里做分组,和动图 3 是同一个道理。</span><span lang="en" class="i18n-en"><strong>Persistent kernel</strong> — instead of one CTA per tile, launch exactly as many programs as there are SMs and have each claim multiple tiles in an inner loop. This removes a great deal of CTA launch and scheduling overhead and lets the pipeline amortise across tiles. Note the tutorial's caveat: going persistent <strong>drops L2 hit rate by around 10%</strong>, so you still need grouping in the tile scheduler — the same reasoning as Figure 3.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>TMA(Tensor Memory Accelerator)</strong> —— Hopper 起的硬件搬运引擎。用 <code>tl.make_block_ptr</code> 或 tensor descriptor,编译器能发出异步的批量拷贝,还省掉对齐 tile 的越界 mask 开销。</span><span lang="en" class="i18n-en"><strong>TMA (Tensor Memory Accelerator)</strong> — a hardware transfer engine from Hopper onward. With <code>tl.make_block_ptr</code> or a tensor descriptor, the compiler can emit asynchronous bulk copies and skip the bounds-mask overhead for aligned tiles.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>Warp 专业化</strong> —— 把一个 CTA 里的 warp 分工:生产者 warp 组专职搬数,消费者 warp 组专职算。开关是 <code>warp_specialize=True</code>。官方在 09 号教程里同时给了 naive / persistent / TMA / descriptor 几个版本可以对拍。</span><span lang="en" class="i18n-en"><strong>Warp specialisation</strong> — divide labour among the warps in a CTA: producer warps move data, consumer warps compute. The switch is <code>warp_specialize=True</code>. Tutorial 09 ships naive / persistent / TMA / descriptor variants side by side for comparison.</span></li>
           </ul>
 
-          <h2>八、复盘:每一步各自解决了什么</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">八、复盘:每一步各自解决了什么</span><span lang="en" class="i18n-en">8 · Review: what each step actually fixed</span></h2>
 
           <div class="tg-fig">
-            <div class="fig-title">动图 5:优化路径与各步的着力点</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 5:优化路径与各步的着力点</span><span lang="en" class="i18n-en">Figure 5: the optimisation path and where each step applies</span></div>
             <div class="tg-steps">
               <div class="tg-strow">
-                <div class="nm">v0 分块 + tl.dot<small>能跑</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v0 分块 + tl.dot<small>能跑</small></span><span lang="en" class="i18n-en">v0 tiling + tl.dot<small>it runs</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 26%; --k: var(--hot); --d: .05s"></i></div>
-                <div class="vl">基线</div>
+                <div class="vl"><span lang="zh-CN" class="i18n-zh">基线</span><span lang="en" class="i18n-en">baseline</span></div>
               </div>
               <div class="tg-strow">
-                <div class="nm">v1 mask + fp32 acc<small>正确性</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v1 mask + fp32 acc<small>正确性</small></span><span lang="en" class="i18n-en">v1 mask + fp32 acc<small>correctness</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 30%; --k: var(--hot); --d: .18s"></i></div>
-                <div class="vl">≈ 持平</div>
+                <div class="vl"><span lang="zh-CN" class="i18n-zh">≈ 持平</span><span lang="en" class="i18n-en">≈ unchanged</span></div>
               </div>
               <div class="tg-strow">
-                <div class="nm">v2 分组发射顺序<small>L2 局部性</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v2 分组发射顺序<small>L2 局部性</small></span><span lang="en" class="i18n-en">v2 grouped launch order<small>L2 locality</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 52%; --k: var(--c); --d: .31s"></i></div>
                 <div class="vl">+10% ~ 1.33×</div>
               </div>
               <div class="tg-strow">
-                <div class="nm">v3 num_stages<small>隐藏访存延迟</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v3 num_stages<small>隐藏访存延迟</small></span><span lang="en" class="i18n-en">v3 num_stages<small>hiding memory latency</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 72%; --k: var(--a); --d: .44s"></i></div>
-                <div class="vl">显著</div>
+                <div class="vl"><span lang="zh-CN" class="i18n-zh">显著</span><span lang="en" class="i18n-en">substantial</span></div>
               </div>
               <div class="tg-strow">
-                <div class="nm">v4 autotune<small>形状适配</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v4 autotune<small>形状适配</small></span><span lang="en" class="i18n-en">v4 autotune<small>fitting the shape</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 88%; --k: var(--b); --d: .57s"></i></div>
-                <div class="vl">因 shape 而异</div>
+                <div class="vl"><span lang="zh-CN" class="i18n-zh">因 shape 而异</span><span lang="en" class="i18n-en">varies by shape</span></div>
               </div>
               <div class="tg-strow">
-                <div class="nm">v5 persistent / TMA / WS<small>执行模型</small></div>
+                <div class="nm"><span lang="zh-CN" class="i18n-zh">v5 persistent / TMA / WS<small>执行模型</small></span><span lang="en" class="i18n-en">v5 persistent / TMA / WS<small>execution model</small></span></div>
                 <div class="tg-stbar"><i class="tg-stfill" style="--w: 100%; --k: var(--ok); --d: .7s"></i></div>
-                <div class="vl">依赖新硬件</div>
+                <div class="vl"><span lang="zh-CN" class="i18n-zh">依赖新硬件</span><span lang="en" class="i18n-en">needs newer hardware</span></div>
               </div>
             </div>
-            <span class="fig-cap">
-              条形长度只表示<strong>优化的推进阶段,不是实测加速比</strong> —— 真实收益随 shape、卡型、数据类型剧烈变化。
-              标注的百分比来自官方文档与 PyTorch 博客,见下方链接。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">条形长度只表示<strong>优化的推进阶段,不是实测加速比</strong> —— 真实收益随 shape、卡型、数据类型剧烈变化。
+              标注的百分比来自官方文档与 PyTorch 博客,见下方链接。</span><span lang="en" class="i18n-en">Bar length indicates <strong>how far along the optimisation path a step is, not a measured speedup</strong> — real gains swing wildly with shape, GPU and data type.
+              The percentages annotated come from the official docs and the PyTorch blog; links below.</span></span>
           </div>
 
           <div class="tg-takes">
-            <div class="tg-take"><div class="n">01</div><h5>先改变量,再改代码</h5>
-              <p>Triton 里最见效的往往不是重写计算,而是改「块多大、按什么顺序发、流水开几级」。v2 那一步<strong>计算逻辑一字未动</strong>,只换了 pid 到 tile 的映射函数。</p></div>
-            <div class="tg-take"><div class="n">02</div><h5>fp32 累加器不是可选项</h5>
-              <p>输入 fp16/bf16、累加 fp32、循环结束再转回去。K 上千轮的累加用低精度会明显掉点,而 <code>tl.dot</code> 本来就支持 fp32 累加,不花额外代价。</p></div>
-            <div class="tg-take"><div class="n">03</div><h5>发射顺序就是缓存策略</h5>
-              <p>你无法直接控制 L2 装什么,但能控制 program 的执行次序,而次序决定了同时活跃的数据集有多大。9×9 的例子里,这个选择就是 90 块和 54 块的差别。</p></div>
-            <div class="tg-take"><div class="n">04</div><h5>每个旋钮都有反向代价</h5>
-              <p>块调大提高算术强度但压 occupancy,<code>num_stages</code> 调大掩盖延迟但吃 SMEM。没有普适最优解,这正是要 autotune 的原因。</p></div>
-            <div class="tg-take"><div class="n">05</div><h5>autotune 要预热</h5>
-              <p>它是在真实 shape 上实测选优的。不 warm up,第一个请求就会被搜索过程拖成长尾;shape 抖动大的场景还要考虑分桶。</p></div>
-            <div class="tg-take"><div class="n">06</div><h5>先量瓶颈,再挑手段</h5>
-              <p>访存受限就上流水和 TMA,L2 抖动就调分组,启动开销高就上 persistent。顺序反了会做很多无用功 —— 这也是本文按这个顺序排列的原因。</p></div>
+            <div class="tg-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">先改变量,再改代码</span><span lang="en" class="i18n-en">Change the variables before changing the code</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Triton 里最见效的往往不是重写计算,而是改「块多大、按什么顺序发、流水开几级」。v2 那一步<strong>计算逻辑一字未动</strong>,只换了 pid 到 tile 的映射函数。</span><span lang="en" class="i18n-en">What pays off most in Triton is usually not rewriting the computation but changing how big the blocks are, in what order they launch, and how many pipeline stages run. Step v2 <strong>left the computation untouched</strong> and only swapped the pid-to-tile mapping.</span></p></div>
+            <div class="tg-take"><div class="n">02</div><h5><span lang="zh-CN" class="i18n-zh">fp32 累加器不是可选项</span><span lang="en" class="i18n-en">An fp32 accumulator is not optional</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">输入 fp16/bf16、累加 fp32、循环结束再转回去。K 上千轮的累加用低精度会明显掉点,而 <code>tl.dot</code> 本来就支持 fp32 累加,不花额外代价。</span><span lang="en" class="i18n-en">Inputs in fp16/bf16, accumulate in fp32, convert back after the loop. Accumulating thousands of K iterations at low precision visibly costs accuracy, and <code>tl.dot</code> supports fp32 accumulation at no extra cost anyway.</span></p></div>
+            <div class="tg-take"><div class="n">03</div><h5><span lang="zh-CN" class="i18n-zh">发射顺序就是缓存策略</span><span lang="en" class="i18n-en">Launch order is a caching policy</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">你无法直接控制 L2 装什么,但能控制 program 的执行次序,而次序决定了同时活跃的数据集有多大。9×9 的例子里,这个选择就是 90 块和 54 块的差别。</span><span lang="en" class="i18n-en">You cannot control what goes into L2 directly, but you can control the execution order of the programs, and that order determines how large the concurrently live working set is. In the 9×9 example, that choice is the difference between 90 blocks and 54.</span></p></div>
+            <div class="tg-take"><div class="n">04</div><h5><span lang="zh-CN" class="i18n-zh">每个旋钮都有反向代价</span><span lang="en" class="i18n-en">Every knob has a cost in the other direction</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">块调大提高算术强度但压 occupancy,<code>num_stages</code> 调大掩盖延迟但吃 SMEM。没有普适最优解,这正是要 autotune 的原因。</span><span lang="en" class="i18n-en">Larger blocks raise arithmetic intensity but squeeze occupancy; a larger <code>num_stages</code> hides latency but eats SMEM. There is no universal optimum, which is exactly why autotune exists.</span></p></div>
+            <div class="tg-take"><div class="n">05</div><h5><span lang="zh-CN" class="i18n-zh">autotune 要预热</span><span lang="en" class="i18n-en">Autotune needs warming up</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">它是在真实 shape 上实测选优的。不 warm up,第一个请求就会被搜索过程拖成长尾;shape 抖动大的场景还要考虑分桶。</span><span lang="en" class="i18n-en">It selects by measuring on the real shape. Without a warm-up the first request gets dragged into the tail by the search; shape-jittery workloads should also consider bucketing.</span></p></div>
+            <div class="tg-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">先量瓶颈,再挑手段</span><span lang="en" class="i18n-en">Measure the bottleneck before picking a remedy</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">访存受限就上流水和 TMA,L2 抖动就调分组,启动开销高就上 persistent。顺序反了会做很多无用功 —— 这也是本文按这个顺序排列的原因。</span><span lang="en" class="i18n-en">Memory-bound calls for pipelining and TMA, L2 thrash calls for grouping, high launch overhead calls for persistent kernels. Getting the order backwards wastes a lot of effort — which is why this note is ordered the way it is.</span></p></div>
           </div>
 
-          <p>
-            参考:
+          <p><span lang="zh-CN" class="i18n-zh">参考:
             <a href="https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html" target="_blank" rel="noopener">Triton 官方教程 03 · Matrix Multiplication</a>、
             <a href="https://triton-lang.org/main/getting-started/tutorials/09-persistent-matmul.html" target="_blank" rel="noopener">教程 09 · Persistent Matmul</a>、
             <a href="https://pytorch.org/blog/accelerating-moes-with-a-triton-persistent-cache-aware-grouped-gemm-kernel/" target="_blank" rel="noopener">PyTorch:cache-aware grouped GEMM</a>、
-            <a href="https://pytorch.org/blog/accelerating-gemms-triton/" target="_blank" rel="noopener">PyTorch:accelerating GEMMs with Triton</a>。
-          </p>
+            <a href="https://pytorch.org/blog/accelerating-gemms-triton/" target="_blank" rel="noopener">PyTorch:accelerating GEMMs with Triton</a>。</span><span lang="en" class="i18n-en">References:
+            <a href="https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html" target="_blank" rel="noopener">Triton tutorial 03 · Matrix Multiplication</a>,
+            <a href="https://triton-lang.org/main/getting-started/tutorials/09-persistent-matmul.html" target="_blank" rel="noopener">tutorial 09 · Persistent Matmul</a>,
+            <a href="https://pytorch.org/blog/accelerating-moes-with-a-triton-persistent-cache-aware-grouped-gemm-kernel/" target="_blank" rel="noopener">PyTorch: cache-aware grouped GEMM</a>,
+            <a href="https://pytorch.org/blog/accelerating-gemms-triton/" target="_blank" rel="noopener">PyTorch: accelerating GEMMs with Triton</a>.</span></p>
 
-          <blockquote>
-            代码片段以 Triton 官方教程为准,可直接对照运行。文中性能数字均引自官方文档或 PyTorch 博客,
-            非本机实测;动图 5 的条形表示优化阶段而非加速比。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">代码片段以 Triton 官方教程为准,可直接对照运行。文中性能数字均引自官方文档或 PyTorch 博客,
+            非本机实测;动图 5 的条形表示优化阶段而非加速比。</span><span lang="en" class="i18n-en">Code snippets follow the official Triton tutorials and can be run directly against them. Performance figures are quoted from the docs or the PyTorch blog,
+            not measured here; the bars in Figure 5 represent optimisation stages rather than speedups.</span></blockquote>
         </div>
       </article>
     </main>
@@ -625,6 +685,17 @@ def matmul_kernel(...):
 
     <script>
       (function () {
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
         /* ============ 动图 1:粒度对比 ============ */
         (function () {
           var dots = document.getElementById('tgDots');
@@ -682,19 +753,19 @@ def matmul_kernel(...):
             });
             acc.innerHTML = 'k = ' + (k + 1) + ' / ' + KB +
               ' &nbsp;·&nbsp; accumulator += <b>tl.dot(a, b)</b>' +
-              ' &nbsp;·&nbsp; C tile 固定在 (' + pidM + ', ' + pidN + ')';
+              tr(' &nbsp;·&nbsp; C tile 固定在 (', ' &nbsp;·&nbsp; C tile pinned at (') + pidM + ', ' + pidN + ')';
           }
           function next() { k = (k + 1) % KB; render(); }
           function loop() { clearInterval(timer); if (playing) timer = setInterval(next, 1100); }
 
           document.getElementById('loopPlay').addEventListener('click', function (e) {
             playing = !playing;
-            e.target.textContent = playing ? '暂停' : '继续';
+            e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume');
             loop();
           });
           document.getElementById('loopStep').addEventListener('click', function () {
             playing = false;
-            document.getElementById('loopPlay').textContent = '继续';
+            document.getElementById('loopPlay').textContent = tr('继续', 'Resume');
             clearInterval(timer);
             next();
           });
@@ -703,6 +774,7 @@ def matmul_kernel(...):
           });
           render();
           loop();
+          redraw.push(render);
         })();
 
         /* ============ 动图 3:L2 分组发射顺序(核心) ============ */
@@ -800,23 +872,37 @@ def matmul_kernel(...):
             // 发射数足够大时,任何顺序都会碰到所有行列,差异消失
             var saturated = info.rows.length === GRID && info.cols.length === GRID;
             if (saturated) {
-              msg = '发射数已经覆盖整个网格:不管什么顺序,最终都要把 A、B 全部 <b>' + total +
-                '</b> 块读进来。分组的价值只体现在<b>同时活跃</b>的那一批 program 上 —— 把发射数拖回 9 附近再对比。';
+              msg = isEn()
+                ? 'The launch count already covers the whole grid: whatever the order, all <b>' + total +
+                  '</b> blocks of A and B end up being read. Grouping only helps the programs that are <b>live at the same time</b> — drag the launch count back toward 9 to compare.'
+                : '发射数已经覆盖整个网格:不管什么顺序,最终都要把 A、B 全部 <b>' + total +
+                  '</b> 块读进来。分组的价值只体现在<b>同时活跃</b>的那一批 program 上 —— 把发射数拖回 9 附近再对比。';
             } else if (G === 1) {
-              msg = '当前是<b>行优先</b>基线:前 ' + n + ' 个 program 横扫一整行,A 只用到 ' +
-                info.rows.length + ' 行,却要把 ' + info.cols.length + ' 列的 B 全拉进来,合计 <b>' + total + '</b> 块。';
+              msg = isEn()
+                ? 'This is the <b>row-major</b> baseline: the first ' + n + ' programs sweep one whole row, using only ' +
+                  info.rows.length + ' rows of A while pulling in all ' + info.cols.length + ' columns of B — <b>' + total + '</b> blocks in total.'
+                : '当前是<b>行优先</b>基线:前 ' + n + ' 个 program 横扫一整行,A 只用到 ' +
+                  info.rows.length + ' 行,却要把 ' + info.cols.length + ' 列的 B 全拉进来,合计 <b>' + total + '</b> 块。';
             } else if (total < baseTotal) {
               var save = (100 * (1 - total / baseTotal)).toFixed(0);
-              msg = 'GROUP_SIZE_M = ' + G + ':同时活跃的 program 聚成 ' + info.rows.length + '×' + info.cols.length +
-                ' 的方块,加载量从 ' + baseTotal + ' 降到 <b>' + total + '</b> 块,<b>少搬 ' + save + '%</b>。';
+              msg = isEn()
+                ? 'GROUP_SIZE_M = ' + G + ': the live programs cluster into a ' + info.rows.length + '×' + info.cols.length +
+                  ' square, and the load drops from ' + baseTotal + ' to <b>' + total + '</b> blocks — <b>' + save + '% less traffic</b>.'
+                : 'GROUP_SIZE_M = ' + G + ':同时活跃的 program 聚成 ' + info.rows.length + '×' + info.cols.length +
+                  ' 的方块,加载量从 ' + baseTotal + ' 降到 <b>' + total + '</b> 块,<b>少搬 ' + save + '%</b>。';
             } else if (total === baseTotal) {
-              msg = 'GROUP_SIZE_M = ' + G + ':活跃 program 覆盖 ' + info.rows.length + '×' + info.cols.length +
-                ' 的范围,占用的行列总数和行优先一样多,加载量同为 <b>' + total + '</b> 块 —— 此时分组没有收益。' +
+              msg = (isEn()
+                ? 'GROUP_SIZE_M = ' + G + ': the live programs span ' + info.rows.length + '×' + info.cols.length +
+                  ', touching as many rows and columns in total as row-major, so the load is the same <b>' + total + '</b> blocks — grouping buys nothing here. '
+                : 'GROUP_SIZE_M = ' + G + ':活跃 program 覆盖 ' + info.rows.length + '×' + info.cols.length +
+                  ' 的范围,占用的行列总数和行优先一样多,加载量同为 <b>' + total + '</b> 块 —— 此时分组没有收益。') +
                 (G >= GRID
-                  ? '分得太粗就退化成竖着扫一整列,可见并非越大越好。'
-                  : '收益要在活跃 program 不足以铺满一整行时才出现,把发射数拖到 9 附近再看。');
+                  ? tr('分得太粗就退化成竖着扫一整列,可见并非越大越好。', 'Group too coarsely and it degenerates into sweeping a whole column vertically — bigger is not better.')
+                  : tr('收益要在活跃 program 不足以铺满一整行时才出现,把发射数拖到 9 附近再看。', 'The gain only appears when the live programs cannot fill a whole row; drag the launch count toward 9 to see it.'));
             } else {
-              msg = 'GROUP_SIZE_M = ' + G + ':加载量 <b>' + total + '</b> 块,反而比行优先的 ' + baseTotal + ' 块更差。';
+              msg = isEn()
+                ? 'GROUP_SIZE_M = ' + G + ': <b>' + total + '</b> blocks loaded, worse than row-major\'s ' + baseTotal + '.'
+                : 'GROUP_SIZE_M = ' + G + ':加载量 <b>' + total + '</b> 块,反而比行优先的 ' + baseTotal + ' 块更差。';
             }
             verdict.innerHTML = msg;
           }
@@ -835,6 +921,7 @@ def matmul_kernel(...):
           });
 
           render();
+          redraw.push(render);
         })();
 
         /* ============ 动图 4:软件流水时间轴 ============ */
@@ -853,10 +940,12 @@ def matmul_kernel(...):
             parent.appendChild(s);
           }
 
+          function build() {
+          p1.innerHTML = ''; p3.innerHTML = '';
           // 串行:每块 = 搬运(等) + 计算
           var unit1 = 100 / (TILES * 2);
           for (var i = 0; i < TILES; i++) {
-            seg(p1, i * 2 * unit1, unit1, 'idle', '等 ld' + i);
+            seg(p1, i * 2 * unit1, unit1, 'idle', tr('等 ld', 'wait ld') + i);
             seg(p1, (i * 2 + 1) * unit1, unit1, 'cp', 'mma' + i);
           }
           // 流水:首块预热后,计算连续
@@ -865,8 +954,14 @@ def matmul_kernel(...):
           for (var j = 0; j < TILES; j++) {
             seg(p3, (j + 1) * unit3, unit3, 'cp', 'mma' + j);
           }
-          note.innerHTML = '串行需 ' + TILES * 2 + ' 个时间片;三级流水只需 ' + (TILES + 1) +
-            ' 片(1 片预热 + ' + TILES + ' 片连续计算),K 越长,预热那一片摊得越薄。';
+          note.innerHTML = isEn()
+            ? 'Serial needs ' + TILES * 2 + ' time slots; a three-stage pipeline needs only ' + (TILES + 1) +
+              ' (1 to warm up plus ' + TILES + ' of continuous computation). The longer K is, the thinner that warm-up slot amortises.'
+            : '串行需 ' + TILES * 2 + ' 个时间片;三级流水只需 ' + (TILES + 1) +
+              ' 片(1 片预热 + ' + TILES + ' 片连续计算),K 越长,预热那一片摊得越薄。';
+          }
+          build();
+          redraw.push(build);
         })();
       })();
     </script>
