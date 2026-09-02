@@ -190,126 +190,119 @@
         </header>
 
         <div class="prose">
-          <p class="px-lede">
-            上一篇<a href="parallelism-comm-cost.html">通信量账本</a>算的是<strong>传多少字节</strong>。
+          <p class="px-lede"><span lang="zh-CN" class="i18n-zh">上一篇<a href="parallelism-comm-cost.html">通信量账本</a>算的是<strong>传多少字节</strong>。
             这篇换个视角,只看<strong>编排</strong>:谁跟谁通信、在前向反向的哪个时刻通信、通信的时候计算是停着还是照跑。
-            两张卡传 1 GiB,和八张卡各传 128 MiB 却要全体对齐 —— 字节数一样,对性能的影响完全是两回事。
-          </p>
+            两张卡传 1 GiB,和八张卡各传 128 MiB 却要全体对齐 —— 字节数一样,对性能的影响完全是两回事。</span><span lang="en" class="i18n-en">The previous note, the <a href="parallelism-comm-cost.html">communication ledger</a>, counted <strong>how many bytes move</strong>.
+            This one changes the angle and looks only at <strong>choreography</strong>: who talks to whom, at which moment of the forward and backward pass, and whether computation stops while they talk.
+            Two GPUs moving 1 GiB, versus eight GPUs each moving 128 MiB but all having to align — the same byte count, and completely different consequences for performance.</span></p>
 
-          <h2>一、先分清三种交互形态</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、先分清三种交互形态</span><span lang="en" class="i18n-en">1 · Three interaction shapes</span></h2>
 
-          <p>
-            五种并行的通信看起来五花八门,但拓扑上只有三类。<strong>认出是哪一类,就知道它能不能跨节点、卡多了会不会崩。</strong>
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">五种并行的通信看起来五花八门,但拓扑上只有三类。<strong>认出是哪一类,就知道它能不能跨节点、卡多了会不会崩。</strong></span><span lang="en" class="i18n-en">The communication of five parallelism strategies looks varied, but topologically there are only three kinds. <strong>Recognise which kind, and you know whether it can cross nodes and whether it collapses as GPUs are added.</strong></span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 1:三种交互拓扑</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:三种交互拓扑</span><span lang="en" class="i18n-en">Figure 1: three interaction topologies</span></div>
             <div class="px-topo3">
               <div class="px-tcard" style="--c: var(--dp)">
-                <h5>① 副本组内规约</h5>
+                <h5><span lang="zh-CN" class="i18n-zh">① 副本组内规约</span><span lang="en" class="i18n-en">① Reduce within a replica group</span></h5>
                 <div class="sub">DP · ZeRO</div>
                 <svg class="px-svg" viewBox="0 0 200 118" id="topoA"></svg>
-                <p>每张卡算的是<strong>不同数据、相同模型</strong>,最后把梯度对齐。全组参与,但一个 step 只做一次,而且能和反向重叠。</p>
+                <p><span lang="zh-CN" class="i18n-zh">每张卡算的是<strong>不同数据、相同模型</strong>,最后把梯度对齐。全组参与,但一个 step 只做一次,而且能和反向重叠。</span><span lang="en" class="i18n-en">Each GPU computes <strong>different data on the same model</strong> and aligns the gradients at the end. The whole group participates, but only once per step, and it can overlap with the backward pass.</span></p>
               </div>
               <div class="px-tcard" style="--c: var(--tp)">
-                <h5>② 全组交换</h5>
+                <h5><span lang="zh-CN" class="i18n-zh">② 全组交换</span><span lang="en" class="i18n-en">② All-to-all exchange</span></h5>
                 <div class="sub">TP · EP · Ulysses</div>
                 <svg class="px-svg" viewBox="0 0 200 118" id="topoB"></svg>
-                <p>每张卡都要<strong>和组里所有卡</strong>换数据。全连接、高频、强同步 —— 谁慢一点全组都得等。卡数一多就吃不消。</p>
+                <p><span lang="zh-CN" class="i18n-zh">每张卡都要<strong>和组里所有卡</strong>换数据。全连接、高频、强同步 —— 谁慢一点全组都得等。卡数一多就吃不消。</span><span lang="en" class="i18n-en">Every GPU exchanges data with <strong>every other GPU in the group</strong>. Fully connected, frequent, tightly synchronised — if one lags, the whole group waits. It does not hold up as GPU count rises.</span></p>
               </div>
               <div class="px-tcard" style="--c: var(--pp)">
-                <h5>③ 邻居传递</h5>
+                <h5><span lang="zh-CN" class="i18n-zh">③ 邻居传递</span><span lang="en" class="i18n-en">③ Neighbour hand-off</span></h5>
                 <div class="sub">PP · Ring-Attention</div>
                 <svg class="px-svg" viewBox="0 0 200 118" id="topoC"></svg>
-                <p>只跟<strong>左右邻居</strong>说话,点对点,不需要全局同步。天然适合跨节点,也最容易和计算重叠。</p>
+                <p><span lang="zh-CN" class="i18n-zh">只跟<strong>左右邻居</strong>说话,点对点,不需要全局同步。天然适合跨节点,也最容易和计算重叠。</span><span lang="en" class="i18n-en">Talks only to <strong>the neighbours on either side</strong>, point to point, with no global synchronisation. Naturally suited to crossing nodes, and the easiest to overlap with computation.</span></p>
               </div>
             </div>
-            <span class="fig-cap">
-              一句话记法:<strong>① 一步一次,② 层层都要,③ 只找隔壁</strong>。
-              后面每种策略的性格,基本都能由它属于哪一类推出来。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">一句话记法:<strong>① 一步一次,② 层层都要,③ 只找隔壁</strong>。
+              后面每种策略的性格,基本都能由它属于哪一类推出来。</span><span lang="en" class="i18n-en">One line to remember: <strong>① once per step, ② every single layer, ③ next door only</strong>.
+              Each strategy's temperament below follows more or less directly from which of the three it is.</span></span>
           </div>
 
-          <h2>二、DP:各算各的,最后对一次账</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、DP:各算各的,最后对一次账</span><span lang="en" class="i18n-en">2 · DP: everyone works alone, then settles up once</span></h2>
 
-          <p>
-            DP 是交互最"稀疏"的一种:整个前向反向期间各卡<strong>互不打扰</strong>,只在反向结束时把梯度对齐一次。
-            ring all-reduce 分两个半程 —— 先 Reduce-Scatter 绕一圈让每卡持有一段的最终和,再 All-Gather 绕一圈把结果散开。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">DP 是交互最"稀疏"的一种:整个前向反向期间各卡<strong>互不打扰</strong>,只在反向结束时把梯度对齐一次。
+            ring all-reduce 分两个半程 —— 先 Reduce-Scatter 绕一圈让每卡持有一段的最终和,再 All-Gather 绕一圈把结果散开。</span><span lang="en" class="i18n-en">DP has the sparsest interaction of the five: throughout the forward and backward pass the GPUs <strong>leave each other alone</strong>, aligning gradients exactly once when the backward finishes.
+            A ring all-reduce runs in two halves — Reduce-Scatter goes round once so each GPU holds the final sum for one segment, then All-Gather goes round again to spread the results.</span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 2:ring all-reduce 的两个半程</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:ring all-reduce 的两个半程</span><span lang="en" class="i18n-en">Figure 2: the two halves of a ring all-reduce</span></div>
             <div class="px-gpus" id="dpGpus"></div>
             <div class="px-stat">
-              <div class="px-st"><div class="kk">阶段</div><div class="vv" style="color: var(--dp)" id="dpPhase">—</div></div>
-              <div class="px-st"><div class="kk">已绕圈数</div><div class="vv" id="dpStep">—</div></div>
-              <div class="px-st"><div class="kk">每卡累计收发</div><div class="vv" id="dpVol">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">阶段</span><span lang="en" class="i18n-en">Phase</span></div><div class="vv" style="color: var(--dp)" id="dpPhase">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">已绕圈数</span><span lang="en" class="i18n-en">Laps completed</span></div><div class="vv" id="dpStep">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">每卡累计收发</span><span lang="en" class="i18n-en">Sent+received per GPU</span></div><div class="vv" id="dpVol">—</div></div>
             </div>
             <div class="px-ctrls">
-              <button class="primary" id="dpPlay">暂停</button>
-              <button id="dpStepBtn">单步 →</button>
+              <button class="primary" id="dpPlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <button id="dpStepBtn"><span lang="zh-CN" class="i18n-zh">单步 →</span><span lang="en" class="i18n-en">Step →</span></button>
             </div>
-            <span class="fig-cap">
-              两个半程各绕 <code>N−1</code> 步,所以 All-Reduce 的每卡收发是 <code>2·(N−1)/N·X</code>。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">两个半程各绕 <code>N−1</code> 步,所以 All-Reduce 的每卡收发是 <code>2·(N−1)/N·X</code>。
               实际框架会把梯度<strong>分桶</strong>:某一层反向一算完就立刻发它的桶,不等整个反向结束 ——
-              于是这一大坨通信被藏在了反向计算背后,这是 DP 能扩到几千卡的关键。
-            </span>
+              于是这一大坨通信被藏在了反向计算背后,这是 DP 能扩到几千卡的关键。</span><span lang="en" class="i18n-en">Each half takes <code>N−1</code> steps, so an All-Reduce sends and receives <code>2·(N−1)/N·X</code> per GPU.
+              Real frameworks <strong>bucket</strong> the gradients: as soon as one layer's backward finishes, its bucket goes out without waiting for the rest —
+              so this large lump of communication disappears behind the backward computation. That is what lets DP scale to thousands of GPUs.</span></span>
           </div>
 
-          <h2>三、TP:每层两次会合,谁都不能先走</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、TP:每层两次会合,谁都不能先走</span><span lang="en" class="i18n-en">3 · TP: two rendezvous per layer, and nobody leaves early</span></h2>
 
-          <p>
-            TP 是另一个极端。每张卡只持有权重的一片,算出来的是<strong>部分和</strong>,必须拼起来才有意义。
-            于是每层要停两次:attention 的 <code>o_proj</code> 之后一次,FFN 的 <code>down_proj</code> 之后一次。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">TP 是另一个极端。每张卡只持有权重的一片,算出来的是<strong>部分和</strong>,必须拼起来才有意义。
+            于是每层要停两次:attention 的 <code>o_proj</code> 之后一次,FFN 的 <code>down_proj</code> 之后一次。</span><span lang="en" class="i18n-en">TP is the other extreme. Each GPU holds one shard of the weights and computes a <strong>partial sum</strong>, which is meaningless until assembled.
+            So every layer stops twice: once after attention's <code>o_proj</code>, once after the FFN's <code>down_proj</code>.</span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 3:TP 组的同步点(每层两次)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:TP 组的同步点(每层两次)</span><span lang="en" class="i18n-en">Figure 3: the TP group's synchronisation points (twice per layer)</span></div>
             <div class="px-legend">
-              <span><i style="background: var(--tp)"></i>本地计算</span>
-              <span><i style="background: var(--dp)"></i>All-Reduce(全组同步)</span>
-              <span><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>等待(算得快的干等)</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--tp)"></i>本地计算</span><span lang="en" class="i18n-en"><i style="background: var(--tp)"></i>local computation</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--dp)"></i>All-Reduce(全组同步)</span><span lang="en" class="i18n-en"><i style="background: var(--dp)"></i>All-Reduce (whole group synchronises)</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>等待(算得快的干等)</span><span lang="en" class="i18n-en"><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>waiting (the fast ones idle)</span></span>
             </div>
             <div class="px-tl" id="tpTl"></div>
             <div class="px-stat">
-              <div class="px-st"><div class="kk">同步点 / 层</div><div class="vv" style="color: var(--tp)">2</div></div>
-              <div class="px-st"><div class="kk">80 层共计</div><div class="vv" style="color: var(--warn)">320 次</div></div>
-              <div class="px-st"><div class="kk">可否重叠</div><div class="vv" style="color: var(--warn)">否</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">同步点 / 层</span><span lang="en" class="i18n-en">Sync points / layer</span></div><div class="vv" style="color: var(--tp)">2</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">80 层共计</span><span lang="en" class="i18n-en">Across 80 layers</span></div><div class="vv" style="color: var(--warn)"><span lang="zh-CN" class="i18n-zh">320 次</span><span lang="en" class="i18n-en">320 times</span></div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">可否重叠</span><span lang="en" class="i18n-en">Can it overlap</span></div><div class="vv" style="color: var(--warn)"><span lang="zh-CN" class="i18n-zh">否</span><span lang="en" class="i18n-en">No</span></div></div>
             </div>
-            <span class="fig-cap">
-              关键不在字节数,在<strong>阻塞</strong>:All-Reduce 的结果是下一步计算的输入,没法拿计算去盖住它。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">关键不在字节数,在<strong>阻塞</strong>:All-Reduce 的结果是下一步计算的输入,没法拿计算去盖住它。
               而且它是集合通信,<strong>整组以最慢的那张卡为准</strong>。斜纹区就是快卡在干等。
-              320 个硬同步点摊在一次前向反向里,这就是 TP 必须待在 NVLink 域内的真正原因。
-            </span>
+              320 个硬同步点摊在一次前向反向里,这就是 TP 必须待在 NVLink 域内的真正原因。</span><span lang="en" class="i18n-en">What matters is not the byte count but the <strong>blocking</strong>: the All-Reduce result is the input to the next step, so no computation can hide it.
+              And being a collective, <strong>the whole group runs at the pace of its slowest GPU</strong>. The hatched region is the fast ones idling.
+              320 hard synchronisation points spread across one forward-backward pass is the real reason TP has to stay inside the NVLink domain.</span></span>
           </div>
 
-          <h2>四、PP:只跟左右邻居说话</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、PP:只跟左右邻居说话</span><span lang="en" class="i18n-en">4 · PP: talking only to the neighbours</span></h2>
 
-          <p>
-            PP 的交互最简单 —— <code>send</code> 给下一段,<code>recv</code> 上一段的,仅此而已。
-            没有集合通信,没有全局同步。代价换到了另一个地方:<strong>排队</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">PP 的交互最简单 —— <code>send</code> 给下一段,<code>recv</code> 上一段的,仅此而已。
+            没有集合通信,没有全局同步。代价换到了另一个地方:<strong>排队</strong>。</span><span lang="en" class="i18n-en">PP has the simplest interaction — <code>send</code> to the next stage, <code>recv</code> from the previous one, and that is it.
+            No collectives, no global synchronisation. The price is paid elsewhere: <strong>queuing</strong>.</span></p>
 
-          <p>
-            下面这张是真实排出来的 1F1B 调度,不是示意图 —— 页面里跑了一遍调度模拟,
-            依赖关系(stage <em>s</em> 的 F<sub>m</sub> 要等 stage <em>s−1</em> 的 F<sub>m</sub>,B<sub>m</sub> 要等 stage <em>s+1</em> 的 B<sub>m</sub>)逐条满足。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">下面这张是真实排出来的 1F1B 调度,不是示意图 —— 页面里跑了一遍调度模拟,
+            依赖关系(stage <em>s</em> 的 F<sub>m</sub> 要等 stage <em>s−1</em> 的 F<sub>m</sub>,B<sub>m</sub> 要等 stage <em>s+1</em> 的 B<sub>m</sub>)逐条满足。</span><span lang="en" class="i18n-en">The schedule below is a real 1F1B layout rather than an illustration — the page runs a scheduling simulation and satisfies every dependency in turn
+            (stage <em>s</em>'s F<sub>m</sub> waits on stage <em>s−1</em>'s F<sub>m</sub>, and B<sub>m</sub> waits on stage <em>s+1</em>'s B<sub>m</sub>).</span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 4:1F1B 流水线时间线(可调 stage 数与 micro-batch 数)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:1F1B 流水线时间线(可调 stage 数与 micro-batch 数)</span><span lang="en" class="i18n-en">Figure 4: the 1F1B pipeline timeline (adjust stage and micro-batch counts)</span></div>
             <div class="px-legend">
-              <span><i style="background: var(--tp)"></i>前向 F</span>
-              <span><i style="background: var(--pp)"></i>反向 B</span>
-              <span><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>气泡(闲置)</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--tp)"></i>前向 F</span><span lang="en" class="i18n-en"><i style="background: var(--tp)"></i>forward F</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--pp)"></i>反向 B</span><span lang="en" class="i18n-en"><i style="background: var(--pp)"></i>backward B</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>气泡(闲置)</span><span lang="en" class="i18n-en"><i style="background: repeating-linear-gradient(45deg,#fb718555 0 4px,transparent 4px 8px)"></i>bubble (idle)</span></span>
             </div>
             <div class="px-tl" id="ppTl"></div>
             <div class="px-stat">
-              <div class="px-st"><div class="kk">总时长</div><div class="vv" id="ppT">—</div></div>
-              <div class="px-st"><div class="kk">实测气泡</div><div class="vv" style="color: var(--warn)" id="ppBub">—</div></div>
-              <div class="px-st"><div class="kk">公式 (N−1)/(M+N−1)</div><div class="vv" id="ppForm">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">总时长</span><span lang="en" class="i18n-en">Total duration</span></div><div class="vv" id="ppT">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">实测气泡</span><span lang="en" class="i18n-en">Measured bubble</span></div><div class="vv" style="color: var(--warn)" id="ppBub">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">公式 (N−1)/(M+N−1)</span><span lang="en" class="i18n-en">Formula (N−1)/(M+N−1)</span></div><div class="vv" id="ppForm">—</div></div>
             </div>
             <div class="px-ctrls">
-              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)">stage 数 N</span>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)"><span lang="zh-CN" class="i18n-zh">stage 数 N</span><span lang="en" class="i18n-en">stages N</span></span>
               <div class="px-seg" id="ppN">
                 <button data-n="2">2</button>
                 <button data-n="4" class="on">4</button>
@@ -319,49 +312,47 @@
               <input type="range" id="ppM" min="2" max="24" value="8" />
               <span style="font-family: var(--font-mono); font-size: .68rem; color: var(--tp)" id="ppMv">8</span>
             </div>
-            <span class="fig-cap">
-              实测气泡和 <code>(N−1)/(M+N−1)</code> <strong>始终相等</strong>,拖动 M 可以自己验证。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">实测气泡和 <code>(N−1)/(M+N−1)</code> <strong>始终相等</strong>,拖动 M 可以自己验证。
               这也解释了为什么救 PP 的办法是<strong>加 micro-batch</strong> 而不是减 stage:分母涨得比分子快。
-              前向反向按等长计,是排布图的通行简化;真实反向约为前向的两倍。
-            </span>
+              前向反向按等长计,是排布图的通行简化;真实反向约为前向的两倍。</span><span lang="en" class="i18n-en">The measured bubble and <code>(N−1)/(M+N−1)</code> are <strong>always equal</strong> — drag M and check for yourself.
+              It also explains why the cure for PP is <strong>more micro-batches</strong> rather than fewer stages: the denominator grows faster than the numerator.
+              Forward and backward are drawn as equal length, the usual simplification for schedule diagrams; a real backward is roughly twice a forward.</span></span>
           </div>
 
-          <h2>五、EP:谁跟谁通信是动态的</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、EP:谁跟谁通信是动态的</span><span lang="en" class="i18n-en">5 · EP: who talks to whom is decided at runtime</span></h2>
 
-          <p>
-            前面四种的通信对象在开跑前就定死了。EP 不一样:<strong>token 去哪张卡,由 router 当场决定</strong>。
-            这带来了两个别处没有的麻烦。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">前面四种的通信对象在开跑前就定死了。EP 不一样:<strong>token 去哪张卡,由 router 当场决定</strong>。
+            这带来了两个别处没有的麻烦。</span><span lang="en" class="i18n-en">In the previous four, communication partners are fixed before the run starts. EP is different: <strong>which GPU a token goes to is decided on the spot by the router</strong>.
+            That creates two problems the others do not have.</span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 5:token 路由与 All-to-All 的长尾</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 5:token 路由与 All-to-All 的长尾</span><span lang="en" class="i18n-en">Figure 5: token routing and the All-to-All tail</span></div>
             <div class="px-route" id="epRoute"></div>
             <div class="px-stat">
-              <div class="px-st"><div class="kk">阶段</div><div class="vv" style="color: var(--ep)" id="epPhase">—</div></div>
-              <div class="px-st"><div class="kk">最忙 / 最闲</div><div class="vv" id="epSkew">—</div></div>
-              <div class="px-st"><div class="kk">全组等待</div><div class="vv" style="color: var(--warn)" id="epWait">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">阶段</span><span lang="en" class="i18n-en">Phase</span></div><div class="vv" style="color: var(--ep)" id="epPhase">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">最忙 / 最闲</span><span lang="en" class="i18n-en">Busiest / idlest</span></div><div class="vv" id="epSkew">—</div></div>
+              <div class="px-st"><div class="kk"><span lang="zh-CN" class="i18n-zh">全组等待</span><span lang="en" class="i18n-en">Group wait</span></div><div class="vv" style="color: var(--warn)" id="epWait">—</div></div>
             </div>
             <div class="px-ctrls">
-              <button class="primary" id="epPlay">暂停</button>
-              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">路由倾斜</span>
+              <button class="primary" id="epPlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px"><span lang="zh-CN" class="i18n-zh">路由倾斜</span><span lang="en" class="i18n-en">Routing skew</span></span>
               <input type="range" id="epSkewR" min="0" max="100" value="45" />
             </div>
-            <span class="fig-cap">
-              第一个麻烦是<strong>形状不确定</strong>:每张卡收到多少 token 事先不知道,缓冲要按最坏情况开。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">第一个麻烦是<strong>形状不确定</strong>:每张卡收到多少 token 事先不知道,缓冲要按最坏情况开。
               第二个是<strong>长尾</strong>:All-to-All 要等最慢的一对完成,只要有一张卡收到的 token 明显偏多,
-              整组就被它拖住。拖动倾斜度能看到等待时间怎么被放大 —— 这就是 EPLB 把热门专家复制到多卡的理由。
-            </span>
+              整组就被它拖住。拖动倾斜度能看到等待时间怎么被放大 —— 这就是 EPLB 把热门专家复制到多卡的理由。</span><span lang="en" class="i18n-en">The first problem is <strong>unknown shapes</strong>: how many tokens a GPU will receive is not known in advance, so buffers must be sized for the worst case.
+              The second is the <strong>tail</strong>: an All-to-All waits for the slowest pair to finish, so a single GPU receiving noticeably more tokens
+              holds up the whole group. Drag the skew to see how the wait is amplified — this is why EPLB replicates hot experts across GPUs.</span></span>
           </div>
 
-          <h2>六、SP / CP:三种切序列,三种交互</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、SP / CP:三种切序列,三种交互</span><span lang="en" class="i18n-en">6 · SP / CP: three ways to shard a sequence, three interaction styles</span></h2>
 
-          <p>
-            切序列这条轴上有三种做法,名字容易混,但<strong>交互方式完全不同</strong>。
-            机制细节见<a href="sequence-parallel-and-comms.html">序列并行方案对比</a>,这里只看卡间怎么动。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">切序列这条轴上有三种做法,名字容易混,但<strong>交互方式完全不同</strong>。
+            机制细节见<a href="sequence-parallel-and-comms.html">序列并行方案对比</a>,这里只看卡间怎么动。</span><span lang="en" class="i18n-en">There are three approaches on the sequence-sharding axis. The names are easy to confuse, but the <strong>interaction patterns are entirely different</strong>.
+            For the mechanisms see <a href="sequence-parallel-and-comms.html">comparing the sequence-parallel schemes</a>; here we only look at what moves between GPUs.</span></p>
 
           <div class="px-fig">
-            <div class="fig-title">动图 6:三种切序列方式的卡间动作(点标签切换)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 6:三种切序列方式的卡间动作(点标签切换)</span><span lang="en" class="i18n-en">Figure 6: what moves between GPUs in each of the three (click a label to switch)</span></div>
             <div class="px-ctrls" style="margin: 0 0 12px">
               <div class="px-seg" id="spTabs">
                 <button data-s="mega" class="on">Megatron-SP</button>
@@ -371,98 +362,94 @@
             </div>
             <div class="px-tl" id="spTl"></div>
             <div id="spInfo" style="margin-top: 12px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--inset); font-size: .81rem; line-height: 1.75; color: var(--text-muted);"></div>
-            <span class="fig-cap">
-              最值得注意的是第三种:<strong>Ring 是唯一能把通信藏进计算里的</strong>。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">最值得注意的是第三种:<strong>Ring 是唯一能把通信藏进计算里的</strong>。
               收到上一块 K/V 的同时就开始算本地那部分注意力,下一块在后台传 —— 通信量虽然不随 N 下降,
-              但只要单块计算时间盖得住单跳传输,墙钟时间就几乎不涨。前两种做不到:它们的通信结果是下一步的输入。
-            </span>
+              但只要单块计算时间盖得住单跳传输,墙钟时间就几乎不涨。前两种做不到:它们的通信结果是下一步的输入。</span><span lang="en" class="i18n-en">The third one deserves the most attention: <strong>Ring is the only one that can hide communication inside computation</strong>.
+              As one K/V block arrives, the local part of the attention starts computing while the next block transfers in the background — the communication volume does not fall with N,
+              but as long as one block's computation covers one hop's transfer, wall-clock time barely moves. The first two cannot do this: their communication result <em>is</em> the next step's input.</span></span>
           </div>
 
-          <h2>七、横向对比</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、横向对比</span><span lang="en" class="i18n-en">7 · Side by side</span></h2>
 
           <div class="px-tw">
             <table>
               <thead>
-                <tr><th>策略</th><th>拓扑</th><th>频率</th><th>能否与计算重叠</th><th>卡多了会怎样</th></tr>
+                <tr><th><span lang="zh-CN" class="i18n-zh">策略</span><span lang="en" class="i18n-en">Strategy</span></th><th><span lang="zh-CN" class="i18n-zh">拓扑</span><span lang="en" class="i18n-en">Topology</span></th><th><span lang="zh-CN" class="i18n-zh">频率</span><span lang="en" class="i18n-en">Frequency</span></th><th><span lang="zh-CN" class="i18n-zh">能否与计算重叠</span><span lang="en" class="i18n-en">Can it overlap computation</span></th><th><span lang="zh-CN" class="i18n-zh">卡多了会怎样</span><span lang="en" class="i18n-en">What happens as GPUs are added</span></th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong style="color: var(--dp)">DP</strong></td><td>副本组内规约</td><td>每 step 1 次</td>
-                  <td><strong>能</strong>(分桶,边反向边发)</td><td>每卡量不降,但可被计算盖住</td>
+                  <td><strong style="color: var(--dp)">DP</strong></td><td><span lang="zh-CN" class="i18n-zh">副本组内规约</span><span lang="en" class="i18n-en">Reduce within replica group</span></td><td><span lang="zh-CN" class="i18n-zh">每 step 1 次</span><span lang="en" class="i18n-en">once per step</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>能</strong>(分桶,边反向边发)</span><span lang="en" class="i18n-en"><strong>Yes</strong> (bucketed, sent during the backward)</span></td><td><span lang="zh-CN" class="i18n-zh">每卡量不降,但可被计算盖住</span><span lang="en" class="i18n-en">Per-GPU volume does not fall, but computation can hide it</span></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--tp)">TP</strong></td><td>全连接</td><td>每层 2 次(反向再 2 次)</td>
-                  <td><strong>不能</strong>(结果即下一步输入)</td><td>同步点不变但每次更慢,迅速劣化</td>
+                  <td><strong style="color: var(--tp)">TP</strong></td><td><span lang="zh-CN" class="i18n-zh">全连接</span><span lang="en" class="i18n-en">Fully connected</span></td><td><span lang="zh-CN" class="i18n-zh">每层 2 次(反向再 2 次)</span><span lang="en" class="i18n-en">twice per layer (twice more in backward)</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>不能</strong>(结果即下一步输入)</span><span lang="en" class="i18n-en"><strong>No</strong> (the result is the next step's input)</span></td><td><span lang="zh-CN" class="i18n-zh">同步点不变但每次更慢,迅速劣化</span><span lang="en" class="i18n-en">Sync count stays the same but each one is slower; degrades fast</span></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--pp)">PP</strong></td><td>邻居 P2P</td><td>每 micro-batch 每边界</td>
-                  <td><strong>能</strong>(与其他 micro-batch 重叠)</td><td>气泡变大,要同步加 M</td>
+                  <td><strong style="color: var(--pp)">PP</strong></td><td><span lang="zh-CN" class="i18n-zh">邻居 P2P</span><span lang="en" class="i18n-en">Neighbour P2P</span></td><td><span lang="zh-CN" class="i18n-zh">每 micro-batch 每边界</span><span lang="en" class="i18n-en">per micro-batch, per boundary</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>能</strong>(与其他 micro-batch 重叠)</span><span lang="en" class="i18n-en"><strong>Yes</strong> (overlaps with other micro-batches)</span></td><td><span lang="zh-CN" class="i18n-zh">气泡变大,要同步加 M</span><span lang="en" class="i18n-en">Bubble grows; M has to grow with it</span></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--ep)">EP</strong></td><td>全连接(动态)</td><td>每 MoE 层 2 次</td>
-                  <td>部分(需要分块流水)</td><td>长尾放大,依赖负载均衡</td>
+                  <td><strong style="color: var(--ep)">EP</strong></td><td><span lang="zh-CN" class="i18n-zh">全连接(动态)</span><span lang="en" class="i18n-en">Fully connected (dynamic)</span></td><td><span lang="zh-CN" class="i18n-zh">每 MoE 层 2 次</span><span lang="en" class="i18n-en">twice per MoE layer</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">部分(需要分块流水)</span><span lang="en" class="i18n-en">Partially (needs chunked pipelining)</span></td><td><span lang="zh-CN" class="i18n-zh">长尾放大,依赖负载均衡</span><span lang="en" class="i18n-en">The tail amplifies; depends on load balancing</span></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--cp)">Ulysses</strong></td><td>全连接</td><td>每层 4 次</td>
-                  <td><strong>不能</strong></td><td>受 head 数封顶,切不动</td>
+                  <td><strong style="color: var(--cp)">Ulysses</strong></td><td><span lang="zh-CN" class="i18n-zh">全连接</span><span lang="en" class="i18n-en">Fully connected</span></td><td><span lang="zh-CN" class="i18n-zh">每层 4 次</span><span lang="en" class="i18n-en">four times per layer</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>不能</strong></span><span lang="en" class="i18n-en"><strong>No</strong></span></td><td><span lang="zh-CN" class="i18n-zh">受 head 数封顶,切不动</span><span lang="en" class="i18n-en">Capped by head count; cannot shard further</span></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--cp)">Ring / CP</strong></td><td>邻居环</td><td>每层 N−1 跳</td>
-                  <td><strong>能</strong>(边收边算)</td><td>跳数变多,但可被计算掩盖</td>
+                  <td><strong style="color: var(--cp)">Ring / CP</strong></td><td><span lang="zh-CN" class="i18n-zh">邻居环</span><span lang="en" class="i18n-en">Neighbour ring</span></td><td><span lang="zh-CN" class="i18n-zh">每层 N−1 跳</span><span lang="en" class="i18n-en">N−1 hops per layer</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>能</strong>(边收边算)</span><span lang="en" class="i18n-en"><strong>Yes</strong> (compute as it arrives)</span></td><td><span lang="zh-CN" class="i18n-zh">跳数变多,但可被计算掩盖</span><span lang="en" class="i18n-en">More hops, but computation can cover them</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            把这张表读一遍会发现一个规律:<strong>"能否重叠"比"传多少"更能决定它扩不扩得动</strong>。
-            DP 每 step 要传上 TB 却能扩到几千卡,TP 每次只传几十 MiB 却出了机柜就崩 —— 差别全在这一列。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">把这张表读一遍会发现一个规律:<strong>"能否重叠"比"传多少"更能决定它扩不扩得动</strong>。
+            DP 每 step 要传上 TB 却能扩到几千卡,TP 每次只传几十 MiB 却出了机柜就崩 —— 差别全在这一列。</span><span lang="en" class="i18n-en">Read the table through and a pattern emerges: <strong>"can it overlap" predicts scalability better than "how much it sends"</strong>.
+            DP moves terabytes per step and scales to thousands of GPUs; TP moves tens of MiB at a time and falls apart outside the rack — the whole difference is in that column.</span></p>
 
-          <h2>八、组合起来:交互的层次</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">八、组合起来:交互的层次</span><span lang="en" class="i18n-en">8 · Combining them: layers of interaction</span></h2>
 
-          <p>
-            实际系统是几种叠在一起的。排布原则可以直接从上面的性格推出来:
-            <strong>不能重叠、又是全连接的往里放;能重叠、只找邻居的往外放。</strong>
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">实际系统是几种叠在一起的。排布原则可以直接从上面的性格推出来:
+            <strong>不能重叠、又是全连接的往里放;能重叠、只找邻居的往外放。</strong></span><span lang="en" class="i18n-en">A real system stacks several. The placement principle follows directly from the temperaments above:
+            <strong>put the non-overlappable, fully connected ones innermost; put the overlappable, neighbours-only ones outermost.</strong></span></p>
 
           <div class="px-tw">
             <table>
-              <thead><tr><th>层次</th><th>放什么</th><th>为什么</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">层次</span><span lang="en" class="i18n-en">Layer</span></th><th><span lang="zh-CN" class="i18n-zh">放什么</span><span lang="en" class="i18n-en">What goes here</span></th><th><span lang="zh-CN" class="i18n-zh">为什么</span><span lang="en" class="i18n-en">Why</span></th></tr></thead>
               <tbody>
-                <tr><td>节点内 NVLink</td><td><strong>TP</strong>,其次 EP</td><td>全连接 + 不可重叠 + 每层两次,只有 NVLink 扛得住</td></tr>
-                <tr><td>节点间 IB</td><td><strong>CP</strong>、<strong>DP</strong></td><td>Ring 能边收边算;DP 每 step 一次且可分桶重叠</td></tr>
-                <tr><td>最外层</td><td><strong>PP</strong></td><td>纯 P2P、只找邻居,对拓扑最不挑</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">节点内 NVLink</span><span lang="en" class="i18n-en">Within a node, NVLink</span></td><td><span lang="zh-CN" class="i18n-zh"><strong>TP</strong>,其次 EP</span><span lang="en" class="i18n-en"><strong>TP</strong>, then EP</span></td><td><span lang="zh-CN" class="i18n-zh">全连接 + 不可重叠 + 每层两次,只有 NVLink 扛得住</span><span lang="en" class="i18n-en">Fully connected, non-overlappable, twice per layer — only NVLink can take it</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">节点间 IB</span><span lang="en" class="i18n-en">Across nodes, IB</span></td><td><strong>CP</strong>、<strong>DP</strong></td><td><span lang="zh-CN" class="i18n-zh">Ring 能边收边算;DP 每 step 一次且可分桶重叠</span><span lang="en" class="i18n-en">Ring can compute as it receives; DP runs once per step and can be bucketed to overlap</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">最外层</span><span lang="en" class="i18n-en">Outermost</span></td><td><strong>PP</strong></td><td><span lang="zh-CN" class="i18n-zh">纯 P2P、只找邻居,对拓扑最不挑</span><span lang="en" class="i18n-en">Pure P2P to neighbours only, the least demanding on topology</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            量化版本(每种到底多少字节、最小卡数怎么算)在<a href="parallelism-comm-cost.html">通信量账本</a>那篇;
-            具体到某个模型怎么切成 shape,在 <a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 那篇</a>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">量化版本(每种到底多少字节、最小卡数怎么算)在<a href="parallelism-comm-cost.html">通信量账本</a>那篇;
+            具体到某个模型怎么切成 shape,在 <a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 那篇</a>。</span><span lang="en" class="i18n-en">The quantitative version — how many bytes each one costs and how to compute the minimum GPU count — is in the <a href="parallelism-comm-cost.html">communication ledger</a>;
+            how a specific model shards down to shapes is in <a href="hy3-parallelism-tp-pp-ep.html">the TP / PP / EP note</a>.</span></p>
 
-          <h2>九、要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">九、要点</span><span lang="en" class="i18n-en">9 · Takeaways</span></h2>
 
           <div class="px-takes">
-            <div class="px-take"><div class="n">01</div><h5>拓扑只有三类</h5>
-              <p>副本组规约(DP)、全组交换(TP / EP / Ulysses)、邻居传递(PP / Ring)。认出属于哪一类,就能推出它能不能跨节点、卡多了会不会崩。</p></div>
-            <div class="px-take"><div class="n">02</div><h5>能否重叠比传多少更要命</h5>
-              <p>DP 每 step 传上 TB 却能扩到几千卡,TP 每次几十 MiB 却出机柜就崩。区别是 DP 能藏在反向后面,而 TP 的结果就是下一步的输入,藏无可藏。</p></div>
-            <div class="px-take"><div class="n">03</div><h5>集合通信按最慢的那张卡计</h5>
-              <p>TP 和 EP 都是全组同步,快卡只能干等。所以真正的敌人往往不是带宽,是<strong>抖动和不均衡</strong> —— EP 尤其明显。</p></div>
-            <div class="px-take"><div class="n">04</div><h5>PP 的气泡只能靠 M 救</h5>
-              <p><code>(N−1)/(M+N−1)</code>,分母涨得比分子快。加 micro-batch 有效,减 stage 反而可能放不下模型。动图 4 里可以自己拖着验证。</p></div>
-            <div class="px-take"><div class="n">05</div><h5>EP 的通信对象是运行时才知道的</h5>
-              <p>其他四种在开跑前就定死了收发关系,EP 由 router 当场决定。于是缓冲要按最坏情况开,长尾还会拖住整组 —— 这两件事都是别处没有的。</p></div>
-            <div class="px-take"><div class="n">06</div><h5>Ring 用步数换重叠</h5>
-              <p>它绕 <code>N−1</code> 跳,总量不随 N 下降,看账本是亏的。但它是切序列里唯一能边收边算的,只要计算盖得住单跳,墙钟时间几乎不涨。</p></div>
+            <div class="px-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">拓扑只有三类</span><span lang="en" class="i18n-en">There are only three topologies</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">副本组规约(DP)、全组交换(TP / EP / Ulysses)、邻居传递(PP / Ring)。认出属于哪一类,就能推出它能不能跨节点、卡多了会不会崩。</span><span lang="en" class="i18n-en">Replica-group reduce (DP), all-to-all exchange (TP / EP / Ulysses), neighbour hand-off (PP / Ring). Identify which one applies and you can predict whether it crosses nodes and whether it collapses at scale.</span></p></div>
+            <div class="px-take"><div class="n">02</div><h5><span lang="zh-CN" class="i18n-zh">能否重叠比传多少更要命</span><span lang="en" class="i18n-en">Overlappability matters more than volume</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">DP 每 step 传上 TB 却能扩到几千卡,TP 每次几十 MiB 却出机柜就崩。区别是 DP 能藏在反向后面,而 TP 的结果就是下一步的输入,藏无可藏。</span><span lang="en" class="i18n-en">DP moves terabytes per step and scales to thousands of GPUs; TP moves tens of MiB and falls apart outside the rack. The difference is that DP hides behind the backward pass while TP's result is the next step's input, with nowhere to hide.</span></p></div>
+            <div class="px-take"><div class="n">03</div><h5><span lang="zh-CN" class="i18n-zh">集合通信按最慢的那张卡计</span><span lang="en" class="i18n-en">A collective runs at the pace of its slowest GPU</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">TP 和 EP 都是全组同步,快卡只能干等。所以真正的敌人往往不是带宽,是<strong>抖动和不均衡</strong> —— EP 尤其明显。</span><span lang="en" class="i18n-en">TP and EP both synchronise the whole group, and the fast GPUs simply wait. So the real enemy is often not bandwidth but <strong>jitter and imbalance</strong> — most visibly in EP.</span></p></div>
+            <div class="px-take"><div class="n">04</div><h5><span lang="zh-CN" class="i18n-zh">PP 的气泡只能靠 M 救</span><span lang="en" class="i18n-en">Only M can save PP's bubble</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>(N−1)/(M+N−1)</code>,分母涨得比分子快。加 micro-batch 有效,减 stage 反而可能放不下模型。动图 4 里可以自己拖着验证。</span><span lang="en" class="i18n-en"><code>(N−1)/(M+N−1)</code>: the denominator grows faster than the numerator. Adding micro-batches works; removing stages may leave the model unable to fit. Drag it in Figure 4 and check.</span></p></div>
+            <div class="px-take"><div class="n">05</div><h5><span lang="zh-CN" class="i18n-zh">EP 的通信对象是运行时才知道的</span><span lang="en" class="i18n-en">EP's communication partners are only known at runtime</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">其他四种在开跑前就定死了收发关系,EP 由 router 当场决定。于是缓冲要按最坏情况开,长尾还会拖住整组 —— 这两件事都是别处没有的。</span><span lang="en" class="i18n-en">The other four fix their send/receive relationships before the run; EP has the router decide on the spot. So buffers must be sized for the worst case and the tail holds up the whole group — neither problem exists elsewhere.</span></p></div>
+            <div class="px-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">Ring 用步数换重叠</span><span lang="en" class="i18n-en">Ring trades hop count for overlap</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">它绕 <code>N−1</code> 跳,总量不随 N 下降,看账本是亏的。但它是切序列里唯一能边收边算的,只要计算盖得住单跳,墙钟时间几乎不涨。</span><span lang="en" class="i18n-en">It goes <code>N−1</code> hops and its total does not fall with N, so on the ledger it looks like a loss. But it is the only sequence-sharding scheme that computes as it receives, and as long as computation covers one hop, wall-clock time barely moves.</span></p></div>
           </div>
 
-          <blockquote>
-            1F1B 时间线由页面内的调度模拟按依赖关系真实排出,气泡率与 <code>(N−1)/(M+N−1)</code> 逐一核对一致;
-            前向与反向按等长计,是排布图的通行简化,真实反向约为前向两倍。其余动图为交互形态示意,不表示真实耗时比例。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">1F1B 时间线由页面内的调度模拟按依赖关系真实排出,气泡率与 <code>(N−1)/(M+N−1)</code> 逐一核对一致;
+            前向与反向按等长计,是排布图的通行简化,真实反向约为前向两倍。其余动图为交互形态示意,不表示真实耗时比例。</span><span lang="en" class="i18n-en">The 1F1B timeline is laid out by an in-page scheduling simulation that satisfies the real dependencies, and its bubble fraction was checked against <code>(N−1)/(M+N−1)</code> case by case;
+            forward and backward are drawn as equal length, the usual simplification for schedule diagrams, where a real backward is roughly twice a forward. The other figures illustrate interaction shape and do not represent real time proportions.</span></blockquote>
         </div>
       </article>
     </main>
@@ -479,6 +466,17 @@
 
     <script>
       (function () {
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
         var NS = 'http://www.w3.org/2000/svg';
         function el(tag, attrs) {
           var e = document.createElementNS(NS, tag);
@@ -579,10 +577,10 @@
           function next() { t = (t + 1) % TOTAL; render(); }
           function loop() { clearInterval(timer); if (playing) timer = setInterval(next, 1100); }
           document.getElementById('dpPlay').addEventListener('click', function (e) {
-            playing = !playing; e.target.textContent = playing ? '暂停' : '继续'; loop();
+            playing = !playing; e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume'); loop();
           });
           document.getElementById('dpStepBtn').addEventListener('click', function () {
-            playing = false; document.getElementById('dpPlay').textContent = '继续'; clearInterval(timer); next();
+            playing = false; document.getElementById('dpPlay').textContent = tr('继续', 'Resume'); clearInterval(timer); next();
           });
           render(); loop();
         })();
@@ -711,17 +709,18 @@
               var s = document.createElement('div');
               s.className = 'px-rank';
               s.style.left = x + '%'; s.style.top = srcY + '%';
-              s.innerHTML = 'rank' + i + ' 的 token';
+              s.innerHTML = isEn() ? 'rank' + i + ' tokens' : 'rank' + i + ' 的 token';
               host.appendChild(s);
               var d = document.createElement('div');
               d.className = 'px-rank';
               d.style.left = x + '%'; d.style.top = dstY + '%';
               d.dataset.dst = i;
-              d.innerHTML = '专家组 ' + i + '<span class="load" style="width:0%"></span>';
+              d.innerHTML = tr('专家组 ', 'expert group ') + i + '<span class="load" style="width:0%"></span>';
               host.appendChild(d);
             }
           }
           build();
+          redraw.push(build);
 
           function loads() {
             // skew=0 均匀;skew=100 极度倾斜到 rank0
@@ -764,7 +763,7 @@
             elSkew.textContent = (maxL / minL).toFixed(1) + '×';
             elWait.textContent = '+' + ((maxL * N - 1) * 100).toFixed(0) + '%';
             phase = 1 - phase;
-            elPhase.textContent = phase === 0 ? 'dispatch(派发)' : 'combine(回收)';
+            elPhase.textContent = phase === 0 ? tr('dispatch(派发)', 'dispatch') : tr('combine(回收)', 'combine');
             for (var f = 0; f < N; f++) {
               for (var d2 = 0; d2 < N; d2++) {
                 var n = Math.round(L[d2] * 6);
@@ -777,7 +776,7 @@
           }
           function loop() { clearInterval(timer); if (playing) timer = setInterval(tick, 1800); }
           document.getElementById('epPlay').addEventListener('click', function (e) {
-            playing = !playing; e.target.textContent = playing ? '暂停' : '继续'; loop();
+            playing = !playing; e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume'); loop();
           });
           document.getElementById('epSkewR').addEventListener('input', function (e) { skew = +e.target.value; tick(); });
           tick(); loop();
@@ -788,39 +787,40 @@
           var host = document.getElementById('spTl');
           var info = document.getElementById('spInfo');
           var N = 4;
-          var MODES = {
+          function buildModes() { return {
             mega: {
               rows: [
                 ['c:AG', 'f', 'f', 'f', 'c:RS', 'f', 'f', 'c:AG', 'f', 'f', 'f', 'c:RS'],
               ],
               per: true,
-              text: '<b>Megatron-SP</b> —— 和 TP 绑在一起用。在 LayerNorm / Dropout 这些没被 TP 切到的地方,沿<b>序列维</b>把激活切开;进 TP 区之前 All-Gather 还原,出来之后 Reduce-Scatter 再切。' +
-                '卡间动作和 TP 一样是<b>全组集合通信、且挡在计算路径上</b>,只是把原来的一次 All-Reduce 拆成了 AG+RS —— <b>通信量分毫未变,白拿一份激活显存</b>。',
+              text: tr('<b>Megatron-SP</b> —— 和 TP 绑在一起用。在 LayerNorm / Dropout 这些没被 TP 切到的地方,沿<b>序列维</b>把激活切开;进 TP 区之前 All-Gather 还原,出来之后 Reduce-Scatter 再切。', '<b>Megatron-SP</b> — used bound to TP. Where TP does not reach, at LayerNorm and Dropout, activations are sharded along the <b>sequence</b> dimension; an All-Gather restores them before the TP region and a Reduce-Scatter shards them again on the way out.') +
+                tr('卡间动作和 TP 一样是<b>全组集合通信、且挡在计算路径上</b>,只是把原来的一次 All-Reduce 拆成了 AG+RS —— <b>通信量分毫未变,白拿一份激活显存</b>。', 'Between GPUs the behaviour is the same as TP — <b>a whole-group collective sitting on the critical path</b> — except the single All-Reduce is split into AG+RS. <b>The volume is unchanged, and a copy of activation memory comes free.</b>'),
             },
             uly: {
               rows: [
                 ['c:A2A', 'c:A2A', 'f', 'f', 'f', 'f', 'c:A2A', 'f', 'f', 'f', 'f', 'f'],
               ],
               per: true,
-              text: '<b>DeepSpeed-Ulysses</b> —— 进 attention 前做一次 All-to-All,把「每卡一段序列、全部 head」<b>转置</b>成「每卡全部序列、一部分 head」;算完再转置回来。' +
-                '注意力本身是<b>完整的本地计算</b>,不需要跨卡。代价是并行度<b>不能超过 head 数</b>,而且 All-to-All 的结果就是下一步输入,<b>盖不住</b>。',
+              text: tr('<b>DeepSpeed-Ulysses</b> —— 进 attention 前做一次 All-to-All,把「每卡一段序列、全部 head」<b>转置</b>成「每卡全部序列、一部分 head」;算完再转置回来。', '<b>DeepSpeed-Ulysses</b> — one All-to-All before attention <b>transposes</b> "one sequence slice per GPU, all heads" into "the full sequence per GPU, some heads"; another transposes it back afterwards.') +
+                tr('注意力本身是<b>完整的本地计算</b>,不需要跨卡。代价是并行度<b>不能超过 head 数</b>,而且 All-to-All 的结果就是下一步输入,<b>盖不住</b>。', 'Attention itself is <b>a complete local computation</b> needing no cross-GPU work. The cost is that parallelism <b>cannot exceed the head count</b>, and since the All-to-All result is the next step\'s input, it <b>cannot be hidden</b>.'),
             },
             ring: {
               rows: null,
               per: false,
-              text: '<b>Ring-Attention / CP</b> —— 序列按卡切开,K/V 分块沿环传递 <code>N−1</code> 跳。每收到一块就和本地 Q 算一次局部注意力,' +
-                '<b>算的同时下一块已经在路上</b>。这是切序列里唯一能把通信藏进计算的做法:只要单块计算时间盖得住单跳传输,墙钟时间几乎不涨。' +
-                '代价是跳数随 N 增长,而且 causal mask 下各卡负载天然不均(要用 ZigZag 之类的重排补)。',
+              text: tr('<b>Ring-Attention / CP</b> —— 序列按卡切开,K/V 分块沿环传递 <code>N−1</code> 跳。每收到一块就和本地 Q 算一次局部注意力,', '<b>Ring-Attention / CP</b> — the sequence is sharded across GPUs and K/V blocks travel <code>N−1</code> hops around a ring. Each arriving block is combined with the local Q for a partial attention,') +
+                tr('<b>算的同时下一块已经在路上</b>。这是切序列里唯一能把通信藏进计算的做法:只要单块计算时间盖得住单跳传输,墙钟时间几乎不涨。', '<b>and the next block is already in flight while this one computes</b>. This is the only sequence-sharding scheme that hides communication inside computation: as long as one block\'s computation covers one hop, wall-clock time barely moves.') +
+                tr('代价是跳数随 N 增长,而且 causal mask 下各卡负载天然不均(要用 ZigZag 之类的重排补)。', 'The cost is that hop count grows with N, and a causal mask leaves the GPUs naturally unbalanced (needing a rearrangement such as ZigZag).'),
             },
-          };
+          }; }
+          var MODES = buildModes();
 
           function rowHTML(lab, cells) {
             var s = '';
             cells.forEach(function (k) {
-              if (k === 'f') s += '<div class="px-cell f">算</div>';
+              if (k === 'f') s += '<div class="px-cell f">' + tr('算', 'compute') + '</div>';
               else if (k === '') s += '<div class="px-cell"></div>';
               else if (k.indexOf('c:') === 0) s += '<div class="px-cell c">' + k.slice(2) + '</div>';
-              else if (k === 'ov') s += '<div class="px-cell f" style="background:linear-gradient(135deg,var(--tp) 50%,var(--dp) 50%)">算+传</div>';
+              else if (k === 'ov') s += '<div class="px-cell f" style="background:linear-gradient(135deg,var(--tp) 50%,var(--dp) 50%)">' + tr('算+传', 'compute+send') + '</div>';
               else s += '<div class="px-cell bub"></div>';
             });
             return '<div class="px-tlrow"><div class="lab">' + lab + '</div>' +
@@ -851,6 +851,12 @@
             b.classList.add('on'); draw(b.dataset.s);
           });
           draw('mega');
+          // 说明文字与格子标签都在 draw 里生成,切语种重放当前这一页即可
+          redraw.push(function () {
+            MODES = buildModes();
+            var on = document.querySelector('#spTabs .on');
+            draw(on ? on.dataset.s : 'mega');
+          });
         })();
       })();
     </script>
