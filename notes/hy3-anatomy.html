@@ -208,235 +208,239 @@
         </header>
 
         <div class="prose">
-          <p class="hy-lede">
-            分析对象是腾讯混元团队的 <strong>Hy3</strong>,模型卡
+          <p class="hy-lede"><span lang="zh-CN" class="i18n-zh">分析对象是腾讯混元团队的 <strong>Hy3</strong>,模型卡
             <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a>,
             架构名 <code>HYV3ForCausalLM</code>,Apache-2.0。
             全文结论只来自模型卡上的两个元数据文件:
             <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
             给出各处维度,
             <a href="https://huggingface.co/tencent/Hy3/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>
-            给出每个张量的名字、所在分片和总字节数。两者交叉验证足以把结构钉死,<strong>没有下载任何权重</strong>。
-          </p>
+            给出每个张量的名字、所在分片和总字节数。两者交叉验证足以把结构钉死,<strong>没有下载任何权重</strong>。</span><span lang="en" class="i18n-en">The subject is Tencent Hunyuan's <strong>Hy3</strong>, model card
+            <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a>,
+            architecture <code>HYV3ForCausalLM</code>, Apache-2.0.
+            Every conclusion here comes from just two metadata files on that card:
+            <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
+            for the dimensions, and
+            <a href="https://huggingface.co/tencent/Hy3/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>
+            for every tensor's name, shard and the total byte count. Cross-checking the two pins the structure down completely, <strong>with no weights downloaded</strong>.</span></p>
 
-          <p>
-            模型卡自己也列了一张规格表,所以这篇有个现成的对照组:<strong>先只看这两个文件推算,再回头和官方数字比</strong>。
-            结果是全部对上,而且推算还能补出规格表没写的东西 —— 比如权重实际是怎么存的。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">模型卡自己也列了一张规格表,所以这篇有个现成的对照组:<strong>先只看这两个文件推算,再回头和官方数字比</strong>。
+            结果是全部对上,而且推算还能补出规格表没写的东西 —— 比如权重实际是怎么存的。</span><span lang="en" class="i18n-en">The model card also publishes a spec table, so this note has a ready-made control group: <strong>derive everything from the two files first, then compare against the official numbers</strong>.
+            They all match — and the derivation additionally recovers something the spec table omits, namely how the weights are actually stored.</span></p>
 
           <div class="hy-tw">
             <table>
-              <thead><tr><th>项</th><th class="num">模型卡口径</th><th class="num">本文由元数据推算</th><th>说明</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">项</span><span lang="en" class="i18n-en">Item</span></th><th class="num"><span lang="zh-CN" class="i18n-zh">模型卡口径</span><span lang="en" class="i18n-en">Model card</span></th><th class="num"><span lang="zh-CN" class="i18n-zh">本文由元数据推算</span><span lang="en" class="i18n-en">Derived here from metadata</span></th><th><span lang="zh-CN" class="i18n-zh">说明</span><span lang="en" class="i18n-en">Note</span></th></tr></thead>
               <tbody>
-                <tr><td>总参数量</td><td class="num">295 B</td><td class="num">295.03 B</td><td>均<strong>不含</strong> MTP 层</td></tr>
-                <tr><td>MTP 层参数</td><td class="num">3.8 B</td><td class="num">3.75 B</td><td>模型卡单独列出</td></tr>
-                <tr><td>激活参数</td><td class="num">21 B</td><td class="num">20.68 B</td><td>含词嵌入与 lm_head</td></tr>
-                <tr><td>磁盘上的总量</td><td class="num">—</td><td class="num"><strong>298.79 B</strong></td><td>= 295 + 3.8,规格表未给</td></tr>
-                <tr><td>权重存储格式</td><td class="num">BF16</td><td class="num">BF16 + fp32 bias</td><td>见第三节</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">总参数量</span><span lang="en" class="i18n-en">Total parameters</span></td><td class="num">295 B</td><td class="num">295.03 B</td><td><span lang="zh-CN" class="i18n-zh">均<strong>不含</strong> MTP 层</span><span lang="en" class="i18n-en">both <strong>exclude</strong> the MTP layer</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">MTP 层参数</span><span lang="en" class="i18n-en">MTP layer parameters</span></td><td class="num">3.8 B</td><td class="num">3.75 B</td><td><span lang="zh-CN" class="i18n-zh">模型卡单独列出</span><span lang="en" class="i18n-en">listed separately on the card</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">激活参数</span><span lang="en" class="i18n-en">Active parameters</span></td><td class="num">21 B</td><td class="num">20.68 B</td><td><span lang="zh-CN" class="i18n-zh">含词嵌入与 lm_head</span><span lang="en" class="i18n-en">includes the embedding and lm_head</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">磁盘上的总量</span><span lang="en" class="i18n-en">Total on disk</span></td><td class="num">—</td><td class="num"><strong>298.79 B</strong></td><td><span lang="zh-CN" class="i18n-zh">= 295 + 3.8,规格表未给</span><span lang="en" class="i18n-en">= 295 + 3.8; not in the spec table</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">权重存储格式</span><span lang="en" class="i18n-en">Weight storage format</span></td><td class="num">BF16</td><td class="num">BF16 + fp32 bias</td><td><span lang="zh-CN" class="i18n-zh">见第三节</span><span lang="en" class="i18n-en">see section 3</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            同一份 config 我之前从<strong>并行切分</strong>的角度写过一篇
+          <p><span lang="zh-CN" class="i18n-zh">同一份 config 我之前从<strong>并行切分</strong>的角度写过一篇
             <a href="hy3-parallelism-tp-pp-ep.html">TP=4 / PP=4 / EP=4</a>,那篇关心的是「切完之后每张卡装什么」;
-            这篇关心的是「这份 checkpoint 里到底有什么」。两篇可以对着看。
-          </p>
+            这篇关心的是「这份 checkpoint 里到底有什么」。两篇可以对着看。</span><span lang="en" class="i18n-en">I have written about the same config from the <strong>parallelism</strong> angle before, in
+            <a href="hy3-parallelism-tp-pp-ep.html">TP=4 / PP=4 / EP=4</a>, which asks what each GPU holds after sharding;
+            this one asks what is actually inside the checkpoint. The two are meant to be read together.</span></p>
 
           <div class="hy-kpis">
-            <div class="hy-kpi"><b>298.79 B</b><span>磁盘总量 = 295 B + 3.8 B MTP</span></div>
-            <div class="hy-kpi"><b>20.68 B</b><span>每 token 激活</span></div>
-            <div class="hy-kpi"><b>14.5×</b><span>稀疏度</span></div>
-            <div class="hy-kpi"><b>97.8%</b><span>张量条目是专家</span></div>
-            <div class="hy-kpi"><b>0.49</b><span>8×H100 能放下的满窗口序列数</span></div>
+            <div class="hy-kpi"><b>298.79 B</b><span><span lang="zh-CN" class="i18n-zh">磁盘总量 = 295 B + 3.8 B MTP</span><span lang="en" class="i18n-en">Total on disk = 295 B + 3.8 B MTP</span></span></div>
+            <div class="hy-kpi"><b>20.68 B</b><span><span lang="zh-CN" class="i18n-zh">每 token 激活</span><span lang="en" class="i18n-en">Active per token</span></span></div>
+            <div class="hy-kpi"><b>14.5×</b><span><span lang="zh-CN" class="i18n-zh">稀疏度</span><span lang="en" class="i18n-en">Sparsity</span></span></div>
+            <div class="hy-kpi"><b>97.8%</b><span><span lang="zh-CN" class="i18n-zh">张量条目是专家</span><span lang="en" class="i18n-en">of tensor entries are experts</span></span></div>
+            <div class="hy-kpi"><b>0.49</b><span><span lang="zh-CN" class="i18n-zh">8×H100 能放下的满窗口序列数</span><span lang="en" class="i18n-en">Full-window sequences that fit on 8×H100</span></span></div>
           </div>
 
-          <h2>一、config 里的关键字段</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、config 里的关键字段</span><span lang="en" class="i18n-en">1 · The config fields that matter</span></h2>
 
-          <p>
-            后面所有推算都基于这几项:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">后面所有推算都基于这几项:</span><span lang="en" class="i18n-en">Everything below is derived from these:</span></p>
 
           <div class="hy-tw">
             <table>
-              <thead><tr><th>字段</th><th class="num">值</th><th>含义</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">字段</span><span lang="en" class="i18n-en">Field</span></th><th class="num"><span lang="zh-CN" class="i18n-zh">值</span><span lang="en" class="i18n-en">Value</span></th><th><span lang="zh-CN" class="i18n-zh">含义</span><span lang="en" class="i18n-en">Meaning</span></th></tr></thead>
               <tbody>
-                <tr><td><code>num_hidden_layers</code></td><td class="num">80</td><td>主干层数</td></tr>
-                <tr><td><code>hidden_size</code></td><td class="num">4096</td><td>残差流宽度</td></tr>
-                <tr><td><code>num_attention_heads</code> / <code>num_key_value_heads</code></td><td class="num">64 / 8</td><td>GQA,8:1 分组</td></tr>
-                <tr><td><code>head_dim</code></td><td class="num">128</td><td>注意,64×128 = 8192 是 hidden 的两倍</td></tr>
-                <tr><td><code>num_experts</code> / <code>num_experts_per_tok</code></td><td class="num">192 / 8</td><td>细粒度 MoE,每 token 选 8 个</td></tr>
-                <tr><td><code>num_shared_experts</code></td><td class="num">1</td><td>常驻共享专家</td></tr>
-                <tr><td><code>moe_intermediate_size</code></td><td class="num">1536</td><td>单个专家的 FFN 宽度</td></tr>
-                <tr><td><code>intermediate_size</code></td><td class="num">13312</td><td>dense 层的 FFN 宽度</td></tr>
-                <tr><td><code>first_k_dense_replace</code></td><td class="num">1</td><td>第 0 层是 dense,其余走 MoE</td></tr>
-                <tr><td><code>num_nextn_predict_layers</code></td><td class="num">1</td><td>带一个 MTP 模块</td></tr>
-                <tr><td><code>max_position_embeddings</code></td><td class="num">262144</td><td>256K 上下文</td></tr>
-                <tr><td><code>vocab_size</code></td><td class="num">120832</td><td>词表</td></tr>
+                <tr><td><code>num_hidden_layers</code></td><td class="num">80</td><td><span lang="zh-CN" class="i18n-zh">主干层数</span><span lang="en" class="i18n-en">Backbone layers</span></td></tr>
+                <tr><td><code>hidden_size</code></td><td class="num">4096</td><td><span lang="zh-CN" class="i18n-zh">残差流宽度</span><span lang="en" class="i18n-en">Residual stream width</span></td></tr>
+                <tr><td><code>num_attention_heads</code> / <code>num_key_value_heads</code></td><td class="num">64 / 8</td><td><span lang="zh-CN" class="i18n-zh">GQA,8:1 分组</span><span lang="en" class="i18n-en">GQA, grouped 8:1</span></td></tr>
+                <tr><td><code>head_dim</code></td><td class="num">128</td><td><span lang="zh-CN" class="i18n-zh">注意,64×128 = 8192 是 hidden 的两倍</span><span lang="en" class="i18n-en">Note that 64×128 = 8192 is twice hidden</span></td></tr>
+                <tr><td><code>num_experts</code> / <code>num_experts_per_tok</code></td><td class="num">192 / 8</td><td><span lang="zh-CN" class="i18n-zh">细粒度 MoE,每 token 选 8 个</span><span lang="en" class="i18n-en">Fine-grained MoE, 8 experts per token</span></td></tr>
+                <tr><td><code>num_shared_experts</code></td><td class="num">1</td><td><span lang="zh-CN" class="i18n-zh">常驻共享专家</span><span lang="en" class="i18n-en">Always-on shared expert</span></td></tr>
+                <tr><td><code>moe_intermediate_size</code></td><td class="num">1536</td><td><span lang="zh-CN" class="i18n-zh">单个专家的 FFN 宽度</span><span lang="en" class="i18n-en">FFN width of a single expert</span></td></tr>
+                <tr><td><code>intermediate_size</code></td><td class="num">13312</td><td><span lang="zh-CN" class="i18n-zh">dense 层的 FFN 宽度</span><span lang="en" class="i18n-en">FFN width of the dense layer</span></td></tr>
+                <tr><td><code>first_k_dense_replace</code></td><td class="num">1</td><td><span lang="zh-CN" class="i18n-zh">第 0 层是 dense,其余走 MoE</span><span lang="en" class="i18n-en">Layer 0 is dense, the rest are MoE</span></td></tr>
+                <tr><td><code>num_nextn_predict_layers</code></td><td class="num">1</td><td><span lang="zh-CN" class="i18n-zh">带一个 MTP 模块</span><span lang="en" class="i18n-en">Carries one MTP module</span></td></tr>
+                <tr><td><code>max_position_embeddings</code></td><td class="num">262144</td><td><span lang="zh-CN" class="i18n-zh">256K 上下文</span><span lang="en" class="i18n-en">256K context</span></td></tr>
+                <tr><td><code>vocab_size</code></td><td class="num">120832</td><td><span lang="zh-CN" class="i18n-zh">词表</span><span lang="en" class="i18n-en">Vocabulary</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <h2>二、先把总账算平</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、先把总账算平</span><span lang="en" class="i18n-en">2 · Balancing the books first</span></h2>
 
-          <p>
-            按维度逐项推:注意力四个投影、dense 层 FFN、每层 192 个专家加 1 个共享专家、路由、各种 norm、
-            词嵌入与 lm_head(<code>tie_word_embeddings</code> 为 false,两者各算一份)。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">按维度逐项推:注意力四个投影、dense 层 FFN、每层 192 个专家加 1 个共享专家、路由、各种 norm、
+            词嵌入与 lm_head(<code>tie_word_embeddings</code> 为 false,两者各算一份)。</span><span lang="en" class="i18n-en">Item by item from the dimensions: the four attention projections, the dense layer's FFN, 192 experts plus 1 shared expert per layer, the router, the various norms,
+            and the embedding and lm_head (<code>tie_word_embeddings</code> is false, so they count separately).</span></p>
 
           <div class="hy-fig">
-            <div class="fig-title">动图 1:参数账本(逐项累加)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:参数账本(逐项累加)</span><span lang="en" class="i18n-en">Figure 1: the parameter ledger, accumulated item by item</span></div>
             <div class="hy-ledger" id="ledger"></div>
             <div class="hy-total" id="ledgerTotal">—</div>
             <div class="hy-ctrls">
-              <button class="primary" id="ledPlay">暂停</button>
-              <button id="ledStep">单步 →</button>
-              <button id="ledReset">重置</button>
+              <button class="primary" id="ledPlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <button id="ledStep"><span lang="zh-CN" class="i18n-zh">单步 →</span><span lang="en" class="i18n-en">Step →</span></button>
+              <button id="ledReset"><span lang="zh-CN" class="i18n-zh">重置</span><span lang="en" class="i18n-en">Reset</span></button>
             </div>
-            <span class="fig-cap">
-              79 个 MoE 层吃掉了 <strong>98.3%</strong> 的参数。注意力在整个模型里只占约 2%,
-              这正是 MoE 的形状:<strong>参数几乎全在专家里,计算却大部分不在</strong>。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">79 个 MoE 层吃掉了 <strong>98.3%</strong> 的参数。注意力在整个模型里只占约 2%,
+              这正是 MoE 的形状:<strong>参数几乎全在专家里,计算却大部分不在</strong>。</span><span lang="en" class="i18n-en">The 79 MoE layers consume <strong>98.3%</strong> of the parameters. Attention is only about 2% of the whole model —
+              which is exactly the shape of MoE: <strong>nearly all the parameters live in the experts, and most of the computation does not</strong>.</span></span>
           </div>
 
-          <h2>三、剩下的 30,720 字节是谁</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、剩下的 30,720 字节是谁</span><span lang="en" class="i18n-en">3 · Who the remaining 30,720 bytes belong to</span></h2>
 
-          <p>
-            推算结果是 <code>298,786,155,776</code> 个参数。按 bf16 每个 2 字节算,应该是
+          <p><span lang="zh-CN" class="i18n-zh">推算结果是 <code>298,786,155,776</code> 个参数。按 bf16 每个 2 字节算,应该是
             <code>597,572,311,552</code> 字节。而 index 里声明的 <code>total_size</code> 是
-            <code>597,572,342,272</code> —— <strong>多出 30,720 字节</strong>。
-          </p>
+            <code>597,572,342,272</code> —— <strong>多出 30,720 字节</strong>。</span><span lang="en" class="i18n-en">The derivation gives <code>298,786,155,776</code> parameters. At 2 bytes each in bf16 that should be
+            <code>597,572,311,552</code> bytes. The <code>total_size</code> declared in the index is
+            <code>597,572,342,272</code> — <strong>30,720 bytes more</strong>.</span></p>
 
-          <p>
-            0.000005% 的偏差,大到不可能是舍入,小到不可能是漏了一层。换算成参数是 <strong>15,360 个</strong>,
+          <p><span lang="zh-CN" class="i18n-zh">0.000005% 的偏差,大到不可能是舍入,小到不可能是漏了一层。换算成参数是 <strong>15,360 个</strong>,
             而 <code>15360 = 80 × 192</code> —— 恰好是 <strong>80 个 MoE 层各自那 192 个 <code>expert_bias</code></strong> 的总数。
-            也就是说这些值每个多占了 2 字节:
-          </p>
+            也就是说这些值每个多占了 2 字节:</span><span lang="en" class="i18n-en">A 0.000005% discrepancy: too large to be rounding, too small to be a missing layer. In parameters that is <strong>15,360</strong>,
+            and <code>15360 = 80 × 192</code> — exactly the total number of <strong><code>expert_bias</code> values across 80 MoE layers, 192 each</strong>.
+            In other words each of them takes 2 bytes more:</span></p>
 
-          <pre><code>参数总数        298,786,155,776
+          <pre><code><span lang="zh-CN" class="i18n-zh">参数总数        298,786,155,776
 全部按 bf16     × 2      = 597,572,311,552
 expert_bias 改 fp32  + 15,360 × 2  =      30,720
                         ------------------------
-                         597,572,342,272   ← 与 index 声明完全相等</code></pre>
+                         597,572,342,272   ← 与 index 声明完全相等</span><span lang="en" class="i18n-en">parameter count      298,786,155,776
+all in bf16          × 2      = 597,572,311,552
+expert_bias in fp32  + 15,360 × 2  =      30,720
+                        ------------------------
+                         597,572,342,272   ← exactly the index's declared size</span></code></pre>
 
-          <p>
-            结论:<strong>整个模型是 bf16,唯独 <code>expert_bias</code> 存成 fp32</strong>。
-            这件事 config 里一个字都没写,只能从字节数反推出来。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">结论:<strong>整个模型是 bf16,唯独 <code>expert_bias</code> 存成 fp32</strong>。
+            这件事 config 里一个字都没写,只能从字节数反推出来。</span><span lang="en" class="i18n-en">Conclusion: <strong>the whole model is bf16, except <code>expert_bias</code>, which is stored as fp32</strong>.
+            The config says nothing at all about this; it can only be inferred from the byte count.</span></p>
 
-          <p>
-            而它是有道理的。这个 bias 是无辅助损失负载均衡里的调节量 —— 每步根据专家的负载偏差加减一个很小的增量。
+          <p><span lang="zh-CN" class="i18n-zh">而它是有道理的。这个 bias 是无辅助损失负载均衡里的调节量 —— 每步根据专家的负载偏差加减一个很小的增量。
             bf16 只有 8 位尾数,在数值已经长到一定量级后,小增量会被直接舍入掉,均衡机制就悄悄失效了。
-            用 fp32 存这 15,360 个数,代价是 30 KB,换来的是负载均衡不会随训练进程失灵。
-          </p>
+            用 fp32 存这 15,360 个数,代价是 30 KB,换来的是负载均衡不会随训练进程失灵。</span><span lang="en" class="i18n-en">And there is a reason for it. That bias is the adjustment term in auxiliary-loss-free load balancing — a small increment added or subtracted each step according to how far an expert's load has drifted.
+            bf16 has only 8 mantissa bits, so once the value has grown to a certain magnitude the small increment is rounded straight away and the balancing mechanism quietly stops working.
+            Storing those 15,360 numbers in fp32 costs 30 KB and buys balancing that does not fail as training progresses.</span></p>
 
-          <h2>四、81 层里藏着一个 MTP</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、81 层里藏着一个 MTP</span><span lang="en" class="i18n-en">4 · An MTP hidden among the 81 layers</span></h2>
 
-          <p>
-            index 里的层号是 <code>0</code> 到 <code>80</code>,共 81 个,但 config 写的是 80 层。多出来的那层不是笔误 ——
+          <p><span lang="zh-CN" class="i18n-zh">index 里的层号是 <code>0</code> 到 <code>80</code>,共 81 个,但 config 写的是 80 层。多出来的那层不是笔误 ——
             第 80 层带着 <code>eh_proj</code>、<code>enorm</code>、<code>hnorm</code>、<code>final_layernorm</code> 这几个主干层没有的张量,
-            这是 <strong>MTP(多 token 预测)模块</strong>,对应 config 里的 <code>num_nextn_predict_layers: 1</code>。
-          </p>
+            这是 <strong>MTP(多 token 预测)模块</strong>,对应 config 里的 <code>num_nextn_predict_layers: 1</code>。</span><span lang="en" class="i18n-en">The index numbers layers <code>0</code> through <code>80</code>, 81 in all, while the config says 80. The extra one is not a typo —
+            layer 80 carries <code>eh_proj</code>, <code>enorm</code>, <code>hnorm</code> and <code>final_layernorm</code>, tensors no backbone layer has.
+            This is the <strong>MTP (multi-token prediction) module</strong>, corresponding to <code>num_nextn_predict_layers: 1</code> in the config.</span></p>
 
           <div class="hy-fig">
-            <div class="fig-title">动图 2:81 层的构成(鼠标划过看细节)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:81 层的构成(鼠标划过看细节)</span><span lang="en" class="i18n-en">Figure 2: what the 81 layers are made of (hover for detail)</span></div>
             <div class="hy-legend">
-              <span><i style="--k: var(--emb)"></i>层 0 · dense FFN</span>
-              <span><i style="--k: var(--exp)"></i>层 1–79 · MoE</span>
-              <span><i style="--k: var(--mtp)"></i>层 80 · MTP 模块</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--emb)"></i>层 0 · dense FFN</span><span lang="en" class="i18n-en"><i style="--k: var(--emb)"></i>layer 0 · dense FFN</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--exp)"></i>层 1–79 · MoE</span><span lang="en" class="i18n-en"><i style="--k: var(--exp)"></i>layers 1–79 · MoE</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--mtp)"></i>层 80 · MTP 模块</span><span lang="en" class="i18n-en"><i style="--k: var(--mtp)"></i>layer 80 · MTP module</span></span>
             </div>
             <div class="hy-strip" id="strip"></div>
             <div class="hy-strip-info" id="stripInfo"></div>
-            <span class="fig-cap">
-              MTP 模块自带完整的注意力和 192 个专家,本身就有 <strong>3.75 B</strong> 参数 —— 模型卡把它单独列为
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">MTP 模块自带完整的注意力和 192 个专家,本身就有 <strong>3.75 B</strong> 参数 —— 模型卡把它单独列为
               <strong>3.8 B</strong>,对得上。这也解释了那张规格表为什么写「总参数 295B」却又单列一行 MTP:
               <strong>295 B 是不含它的数,磁盘上实际躺着 295 + 3.8 = 298.79 B</strong>。
               按 <code>num_hidden_layers: 80</code> 去分配显存,就会少算这 7.5 GB。
-              它也不是可选摆设 —— 官方的 vLLM 与 SGLang 启动脚本都默认开着它做投机解码。
-            </span>
+              它也不是可选摆设 —— 官方的 vLLM 与 SGLang 启动脚本都默认开着它做投机解码。</span><span lang="en" class="i18n-en">The MTP module brings its own full attention and 192 experts, and is <strong>3.75 B</strong> parameters by itself — the model card lists it separately as
+              <strong>3.8 B</strong>, which matches. It also explains why the spec table says "295B total" and then adds a separate MTP row:
+              <strong>295 B excludes it, and what is actually on disk is 295 + 3.8 = 298.79 B</strong>.
+              Budget memory from <code>num_hidden_layers: 80</code> and you will be 7.5 GB short.
+              Nor is it optional decoration — the official vLLM and SGLang launch scripts enable it by default for speculative decoding.</span></span>
           </div>
 
-          <h2>五、14.5 倍稀疏:97.8% 的张量都是专家</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、14.5 倍稀疏:97.8% 的张量都是专家</span><span lang="en" class="i18n-en">5 · 14.5× sparsity: 97.8% of tensors are experts</span></h2>
 
-          <p>
-            47,138 个张量条目里,<strong>46,080 个是专家权重</strong>。这个比例本身就说明了 MoE 的工程形态:
-            绝大多数张量在绝大多数时候是不参与计算的,但它们必须<strong>全部常驻显存</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">47,138 个张量条目里,<strong>46,080 个是专家权重</strong>。这个比例本身就说明了 MoE 的工程形态:
+            绝大多数张量在绝大多数时候是不参与计算的,但它们必须<strong>全部常驻显存</strong>。</span><span lang="en" class="i18n-en">Of 47,138 tensor entries, <strong>46,080 are expert weights</strong>. That ratio alone describes the engineering shape of MoE:
+            the vast majority of tensors are not participating in the computation most of the time, yet all of them <strong>must stay resident in memory</strong>.</span></p>
 
           <div class="hy-fig">
-            <div class="fig-title">动图 3:一层里的 192 个专家,每 token 只点亮 9 个</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:一层里的 192 个专家,每 token 只点亮 9 个</span><span lang="en" class="i18n-en">Figure 3: 192 experts in one layer, only 9 lit per token</span></div>
             <div class="hy-legend">
-              <span><i style="--k: var(--exp)"></i>本 token 选中的 8 个路由专家</span>
-              <span><i style="--k: var(--ok)"></i>共享专家(恒定参与)</span>
-              <span><i style="background: var(--surface-strong)"></i>本 token 闲置</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--exp)"></i>本 token 选中的 8 个路由专家</span><span lang="en" class="i18n-en"><i style="--k: var(--exp)"></i>the 8 routed experts chosen for this token</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--ok)"></i>共享专家(恒定参与)</span><span lang="en" class="i18n-en"><i style="--k: var(--ok)"></i>shared expert (always participating)</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--surface-strong)"></i>本 token 闲置</span><span lang="en" class="i18n-en"><i style="background: var(--surface-strong)"></i>idle for this token</span></span>
             </div>
             <div class="hy-sparse" id="sparse"></div>
             <div class="hy-sp-read">
-              <div class="hy-ro"><div class="kk">单层总参数</div><div class="vv e">3.72 B</div></div>
-              <div class="hy-ro"><div class="kk">单层激活</div><div class="vv o">246 M</div></div>
-              <div class="hy-ro"><div class="kk">全模型激活</div><div class="vv t">20.68 B</div></div>
-              <div class="hy-ro"><div class="kk">稀疏度</div><div class="vv t">14.5×</div></div>
+              <div class="hy-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">单层总参数</span><span lang="en" class="i18n-en">Parameters per layer</span></div><div class="vv e">3.72 B</div></div>
+              <div class="hy-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">单层激活</span><span lang="en" class="i18n-en">Active per layer</span></div><div class="vv o">246 M</div></div>
+              <div class="hy-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">全模型激活</span><span lang="en" class="i18n-en">Active, whole model</span></div><div class="vv t">20.68 B</div></div>
+              <div class="hy-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">稀疏度</span><span lang="en" class="i18n-en">Sparsity</span></div><div class="vv t">14.5×</div></div>
             </div>
-            <span class="fig-cap">
-              有个耐人寻味的设计巧合:<strong>激活的 FFN 宽度几乎等于 dense 层宽度</strong> ——
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">有个耐人寻味的设计巧合:<strong>激活的 FFN 宽度几乎等于 dense 层宽度</strong> ——
               9 个专家(8 路由 + 1 共享)× 1536 = <strong>13,824</strong>,而第 0 层 dense 是 <strong>13,312</strong>。
-              专家切得很细(单个只有 dense FFN 的 11.5%),但每 token 实际算的 FFN 规模和一个 dense 层基本对齐。
-            </span>
+              专家切得很细(单个只有 dense FFN 的 11.5%),但每 token 实际算的 FFN 规模和一个 dense 层基本对齐。</span><span lang="en" class="i18n-en">There is an intriguing coincidence in the design: <strong>the active FFN width almost equals the dense layer's width</strong> —
+              9 experts (8 routed + 1 shared) × 1536 = <strong>13,824</strong>, while layer 0's dense FFN is <strong>13,312</strong>.
+              The experts are sliced very finely (one is just 11.5% of the dense FFN), yet the FFN each token actually computes is about the size of one dense layer.</span></span>
           </div>
 
-          <h2>六、谱系:别人的路由,自己的注意力</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、谱系:别人的路由,自己的注意力</span><span lang="en" class="i18n-en">6 · Lineage: someone else's routing, its own attention</span></h2>
 
-          <p>
-            路由这一侧几乎是照着 DeepSeek-V3 那套走的:sigmoid 打分(<code>moe_router_use_sigmoid</code>)、
+          <p><span lang="zh-CN" class="i18n-zh">路由这一侧几乎是照着 DeepSeek-V3 那套走的:sigmoid 打分(<code>moe_router_use_sigmoid</code>)、
             用 expert bias 做无辅助损失均衡、首层 dense、共享专家、MTP。连
-            <code>router_scaling_factor: 2.826</code> 这种带小数的缩放系数都是同一路数。
-          </p>
+            <code>router_scaling_factor: 2.826</code> 这种带小数的缩放系数都是同一路数。</span><span lang="en" class="i18n-en">The routing side follows DeepSeek-V3 almost exactly: sigmoid scoring (<code>moe_router_use_sigmoid</code>),
+            auxiliary-loss-free balancing through an expert bias, a dense first layer, a shared expert, MTP. Even a fractional scaling
+            constant like <code>router_scaling_factor: 2.826</code> is from the same playbook.</span></p>
 
-          <p>
-            <strong>但注意力完全分岔了:不是 MLA,而是 GQA 64/8,外加 <code>qk_norm</code>。</strong>
-            也就是说它放弃了 MLA 那条压缩 KV 的路线,直接用分组共享把 KV 压到八分之一,再靠 q/k 上的 RMSNorm 稳住训练。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh"><strong>但注意力完全分岔了:不是 MLA,而是 GQA 64/8,外加 <code>qk_norm</code>。</strong>
+            也就是说它放弃了 MLA 那条压缩 KV 的路线,直接用分组共享把 KV 压到八分之一,再靠 q/k 上的 RMSNorm 稳住训练。</span><span lang="en" class="i18n-en"><strong>But attention diverges completely: not MLA, but GQA 64/8 with <code>qk_norm</code>.</strong>
+            It abandons MLA's route of compressing KV, using grouped sharing to cut KV to an eighth instead, and stabilising training with RMSNorm on q and k.</span></p>
 
-          <p>
-            还有一处不常见:<code>num_heads × head_dim = 64 × 128 = 8192</code>,是 <code>hidden_size</code> 4096 的<strong>两倍</strong>。
+          <p><span lang="zh-CN" class="i18n-zh">还有一处不常见:<code>num_heads × head_dim = 64 × 128 = 8192</code>,是 <code>hidden_size</code> 4096 的<strong>两倍</strong>。
             多数模型这两个数相等,这里 q_proj 是一个 4096 → 8192 的扩张投影,注意力被单独加宽而残差流保持窄。
             这个细节在做张量并行时会直接坑到 shape,我在
-            <a href="hy3-parallelism-tp-pp-ep.html">并行那篇</a>里单开了一节讲,这里不重复。
-          </p>
+            <a href="hy3-parallelism-tp-pp-ep.html">并行那篇</a>里单开了一节讲,这里不重复。</span><span lang="en" class="i18n-en">One more uncommon detail: <code>num_heads × head_dim = 64 × 128 = 8192</code>, <strong>twice</strong> the <code>hidden_size</code> of 4096.
+            In most models those two are equal; here q_proj is an expanding 4096 → 8192 projection, widening attention while the residual stream stays narrow.
+            This detail bites shapes directly during tensor parallelism, and I gave it its own section in
+            <a href="hy3-parallelism-tp-pp-ep.html">the parallelism note</a>, so I will not repeat it here.</span></p>
 
-          <h2>七、真正卡脖子的是显存</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、真正卡脖子的是显存</span><span lang="en" class="i18n-en">7 · The real bottleneck is memory</span></h2>
 
-          <p>
-            权重 bf16 要 <strong>556.5 GiB</strong>,
+          <p><span lang="zh-CN" class="i18n-zh">权重 bf16 要 <strong>556.5 GiB</strong>,
             而<a href="qkv-lifecycle-256k.html">满 256K 上下文的 KV cache 还要 80 GiB</a>。
-            把两者放进同一个显存池里看:
-          </p>
+            把两者放进同一个显存池里看:</span><span lang="en" class="i18n-en">The weights need <strong>556.5 GiB</strong> in bf16,
+            and <a href="qkv-lifecycle-256k.html">a full 256K context needs another 80 GiB of KV cache</a>.
+            Put both in the same memory pool:</span></p>
 
           <div class="hy-fig">
-            <div class="fig-title">动图 4:显存预算(可切精度与卡数)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:显存预算(可切精度与卡数)</span><span lang="en" class="i18n-en">Figure 4: the memory budget (switch precision and GPU count)</span></div>
             <div class="hy-legend">
-              <span><i style="--k: var(--exp)"></i>模型权重</span>
-              <span><i style="--k: var(--attn)"></i>KV cache(1 条满窗口)</span>
-              <span><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i>剩余</span>
-              <span><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i>超出显存</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--exp)"></i>模型权重</span><span lang="en" class="i18n-en"><i style="--k: var(--exp)"></i>model weights</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--k: var(--attn)"></i>KV cache(1 条满窗口)</span><span lang="en" class="i18n-en"><i style="--k: var(--attn)"></i>KV cache (one full window)</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i>剩余</span><span lang="en" class="i18n-en"><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i>remaining</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i>超出显存</span><span lang="en" class="i18n-en"><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i>over capacity</span></span>
             </div>
 
             <div class="hy-budget" id="budget"></div>
             <div class="hy-scale"><span>0</span><span id="poolLabel">—</span></div>
 
             <div class="hy-ctrls">
-              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted)">卡型</span>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted)"><span lang="zh-CN" class="i18n-zh">卡型</span><span lang="en" class="i18n-en">GPU</span></span>
               <div class="hy-seg" id="cardSeg">
                 <button data-c="80" class="on">H100 80GB</button>
                 <button data-c="141">H20-3e 141GB</button>
               </div>
-              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px">卡数</span>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px"><span lang="zh-CN" class="i18n-zh">卡数</span><span lang="en" class="i18n-en">Count</span></span>
               <div class="hy-seg" id="gpuSeg">
                 <button data-g="8" class="on">8</button>
                 <button data-g="16">16</button>
                 <button data-g="32">32</button>
               </div>
-              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px">权重精度</span>
+              <span style="font-family: var(--font-mono); font-size: .66rem; color: var(--text-muted); margin-left: 8px"><span lang="zh-CN" class="i18n-zh">权重精度</span><span lang="en" class="i18n-en">Weight precision</span></span>
               <div class="hy-seg" id="precSeg">
                 <button data-p="2" class="on">BF16</button>
                 <button data-p="1">FP8</button>
@@ -445,75 +449,77 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
 
             <div class="hy-verdict" id="budgetVerdict"></div>
 
-            <span class="fig-cap">
-              只算权重与 KV,未计激活、通信缓冲与框架 workspace,所以这是个<strong>乐观上界</strong> ——
-              真实可用容量还要再打折。显存按标称值计:H100 80 GB、H20-3e 141 GB。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">只算权重与 KV,未计激活、通信缓冲与框架 workspace,所以这是个<strong>乐观上界</strong> ——
+              真实可用容量还要再打折。显存按标称值计:H100 80 GB、H20-3e 141 GB。</span><span lang="en" class="i18n-en">Weights and KV only, excluding activations, communication buffers and framework workspace, so this is an <strong>optimistic upper bound</strong> —
+              real usable capacity is lower still. Memory is counted at nominal values: H100 80 GB, H20-3e 141 GB.</span></span>
           </div>
 
-          <p>
-            结论比较硬:<strong>8 卡 H100 在 bf16 下连一条满上下文请求都服务不了</strong>。
+          <p><span lang="zh-CN" class="i18n-zh">结论比较硬:<strong>8 卡 H100 在 bf16 下连一条满上下文请求都服务不了</strong>。
             权重装完只剩约 39.5 GiB,而一条 256K 序列的 KV 就要 80 GiB —— 缺口整整一倍。
             <strong>这一点在模型卡上得到了印证。</strong>官方部署建议原文是:「Hy3 共 295B 参数,若要用 8 卡部署,
             我们推荐 H20-3e 或其他<strong>显存容量更大</strong>的卡。」H20-3e 是 141 GB 版本,8 张合计 1050 GiB,
             装完权重还剩约 494 GiB —— 够放 6 条满窗口序列。<strong>不是官方不推荐 H100,是 80 GB 这个容量根本放不下。</strong>
-            在上图把卡型切到 H20-3e 就能看到这个差别。
-          </p>
+            在上图把卡型切到 H20-3e 就能看到这个差别。</span><span lang="en" class="i18n-en">The conclusion is blunt: <strong>8×H100 in bf16 cannot serve even one full-context request</strong>.
+            After the weights there is about 39.5 GiB left, and one 256K sequence's KV needs 80 GiB — short by a full factor of two.
+            <strong>The model card confirms this.</strong> The official deployment note reads: "Hy3 has 295B parameters in total; for an 8-GPU deployment
+            we recommend H20-3e or another card with <strong>larger memory capacity</strong>." H20-3e is the 141 GB version; eight of them total 1050 GiB,
+            leaving about 494 GiB after the weights — enough for 6 full-window sequences. <strong>It is not that they advise against H100; 80 GB simply does not fit.</strong>
+            Switch the GPU to H20-3e in the figure above to see the difference.</span></p>
 
-          <p>
-            其余可行路径:扩到 16 卡以上、把权重量化到 FP8(模型卡标注的支持精度只有 BF16,量化要自己做,
+          <p><span lang="zh-CN" class="i18n-zh">其余可行路径:扩到 16 卡以上、把权重量化到 FP8(模型卡标注的支持精度只有 BF16,量化要自己做,
             官方给了 <a href="https://github.com/tencent/AngelSlim" target="_blank" rel="noopener">AngelSlim</a> 工具链)、
-            或者用 <a href="kv-pooling-kv-connector.html">KV 池化</a>把 cache 卸到 GPU 之外。
-          </p>
+            或者用 <a href="kv-pooling-kv-connector.html">KV 池化</a>把 cache 卸到 GPU 之外。</span><span lang="en" class="i18n-en">Other viable routes: scale past 16 GPUs, quantise the weights to FP8 (the card lists BF16 as the only supported precision, so you would quantise yourself —
+            they provide the <a href="https://github.com/tencent/AngelSlim" target="_blank" rel="noopener">AngelSlim</a> toolchain),
+            or use <a href="kv-pooling-kv-connector.html">KV pooling</a> to offload the cache off-GPU.</span></p>
 
-          <p>
-            这里算的是<strong>整池够不够</strong>,把所有卡的显存当成一个整体。真正部署时还要看切完之后
+          <p><span lang="zh-CN" class="i18n-zh">这里算的是<strong>整池够不够</strong>,把所有卡的显存当成一个整体。真正部署时还要看切完之后
             <strong>每张卡各自装什么</strong> —— 那是另一码事,在
-            <a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 那篇</a>里按 16 卡布局算过:单卡 34.7 GiB 权重、20 KiB/token 的 KV。
-          </p>
+            <a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 那篇</a>里按 16 卡布局算过:单卡 34.7 GiB 权重、20 KiB/token 的 KV。</span><span lang="en" class="i18n-en">What is computed here is <strong>whether the pool as a whole suffices</strong>, treating all GPUs' memory as one aggregate. A real deployment also has to consider
+            <strong>what each individual GPU holds</strong> after sharding — a separate matter, worked out for a 16-GPU layout in
+            <a href="hy3-parallelism-tp-pp-ep.html">the TP / PP / EP note</a>: 34.7 GiB of weights per GPU and 20 KiB of KV per token.</span></p>
 
-          <h2>八、两个看着像遗留项的开关</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">八、两个看着像遗留项的开关</span><span lang="en" class="i18n-en">8 · Two switches that look like leftovers</span></h2>
 
-          <p>
-            <code>output_router_logits: true</code> —— 这通常是训练时算辅助损失用的。推理配置里开着,
+          <p><span lang="zh-CN" class="i18n-zh"><code>output_router_logits: true</code> —— 这通常是训练时算辅助损失用的。推理配置里开着,
             会让每层都多吐一路 router logits,白白占带宽。不过这个模型用的是<strong>无辅助损失</strong>的 bias 均衡,
-            所以它更可能是留给负载监控或调试的。
-          </p>
+            所以它更可能是留给负载监控或调试的。</span><span lang="en" class="i18n-en"><code>output_router_logits: true</code> — normally this is for computing an auxiliary loss during training. Left on in an inference config
+            it makes every layer emit an extra stream of router logits, wasting bandwidth. But this model uses <strong>auxiliary-loss-free</strong> bias balancing,
+            so it is more likely there for load monitoring or debugging.</span></p>
 
-          <p>
-            <code>use_grouped_mm: false</code> —— 192 个细粒度专家却没开 grouped GEMM,
+          <p><span lang="zh-CN" class="i18n-zh"><code>use_grouped_mm: false</code> —— 192 个细粒度专家却没开 grouped GEMM,
             意味着 MoE 那段大概率在走逐专家的循环。每个专家只有 1536 的中间维度,单独发 kernel 的话
-            GPU 基本吃不饱,这正是 <a href="triton-gemm-step-by-step.html">grouped GEMM</a> 最典型的用武之地。
-          </p>
+            GPU 基本吃不饱,这正是 <a href="triton-gemm-step-by-step.html">grouped GEMM</a> 最典型的用武之地。</span><span lang="en" class="i18n-en"><code>use_grouped_mm: false</code> — 192 fine-grained experts with grouped GEMM off suggests the MoE section is most likely running a per-expert loop.
+            With only 1536 of intermediate dimension per expert, launching a separate kernel each leaves the GPU largely idle, which is the textbook case for
+            <a href="triton-gemm-step-by-step.html">grouped GEMM</a>.</span></p>
 
-          <p>
-            另外 <code>rope_theta = 11158840.0</code> 是个很不圆整的数,不像手设的 <code>1e7</code>,
-            更像是按 256K 的目标长度反解出来的。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">另外 <code>rope_theta = 11158840.0</code> 是个很不圆整的数,不像手设的 <code>1e7</code>,
+            更像是按 256K 的目标长度反解出来的。</span><span lang="en" class="i18n-en">Also <code>rope_theta = 11158840.0</code> is a distinctly un-round number, not a hand-set <code>1e7</code>;
+            it looks solved backwards from a 256K target length.</span></p>
 
-          <h2>九、要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">九、要点</span><span lang="en" class="i18n-en">9 · Takeaways</span></h2>
 
           <div class="hy-takes">
-            <div class="hy-take"><div class="n">01</div><h5>元数据足够还原结构</h5>
-              <p>不下载一个权重字节,只靠维度和 <code>total_size</code> 交叉验证,就能<strong>独立复现模型卡上的 295 B / 3.8 B / 21 B 三个数字</strong>,还能补出规格表没写的存储格式。审模型、估显存、排查加载问题,都不必先拉 600 GB。</p></div>
-            <div class="hy-take"><div class="n">02</div><h5>对不上的那一点最有价值</h5>
-              <p>30,720 字节的差值反推出 <code>expert_bias</code> 用 fp32 存 —— 这是 config 里没写、只能从字节数看出来的实现选择,背后是均衡机制怕被 bf16 舍入吃掉。</p></div>
-            <div class="hy-take"><div class="n">03</div><h5>层数和参数量都要看口径</h5>
-              <p><code>num_hidden_layers</code> 是 80,权重里却有 81 个层号;「总参数 295B」也不含那一层。MTP 自带注意力和全套专家、独占 3.75 B。照 config 分配显存会少算 7.5 GB。</p></div>
-            <div class="hy-take"><div class="n">04</div><h5>稀疏省的是算力,不是显存</h5>
-              <p>每 token 只激活 6.9% 的参数,但 97.8% 的张量必须常驻。MoE 换来的是<strong>算力效率</strong>,显存账单一分没少 —— 这决定了它的部署形态。</p></div>
-            <div class="hy-take"><div class="n">05</div><h5>先算显存,再谈优化</h5>
-              <p>8×H100 bf16 装完权重只剩 39.5 GiB,而一条满窗口 KV 要 80 GiB。在这个前提没解决之前,谈 kernel 调优是没有意义的。</p></div>
-            <div class="hy-take"><div class="n">06</div><h5>混合谱系已是常态</h5>
-              <p>路由抄 DeepSeek 的成熟方案(sigmoid + bias 均衡 + 共享专家 + MTP),注意力却选了 GQA 而非 MLA。现在的模型不再有单一血统,读配置时要分模块看。</p></div>
+            <div class="hy-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">元数据足够还原结构</span><span lang="en" class="i18n-en">Metadata is enough to reconstruct the structure</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">不下载一个权重字节,只靠维度和 <code>total_size</code> 交叉验证,就能<strong>独立复现模型卡上的 295 B / 3.8 B / 21 B 三个数字</strong>,还能补出规格表没写的存储格式。审模型、估显存、排查加载问题,都不必先拉 600 GB。</span><span lang="en" class="i18n-en">Without downloading a single byte of weights, cross-checking dimensions against <code>total_size</code> <strong>independently reproduces the model card's 295 B / 3.8 B / 21 B</strong> and additionally recovers a storage format the spec table omits. Auditing a model, estimating memory or debugging a load does not require pulling 600 GB first.</span></p></div>
+            <div class="hy-take"><div class="n">02</div><h5><span lang="zh-CN" class="i18n-zh">对不上的那一点最有价值</span><span lang="en" class="i18n-en">The part that does not add up is the most valuable</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">30,720 字节的差值反推出 <code>expert_bias</code> 用 fp32 存 —— 这是 config 里没写、只能从字节数看出来的实现选择,背后是均衡机制怕被 bf16 舍入吃掉。</span><span lang="en" class="i18n-en">A 30,720-byte gap reveals that <code>expert_bias</code> is stored in fp32 — an implementation choice absent from the config and visible only in the byte count, made because the balancing mechanism would otherwise be eaten by bf16 rounding.</span></p></div>
+            <div class="hy-take"><div class="n">03</div><h5><span lang="zh-CN" class="i18n-zh">层数和参数量都要看口径</span><span lang="en" class="i18n-en">Layer counts and parameter counts both depend on the convention</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>num_hidden_layers</code> 是 80,权重里却有 81 个层号;「总参数 295B」也不含那一层。MTP 自带注意力和全套专家、独占 3.75 B。照 config 分配显存会少算 7.5 GB。</span><span lang="en" class="i18n-en"><code>num_hidden_layers</code> is 80, yet the weights carry 81 layer indices; "295B total" also excludes that layer. MTP brings its own attention and a full set of experts, 3.75 B on its own. Budget memory from the config and you are 7.5 GB short.</span></p></div>
+            <div class="hy-take"><div class="n">04</div><h5><span lang="zh-CN" class="i18n-zh">稀疏省的是算力,不是显存</span><span lang="en" class="i18n-en">Sparsity saves compute, not memory</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">每 token 只激活 6.9% 的参数,但 97.8% 的张量必须常驻。MoE 换来的是<strong>算力效率</strong>,显存账单一分没少 —— 这决定了它的部署形态。</span><span lang="en" class="i18n-en">Only 6.9% of parameters activate per token, yet 97.8% of tensors must stay resident. What MoE buys is <strong>compute efficiency</strong>; the memory bill is undiminished — and that dictates how it can be deployed.</span></p></div>
+            <div class="hy-take"><div class="n">05</div><h5><span lang="zh-CN" class="i18n-zh">先算显存,再谈优化</span><span lang="en" class="i18n-en">Do the memory arithmetic before discussing optimisation</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">8×H100 bf16 装完权重只剩 39.5 GiB,而一条满窗口 KV 要 80 GiB。在这个前提没解决之前,谈 kernel 调优是没有意义的。</span><span lang="en" class="i18n-en">8×H100 in bf16 leaves 39.5 GiB after the weights, while one full-window KV needs 80 GiB. Until that is resolved, kernel tuning is beside the point.</span></p></div>
+            <div class="hy-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">混合谱系已是常态</span><span lang="en" class="i18n-en">Mixed lineage is now the norm</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">路由抄 DeepSeek 的成熟方案(sigmoid + bias 均衡 + 共享专家 + MTP),注意力却选了 GQA 而非 MLA。现在的模型不再有单一血统,读配置时要分模块看。</span><span lang="en" class="i18n-en">The routing borrows DeepSeek's proven recipe (sigmoid + bias balancing + shared expert + MTP), while attention chose GQA over MLA. Models no longer have a single bloodline; read the config module by module.</span></p></div>
           </div>
 
-          <blockquote>
-            结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,未加载任何权重;
+          <blockquote><span lang="zh-CN" class="i18n-zh">结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,未加载任何权重;
             推算完成后才与模型卡的规格表核对。规格表数字、部署建议与支持精度引自
             <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a> 模型卡。
-            显存部分只算权重与 KV,未计激活、通信缓冲与框架 workspace,属乐观上界;GPU 容量按标称值(H100 80 GB / H20-3e 141 GB)计。
-          </blockquote>
+            显存部分只算权重与 KV,未计激活、通信缓冲与框架 workspace,属乐观上界;GPU 容量按标称值(H100 80 GB / H20-3e 141 GB)计。</span><span lang="en" class="i18n-en">Structure and parameter counts are derived from <code>config.json</code> and <code>model.safetensors.index.json</code> alone, with no weights loaded;
+            the comparison against the spec table came after the derivation. Spec figures, deployment advice and supported precision are quoted from the
+            <a href="https://huggingface.co/tencent/Hy3" target="_blank" rel="noopener">tencent/Hy3</a> model card.
+            The memory section counts weights and KV only, excluding activations, communication buffers and framework workspace, so it is an optimistic upper bound; GPU capacity is nominal (H100 80 GB / H20-3e 141 GB).</span></blockquote>
         </div>
       </article>
     </main>
@@ -536,19 +542,31 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
         var KV_PER_TOK = 2 * 8 * 128 * 2 * 80;  // 327680 B
         var CTX = 262144;
 
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
         function fmtB(n) { return (n / 1e9).toFixed(2) + ' B'; }
         function fmtGiB(n) { return (n / GiB).toFixed(1) + ' GiB'; }
 
         /* ============ 动图 1:参数账本 ============ */
         (function () {
-          var ROWS = [
+          function buildRows() { return [
             { nm: 'embed_tokens', sub: '120832 × 4096', v: 494927872, k: 'var(--emb)' },
-            { nm: '层 0 · dense', sub: '注意力 + FFN 13312', v: 239083776, k: 'var(--emb)' },
-            { nm: '层 1–79 · MoE', sub: '79 × (注意力 + 192 专家 + 共享)', v: 293804599872, k: 'var(--exp)' },
-            { nm: '层 80 · MTP', sub: '同 MoE 层 + eh_proj + 2 norm', v: 3752612288, k: 'var(--mtp)' },
+            { nm: tr('层 0 · dense', 'layer 0 · dense'), sub: tr('注意力 + FFN 13312', 'attention + FFN 13312'), v: 239083776, k: 'var(--emb)' },
+            { nm: tr('层 1–79 · MoE', 'layers 1–79 · MoE'), sub: tr('79 × (注意力 + 192 专家 + 共享)', '79 × (attention + 192 experts + shared)'), v: 293804599872, k: 'var(--exp)' },
+            { nm: tr('层 80 · MTP', 'layer 80 · MTP'), sub: tr('同 MoE 层 + eh_proj + 2 norm', 'as a MoE layer + eh_proj + 2 norms'), v: 3752612288, k: 'var(--mtp)' },
             { nm: 'model.norm', sub: '4096', v: 4096, k: 'var(--attn)' },
-            { nm: 'lm_head', sub: '未与词嵌入共享', v: 494927872, k: 'var(--emb)' },
-          ];
+            { nm: 'lm_head', sub: tr('未与词嵌入共享', 'not tied to the embedding'), v: 494927872, k: 'var(--emb)' },
+          ]; }
+          var ROWS = buildRows();
           var host = document.getElementById('ledger');
           var totalEl = document.getElementById('ledgerTotal');
           var max = Math.max.apply(null, ROWS.map(function (r) { return r.v; }));
@@ -569,6 +587,8 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
             var sum = 0;
             ROWS.forEach(function (r, j) {
               var row = host.children[j];
+              // 行名在语种切换后会变,每次渲染都写回
+              row.querySelector('.nm').innerHTML = r.nm + '<small>' + r.sub + '</small>';
               var shown = j <= i;
               row.classList.toggle('shown', shown);
               row.classList.toggle('cur', j === i);
@@ -576,21 +596,21 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
               if (shown) sum += r.v;
             });
             var pct = (sum / PARAMS * 100).toFixed(1);
-            totalEl.innerHTML = '累计 <b>' + sum.toLocaleString('en-US') + '</b> 个参数' +
-              ' &nbsp;·&nbsp; ' + fmtB(sum) + ' &nbsp;·&nbsp; 占总量 ' + pct + '%' +
-              (i === ROWS.length - 1 ? ' &nbsp;→&nbsp; <b style="color:var(--ok)">与 index 对账通过</b>' : '');
+            totalEl.innerHTML = tr('累计 <b>', 'running total <b>') + sum.toLocaleString('en-US') + tr('</b> 个参数', '</b> parameters') +
+              ' &nbsp;·&nbsp; ' + fmtB(sum) + ' &nbsp;·&nbsp; ' + tr('占总量 ', '') + pct + '%' + tr('', ' of the total') +
+              (i === ROWS.length - 1 ? ' &nbsp;→&nbsp; <b style="color:var(--ok)">' + tr('与 index 对账通过', 'reconciles with the index') + '</b>' : '');
           }
           function next() { i = (i + 1) % ROWS.length; render(); }
           function loop() { clearInterval(timer); if (playing) timer = setInterval(next, 1500); }
 
           document.getElementById('ledPlay').addEventListener('click', function (e) {
             playing = !playing;
-            e.target.textContent = playing ? '暂停' : '继续';
+            e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume');
             loop();
           });
           document.getElementById('ledStep').addEventListener('click', function () {
             playing = false;
-            document.getElementById('ledPlay').textContent = '继续';
+            document.getElementById('ledPlay').textContent = tr('继续', 'Resume');
             clearInterval(timer);
             next();
           });
@@ -599,30 +619,41 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           });
           render();
           loop();
+          redraw.push(function () { ROWS = buildRows(); render(); });
         })();
 
         /* ============ 动图 2:81 层结构带 ============ */
         (function () {
           var strip = document.getElementById('strip');
           var info = document.getElementById('stripInfo');
-          var DESC = {
-            dense: '<b>层 0 · dense</b><br>注意力 + 一个 13312 宽的普通 FFN。<code>first_k_dense_replace: 1</code> 让首层不走 MoE —— 底层特征更通用,路由收益小,还能稳住训练早期。参数 239 M。',
-            moe: '<b>层 {i} · MoE</b><br>注意力 + 192 个路由专家 + 1 个共享专家 + router。单层 3.72 B 参数,但每 token 只激活 246 M。这样的层有 79 个,占全模型 98.3% 的参数。',
-            mtp: '<b>层 80 · MTP 模块</b><br>config 里没算进 <code>num_hidden_layers</code>。除了完整的注意力和 192 个专家,还多出 <code>eh_proj</code>(拼接两路 hidden 再投影)与 <code>enorm</code> / <code>hnorm</code> / <code>final_layernorm</code>。参数 3.75 B。',
-          };
+          function buildDesc() { return {
+            dense: tr('<b>层 0 · dense</b><br>注意力 + 一个 13312 宽的普通 FFN。<code>first_k_dense_replace: 1</code> 让首层不走 MoE —— 底层特征更通用,路由收益小,还能稳住训练早期。参数 239 M。', '<b>Layer 0 · dense</b><br>Attention plus one ordinary FFN of width 13312. <code>first_k_dense_replace: 1</code> keeps the first layer off MoE — low-level features are more generic, routing buys little, and it steadies early training. 239 M parameters.'),
+            moe: tr('<b>层 {i} · MoE</b><br>注意力 + 192 个路由专家 + 1 个共享专家 + router。单层 3.72 B 参数,但每 token 只激活 246 M。这样的层有 79 个,占全模型 98.3% 的参数。', '<b>Layer {i} · MoE</b><br>Attention plus 192 routed experts, 1 shared expert and a router. 3.72 B parameters per layer, of which only 246 M activate per token. There are 79 such layers, holding 98.3% of the model\'s parameters.'),
+            mtp: tr('<b>层 80 · MTP 模块</b><br>config 里没算进 <code>num_hidden_layers</code>。除了完整的注意力和 192 个专家,还多出 <code>eh_proj</code>(拼接两路 hidden 再投影)与 <code>enorm</code> / <code>hnorm</code> / <code>final_layernorm</code>。参数 3.75 B。', '<b>Layer 80 · MTP module</b><br>Not counted in <code>num_hidden_layers</code>. Beyond a full attention and 192 experts it adds <code>eh_proj</code> (concatenating two hidden streams and projecting) plus <code>enorm</code> / <code>hnorm</code> / <code>final_layernorm</code>. 3.75 B parameters.'),
+          }; }
+          var DESC = buildDesc();
+          var shown = { kind: 'moe', i: '1–79' };
           for (var i = 0; i <= 80; i++) {
             var d = document.createElement('div');
             var kind = i === 0 ? 'dense' : (i === 80 ? 'mtp' : 'moe');
             d.className = 'hy-lay ' + (kind === 'moe' ? '' : kind);
             d.dataset.kind = kind;
             d.dataset.i = i;
-            d.title = '层 ' + i;
+            d.title = tr('层 ' + i, 'layer ' + i);
             d.addEventListener('mouseenter', function () {
-              info.innerHTML = DESC[this.dataset.kind].replace('{i}', this.dataset.i);
+              shown = { kind: this.dataset.kind, i: this.dataset.i };
+              info.innerHTML = DESC[shown.kind].replace('{i}', shown.i);
             });
             strip.appendChild(d);
           }
           info.innerHTML = DESC.moe.replace('{i}', '1–79');
+          redraw.push(function () {
+            DESC = buildDesc();
+            info.innerHTML = DESC[shown.kind].replace('{i}', shown.i);
+            [].forEach.call(strip.children, function (c) {
+              c.title = tr('层 ' + c.dataset.i, 'layer ' + c.dataset.i);
+            });
+          });
         })();
 
         /* ============ 动图 3:稀疏度 ============ */
@@ -681,31 +712,40 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
               s.textContent = label;
               bar.appendChild(s);
             }
-            seg('w', w, '权重 ' + fmtGiB(w));
+            seg('w', w, tr('权重 ', 'Weights ') + fmtGiB(w));
             seg('kv', kvShown, kvShown / denom > 0.06 ? 'KV ' + fmtGiB(kvShown) : '');
-            seg('free', rest, rest / denom > 0.08 ? '剩余 ' + fmtGiB(rest) : '');
-            seg('over', over, over / denom > 0.06 ? '超出 ' + fmtGiB(over) : '!');
+            seg('free', rest, rest / denom > 0.08 ? tr('剩余 ', 'Free ') + fmtGiB(rest) : '');
+            seg('over', over, over / denom > 0.06 ? tr('超出 ', 'Over by ') + fmtGiB(over) : '!');
 
             poolLabel.textContent = gpus + '×' + CARD_NAME[cardGB] + ' = ' + fmtGiB(pool) +
-              (over > 0 ? '（刻度已拉伸以显示超出部分）' : '');
+              (over > 0 ? tr('（刻度已拉伸以显示超出部分）', ' (scale stretched to show the overflow)') : '');
 
             var seqs = free / kvFull;
             var toks = Math.max(0, Math.floor(free / KV_PER_TOK));
             if (over > 0) {
               verdict.className = 'hy-verdict bad';
-              verdict.innerHTML = '装完权重只剩 <b>' + fmtGiB(free) + '</b>,而一条满窗口序列的 KV 要 <b>' +
-                fmtGiB(kvFull) + '</b> —— <b>连一条都放不下</b>,缺口 ' + fmtGiB(over) + '。' +
-                '最长只能支持约 <b>' + toks.toLocaleString('en-US') + '</b> token(满窗口的 ' +
-                (seqs * 100).toFixed(0) + '%)。';
+              verdict.innerHTML = isEn()
+                ? 'Only <b>' + fmtGiB(free) + '</b> is left after the weights, while one full-window sequence needs <b>' +
+                  fmtGiB(kvFull) + '</b> of KV — <b>not even one fits</b>, short by ' + fmtGiB(over) + '. ' +
+                  'The longest supportable context is about <b>' + toks.toLocaleString('en-US') + '</b> tokens (' +
+                  (seqs * 100).toFixed(0) + '% of a full window).'
+                : '装完权重只剩 <b>' + fmtGiB(free) + '</b>,而一条满窗口序列的 KV 要 <b>' +
+                  fmtGiB(kvFull) + '</b> —— <b>连一条都放不下</b>,缺口 ' + fmtGiB(over) + '。' +
+                  '最长只能支持约 <b>' + toks.toLocaleString('en-US') + '</b> token(满窗口的 ' +
+                  (seqs * 100).toFixed(0) + '%)。';
             } else {
               verdict.className = 'hy-verdict good';
-              verdict.innerHTML = '装完权重还剩 <b>' + fmtGiB(free) + '</b>,可容纳约 <b>' +
-                seqs.toFixed(1) + '</b> 条满窗口序列的 KV(合计 ' + toks.toLocaleString('en-US') +
-                ' token)。' +
+              verdict.innerHTML = (isEn()
+                ? '<b>' + fmtGiB(free) + '</b> is left after the weights, room for about <b>' +
+                  seqs.toFixed(1) + '</b> full-window sequences of KV (' + toks.toLocaleString('en-US') +
+                  ' tokens in total). '
+                : '装完权重还剩 <b>' + fmtGiB(free) + '</b>,可容纳约 <b>' +
+                  seqs.toFixed(1) + '</b> 条满窗口序列的 KV(合计 ' + toks.toLocaleString('en-US') +
+                  ' token)。') +
                 (bytesPerParam === 1
-                  ? 'FP8 把权重砍掉一半,腾出的空间几乎全部转化成并发能力 —— 但模型卡标注的支持精度只有 BF16,走 FP8 需要自己量化。'
+                  ? tr('FP8 把权重砍掉一半,腾出的空间几乎全部转化成并发能力 —— 但模型卡标注的支持精度只有 BF16,走 FP8 需要自己量化。', 'FP8 halves the weights and turns nearly all the freed space into concurrency — but the card lists BF16 as the only supported precision, so FP8 means quantising it yourself.')
                   : (cardGB === 141 && gpus === 8
-                    ? '这正是模型卡推荐「8 卡请用 H20-3e 或更大显存」的原因。'
+                    ? tr('这正是模型卡推荐「8 卡请用 H20-3e 或更大显存」的原因。', 'This is exactly why the card recommends "for 8 GPUs, use H20-3e or something with more memory".')
                     : ''));
             }
           }
@@ -736,6 +776,7 @@ expert_bias 改 fp32  + 15,360 × 2  =      30,720
           });
 
           render();
+          redraw.push(render);
         })();
       })();
     </script>
