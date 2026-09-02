@@ -210,92 +210,89 @@
         </header>
 
         <div class="prose">
-          <p class="pc-lede">
-            选并行策略最后都会归到一个问题:<strong>这么切,每张卡每步要多传多少字节?</strong>
+          <p class="pc-lede"><span lang="zh-CN" class="i18n-zh">选并行策略最后都会归到一个问题:<strong>这么切,每张卡每步要多传多少字节?</strong>
             这篇把 DP / TP / PP / EP / CP 放进同一套符号里各算一遍,给出与 <em>B、S、H、L</em> 和并行度的比例关系,
-            再横向比,最后落到两个实际问题:<strong>怎么排布</strong>,以及<strong>最少要几张卡</strong>。
-          </p>
+            再横向比,最后落到两个实际问题:<strong>怎么排布</strong>,以及<strong>最少要几张卡</strong>。</span><span lang="en" class="i18n-en">Choosing a parallelism strategy always comes down to one question: <strong>with this sharding, how many bytes does each GPU move per step?</strong>
+            This note puts DP / TP / PP / EP / CP into one notation and works each one out, giving its proportionality to <em>B, S, H, L</em> and the degree of parallelism,
+            then compares them side by side, and finally lands on two practical questions: <strong>how to lay them out</strong>, and <strong>the minimum number of GPUs</strong>.</span></p>
 
-          <p>
-            前置两篇:<a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 怎么切到张量 shape 上</a>讲的是切法,
+          <p><span lang="zh-CN" class="i18n-zh">前置两篇:<a href="hy3-parallelism-tp-pp-ep.html">TP / PP / EP 怎么切到张量 shape 上</a>讲的是切法,
             <a href="sequence-parallel-and-comms.html">主流序列并行方案对比</a>讲的是 SP 各方案的机制与原语。
-            这篇不重复机制,只算账。
-          </p>
+            这篇不重复机制,只算账。</span><span lang="en" class="i18n-en">Two prerequisites: <a href="hy3-parallelism-tp-pp-ep.html">how TP / PP / EP shard down to tensor shapes</a> covers the sharding itself, and
+            <a href="sequence-parallel-and-comms.html">comparing the sequence-parallel schemes</a> covers the mechanisms and primitives of SP.
+            This note does not repeat mechanism; it does the arithmetic.</span></p>
 
-          <h2>一、统一符号</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、统一符号</span><span lang="en" class="i18n-en">1 · A common notation</span></h2>
 
-          <p>后面所有公式都用这一套记号,<em>N</em> 一律表示<strong>该维度自己的并行度</strong>:</p>
+          <p><span lang="zh-CN" class="i18n-zh">后面所有公式都用这一套记号,<em>N</em> 一律表示<strong>该维度自己的并行度</strong>:</span><span lang="en" class="i18n-en">Every formula below uses this notation, where <em>N</em> always means <strong>the degree of parallelism of that dimension itself</strong>:</span></p>
 
           <div class="pc-tw">
             <table>
-              <thead><tr><th>符号</th><th>含义</th><th class="num">本文取值</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">符号</span><span lang="en" class="i18n-en">Symbol</span></th><th><span lang="zh-CN" class="i18n-zh">含义</span><span lang="en" class="i18n-en">Meaning</span></th><th class="num"><span lang="zh-CN" class="i18n-zh">本文取值</span><span lang="en" class="i18n-en">Value used here</span></th></tr></thead>
               <tbody>
-                <tr><td><code>B</code></td><td>单卡 micro-batch</td><td class="num">1</td></tr>
-                <tr><td><code>S</code></td><td>序列长度</td><td class="num">4096</td></tr>
+                <tr><td><code>B</code></td><td><span lang="zh-CN" class="i18n-zh">单卡 micro-batch</span><span lang="en" class="i18n-en">Per-GPU micro-batch</span></td><td class="num">1</td></tr>
+                <tr><td><code>S</code></td><td><span lang="zh-CN" class="i18n-zh">序列长度</span><span lang="en" class="i18n-en">Sequence length</span></td><td class="num">4096</td></tr>
                 <tr><td><code>H</code></td><td>hidden size</td><td class="num">4096</td></tr>
-                <tr><td><code>H<sub>kv</sub></code></td><td>KV 宽度 = kv_heads × head_dim</td><td class="num">1024</td></tr>
-                <tr><td><code>L</code></td><td>层数</td><td class="num">80</td></tr>
-                <tr><td><code>P</code></td><td>参数量</td><td class="num">295 B</td></tr>
+                <tr><td><code>H<sub>kv</sub></code></td><td><span lang="zh-CN" class="i18n-zh">KV 宽度 = kv_heads × head_dim</span><span lang="en" class="i18n-en">KV width = kv_heads × head_dim</span></td><td class="num">1024</td></tr>
+                <tr><td><code>L</code></td><td><span lang="zh-CN" class="i18n-zh">层数</span><span lang="en" class="i18n-en">Layers</span></td><td class="num">80</td></tr>
+                <tr><td><code>P</code></td><td><span lang="zh-CN" class="i18n-zh">参数量</span><span lang="en" class="i18n-en">Parameters</span></td><td class="num">295 B</td></tr>
                 <tr><td><code>k</code></td><td>MoE top-k</td><td class="num">8</td></tr>
-                <tr><td><code>b</code></td><td>字节/元素(bf16)</td><td class="num">2</td></tr>
-                <tr><td><code>A</code></td><td>单层激活张量 = <code>B·S·H·b</code></td><td class="num">32 MiB</td></tr>
+                <tr><td><code>b</code></td><td><span lang="zh-CN" class="i18n-zh">字节/元素(bf16)</span><span lang="en" class="i18n-en">Bytes per element (bf16)</span></td><td class="num">2</td></tr>
+                <tr><td><code>A</code></td><td><span lang="zh-CN" class="i18n-zh">单层激活张量 = <code>B·S·H·b</code></span><span lang="en" class="i18n-en">Per-layer activation tensor = <code>B·S·H·b</code></span></td><td class="num">32 MiB</td></tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            取值参照 <a href="hy3-anatomy.html">Hy3</a> 的量级。单层激活 <code>A = 32 MiB</code> 这个数很有用 ——
-            后面几乎所有通信量都是它的若干倍。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">取值参照 <a href="hy3-anatomy.html">Hy3</a> 的量级。单层激活 <code>A = 32 MiB</code> 这个数很有用 ——
+            后面几乎所有通信量都是它的若干倍。</span><span lang="en" class="i18n-en">The values follow <a href="hy3-anatomy.html">Hy3</a>'s order of magnitude. The single-layer activation of <code>A = 32 MiB</code> is a useful anchor —
+            almost every communication volume below is some multiple of it.</span></p>
 
-          <h2>二、五条可切的轴</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、五条可切的轴</span><span lang="en" class="i18n-en">2 · Five axes you can shard</span></h2>
 
-          <p>能切的维度就这几条,因为一次前向里的张量只有这几个轴。每条轴对应一种策略,也对应一种固定的通信原语。</p>
+          <p><span lang="zh-CN" class="i18n-zh">能切的维度就这几条,因为一次前向里的张量只有这几个轴。每条轴对应一种策略,也对应一种固定的通信原语。</span><span lang="en" class="i18n-en">These are the only dimensions available, because a forward pass has only these axes. Each axis corresponds to one strategy, and to one fixed communication primitive.</span></p>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 1:五条轴,五种原语</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:五条轴,五种原语</span><span lang="en" class="i18n-en">Figure 1: five axes, five primitives</span></div>
             <div class="pc-axes">
               <div class="pc-axis" style="--c: var(--dp)">
-                <h5>DP</h5><div class="sub">切 batch</div>
+                <h5>DP</h5><div class="sub"><span lang="zh-CN" class="i18n-zh">切 batch</span><span lang="en" class="i18n-en">shards the batch</span></div>
                 <div class="pc-cube" id="axDP"></div>
                 <div class="prim">All-Reduce</div>
               </div>
               <div class="pc-axis" style="--c: var(--tp)">
-                <h5>TP</h5><div class="sub">切 hidden / head 数</div>
+                <h5>TP</h5><div class="sub"><span lang="zh-CN" class="i18n-zh">切 hidden / head 数</span><span lang="en" class="i18n-en">shards hidden / head count</span></div>
                 <div class="pc-cube" id="axTP"></div>
-                <div class="prim">All-Reduce ×2/层</div>
+                <div class="prim"><span lang="zh-CN" class="i18n-zh">All-Reduce ×2/层</span><span lang="en" class="i18n-en">All-Reduce ×2/layer</span></div>
               </div>
               <div class="pc-axis" style="--c: var(--pp)">
-                <h5>PP</h5><div class="sub">切层(深度)</div>
+                <h5>PP</h5><div class="sub"><span lang="zh-CN" class="i18n-zh">切层(深度)</span><span lang="en" class="i18n-en">shards layers (depth)</span></div>
                 <div class="pc-cube" id="axPP"></div>
                 <div class="prim">P2P Send/Recv</div>
               </div>
               <div class="pc-axis" style="--c: var(--ep)">
-                <h5>EP</h5><div class="sub">切专家</div>
+                <h5>EP</h5><div class="sub"><span lang="zh-CN" class="i18n-zh">切专家</span><span lang="en" class="i18n-en">shards experts</span></div>
                 <div class="pc-cube" id="axEP"></div>
                 <div class="prim">All-to-All ×2</div>
               </div>
               <div class="pc-axis" style="--c: var(--cp)">
-                <h5>CP / SP</h5><div class="sub">切序列长度</div>
+                <h5>CP / SP</h5><div class="sub"><span lang="zh-CN" class="i18n-zh">切序列长度</span><span lang="en" class="i18n-en">shards sequence length</span></div>
                 <div class="pc-cube" id="axCP"></div>
-                <div class="prim">All-to-All 或 Ring P2P</div>
+                <div class="prim"><span lang="zh-CN" class="i18n-zh">All-to-All 或 Ring P2P</span><span lang="en" class="i18n-en">All-to-All or Ring P2P</span></div>
               </div>
             </div>
-            <span class="fig-cap">
-              ZeRO / FSDP 不在这五条里 —— 它的计算划分和 DP 完全一样,只是把优化器状态、梯度、参数分片存放。
-              它是<strong>显存优化</strong>,不是新的切分轴。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">ZeRO / FSDP 不在这五条里 —— 它的计算划分和 DP 完全一样,只是把优化器状态、梯度、参数分片存放。
+              它是<strong>显存优化</strong>,不是新的切分轴。</span><span lang="en" class="i18n-en">ZeRO / FSDP is not one of the five — its computation partitioning is identical to DP; it merely shards the storage of optimizer state, gradients and parameters.
+              It is a <strong>memory optimisation</strong>, not a new sharding axis.</span></span>
           </div>
 
-          <h2>三、通信原语:每张卡到底传多少</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、通信原语:每张卡到底传多少</span><span lang="en" class="i18n-en">3 · The primitives: how much each GPU actually moves</span></h2>
 
-          <p>
-            算通信量之前得先知道每个原语的单卡代价。下面按 ring 算法给出,<code>X</code> 是<strong>完整张量</strong>的字节数,
-            <code>N</code> 是参与的卡数:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">算通信量之前得先知道每个原语的单卡代价。下面按 ring 算法给出,<code>X</code> 是<strong>完整张量</strong>的字节数,
+            <code>N</code> 是参与的卡数:</span><span lang="en" class="i18n-en">Before computing volumes you need each primitive's per-GPU cost. Given below for the ring algorithm, where <code>X</code> is the byte size of the <strong>full tensor</strong>
+            and <code>N</code> is the number of participating GPUs:</span></p>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 2:五种原语的数据流(点标签切换)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:五种原语的数据流(点标签切换)</span><span lang="en" class="i18n-en">Figure 2: the data flow of the five primitives (click a label to switch)</span></div>
             <div class="pc-ctrls" style="margin: 0 0 10px">
               <div class="pc-seg" id="primTabs">
                 <button data-p="ar" class="on">All-Reduce</button>
@@ -307,313 +304,301 @@
             </div>
             <div class="pc-ring" id="primRing"></div>
             <div class="pc-prim-info" id="primInfo"></div>
-            <span class="fig-cap">
-              记住两条:<strong>All-Reduce = Reduce-Scatter + All-Gather,所以是 2 倍</strong>;
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">记住两条:<strong>All-Reduce = Reduce-Scatter + All-Gather,所以是 2 倍</strong>;
               而 All-to-All 每卡只发自己那份的 <code>(N−1)/N</code>,<strong>本地分片越小、总量越省</strong>。
-              这两条决定了后面所有策略的量级差异。
-            </span>
+              这两条决定了后面所有策略的量级差异。</span><span lang="en" class="i18n-en">Two things to remember: <strong>All-Reduce = Reduce-Scatter + All-Gather, hence the factor of 2</strong>;
+              and All-to-All has each GPU send only <code>(N−1)/N</code> of its own share, so <strong>the smaller the local shard, the cheaper the total</strong>.
+              These two facts account for every order-of-magnitude difference among the strategies below.</span></span>
           </div>
 
           <div class="pc-tw">
             <table>
-              <thead><tr><th>原语</th><th>语义</th><th class="num">每卡收发</th><th>用在哪</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">原语</span><span lang="en" class="i18n-en">Primitive</span></th><th><span lang="zh-CN" class="i18n-zh">语义</span><span lang="en" class="i18n-en">Semantics</span></th><th class="num"><span lang="zh-CN" class="i18n-zh">每卡收发</span><span lang="en" class="i18n-en">Per-GPU traffic</span></th><th><span lang="zh-CN" class="i18n-zh">用在哪</span><span lang="en" class="i18n-en">Used by</span></th></tr></thead>
               <tbody>
-                <tr><td><code>All-Reduce</code></td><td>各卡求和后人手一份</td><td class="num">2·(N−1)/N·X ≈ <strong>2X</strong></td><td>DP 梯度、TP 层内</td></tr>
-                <tr><td><code>All-Gather</code></td><td>各持一片,拼成整份</td><td class="num">(N−1)/N·X ≈ <strong>X</strong></td><td>ZeRO-3 取参数、SP</td></tr>
-                <tr><td><code>Reduce-Scatter</code></td><td>求和后每卡只留一片</td><td class="num">(N−1)/N·X ≈ <strong>X</strong></td><td>ZeRO 梯度、SP</td></tr>
-                <tr><td><code>All-to-All</code></td><td>转置:每卡给每卡发一块</td><td class="num">(N−1)/N·X<sub>local</sub></td><td>EP 派发/回收、Ulysses</td></tr>
-                <tr><td><code>P2P</code></td><td>点对点</td><td class="num">X<sub>chunk</sub></td><td>PP 跨 stage、Ring Attention</td></tr>
+                <tr><td><code>All-Reduce</code></td><td><span lang="zh-CN" class="i18n-zh">各卡求和后人手一份</span><span lang="en" class="i18n-en">Summed across GPUs, one copy each</span></td><td class="num">2·(N−1)/N·X ≈ <strong>2X</strong></td><td><span lang="zh-CN" class="i18n-zh">DP 梯度、TP 层内</span><span lang="en" class="i18n-en">DP gradients, within TP layers</span></td></tr>
+                <tr><td><code>All-Gather</code></td><td><span lang="zh-CN" class="i18n-zh">各持一片,拼成整份</span><span lang="en" class="i18n-en">Each holds a shard, assembled into the whole</span></td><td class="num">(N−1)/N·X ≈ <strong>X</strong></td><td><span lang="zh-CN" class="i18n-zh">ZeRO-3 取参数、SP</span><span lang="en" class="i18n-en">ZeRO-3 parameter fetch, SP</span></td></tr>
+                <tr><td><code>Reduce-Scatter</code></td><td><span lang="zh-CN" class="i18n-zh">求和后每卡只留一片</span><span lang="en" class="i18n-en">Summed, then each GPU keeps one shard</span></td><td class="num">(N−1)/N·X ≈ <strong>X</strong></td><td><span lang="zh-CN" class="i18n-zh">ZeRO 梯度、SP</span><span lang="en" class="i18n-en">ZeRO gradients, SP</span></td></tr>
+                <tr><td><code>All-to-All</code></td><td><span lang="zh-CN" class="i18n-zh">转置:每卡给每卡发一块</span><span lang="en" class="i18n-en">Transpose: each GPU sends a block to each other</span></td><td class="num">(N−1)/N·X<sub>local</sub></td><td><span lang="zh-CN" class="i18n-zh">EP 派发/回收、Ulysses</span><span lang="en" class="i18n-en">EP dispatch/combine, Ulysses</span></td></tr>
+                <tr><td><code>P2P</code></td><td><span lang="zh-CN" class="i18n-zh">点对点</span><span lang="en" class="i18n-en">Point to point</span></td><td class="num">X<sub>chunk</sub></td><td><span lang="zh-CN" class="i18n-zh">PP 跨 stage、Ring Attention</span><span lang="en" class="i18n-en">PP across stages, Ring Attention</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <h2>四、DP:通信量只跟参数量有关</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、DP:通信量只跟参数量有关</span><span lang="en" class="i18n-en">4 · DP: volume depends only on parameter count</span></h2>
 
-          <p>
-            DP 每卡一份完整模型,算完各自的梯度后做一次 All-Reduce。关键特征是:
-            <strong>它的通信量与 <code>S</code>、<code>B</code> 完全无关</strong>,只跟参数量走,而且<strong>每个 step 才一次</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">DP 每卡一份完整模型,算完各自的梯度后做一次 All-Reduce。关键特征是:
+            <strong>它的通信量与 <code>S</code>、<code>B</code> 完全无关</strong>,只跟参数量走,而且<strong>每个 step 才一次</strong>。</span><span lang="en" class="i18n-en">Every DP rank holds a full model and does one All-Reduce after computing its own gradients. The defining characteristic:
+            <strong>its volume is entirely independent of <code>S</code> and <code>B</code></strong>, tracking only the parameter count, and it happens <strong>once per step</strong>.</span></p>
 
           <div class="pc-eq" style="--c: var(--dp)">
-            <span class="lbl">每卡每 step</span>
-            朴素 DP  = 2·(N−1)/N · <em>P<sub>g</sub></em> · b   ≈  <em>2 P<sub>g</sub> b</em><br />
-            ZeRO-3   = 前向 AllGather + 反向 AllGather + 梯度 ReduceScatter ≈ <em>3 P<sub>g</sub> b</em>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">每卡每 step</span><span lang="en" class="i18n-en">Per GPU per step</span></span>
+<span lang="zh-CN" class="i18n-zh">朴素 DP  = 2·(N−1)/N · <em>P<sub>g</sub></em> · b   ≈  <em>2 P<sub>g</sub> b</em><br />
+            ZeRO-3   = 前向 AllGather + 反向 AllGather + 梯度 ReduceScatter ≈ <em>3 P<sub>g</sub> b</em></span><span lang="en" class="i18n-en">naive DP = 2·(N−1)/N · <em>P<sub>g</sub></em> · b   ≈  <em>2 P<sub>g</sub> b</em><br />
+            ZeRO-3   = fwd AllGather + bwd AllGather + gradient ReduceScatter ≈ <em>3 P<sub>g</sub> b</em></span>
           </div>
 
-          <p>
-            <code>P<sub>g</sub></code> 是 <strong>DP 组内每份副本的参数量</strong>,即 <code>P / (TP·PP·EP)</code> ——
-            如果同时开了 TP / PP / EP,参数已经被它们切过,DP 只在剩下的那份上同步。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh"><code>P<sub>g</sub></code> 是 <strong>DP 组内每份副本的参数量</strong>,即 <code>P / (TP·PP·EP)</code> ——
+            如果同时开了 TP / PP / EP,参数已经被它们切过,DP 只在剩下的那份上同步。</span><span lang="en" class="i18n-en"><code>P<sub>g</sub></code> is <strong>the parameter count of one replica inside the DP group</strong>, that is <code>P / (TP·PP·EP)</code> —
+            if TP / PP / EP are also enabled, the parameters have already been sharded by them and DP only synchronises what is left.</span></p>
 
-          <p>
-            这里有个很容易搞错的点:<strong>分母里没有 DP 度</strong>。
+          <p><span lang="zh-CN" class="i18n-zh">这里有个很容易搞错的点:<strong>分母里没有 DP 度</strong>。
             ZeRO-3 把参数分片存放,但 All-Gather 要把它们<em>拼回完整的一份</em>才能算,
             所以每卡收发量 ≈ 完整参数量,<strong>加 DP 卡并不会让每卡的通信量下降</strong>,只是把 batch 摊薄了。
             ZeRO-3 比朴素 DP 多 1.5 倍通信,换来参数、梯度、优化器状态全部分片 ——
-            对 295B 这个量级这是<strong>唯一可行</strong>的选择,光 AdamW 的状态就是权重的 7 倍。
-          </p>
+            对 295B 这个量级这是<strong>唯一可行</strong>的选择,光 AdamW 的状态就是权重的 7 倍。</span><span lang="en" class="i18n-en">Here is the part people get wrong most often: <strong>there is no DP degree in the denominator</strong>.
+            ZeRO-3 shards parameter <em>storage</em>, but All-Gather has to <em>reassemble a full copy</em> before computing,
+            so per-GPU traffic ≈ the full parameter count, and <strong>adding DP ranks does not reduce per-GPU communication</strong> — it only thins out the batch.
+            ZeRO-3 costs 1.5× the communication of naive DP in exchange for sharding parameters, gradients and optimizer state —
+            at the 295B scale it is the <strong>only viable</strong> option, since AdamW state alone is 7× the weights.</span></p>
 
-          <h2>五、TP:每层两次全归约,与序列成正比</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、TP:每层两次全归约,与序列成正比</span><span lang="en" class="i18n-en">5 · TP: two all-reduces per layer, proportional to sequence length</span></h2>
 
-          <p>
-            TP 把每个算子内部切开,代价是<strong>每层都要把结果拼回来</strong>:attention 的 <code>o_proj</code> 之后一次 All-Reduce,
-            FFN 的 <code>down_proj</code> 之后一次。反向再来两次。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">TP 把每个算子内部切开,代价是<strong>每层都要把结果拼回来</strong>:attention 的 <code>o_proj</code> 之后一次 All-Reduce,
+            FFN 的 <code>down_proj</code> 之后一次。反向再来两次。</span><span lang="en" class="i18n-en">TP splits the interior of each operator, at the cost of <strong>having to reassemble the result at every layer</strong>: one All-Reduce after attention's <code>o_proj</code>,
+            one after the FFN's <code>down_proj</code>. Two more on the backward.</span></p>
 
           <div class="pc-eq" style="--c: var(--tp)">
-            <span class="lbl">每卡每 micro-batch(整模型)</span>
-            TP = 4 次 × 2·(N−1)/N · <em>A</em> × <em>L</em>  ≈  <em>8 · L · B·S·H·b</em><br />
-            <span style="color: var(--text-dim)">L=80, A=32 MiB, N=8 → 约 17.5 GiB</span>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">每卡每 micro-batch(整模型)</span><span lang="en" class="i18n-en">Per GPU per micro-batch (whole model)</span></span>
+<span lang="zh-CN" class="i18n-zh">TP = 4 次 × 2·(N−1)/N · <em>A</em> × <em>L</em>  ≈  <em>8 · L · B·S·H·b</em><br /></span><span lang="en" class="i18n-en">TP = 4 × 2·(N−1)/N · <em>A</em> × <em>L</em>  ≈  <em>8 · L · B·S·H·b</em><br /></span>
+            <span style="color: var(--text-dim)"><span lang="zh-CN" class="i18n-zh">L=80, A=32 MiB, N=8 → 约 17.5 GiB</span><span lang="en" class="i18n-en">L=80, A=32 MiB, N=8 → about 17.5 GiB</span></span>
           </div>
 
-          <p>
-            <strong>17.5 GiB。</strong>这是所有策略里最大的一档,而且注意分子里有 <code>S</code> —— 序列翻倍,通信量就翻倍。
+          <p><span lang="zh-CN" class="i18n-zh"><strong>17.5 GiB。</strong>这是所有策略里最大的一档,而且注意分子里有 <code>S</code> —— 序列翻倍,通信量就翻倍。
             更要命的是频率:每层 4 次,80 层就是 320 次集合通信,每一次都是同步点。
-            这就是<strong>TP 必须压在 NVLink 域内</strong>的原因,跨节点做 TP 基本等于自杀。
-          </p>
+            这就是<strong>TP 必须压在 NVLink 域内</strong>的原因,跨节点做 TP 基本等于自杀。</span><span lang="en" class="i18n-en"><strong>17.5 GiB.</strong> The largest of any strategy — and note the <code>S</code> in the numerator: double the sequence and you double the volume.
+            Worse is the frequency: 4 per layer, so 320 collectives across 80 layers, every one of them a synchronisation point.
+            This is why <strong>TP has to stay inside the NVLink domain</strong>; running TP across nodes is close to suicide.</span></p>
 
-          <p>
-            <strong>Megatron-SP 是免费搭档。</strong>它把 TP 的 All-Reduce 拆成 Reduce-Scatter + All-Gather ——
+          <p><span lang="zh-CN" class="i18n-zh"><strong>Megatron-SP 是免费搭档。</strong>它把 TP 的 All-Reduce 拆成 Reduce-Scatter + All-Gather ——
             <code>2X = X + X</code>,<strong>总量一个字节都没变</strong>,但 LayerNorm / Dropout 那段激活也跟着被切成 <code>N</code> 份。
-            白拿的显存,没有不开的理由。
-          </p>
+            白拿的显存,没有不开的理由。</span><span lang="en" class="i18n-en"><strong>Megatron-SP is a free companion.</strong> It splits TP's All-Reduce into Reduce-Scatter + All-Gather —
+            <code>2X = X + X</code>, so <strong>the total does not change by a single byte</strong> — while the LayerNorm and Dropout activations get sharded <code>N</code> ways too.
+            Free memory; there is no reason not to enable it.</span></p>
 
-          <h2>六、PP:通信最省,代价是气泡</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、PP:通信最省,代价是气泡</span><span lang="en" class="i18n-en">6 · PP: the cheapest communication, paid for in bubbles</span></h2>
 
-          <p>
-            PP 只在 stage 边界传激活,层内什么都不用传。这让它成为<strong>通信量最小的策略,小两个数量级</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">PP 只在 stage 边界传激活,层内什么都不用传。这让它成为<strong>通信量最小的策略,小两个数量级</strong>。</span><span lang="en" class="i18n-en">PP only passes activations at stage boundaries and sends nothing within a layer. That makes it <strong>the cheapest strategy by two orders of magnitude</strong>.</span></p>
 
           <div class="pc-eq" style="--c: var(--pp)">
-            <span class="lbl">每个 stage 边界、每个 micro-batch</span>
-            PP = 前向 <em>A</em> + 反向 <em>A</em> = <em>2 · B·S·H·b</em> = 64 MiB<br />
-            <span style="color: var(--text-dim)">对比 TP 的 17.5 GiB,差约 280 倍</span>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">每个 stage 边界、每个 micro-batch</span><span lang="en" class="i18n-en">Per stage boundary, per micro-batch</span></span>
+<span lang="zh-CN" class="i18n-zh">PP = 前向 <em>A</em> + 反向 <em>A</em> = <em>2 · B·S·H·b</em> = 64 MiB<br /></span><span lang="en" class="i18n-en">PP = fwd <em>A</em> + bwd <em>A</em> = <em>2 · B·S·H·b</em> = 64 MiB<br /></span>
+            <span style="color: var(--text-dim)"><span lang="zh-CN" class="i18n-zh">对比 TP 的 17.5 GiB,差约 280 倍</span><span lang="en" class="i18n-en">Against TP's 17.5 GiB, a factor of about 280</span></span>
           </div>
 
-          <p>
-            而且是 <strong>P2P</strong> —— 只跟相邻 stage 说话,不是集合通信,天然可以跨节点走 IB。
-            PP 的代价不在带宽,在<strong>气泡</strong>:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">而且是 <strong>P2P</strong> —— 只跟相邻 stage 说话,不是集合通信,天然可以跨节点走 IB。
+            PP 的代价不在带宽,在<strong>气泡</strong>:</span><span lang="en" class="i18n-en">And it is <strong>P2P</strong> — talking only to the adjacent stage, not a collective, so it naturally crosses nodes over IB.
+            PP's cost is not bandwidth but <strong>bubbles</strong>:</span></p>
 
           <div class="pc-eq" style="--c: var(--pp)">
-            <span class="lbl">流水线气泡占比</span>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">流水线气泡占比</span><span lang="en" class="i18n-en">Pipeline bubble fraction</span></span>
             bubble = (<em>N<sub>pp</sub></em> − 1) / (<em>M</em> + <em>N<sub>pp</sub></em> − 1)<br />
-            <span style="color: var(--text-dim)">M = micro-batch 数。M=8, N=4 → 27%;M=32, N=4 → 8.6%</span>
+            <span style="color: var(--text-dim)"><span lang="zh-CN" class="i18n-zh">M = micro-batch 数。M=8, N=4 → 27%;M=32, N=4 → 8.6%</span><span lang="en" class="i18n-en">M = micro-batch count. M=8, N=4 → 27%; M=32, N=4 → 8.6%</span></span>
           </div>
 
-          <p>
-            所以 PP 的经验法则是 <strong><code>M ≥ 4·N<sub>pp</sub></code></strong>。
-            调度上 GPipe → 1F1B → interleaved 1F1B → zero-bubble 这条演进线,做的都是同一件事:把这个分数榨小。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">所以 PP 的经验法则是 <strong><code>M ≥ 4·N<sub>pp</sub></code></strong>。
+            调度上 GPipe → 1F1B → interleaved 1F1B → zero-bubble 这条演进线,做的都是同一件事:把这个分数榨小。</span><span lang="en" class="i18n-en">Hence PP's rule of thumb, <strong><code>M ≥ 4·N<sub>pp</sub></code></strong>.
+            The scheduling lineage GPipe → 1F1B → interleaved 1F1B → zero-bubble is all doing one thing: squeezing that fraction down.</span></p>
 
-          <h2>七、EP:All-to-All,被 top-k 放大</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、EP:All-to-All,被 top-k 放大</span><span lang="en" class="i18n-en">7 · EP: All-to-All, amplified by top-k</span></h2>
 
-          <p>
-            EP 把专家分到不同卡上,于是每个 token 要被<strong>送到选中专家所在的卡</strong>(dispatch),
-            算完再<strong>收回来</strong>(combine)。前向两次 All-to-All,反向两次。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">EP 把专家分到不同卡上,于是每个 token 要被<strong>送到选中专家所在的卡</strong>(dispatch),
+            算完再<strong>收回来</strong>(combine)。前向两次 All-to-All,反向两次。</span><span lang="en" class="i18n-en">EP spreads experts across GPUs, so every token must be <strong>sent to the GPU holding its chosen expert</strong> (dispatch)
+            and <strong>brought back</strong> after computing (combine). Two All-to-Alls forward, two backward.</span></p>
 
           <div class="pc-eq" style="--c: var(--ep)">
-            <span class="lbl">每卡每 micro-batch(全部 MoE 层)</span>
-            EP = 4 次 × (N−1)/N · min(<em>k</em>, <em>N</em>) · <em>A</em> × <em>L<sub>moe</sub></em><br />
-            <span style="color: var(--text-dim)">k=8, N=8, L=80 → 约 70 GiB</span>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">每卡每 micro-batch(全部 MoE 层)</span><span lang="en" class="i18n-en">Per GPU per micro-batch (all MoE layers)</span></span>
+<span lang="zh-CN" class="i18n-zh">EP = 4 次 × (N−1)/N · min(<em>k</em>, <em>N</em>) · <em>A</em> × <em>L<sub>moe</sub></em><br /></span><span lang="en" class="i18n-en">EP = 4 × (N−1)/N · min(<em>k</em>, <em>N</em>) · <em>A</em> × <em>L<sub>moe</sub></em><br /></span>
+            <span style="color: var(--text-dim)"><span lang="zh-CN" class="i18n-zh">k=8, N=8, L=80 → 约 70 GiB</span><span lang="en" class="i18n-en">k=8, N=8, L=80 → about 70 GiB</span></span>
           </div>
 
-          <p>
-            <code>min(k, N)</code> 那一项是关键:一个 token 选了 <code>k</code> 个专家,但如果其中几个恰好落在同一张卡上,
+          <p><span lang="zh-CN" class="i18n-zh"><code>min(k, N)</code> 那一项是关键:一个 token 选了 <code>k</code> 个专家,但如果其中几个恰好落在同一张卡上,
             <strong>只需要发一次</strong>。所以放大倍数是 <code>k</code> 和 <code>N<sub>ep</sub></code> 里的较小者。
-            <code>k=8</code> 时这个放大非常凶 —— EP 的通信量能轻松超过 TP。
-          </p>
+            <code>k=8</code> 时这个放大非常凶 —— EP 的通信量能轻松超过 TP。</span><span lang="en" class="i18n-en">The <code>min(k, N)</code> term is the key one: a token picks <code>k</code> experts, but if several land on the same GPU
+            <strong>only one send is needed</strong>. So the amplification is the smaller of <code>k</code> and <code>N<sub>ep</sub></code>.
+            At <code>k=8</code> that amplification is fierce — EP's volume can comfortably exceed TP's.</span></p>
 
-          <p>
-            另一个坑是 All-to-All <strong>怕长尾</strong>:它要等最慢的那一对完成。如果路由不均衡,某张卡收到的 token 远多于平均,
-            整个集合通信就被它拖住。这正是 EPLB(把热门专家复制到多卡)存在的理由。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">另一个坑是 All-to-All <strong>怕长尾</strong>:它要等最慢的那一对完成。如果路由不均衡,某张卡收到的 token 远多于平均,
+            整个集合通信就被它拖住。这正是 EPLB(把热门专家复制到多卡)存在的理由。</span><span lang="en" class="i18n-en">The other trap is that All-to-All is <strong>tail-sensitive</strong>: it waits for the slowest pair. If routing is unbalanced and one GPU receives far more tokens than average,
+            the whole collective is held up by it. That is exactly why EPLB exists, replicating hot experts across GPUs.</span></p>
 
-          <h2>八、CP:Ulysses 与 Ring 的分水岭</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">八、CP:Ulysses 与 Ring 的分水岭</span><span lang="en" class="i18n-en">8 · CP: the watershed between Ulysses and Ring</span></h2>
 
-          <p>
-            切序列有两条路线,它们的通信量<strong>随并行度的走势完全相反</strong>,这是选型的核心依据。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">切序列有两条路线,它们的通信量<strong>随并行度的走势完全相反</strong>,这是选型的核心依据。</span><span lang="en" class="i18n-en">There are two routes for sharding the sequence, and their volumes <strong>trend in opposite directions with parallelism</strong>. That is the core criterion for choosing.</span></p>
 
           <div class="pc-eq" style="--c: var(--cp)">
-            <span class="lbl">每卡每 micro-batch(整模型)</span>
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">每卡每 micro-batch(整模型)</span><span lang="en" class="i18n-en">Per GPU per micro-batch (whole model)</span></span>
             Ulysses = 2 × (2<em>H</em> + 2<em>H<sub>kv</sub></em>) · B·S·b · (N−1)/<em>N²</em> · L  ~ <em>O(1/N)</em><br />
             Ring    = 2 × 2 · B·S·<em>H<sub>kv</sub></em>·b · (N−1)/<em>N</em> · L  ~ <em>O(1)</em>
           </div>
 
-          <p>
-            <strong>Ulysses 的量随 N 递减,Ring 的量随 N 递增然后趋于常数。</strong>
+          <p><span lang="zh-CN" class="i18n-zh"><strong>Ulysses 的量随 N 递减,Ring 的量随 N 递增然后趋于常数。</strong>
             原因在原语:Ulysses 用 All-to-All,每卡只发自己那份小分片,N 越大分片越小;
-            Ring 要绕环 <code>N−1</code> 步,步数随 N 涨,抵消了每步块变小的好处。
-          </p>
+            Ring 要绕环 <code>N−1</code> 步,步数随 N 涨,抵消了每步块变小的好处。</span><span lang="en" class="i18n-en"><strong>Ulysses falls with N; Ring rises with N and then flattens.</strong>
+            The reason is the primitive: Ulysses uses All-to-All, where each GPU sends only its own small shard, and the shard shrinks as N grows;
+            Ring has to go <code>N−1</code> steps around, and the step count grows with N, cancelling the benefit of smaller blocks.</span></p>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 3:两条路线随并行度的走势(交叉点在 N≈4–8)</div>
-            <div class="pc-chead"><span>N</span><span>Ulysses(All-to-All)</span><span>Ring(P2P 环)</span></div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:两条路线随并行度的走势(交叉点在 N≈4–8)</span><span lang="en" class="i18n-en">Figure 3: how the two trend with parallelism (they cross around N≈4–8)</span></div>
+            <div class="pc-chead"><span>N</span><span>Ulysses(All-to-All)</span><span><span lang="zh-CN" class="i18n-zh">Ring(P2P 环)</span><span lang="en" class="i18n-en">Ring (P2P ring)</span></span></div>
             <div class="pc-curve" id="cpCurve"></div>
-            <span class="fig-cap">
-              <strong>N 小的时候 Ring 更省,N 大的时候 Ulysses 更省</strong>,交叉点在 4 到 8 之间。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh"><strong>N 小的时候 Ring 更省,N 大的时候 Ulysses 更省</strong>,交叉点在 4 到 8 之间。
               但 Ulysses 有个硬上限:<strong>并行度不能超过 head 数</strong>(GQA 下受 KV head 数掐得更紧,比如 Hy3 只有 8)。
-              所以真正的选型是:head 够分就用 Ulysses,不够分就上 Ring,又长又要大并行就用 USP 把两者叠成 2D。
-            </span>
+              所以真正的选型是:head 够分就用 Ulysses,不够分就上 Ring,又长又要大并行就用 USP 把两者叠成 2D。</span><span lang="en" class="i18n-en"><strong>At small N Ring is cheaper; at large N Ulysses is cheaper</strong>, crossing somewhere between 4 and 8.
+              But Ulysses has a hard ceiling: <strong>parallelism cannot exceed the head count</strong> (tighter under GQA, where the KV head count binds — Hy3 has only 8).
+              So the real decision is: enough heads to go around, use Ulysses; not enough, use Ring; long and highly parallel, stack both into 2D with USP.</span></span>
           </div>
 
-          <h2>九、横向对比:同一组参数下算一遍</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">九、横向对比:同一组参数下算一遍</span><span lang="en" class="i18n-en">9 · Side by side, on one set of parameters</span></h2>
 
-          <p>
-            这里有个容易搞错的地方:<strong>TP / EP / CP / PP 是每个 micro-batch 通信一次,而 DP 每个 step 才一次</strong>。
+          <p><span lang="zh-CN" class="i18n-zh">这里有个容易搞错的地方:<strong>TP / EP / CP / PP 是每个 micro-batch 通信一次,而 DP 每个 step 才一次</strong>。
             直接并排比会严重高估 DP。所以下面统一折算到<strong>每 step</strong> —— 前四者乘以 micro-batch 数 <code>M</code>,
-            DP 保持一次。拖动看它们此消彼长:
-          </p>
+            DP 保持一次。拖动看它们此消彼长:</span><span lang="en" class="i18n-en">Here is an easy mistake: <strong>TP / EP / CP / PP communicate once per micro-batch, while DP communicates once per step</strong>.
+            Comparing them directly badly overstates DP. So everything below is converted to <strong>per step</strong> — the first four multiplied by the micro-batch count <code>M</code>,
+            DP left at one. Drag to see them trade off:</span></p>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 4:通信量计算器(每卡每 step)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:通信量计算器(每卡每 step)</span><span lang="en" class="i18n-en">Figure 4: communication calculator (per GPU per step)</span></div>
 
             <div class="pc-inputs">
-              <div class="pc-in"><label>序列 S <b id="vS">4096</b></label><input type="range" id="rS" min="9" max="18" value="12" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">序列 S <b id="vS">4096</b></span><span lang="en" class="i18n-en">Sequence S <b id="vS">4096</b></span></label><input type="range" id="rS" min="9" max="18" value="12" /></div>
               <div class="pc-in"><label>hidden H <b id="vH">4096</b></label><input type="range" id="rH" min="11" max="14" value="12" /></div>
-              <div class="pc-in"><label>层数 L <b id="vL">80</b></label><input type="range" id="rL" min="8" max="120" value="80" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">层数 L <b id="vL">80</b></span><span lang="en" class="i18n-en">Layers L <b id="vL">80</b></span></label><input type="range" id="rL" min="8" max="120" value="80" /></div>
               <div class="pc-in"><label>top-k <b id="vK">8</b></label><input type="range" id="rK" min="1" max="16" value="8" /></div>
-              <div class="pc-in"><label>并行度 N <b id="vN">8</b></label><input type="range" id="rN" min="1" max="6" value="3" /></div>
-              <div class="pc-in"><label>micro-batch 数 M <b id="vM">32</b></label><input type="range" id="rM" min="1" max="64" value="32" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">并行度 N <b id="vN">8</b></span><span lang="en" class="i18n-en">Parallelism N <b id="vN">8</b></span></label><input type="range" id="rN" min="1" max="6" value="3" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">micro-batch 数 M <b id="vM">32</b></span><span lang="en" class="i18n-en">Micro-batches M <b id="vM">32</b></span></label><input type="range" id="rM" min="1" max="64" value="32" /></div>
             </div>
 
             <div class="pc-bars" id="calcBars"></div>
             <div class="pc-verdict" id="calcVerdict"></div>
-            <span class="fig-cap">
-              每种策略都按<strong>该维度独占 N 张卡</strong>算,便于同口径比较;真实系统里它们是叠加的,各自的 N 更小。
-              DP 这一行按 <code>P<sub>g</sub> = P</code>(参数没被其他维切过)估算 —— 一旦叠上 TP / PP / EP,它会同比缩小。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">每种策略都按<strong>该维度独占 N 张卡</strong>算,便于同口径比较;真实系统里它们是叠加的,各自的 N 更小。
+              DP 这一行按 <code>P<sub>g</sub> = P</code>(参数没被其他维切过)估算 —— 一旦叠上 TP / PP / EP,它会同比缩小。</span><span lang="en" class="i18n-en">Each strategy is computed as if <strong>it alone owned N GPUs</strong>, for a like-for-like comparison; in a real system they stack and each N is smaller.
+              The DP row assumes <code>P<sub>g</sub> = P</code> (parameters not yet sharded by another dimension) — stack TP / PP / EP on top and it shrinks proportionally.</span></span>
           </div>
 
-          <h2>十、实战:先定排布,再定并行度</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">十、实战:先定排布,再定并行度</span><span lang="en" class="i18n-en">10 · In practice: fix the layout before the degrees</span></h2>
 
-          <p>
-            知道了量级,选型就有了依据。实战里最容易被忽略、也最致命的一步不是"选哪个策略",而是
-            <strong>把哪个策略放进 NVLink 域</strong>。同样的 TP=8,放节点内和跨节点能差一个数量级。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">知道了量级,选型就有了依据。实战里最容易被忽略、也最致命的一步不是"选哪个策略",而是
+            <strong>把哪个策略放进 NVLink 域</strong>。同样的 TP=8,放节点内和跨节点能差一个数量级。</span><span lang="en" class="i18n-en">Once you know the magnitudes, the choice has a basis. The step most often overlooked in practice, and the most damaging, is not "which strategy" but
+            <strong>which strategy goes into the NVLink domain</strong>. The same TP=8 differs by an order of magnitude inside a node versus across nodes.</span></p>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 5:按通信量排布 —— 谁进 NVLink,谁走 IB</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 5:按通信量排布 —— 谁进 NVLink,谁走 IB</span><span lang="en" class="i18n-en">Figure 5: laying out by volume — who gets NVLink, who takes IB</span></div>
             <div class="pc-mesh">
               <div class="pc-tier">
-                <div class="lab">NVLink 域<small>~900 GB/s,节点内 8 卡</small></div>
+                <div class="lab"><span lang="zh-CN" class="i18n-zh">NVLink 域<small>~900 GB/s,节点内 8 卡</small></span><span lang="en" class="i18n-en">NVLink domain<small>~900 GB/s, 8 GPUs in a node</small></span></div>
                 <div class="who">
                   <span class="pc-chip" style="--c: var(--tp)">TP · 17.5 GiB</span>
-                  <span class="pc-chip" style="--c: var(--ep)">EP · 70 GiB(若装得下)</span>
+                  <span class="pc-chip" style="--c: var(--ep)"><span lang="zh-CN" class="i18n-zh">EP · 70 GiB(若装得下)</span><span lang="en" class="i18n-en">EP · 70 GiB (if it fits)</span></span>
                 </div>
               </div>
               <div class="pc-tier">
-                <div class="lab">节点间 IB<small>~50–400 GB/s</small></div>
+                <div class="lab"><span lang="zh-CN" class="i18n-zh">节点间 IB<small>~50–400 GB/s</small></span><span lang="en" class="i18n-en">Across nodes, IB<small>~50–400 GB/s</small></span></div>
                 <div class="who">
                   <span class="pc-chip" style="--c: var(--cp)">CP · 1–2 GiB</span>
-                  <span class="pc-chip" style="--c: var(--dp)">DP · 每 step 一次</span>
+                  <span class="pc-chip" style="--c: var(--dp)"><span lang="zh-CN" class="i18n-zh">DP · 每 step 一次</span><span lang="en" class="i18n-en">DP · once per step</span></span>
                 </div>
               </div>
               <div class="pc-tier">
-                <div class="lab">最外层<small>可跨机架</small></div>
+                <div class="lab"><span lang="zh-CN" class="i18n-zh">最外层<small>可跨机架</small></span><span lang="en" class="i18n-en">Outermost<small>can cross racks</small></span></div>
                 <div class="who">
-                  <span class="pc-chip" style="--c: var(--pp)">PP · 64 MiB/边界,P2P</span>
+                  <span class="pc-chip" style="--c: var(--pp)"><span lang="zh-CN" class="i18n-zh">PP · 64 MiB/边界,P2P</span><span lang="en" class="i18n-en">PP · 64 MiB per boundary, P2P</span></span>
                 </div>
               </div>
             </div>
-            <span class="fig-cap">
-              排序原则很简单:<strong>通信量大、频率高、且是集合通信的往里放</strong>。
-              TP 每层 4 次同步,必须最内;PP 只在边界 P2P 一次,放最外;DP 虽然量大但每 step 才一次,而且能和反向计算重叠,可以往外放。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">排序原则很简单:<strong>通信量大、频率高、且是集合通信的往里放</strong>。
+              TP 每层 4 次同步,必须最内;PP 只在边界 P2P 一次,放最外;DP 虽然量大但每 step 才一次,而且能和反向计算重叠,可以往外放。</span><span lang="en" class="i18n-en">The ordering principle is simple: <strong>high volume, high frequency and collective goes innermost</strong>.
+              TP synchronises 4 times per layer and must be innermost; PP does one P2P per boundary and goes outermost; DP is large but happens once per step and overlaps the backward pass, so it can sit further out.</span></span>
           </div>
 
-          <p>按瓶颈选型的决策顺序:</p>
+          <p><span lang="zh-CN" class="i18n-zh">按瓶颈选型的决策顺序:</span><span lang="en" class="i18n-en">The decision order when choosing by bottleneck:</span></p>
 
           <div class="pc-tw">
             <table>
-              <thead><tr><th>症状</th><th>先动哪个</th><th>为什么</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">症状</span><span lang="en" class="i18n-en">Symptom</span></th><th><span lang="zh-CN" class="i18n-zh">先动哪个</span><span lang="en" class="i18n-en">What to reach for first</span></th><th><span lang="zh-CN" class="i18n-zh">为什么</span><span lang="en" class="i18n-en">Why</span></th></tr></thead>
               <tbody>
-                <tr><td>单卡放不下权重</td><td><strong>TP</strong>,再 <strong>PP</strong></td><td>TP 优先吃满节点内 8 卡,不够再用 PP 往外扩</td></tr>
-                <tr><td>MoE 专家太多</td><td><strong>EP</strong></td><td>专家天然可分,但要配 EPLB 压长尾</td></tr>
-                <tr><td>序列太长、激活爆炸</td><td><strong>CP</strong> + <strong>SP</strong></td><td>先叠免费的 Megatron-SP,不够再上 CP</td></tr>
-                <tr><td>优化器状态放不下</td><td><strong>ZeRO-3</strong></td><td>训练 295B 的必选项</td></tr>
-                <tr><td>吞吐不够、显存有余</td><td><strong>DP</strong></td><td>最后才加,线性扩吞吐</td></tr>
-                <tr><td>PP 气泡大</td><td>加 micro-batch</td><td>而不是减 PP 度;<code>M ≥ 4·N<sub>pp</sub></code></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">单卡放不下权重</span><span lang="en" class="i18n-en">Weights do not fit on one GPU</span></td><td><span lang="zh-CN" class="i18n-zh"><strong>TP</strong>,再 <strong>PP</strong></span><span lang="en" class="i18n-en"><strong>TP</strong>, then <strong>PP</strong></span></td><td><span lang="zh-CN" class="i18n-zh">TP 优先吃满节点内 8 卡,不够再用 PP 往外扩</span><span lang="en" class="i18n-en">TP fills the node's 8 GPUs first; if that is not enough, PP extends outward</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">MoE 专家太多</span><span lang="en" class="i18n-en">Too many MoE experts</span></td><td><strong>EP</strong></td><td><span lang="zh-CN" class="i18n-zh">专家天然可分,但要配 EPLB 压长尾</span><span lang="en" class="i18n-en">Experts shard naturally, but pair it with EPLB to suppress the tail</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">序列太长、激活爆炸</span><span lang="en" class="i18n-en">Sequence too long, activations exploding</span></td><td><strong>CP</strong> + <strong>SP</strong></td><td><span lang="zh-CN" class="i18n-zh">先叠免费的 Megatron-SP,不够再上 CP</span><span lang="en" class="i18n-en">Stack the free Megatron-SP first; add CP if that is not enough</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">优化器状态放不下</span><span lang="en" class="i18n-en">Optimizer state does not fit</span></td><td><strong>ZeRO-3</strong></td><td><span lang="zh-CN" class="i18n-zh">训练 295B 的必选项</span><span lang="en" class="i18n-en">Mandatory for training at 295B</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">吞吐不够、显存有余</span><span lang="en" class="i18n-en">Throughput short, memory to spare</span></td><td><strong>DP</strong></td><td><span lang="zh-CN" class="i18n-zh">最后才加,线性扩吞吐</span><span lang="en" class="i18n-en">Add last; scales throughput linearly</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">PP 气泡大</span><span lang="en" class="i18n-en">PP bubble too large</span></td><td><span lang="zh-CN" class="i18n-zh">加 micro-batch</span><span lang="en" class="i18n-en">Add micro-batches</span></td><td><span lang="zh-CN" class="i18n-zh">而不是减 PP 度;<code>M ≥ 4·N<sub>pp</sub></code></span><span lang="en" class="i18n-en">Rather than reducing the PP degree; <code>M ≥ 4·N<sub>pp</sub></code></span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <h2>十一、最少要几张卡</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">十一、最少要几张卡</span><span lang="en" class="i18n-en">11 · The minimum GPU count</span></h2>
 
-          <p>
-            先算显存下界,再找一组能整除的并行度组合。<strong>训练和推理的公式完全不同</strong>,
-            因为训练要装优化器状态,推理要装 KV cache。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">先算显存下界,再找一组能整除的并行度组合。<strong>训练和推理的公式完全不同</strong>,
+            因为训练要装优化器状态,推理要装 KV cache。</span><span lang="en" class="i18n-en">Compute the memory lower bound first, then find a combination of degrees that divides evenly. <strong>Training and inference use entirely different formulas</strong>,
+            because training has to hold optimizer state and inference has to hold KV cache.</span></p>
 
           <div class="pc-eq">
-            <span class="lbl">训练(混合精度 + AdamW + ZeRO-3)</span>
-            每参数字节 = bf16 权重 2 + bf16 梯度 2 + fp32 master 4 + Adam m 4 + v 4 = <em>16 B/param</em><br />
-            <em>N<sub>min</sub></em> = ⌈ (16·P + 激活) / (C · u) ⌉
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">训练(混合精度 + AdamW + ZeRO-3)</span><span lang="en" class="i18n-en">Training (mixed precision + AdamW + ZeRO-3)</span></span>
+<span lang="zh-CN" class="i18n-zh">每参数字节 = bf16 权重 2 + bf16 梯度 2 + fp32 master 4 + Adam m 4 + v 4 = <em>16 B/param</em><br />
+            <em>N<sub>min</sub></em> = ⌈ (16·P + 激活) / (C · u) ⌉</span><span lang="en" class="i18n-en">bytes/param = bf16 weights 2 + bf16 gradients 2 + fp32 master 4 + Adam m 4 + v 4 = <em>16 B/param</em><br />
+            <em>N<sub>min</sub></em> = ⌈ (16·P + activations) / (C · u) ⌉</span>
           </div>
 
           <div class="pc-eq">
-            <span class="lbl">推理</span>
-            <em>N<sub>min</sub></em> = ⌈ (P·b<sub>w</sub> + 2·L·H<sub>kv</sub>·b·S·并发) / (C · u) ⌉
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">推理</span><span lang="en" class="i18n-en">Inference</span></span>
+<span lang="zh-CN" class="i18n-zh"><em>N<sub>min</sub></em> = ⌈ (P·b<sub>w</sub> + 2·L·H<sub>kv</sub>·b·S·并发) / (C · u) ⌉</span><span lang="en" class="i18n-en"><em>N<sub>min</sub></em> = ⌈ (P·b<sub>w</sub> + 2·L·H<sub>kv</sub>·b·S·concurrency) / (C · u) ⌉</span>
           </div>
 
-          <p>
-            <code>C</code> 是单卡显存,<code>u</code> 是可用率(框架 workspace、碎片、通信缓冲,一般取 0.85–0.9)。
-            算出下界之后还要满足整除约束,否则跑不起来:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh"><code>C</code> 是单卡显存,<code>u</code> 是可用率(框架 workspace、碎片、通信缓冲,一般取 0.85–0.9)。
+            算出下界之后还要满足整除约束,否则跑不起来:</span><span lang="en" class="i18n-en"><code>C</code> is per-GPU memory and <code>u</code> the usable fraction (framework workspace, fragmentation, communication buffers — usually 0.85–0.9).
+            Once you have the lower bound, the divisibility constraints still have to hold or it will not run:</span></p>
 
           <div class="pc-eq">
-            <span class="lbl">合法性约束</span>
-            总卡数 = <em>TP × CP × PP × DP</em><br />
+            <span class="lbl"><span lang="zh-CN" class="i18n-zh">合法性约束</span><span lang="en" class="i18n-en">Validity constraints</span></span>
+            <span lang="zh-CN" class="i18n-zh">总卡数 = <em>TP × CP × PP × DP</em><br />
             TP | num_kv_heads(否则 KV 要复制)　　PP | L<br />
-            EP | num_experts 且 EP | (TP × DP)　　Ulysses-CP | num_heads
+            EP | num_experts 且 EP | (TP × DP)　　Ulysses-CP | num_heads</span><span lang="en" class="i18n-en">total GPUs = <em>TP × CP × PP × DP</em><br />
+            TP | num_kv_heads (otherwise KV is replicated)　　PP | L<br />
+            EP | num_experts and EP | (TP × DP)　　Ulysses-CP | num_heads</span>
           </div>
 
           <div class="pc-fig">
-            <div class="fig-title">动图 6:最小卡数与组合合法性</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 6:最小卡数与组合合法性</span><span lang="en" class="i18n-en">Figure 6: minimum GPU count and combination validity</span></div>
             <div class="pc-inputs">
-              <div class="pc-in"><label>参数量 P <b id="vP">295 B</b></label><input type="range" id="rP" min="7" max="1000" value="295" /></div>
-              <div class="pc-in"><label>单卡显存 <b id="vC">80 GB</b></label><input type="range" id="rC" min="24" max="192" value="80" step="8" /></div>
-              <div class="pc-in"><label>序列 S <b id="vS2">4096</b></label><input type="range" id="rS2" min="9" max="18" value="12" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">参数量 P <b id="vP">295 B</b></span><span lang="en" class="i18n-en">Parameters P <b id="vP">295 B</b></span></label><input type="range" id="rP" min="7" max="1000" value="295" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">单卡显存 <b id="vC">80 GB</b></span><span lang="en" class="i18n-en">Per-GPU memory <b id="vC">80 GB</b></span></label><input type="range" id="rC" min="24" max="192" value="80" step="8" /></div>
+              <div class="pc-in"><label><span lang="zh-CN" class="i18n-zh">序列 S <b id="vS2">4096</b></span><span lang="en" class="i18n-en">Sequence S <b id="vS2">4096</b></span></label><input type="range" id="rS2" min="9" max="18" value="12" /></div>
             </div>
             <div class="pc-ctrls" style="margin: 0 0 12px">
               <div class="pc-seg" id="modeSeg">
-                <button data-m="train" class="on">训练</button>
-                <button data-m="infer">推理</button>
+                <button data-m="train" class="on"><span lang="zh-CN" class="i18n-zh">训练</span><span lang="en" class="i18n-en">Training</span></button>
+                <button data-m="infer"><span lang="zh-CN" class="i18n-zh">推理</span><span lang="en" class="i18n-en">Inference</span></button>
               </div>
             </div>
             <div class="pc-bars" id="minBars"></div>
             <div class="pc-verdict" id="minVerdict"></div>
-            <span class="fig-cap">
-              训练按 AdamW + ZeRO-3 的 16 B/param 计,并粗估一份重计算后的激活;推理按 bf16 权重 + 单条满序列 KV 计。
-              可用率取 0.88。结果是<strong>下界</strong>,真实部署还要留通信缓冲与调度余量。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">训练按 AdamW + ZeRO-3 的 16 B/param 计,并粗估一份重计算后的激活;推理按 bf16 权重 + 单条满序列 KV 计。
+              可用率取 0.88。结果是<strong>下界</strong>,真实部署还要留通信缓冲与调度余量。</span><span lang="en" class="i18n-en">Training is counted at AdamW + ZeRO-3's 16 B/param plus a rough allowance for recomputed activations; inference at bf16 weights plus one full-length sequence of KV.
+              The usable fraction is 0.88. The result is a <strong>lower bound</strong>; a real deployment still needs communication buffers and scheduling headroom.</span></span>
           </div>
 
-          <h2>十二、要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">十二、要点</span><span lang="en" class="i18n-en">12 · Takeaways</span></h2>
 
           <div class="pc-takes">
-            <div class="pc-take"><div class="n">01</div><h5>量级差三个数量级</h5>
-              <p>同口径下(每 micro-batch)EP 约 70 GiB、TP 约 17.5 GiB、CP 约 1–2 GiB、PP 每边界只有 64 MiB。选型前先知道自己在哪个量级,比任何调参都重要。</p></div>
-            <div class="pc-take"><div class="n">07</div><h5>加 DP 卡不会降低每卡通信量</h5>
-              <p>ZeRO-3 的 All-Gather 必须把参数拼回完整一份才能算,所以每卡收发量 ≈ <code>3Pb</code>,<strong>与 DP 度无关</strong>。DP 摊薄的是 batch,不是通信。</p></div>
-            <div class="pc-take"><div class="n">02</div><h5>Megatron-SP 免费,ZeRO-3 不免费</h5>
-              <p>All-Reduce = RS + AG,所以 SP 把它拆开后<strong>通信量一字未变</strong>,省的激活显存是白拿的。但 ZeRO-3 是 <code>3Pb</code> 对朴素 DP 的 <code>2Pb</code>,<strong>多 50%</strong>,这是分片存储的真实代价。</p></div>
-            <div class="pc-take"><div class="n">03</div><h5>只有 TP 与 S 强耦合且每层同步</h5>
-              <p>TP 通信量正比于 <code>L·B·S·H</code>,80 层就是 320 次集合通信。这决定了它<strong>必须在 NVLink 域内</strong>,也决定了它是长序列下最先失控的那个。</p></div>
-            <div class="pc-take"><div class="n">04</div><h5>EP 的放大系数是 min(k, N)</h5>
-              <p>不是 <code>k</code>。多个选中专家落在同一张卡时只发一次。top-k 越大、EP 度越大,All-to-All 越重,而且怕路由长尾 —— 这是 EPLB 的由来。</p></div>
-            <div class="pc-take"><div class="n">05</div><h5>Ulysses 与 Ring 的走势相反</h5>
-              <p>Ulysses ~ <code>O(1/N)</code> 递减但被 head 数卡死;Ring ~ <code>O(1)</code> 不随 N 下降但没有上限。交叉点在 N≈4–8,这就是选型分水岭。</p></div>
-            <div class="pc-take"><div class="n">06</div><h5>排布比选型更容易出事</h5>
-              <p>TP 进 NVLink、PP 走最外层、DP 因为能和反向重叠可以往外放。同样的并行度组合,排布错了性能能差一个数量级,而这一步不会报错。</p></div>
+            <div class="pc-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">量级差三个数量级</span><span lang="en" class="i18n-en">Three orders of magnitude separate them</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">同口径下(每 micro-batch)EP 约 70 GiB、TP 约 17.5 GiB、CP 约 1–2 GiB、PP 每边界只有 64 MiB。选型前先知道自己在哪个量级,比任何调参都重要。</span><span lang="en" class="i18n-en">On the same basis (per micro-batch), EP is about 70 GiB, TP about 17.5 GiB, CP 1–2 GiB, and PP only 64 MiB per boundary. Knowing which magnitude you are in matters more than any amount of tuning.</span></p></div>
+            <div class="pc-take"><div class="n">07</div><h5><span lang="zh-CN" class="i18n-zh">加 DP 卡不会降低每卡通信量</span><span lang="en" class="i18n-en">Adding DP ranks does not reduce per-GPU communication</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">ZeRO-3 的 All-Gather 必须把参数拼回完整一份才能算,所以每卡收发量 ≈ <code>3Pb</code>,<strong>与 DP 度无关</strong>。DP 摊薄的是 batch,不是通信。</span><span lang="en" class="i18n-en">ZeRO-3's All-Gather has to reassemble a full copy of the parameters before computing, so per-GPU traffic is ≈ <code>3Pb</code>, <strong>independent of the DP degree</strong>. What DP thins out is the batch, not the communication.</span></p></div>
+            <div class="pc-take"><div class="n">02</div><h5><span lang="zh-CN" class="i18n-zh">Megatron-SP 免费,ZeRO-3 不免费</span><span lang="en" class="i18n-en">Megatron-SP is free; ZeRO-3 is not</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">All-Reduce = RS + AG,所以 SP 把它拆开后<strong>通信量一字未变</strong>,省的激活显存是白拿的。但 ZeRO-3 是 <code>3Pb</code> 对朴素 DP 的 <code>2Pb</code>,<strong>多 50%</strong>,这是分片存储的真实代价。</span><span lang="en" class="i18n-en">All-Reduce = RS + AG, so splitting it for SP leaves <strong>the volume unchanged</strong> and the activation memory saved is free. ZeRO-3, though, is <code>3Pb</code> against naive DP's <code>2Pb</code> — <strong>50% more</strong>, the real price of sharded storage.</span></p></div>
+            <div class="pc-take"><div class="n">03</div><h5><span lang="zh-CN" class="i18n-zh">只有 TP 与 S 强耦合且每层同步</span><span lang="en" class="i18n-en">Only TP is both coupled to S and synchronised every layer</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">TP 通信量正比于 <code>L·B·S·H</code>,80 层就是 320 次集合通信。这决定了它<strong>必须在 NVLink 域内</strong>,也决定了它是长序列下最先失控的那个。</span><span lang="en" class="i18n-en">TP's volume is proportional to <code>L·B·S·H</code>, and 80 layers means 320 collectives. That is why it <strong>must live inside the NVLink domain</strong>, and why it is the first thing to go out of control at long sequence lengths.</span></p></div>
+            <div class="pc-take"><div class="n">04</div><h5><span lang="zh-CN" class="i18n-zh">EP 的放大系数是 min(k, N)</span><span lang="en" class="i18n-en">EP's amplification factor is min(k, N)</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">不是 <code>k</code>。多个选中专家落在同一张卡时只发一次。top-k 越大、EP 度越大,All-to-All 越重,而且怕路由长尾 —— 这是 EPLB 的由来。</span><span lang="en" class="i18n-en">Not <code>k</code>. When several chosen experts land on one GPU, only one send happens. Larger top-k and larger EP degree both make the All-to-All heavier, and it is sensitive to routing tails — hence EPLB.</span></p></div>
+            <div class="pc-take"><div class="n">05</div><h5><span lang="zh-CN" class="i18n-zh">Ulysses 与 Ring 的走势相反</span><span lang="en" class="i18n-en">Ulysses and Ring trend in opposite directions</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Ulysses ~ <code>O(1/N)</code> 递减但被 head 数卡死;Ring ~ <code>O(1)</code> 不随 N 下降但没有上限。交叉点在 N≈4–8,这就是选型分水岭。</span><span lang="en" class="i18n-en">Ulysses is <code>O(1/N)</code> and falling but capped by the head count; Ring is <code>O(1)</code> and does not fall with N but has no ceiling. They cross at N≈4–8, and that is the watershed.</span></p></div>
+            <div class="pc-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">排布比选型更容易出事</span><span lang="en" class="i18n-en">Layout goes wrong more easily than selection</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">TP 进 NVLink、PP 走最外层、DP 因为能和反向重叠可以往外放。同样的并行度组合,排布错了性能能差一个数量级,而这一步不会报错。</span><span lang="en" class="i18n-en">TP into NVLink, PP outermost, and DP further out because it overlaps the backward. The same combination of degrees can differ by an order of magnitude depending on layout — and this step raises no error when you get it wrong.</span></p></div>
           </div>
 
-          <blockquote>
-            通信量按 ring 算法的每卡收发字节数估算,忽略延迟项、实现常数与重叠效果,只保留与 B/S/H/L/N 的比例关系,
-            用于横向比较量级,不等于实测。最小卡数为显存下界,未计通信缓冲与调度余量。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">通信量按 ring 算法的每卡收发字节数估算,忽略延迟项、实现常数与重叠效果,只保留与 B/S/H/L/N 的比例关系,
+            用于横向比较量级,不等于实测。最小卡数为显存下界,未计通信缓冲与调度余量。</span><span lang="en" class="i18n-en">Volumes are estimated as per-GPU bytes sent and received under the ring algorithm, ignoring latency terms, implementation constants and overlap, keeping only the proportionality to B/S/H/L/N.
+            They are for comparing magnitudes, not measurements. The minimum GPU count is a memory lower bound and excludes communication buffers and scheduling headroom.</span></blockquote>
         </div>
       </article>
     </main>
@@ -636,6 +621,17 @@
           if (n >= MB) return (n / MB).toFixed(0) + ' MiB';
           return (n / 1024).toFixed(0) + ' KiB';
         }
+
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
         /* ===== 动图 1:五条轴 ===== */
         (function () {
@@ -674,13 +670,14 @@
             pos.push([CX + RX * Math.cos(a), CY + RY * Math.sin(a)]);
           }
 
-          var DESC = {
-            ar: '<b>All-Reduce</b> —— 各卡的张量按位求和,结果人手一份。ring 实现 = 先 Reduce-Scatter 再 All-Gather,所以每卡收发 <code>2·(N−1)/N·X</code>,<b>是所有原语里最贵的</b>。DP 的梯度同步和 TP 的层内拼接都用它。',
-            ag: '<b>All-Gather</b> —— 每卡持有一片,拼成完整张量人手一份。每卡收 <code>(N−1)/N·X</code>。ZeRO-3 前向取参数、Megatron-SP 还原激活都是它。',
-            rs: '<b>Reduce-Scatter</b> —— 按位求和,但每卡只保留结果的 1/N。每卡发 <code>(N−1)/N·X</code>。ZeRO 分发梯度、Megatron-SP 切激活用它。',
-            a2a: '<b>All-to-All</b> —— 转置语义:每张卡给每张卡各发一块。每卡发本地分片的 <code>(N−1)/N</code>,<b>本地分片越小总量越省</b>,这是 Ulysses 随 N 递减的根本原因。EP 的 dispatch / combine 也是它。',
-            p2p: '<b>P2P Send/Recv</b> —— 点对点,不是集合通信,不需要全局同步。PP 的 stage 边界、Ring Attention 的环形传递用它。<b>唯一适合跨节点高频使用的原语</b>。',
-          };
+          function buildDesc() { return {
+            ar: tr('<b>All-Reduce</b> —— 各卡的张量按位求和,结果人手一份。ring 实现 = 先 Reduce-Scatter 再 All-Gather,所以每卡收发 <code>2·(N−1)/N·X</code>,<b>是所有原语里最贵的</b>。DP 的梯度同步和 TP 的层内拼接都用它。', '<b>All-Reduce</b> — the GPUs\' tensors are summed elementwise and everyone gets a copy. The ring implementation is Reduce-Scatter followed by All-Gather, so each GPU moves <code>2·(N−1)/N·X</code>, making it the most expensive primitive. DP gradient sync and TP\'s within-layer aggregation both use it.'),
+            ag: tr('<b>All-Gather</b> —— 每卡持有一片,拼成完整张量人手一份。每卡收 <code>(N−1)/N·X</code>。ZeRO-3 前向取参数、Megatron-SP 还原激活都是它。', '<b>All-Gather</b> — each GPU holds one shard and they are assembled into the full tensor, one copy each. Each GPU receives <code>(N−1)/N·X</code>. ZeRO-3\'s forward parameter fetch and Megatron-SP\'s activation restore are both this.'),
+            rs: tr('<b>Reduce-Scatter</b> —— 按位求和,但每卡只保留结果的 1/N。每卡发 <code>(N−1)/N·X</code>。ZeRO 分发梯度、Megatron-SP 切激活用它。', '<b>Reduce-Scatter</b> — summed elementwise, but each GPU keeps only 1/N of the result. Each GPU sends <code>(N−1)/N·X</code>. ZeRO\'s gradient distribution and Megatron-SP\'s activation sharding use it.'),
+            a2a: tr('<b>All-to-All</b> —— 转置语义:每张卡给每张卡各发一块。每卡发本地分片的 <code>(N−1)/N</code>,<b>本地分片越小总量越省</b>,这是 Ulysses 随 N 递减的根本原因。EP 的 dispatch / combine 也是它。', '<b>All-to-All</b> — transpose semantics: every GPU sends a block to every other. Each sends <code>(N−1)/N</code> of its local shard, so <b>the smaller the local shard the cheaper the total</b>, which is fundamentally why Ulysses gets cheaper as N grows. EP dispatch and combine use it too.'),
+            p2p: tr('<b>P2P Send/Recv</b> —— 点对点,不是集合通信,不需要全局同步。PP 的 stage 边界、Ring Attention 的环形传递用它。<b>唯一适合跨节点高频使用的原语</b>。', '<b>P2P Send/Recv</b> — point to point, not a collective, requiring no global synchronisation. PP\'s stage boundaries and Ring Attention\'s ring hand-off use it. <b>The only primitive suited to frequent use across nodes</b>.'),
+          }; }
+          var DESC = buildDesc();
 
           function nodes() {
             ring.innerHTML = '';
@@ -745,6 +742,11 @@
             draw(b.dataset.p);
           });
           draw('ar');
+          redraw.push(function () {
+            DESC = buildDesc();
+            var on = document.querySelector('#primTabs .on');
+            draw(on ? on.dataset.p : 'ar');
+          });
         })();
 
         /* ===== 动图 3:CP 两条路线 ===== */
@@ -783,14 +785,15 @@
           var verdict = document.getElementById('calcVerdict');
           var P = 295e9, b = 2;
 
-          var ROWS = [
-            { key: 'ep', nm: 'EP', sub: 'All-to-All ×4/层 ×M', c: 'var(--ep)' },
-            { key: 'tp', nm: 'TP', sub: 'All-Reduce ×4/层 ×M', c: 'var(--tp)' },
-            { key: 'dp', nm: 'DP(ZeRO-3)', sub: 'AG+AG+RS,每 step 1 次', c: 'var(--dp)' },
-            { key: 'ring', nm: 'CP · Ring', sub: 'P2P 环 ×M', c: 'var(--pp)' },
-            { key: 'uly', nm: 'CP · Ulysses', sub: 'All-to-All ×4/层 ×M', c: 'var(--cp)' },
-            { key: 'pp', nm: 'PP', sub: 'P2P,每边界 ×M', c: 'var(--warn)' },
-          ];
+          function buildRows() { return [
+            { key: 'ep', nm: 'EP', sub: tr('All-to-All ×4/层 ×M', 'All-to-All ×4/layer ×M'), c: 'var(--ep)' },
+            { key: 'tp', nm: 'TP', sub: tr('All-Reduce ×4/层 ×M', 'All-Reduce ×4/layer ×M'), c: 'var(--tp)' },
+            { key: 'dp', nm: 'DP(ZeRO-3)', sub: tr('AG+AG+RS,每 step 1 次', 'AG+AG+RS, once per step'), c: 'var(--dp)' },
+            { key: 'ring', nm: 'CP · Ring', sub: tr('P2P 环 ×M', 'P2P ring ×M'), c: 'var(--pp)' },
+            { key: 'uly', nm: 'CP · Ulysses', sub: tr('All-to-All ×4/层 ×M', 'All-to-All ×4/layer ×M'), c: 'var(--cp)' },
+            { key: 'pp', nm: 'PP', sub: tr('P2P,每边界 ×M', 'P2P, per boundary ×M'), c: 'var(--warn)' },
+          ]; }
+          var ROWS = buildRows();
           ROWS.forEach(function (r) {
             var d = document.createElement('div');
             d.className = 'pc-brow';
@@ -823,6 +826,11 @@
               dp: 3 * P * b * r,   // All-Gather 要拼回完整一份,不随 N 下降
               pp: 2 * A * M,
             };
+            // 行名带语种,切换后要写回
+            ROWS = buildRows();
+            [].forEach.call(bars.children, function (row, ri) {
+              row.querySelector('.nm').innerHTML = ROWS[ri].nm + '<small>' + ROWS[ri].sub + '</small>';
+            });
             var max = Math.max.apply(null, Object.keys(v).map(function (kk) { return v[kk]; })) || 1;
             var top = Object.keys(v).reduce(function (a, kk) { return v[kk] > v[a] ? kk : a; });
 
@@ -833,22 +841,34 @@
             });
 
             var nameOf = { tp: 'TP', ep: 'EP', uly: 'Ulysses', ring: 'Ring', dp: 'DP', pp: 'PP' };
-            var msg = '当前配置下最重的是 <b>' + nameOf[top] + '</b>(' + fb(v[top]) + ')。';
+            var msg = isEn()
+              ? 'The heaviest under this configuration is <b>' + nameOf[top] + '</b> (' + fb(v[top]) + ').'
+              : '当前配置下最重的是 <b>' + nameOf[top] + '</b>(' + fb(v[top]) + ')。';
             if (v.uly < v.ring) {
-              msg += ' CP 侧 <b>Ulysses 更省</b>(' + (v.ring / v.uly).toFixed(1) + '× 于 Ring),前提是 N ≤ head 数。';
+              msg += isEn()
+                ? ' On the CP side <b>Ulysses is cheaper</b> (' + (v.ring / v.uly).toFixed(1) + '× against Ring), provided N ≤ the head count.'
+                : ' CP 侧 <b>Ulysses 更省</b>(' + (v.ring / v.uly).toFixed(1) + '× 于 Ring),前提是 N ≤ head 数。';
             } else if (v.ring < v.uly) {
-              msg += ' CP 侧 <b>Ring 更省</b>(' + (v.uly / v.ring).toFixed(1) + '× 于 Ulysses),N 还小,环的步数代价没显出来。';
+              msg += isEn()
+                ? ' On the CP side <b>Ring is cheaper</b> (' + (v.uly / v.ring).toFixed(1) + '× against Ulysses); N is still small and the ring\'s step count has not shown up yet.'
+                : ' CP 侧 <b>Ring 更省</b>(' + (v.uly / v.ring).toFixed(1) + '× 于 Ulysses),N 还小,环的步数代价没显出来。';
             }
-            msg += ' PP 是 <b>' + fb(v.pp) + '</b>,<b>与 N 完全无关</b>,且是 P2P —— 这就是它能放最外层、跨节点的原因。';
+            msg += isEn()
+              ? ' PP is <b>' + fb(v.pp) + '</b>, <b>entirely independent of N</b>, and P2P — which is why it can sit outermost and cross nodes.'
+              : ' PP 是 <b>' + fb(v.pp) + '</b>,<b>与 N 完全无关</b>,且是 P2P —— 这就是它能放最外层、跨节点的原因。';
             if (v.dp > v.tp && v.dp > v.ep) {
-              msg += ' 此时 DP 反超,是因为 M 小、TP/EP 的每 micro-batch 成本还没累积起来。' +
-                '注意 DP 那 <b>' + fb(v.dp) + '</b> <b>不随 M 变</b>,而且随 N 增大只会向 3Pb 的上限爬升,<b>永远不会下降</b>。';
+              msg += isEn()
+                ? ' DP comes out on top here because M is small and TP/EP\'s per-micro-batch costs have not accumulated yet. ' +
+                  'Note that DP\'s <b>' + fb(v.dp) + '</b> <b>does not vary with M</b>, and as N grows it only climbs toward the 3Pb ceiling — it <b>never falls</b>.'
+                : ' 此时 DP 反超,是因为 M 小、TP/EP 的每 micro-batch 成本还没累积起来。' +
+                  '注意 DP 那 <b>' + fb(v.dp) + '</b> <b>不随 M 变</b>,而且随 N 增大只会向 3Pb 的上限爬升,<b>永远不会下降</b>。';
             }
             verdict.innerHTML = msg;
           }
 
           Object.keys(els).forEach(function (kk) { els[kk].addEventListener('input', calc); });
           calc();
+          redraw.push(calc);
         })();
 
         /* ===== 动图 6:最小卡数 ===== */
@@ -860,11 +880,12 @@
           var mode = 'train';
           var L = 80, Hkv = 1024, b = 2, u = 0.88;
 
-          var ROWS = [
-            { key: 'w', nm: '权重', c: 'var(--tp)' },
-            { key: 'o', nm: '梯度 + 优化器', c: 'var(--pp)' },
-            { key: 'a', nm: '激活 / KV cache', c: 'var(--ep)' },
-          ];
+          function buildRows() { return [
+            { key: 'w', nm: tr('权重', 'Weights'), c: 'var(--tp)' },
+            { key: 'o', nm: tr('梯度 + 优化器', 'Gradients + optimizer'), c: 'var(--pp)' },
+            { key: 'a', nm: tr('激活 / KV cache', 'Activations / KV cache'), c: 'var(--ep)' },
+          ]; }
+          var ROWS = buildRows();
           ROWS.forEach(function (r) {
             var d = document.createElement('div');
             d.className = 'pc-brow';
@@ -897,6 +918,10 @@
             var nmin = Math.ceil(total / (C * u));
 
             var max = Math.max(w, o, a) || 1;
+            ROWS = buildRows();
+            [].forEach.call(bars.children, function (row, ri) {
+              row.querySelector('.nm').innerHTML = ROWS[ri].nm;
+            });
             [].forEach.call(bars.children, function (row) {
               var val = { w: w, o: o, a: a }[row.dataset.key];
               row.querySelector('i').style.width = (val / max * 100) + '%';
@@ -918,15 +943,25 @@
             var f = plan(nmin);
 
             verdict.className = 'pc-verdict ' + (nmin <= 8 ? 'good' : '');
-            verdict.innerHTML = (mode === 'train' ? '训练' : '推理') +
-              '共需 <b>' + fb(total) + '</b>,单卡可用 ' + (C * u / GB).toFixed(0) +
-              ' GiB → <b>最少 ' + nmin + ' 张卡</b>。' +
-              ' 按「TP 先吃满节点内」的顺序拆:<b>TP=' + f.tp + ' × DP=' + f.dp +
-              '</b>,合计 ' + f.tot + ' 卡(TP=' + f.tp + ' 整除 8 个 KV head)。' +
-              (f.pp > 1 ? ' 若节点数受限,可把 DP 的一部分换成 <b>PP=' + f.pp + ' × DP=' + f.dpAlt +
-                '</b> —— PP=' + f.pp + ' 能整除 ' + L + ' 层。' : '') +
-              (mode === 'train' ? ' 注意<b>优化器状态占了 ' + (o / total * 100).toFixed(0) +
-                '%</b>,训练的显存大头从来不是权重。' : '');
+            verdict.innerHTML = isEn()
+              ? (mode === 'train' ? 'Training' : 'Inference') +
+                ' needs <b>' + fb(total) + '</b> in total, with ' + (C * u / GB).toFixed(0) +
+                ' GiB usable per GPU → <b>at least ' + nmin + ' GPUs</b>.' +
+                ' Splitting it "TP fills the node first": <b>TP=' + f.tp + ' × DP=' + f.dp +
+                '</b>, ' + f.tot + ' GPUs in all (TP=' + f.tp + ' divides the 8 KV heads).' +
+                (f.pp > 1 ? ' If node count is limited, trade part of DP for <b>PP=' + f.pp + ' × DP=' + f.dpAlt +
+                  '</b> — PP=' + f.pp + ' divides ' + L + ' layers.' : '') +
+                (mode === 'train' ? ' Note that <b>optimizer state accounts for ' + (o / total * 100).toFixed(0) +
+                  '%</b>: the bulk of training memory was never the weights.' : '')
+              : (mode === 'train' ? '训练' : '推理') +
+                '共需 <b>' + fb(total) + '</b>,单卡可用 ' + (C * u / GB).toFixed(0) +
+                ' GiB → <b>最少 ' + nmin + ' 张卡</b>。' +
+                ' 按「TP 先吃满节点内」的顺序拆:<b>TP=' + f.tp + ' × DP=' + f.dp +
+                '</b>,合计 ' + f.tot + ' 卡(TP=' + f.tp + ' 整除 8 个 KV head)。' +
+                (f.pp > 1 ? ' 若节点数受限,可把 DP 的一部分换成 <b>PP=' + f.pp + ' × DP=' + f.dpAlt +
+                  '</b> —— PP=' + f.pp + ' 能整除 ' + L + ' 层。' : '') +
+                (mode === 'train' ? ' 注意<b>优化器状态占了 ' + (o / total * 100).toFixed(0) +
+                  '%</b>,训练的显存大头从来不是权重。' : '');
           }
 
           [rP, rC, rS].forEach(function (e) { e.addEventListener('input', calc); });
@@ -939,6 +974,7 @@
             calc();
           });
           calc();
+          redraw.push(calc);
         })();
       })();
     </script>
