@@ -193,18 +193,14 @@
         </header>
 
         <div class="prose">
-          <p>
-            并行策略这件事,光看名词很容易糊涂:<strong>TP 到底切的是什么?切 <code>head_dim</code> 还是切 head 数?EP 和 TP 是不是一回事?</strong> 这篇笔记不讲抽象定义,直接拿一份真实的 <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">tencent/Hy3 <code>config.json</code></a> 当底稿,把 <strong>TP=4、PP=4、EP=4</strong> 落到每一个张量的 shape 上,配动图看清数据怎么流。最后在 <strong>Extra</strong> 里补齐 DP / SP / CP 等其余维度。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">并行策略这件事,光看名词很容易糊涂:<strong>TP 到底切的是什么?切 <code>head_dim</code> 还是切 head 数?EP 和 TP 是不是一回事?</strong> 这篇笔记不讲抽象定义,直接拿一份真实的 <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">tencent/Hy3 <code>config.json</code></a> 当底稿,把 <strong>TP=4、PP=4、EP=4</strong> 落到每一个张量的 shape 上,配动图看清数据怎么流。最后在 <strong>Extra</strong> 里补齐 DP / SP / CP 等其余维度。</span><span lang="en" class="i18n-en">Parallelism is easy to muddle when you only have the vocabulary: <strong>what does TP actually shard — <code>head_dim</code>, or the number of heads? Are EP and TP the same thing?</strong> Rather than abstract definitions, this note takes a real <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">tencent/Hy3 <code>config.json</code></a> and works <strong>TP=4, PP=4, EP=4</strong> down to the shape of every tensor, with animations for how the data moves. An <strong>Extra</strong> section covers the remaining dimensions — DP, SP, CP and the rest.</span></p>
 
-          <div class="callout key">
-            <strong>一句话总览:</strong> 三种并行切的是<strong>三个完全正交的维度</strong>——<strong>TP 切"宽度"</strong>(一层之内的 head 数 / FFN 中间维),<strong>PP 切"深度"</strong>(80 层分成 4 段),<strong>EP 切"专家数"</strong>(192 个专家分给 4 组)。而 <code>head_dim=128</code> 是<strong>唯一那个谁都不许切</strong>的维度。
-          </div>
+          <div class="callout key"><span lang="zh-CN" class="i18n-zh"><strong>一句话总览:</strong> 三种并行切的是<strong>三个完全正交的维度</strong>——<strong>TP 切"宽度"</strong>(一层之内的 head 数 / FFN 中间维),<strong>PP 切"深度"</strong>(80 层分成 4 段),<strong>EP 切"专家数"</strong>(192 个专家分给 4 组)。而 <code>head_dim=128</code> 是<strong>唯一那个谁都不许切</strong>的维度。</span><span lang="en" class="i18n-en"><strong>In one line:</strong> the three shard <strong>three fully orthogonal dimensions</strong>. <strong>TP shards width</strong> (head count and FFN intermediate size within a layer), <strong>PP shards depth</strong> (80 layers into 4 segments), and <strong>EP shards expert count</strong> (192 experts across 4 groups). <code>head_dim=128</code> is <strong>the one dimension nobody is allowed to cut</strong>.</span></div>
 
-          <h2>0 · 先把这份 config 读明白</h2>
-          <p>只挑和并行相关的字段,其余(token id、rope、norm)先略过:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">0 · 先把这份 config 读明白</span><span lang="en" class="i18n-en">0 · Reading the config</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">只挑和并行相关的字段,其余(token id、rope、norm)先略过:</span><span lang="en" class="i18n-en">Only the parallelism-relevant fields; token ids, rope and norm are skipped for now:</span></p>
 
-          <pre><code>{
+          <pre><code><span lang="zh-CN" class="i18n-zh">{
   "hidden_size": 4096,            // 残差流宽度 d_model
   "head_dim": 128,                // ← 注意:显式给出,不是 hidden/heads
   "num_attention_heads": 64,      // Q head 数
@@ -220,48 +216,54 @@
   "max_position_embeddings": 262144,
   "num_nextn_predict_layers": 1,  // MTP(多 token 预测)层
   "dtype": "bfloat16"
-}</code></pre>
+}</span><span lang="en" class="i18n-en">{
+  "hidden_size": 4096,            // residual stream width, d_model
+  "head_dim": 128,                // ← note: given explicitly, not hidden/heads
+  "num_attention_heads": 64,      // Q head count
+  "num_key_value_heads": 8,       // KV head count → GQA, 8 Q share 1 KV
+  "num_hidden_layers": 80,        // layer count → PP shards here
+  "intermediate_size": 13312,     // dense FFN intermediate size
+  "first_k_dense_replace": 1,     // layer 0 is dense FFN, layers 1-79 are MoE
+  "num_experts": 192,             // routed experts → EP shards here
+  "num_experts_per_tok": 8,       // top-k: 8 experts per token
+  "num_shared_experts": 1,        // shared expert, every token goes through it
+  "moe_intermediate_size": 1536,  // intermediate size of one expert
+  "vocab_size": 120832,
+  "max_position_embeddings": 262144,
+  "num_nextn_predict_layers": 1,  // MTP (multi-token prediction) layer
+  "dtype": "bfloat16"
+}</span></code></pre>
 
-          <p>由这些字段先把规模算出来,后面所有切分都围绕它转:</p>
-          <div class="eq">
-            单层 attn = 4096&times;8192 + 2&times;(4096&times;1024) + 8192&times;4096 = <span class="hl">75.5M</span><br />
+          <p><span lang="zh-CN" class="i18n-zh">由这些字段先把规模算出来,后面所有切分都围绕它转:</span><span lang="en" class="i18n-en">Work the scale out from those fields first; every sharding decision below revolves around it:</span></p>
+          <div class="eq"><span lang="zh-CN" class="i18n-zh">单层 attn = 4096&times;8192 + 2&times;(4096&times;1024) + 8192&times;4096 = <span class="hl">75.5M</span><br />
             单个专家 = 3 &times; 4096 &times; 1536 = <span class="hl">18.87M</span>&nbsp;&nbsp;|&nbsp;&nbsp;单个 MoE 层 = 192 个专家 + 1 共享 + router = <span class="hl">3.64B</span><br />
             总参数 &asymp; 80&times;75.5M + 163.6M + 79&times;3.64B + 2&times;(120832&times;4096) &asymp; <span class="hl-k">295B</span><br />
-            每 token 激活 &asymp; 6.0B(attn) + 79&times;(8+1)&times;18.87M + emb/head &asymp; <span class="hl-k">20.2B</span>&nbsp;&nbsp;(<span class="hl">6.8%</span>)
-          </div>
+            每 token 激活 &asymp; 6.0B(attn) + 79&times;(8+1)&times;18.87M + emb/head &asymp; <span class="hl-k">20.2B</span>&nbsp;&nbsp;(<span class="hl">6.8%</span>)</span><span lang="en" class="i18n-en">attn per layer = 4096&times;8192 + 2&times;(4096&times;1024) + 8192&times;4096 = <span class="hl">75.5M</span><br />
+            one expert = 3 &times; 4096 &times; 1536 = <span class="hl">18.87M</span>&nbsp;&nbsp;|&nbsp;&nbsp;one MoE layer = 192 experts + 1 shared + router = <span class="hl">3.64B</span><br />
+            total &asymp; 80&times;75.5M + 163.6M + 79&times;3.64B + 2&times;(120832&times;4096) &asymp; <span class="hl-k">295B</span><br />
+            active per token &asymp; 6.0B (attn) + 79&times;(8+1)&times;18.87M + emb/head &asymp; <span class="hl-k">20.2B</span>&nbsp;&nbsp;(<span class="hl">6.8%</span>)</span></div>
 
-          <div class="callout info">
-            <strong>这是一个 ~295B 总参 / ~20B 激活的稀疏 MoE。</strong> 295B 的 bf16 权重 = 590 GB,单卡绝无可能;而 20B 的激活量又意味着<u>算力需求远小于显存需求</u>。这正是"必须并行、且要用 EP 而不是纯 TP"的根本原因。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>这是一个 ~295B 总参 / ~20B 激活的稀疏 MoE。</strong> 295B 的 bf16 权重 = 590 GB,单卡绝无可能;而 20B 的激活量又意味着<u>算力需求远小于显存需求</u>。这正是"必须并行、且要用 EP 而不是纯 TP"的根本原因。</span><span lang="en" class="i18n-en"><strong>This is a sparse MoE with ~295B total and ~20B active.</strong> 295B of bf16 weights is 590 GB, categorically impossible on one GPU; meanwhile 20B active means <u>the compute requirement is far below the memory requirement</u>. That is exactly why parallelism is mandatory, and why it has to be EP rather than pure TP.</span></div>
 
-          <h2>1 · 第一个陷阱:<code>head_dim</code> ≠ <code>hidden_size / num_heads</code></h2>
-          <p>
-            绝大多数人读 config 会下意识地算 <code>4096 / 64 = 64</code>,认为 <code>head_dim=64</code>。但这份 config <strong>显式写了 <code>head_dim: 128</code></strong>。两者对不上:
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">1 · 第一个陷阱:<code>head_dim</code> ≠ <code>hidden_size / num_heads</code></span><span lang="en" class="i18n-en">1 · First trap: <code>head_dim</code> ≠ <code>hidden_size / num_heads</code></span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">绝大多数人读 config 会下意识地算 <code>4096 / 64 = 64</code>,认为 <code>head_dim=64</code>。但这份 config <strong>显式写了 <code>head_dim: 128</code></strong>。两者对不上:</span><span lang="en" class="i18n-en">Most people reading this config reflexively compute <code>4096 / 64 = 64</code> and assume <code>head_dim=64</code>. But the config <strong>states <code>head_dim: 128</code> explicitly</strong>, and the two do not agree:</span></p>
 
           <figure class="fig">
-            <div class="fig-title">图 1 · attention 内部维度是 hidden 的 2 倍</div>
-            <div class="eq">
-              num_attention_heads &times; head_dim = 64 &times; 128 = <span class="hl">8192</span><br />
-              hidden_size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="hl-k">4096</span>&nbsp;&nbsp;&nbsp;&nbsp;&rarr; 比值 <span class="hl-r">2.0&times;</span>
-            </div>
-            <p style="margin-top:14px;font-size:0.92rem;color:var(--text-muted)">
-              也就是说 <code>q_proj</code> 是一个 <strong>4096 → 8192 的升维投影</strong>,<code>o_proj</code> 再 <strong>8192 → 4096 降回来</strong>。KV 侧因为 GQA 只有 8 个 head,所以 <code>k_proj/v_proj</code> 是 4096 → 1024。
-            </p>
-            <span class="fig-cap">读 config 永远以显式的 head_dim 为准,别用 hidden/heads 反推</span>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">图 1 · attention 内部维度是 hidden 的 2 倍</span><span lang="en" class="i18n-en">Figure 1 · The attention interior is twice as wide as hidden</span></div>
+            <div class="eq"><span lang="zh-CN" class="i18n-zh">num_attention_heads &times; head_dim = 64 &times; 128 = <span class="hl">8192</span><br />
+              hidden_size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="hl-k">4096</span>&nbsp;&nbsp;&nbsp;&nbsp;&rarr; 比值 <span class="hl-r">2.0&times;</span></span><span lang="en" class="i18n-en">num_attention_heads &times; head_dim = 64 &times; 128 = <span class="hl">8192</span><br />
+              hidden_size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="hl-k">4096</span>&nbsp;&nbsp;&nbsp;&nbsp;&rarr; ratio <span class="hl-r">2.0&times;</span></span></div>
+            <p style="margin-top:14px;font-size:0.92rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">也就是说 <code>q_proj</code> 是一个 <strong>4096 → 8192 的升维投影</strong>,<code>o_proj</code> 再 <strong>8192 → 4096 降回来</strong>。KV 侧因为 GQA 只有 8 个 head,所以 <code>k_proj/v_proj</code> 是 4096 → 1024。</span><span lang="en" class="i18n-en">In other words <code>q_proj</code> is an <strong>up-projection from 4096 to 8192</strong>, and <code>o_proj</code> brings it <strong>back down from 8192 to 4096</strong>. On the KV side GQA leaves only 8 heads, so <code>k_proj/v_proj</code> are 4096 → 1024.</span></p>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">读 config 永远以显式的 head_dim 为准,别用 hidden/heads 反推</span><span lang="en" class="i18n-en">Always trust the explicit head_dim when reading a config; never back it out from hidden/heads</span></span>
           </figure>
 
-          <div class="callout warn">
-            <strong>为什么这个细节对并行很关键?</strong> 因为切分的分母是 <code>num_heads</code>,而张量的宽度是 <code>num_heads × head_dim</code>。如果你按 <code>hidden_size/TP</code> 去算 q_proj 的分片大小,会得到 1024,而正确答案是 <strong>8192/4 = 2048</strong>——差了整整一倍,shape 直接对不上。
-          </div>
+          <div class="callout warn"><span lang="zh-CN" class="i18n-zh"><strong>为什么这个细节对并行很关键?</strong> 因为切分的分母是 <code>num_heads</code>,而张量的宽度是 <code>num_heads × head_dim</code>。如果你按 <code>hidden_size/TP</code> 去算 q_proj 的分片大小,会得到 1024,而正确答案是 <strong>8192/4 = 2048</strong>——差了整整一倍,shape 直接对不上。</span><span lang="en" class="i18n-en"><strong>Why does this detail matter for parallelism?</strong> Because the divisor for sharding is <code>num_heads</code> while the tensor width is <code>num_heads × head_dim</code>. Size q_proj's shard as <code>hidden_size/TP</code> and you get 1024, when the right answer is <strong>8192/4 = 2048</strong> — off by a factor of two, and the shapes simply will not line up.</span></div>
 
-          <h2>2 · TP=4:切的是 <u>head 的个数</u>,不是 head_dim</h2>
-          <p>
-            这是本文最想讲清的一点。张量并行在 attention 上的切法是:<strong>把 64 个 head 发牌一样分给 4 张卡,每卡 16 个完整的 head</strong>。每个 head 内部的 <code>head_dim=128</code> <u>原封不动</u>。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">2 · TP=4:切的是 <u>head 的个数</u>,不是 head_dim</span><span lang="en" class="i18n-en">2 · TP=4 shards <u>the number of heads</u>, not head_dim</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">这是本文最想讲清的一点。张量并行在 attention 上的切法是:<strong>把 64 个 head 发牌一样分给 4 张卡,每卡 16 个完整的 head</strong>。每个 head 内部的 <code>head_dim=128</code> <u>原封不动</u>。</span><span lang="en" class="i18n-en">This is the point the note most wants to land. Tensor parallelism shards attention by <strong>dealing the 64 heads out to 4 GPUs like cards, 16 complete heads each</strong>. The <code>head_dim=128</code> inside each head is <u>left untouched</u>.</span></p>
 
           <figure class="fig">
-            <div class="fig-title">动图 · TP=4 把 64 个 head 发牌给 4 张卡(head_dim 保持完整)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · TP=4 把 64 个 head 发牌给 4 张卡(head_dim 保持完整)</span><span lang="en" class="i18n-en">Figure · TP=4 deals 64 heads across 4 GPUs (head_dim stays whole)</span></div>
             <div class="tp-heads" aria-hidden="true">
               <div class="tp-head r0" style="animation-delay:0s"><span class="hd-label">h0</span></div>
               <div class="tp-head r1" style="animation-delay:.12s"><span class="hd-label">h1</span></div>
@@ -276,67 +278,61 @@
               <div class="tp-head r2" style="animation-delay:1.2s"><span class="hd-label">h62</span></div>
               <div class="tp-head r3" style="animation-delay:1.32s"><span class="hd-label">h63</span></div>
             </div>
-            <div class="tp-dimbar tp-warn-pulse">↕ 每根竖条的高度 = head_dim 128 &nbsp;·&nbsp; ❌ 切分永远不会横穿这个方向</div>
+            <div class="tp-dimbar tp-warn-pulse"><span lang="zh-CN" class="i18n-zh">↕ 每根竖条的高度 = head_dim 128 &nbsp;·&nbsp; ❌ 切分永远不会横穿这个方向</span><span lang="en" class="i18n-en">↕ each column's height = head_dim 128 &nbsp;·&nbsp; ❌ sharding never cuts across this direction</span></div>
             <div class="keyrow" style="justify-content:center">
               <span class="rank-key r0"><i></i> rank0 · 16 heads</span>
               <span class="rank-key r1"><i></i> rank1 · 16 heads</span>
               <span class="rank-key r2"><i></i> rank2 · 16 heads</span>
               <span class="rank-key r3"><i></i> rank3 · 16 heads</span>
             </div>
-            <span class="fig-cap">图 2 · head 是「发牌」的最小单位,一张牌不能撕成两半</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 2 · head 是「发牌」的最小单位,一张牌不能撕成两半</span><span lang="en" class="i18n-en">Figure 2 · A head is the smallest unit you can deal; you cannot tear a card in half</span></span>
           </figure>
 
-          <h3>为什么 head_dim 切不得?</h3>
-          <p>因为一个 head 内部是一条<strong>不可分割的规约链</strong>:<code>QK<sup>T</sup></code> 要沿 head_dim 做点积,softmax 又要沿序列做归一化。若把 head_dim 切开,每算一个注意力分数都得跨卡 all-reduce:</p>
+          <h3><span lang="zh-CN" class="i18n-zh">为什么 head_dim 切不得?</span><span lang="en" class="i18n-en">Why can head_dim not be sharded?</span></h3>
+          <p><span lang="zh-CN" class="i18n-zh">因为一个 head 内部是一条<strong>不可分割的规约链</strong>:<code>QK<sup>T</sup></code> 要沿 head_dim 做点积,softmax 又要沿序列做归一化。若把 head_dim 切开,每算一个注意力分数都得跨卡 all-reduce:</span><span lang="en" class="i18n-en">Because a head contains an <strong>indivisible reduction chain</strong>: <code>QK<sup>T</sup></code> takes a dot product along head_dim, and softmax normalises along the sequence. Split head_dim and every single attention score needs a cross-GPU all-reduce:</span></p>
 
           <div class="tp-split-demo">
             <div class="tp-pane ok">
-              <div class="pt">✅ 按 head 切(TP 的做法)</div>
+              <div class="pt"><span lang="zh-CN" class="i18n-zh">✅ 按 head 切(TP 的做法)</span><span lang="en" class="i18n-en">✅ Shard by head (what TP does)</span></div>
               <div class="tp-chain">
                 <span class="op">Q<sub>[16h,128]</sub></span><span class="ar">×</span><span class="op">K<sup>T</sup></span>
                 <span class="ar">→</span><span class="op">softmax</span><span class="ar">→</span><span class="op">×V</span>
               </div>
-              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)">
-                整条链<strong>全在本卡完成</strong>,16 个 head 各算各的。只在最后 <code>o_proj</code> 之后做<strong>一次 all-reduce</strong> 把 4 张卡的部分和加起来。通信 = 每层 1 次。
-              </p>
+              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">整条链<strong>全在本卡完成</strong>,16 个 head 各算各的。只在最后 <code>o_proj</code> 之后做<strong>一次 all-reduce</strong> 把 4 张卡的部分和加起来。通信 = 每层 1 次。</span><span lang="en" class="i18n-en">The whole chain <strong>completes locally</strong>, with 16 heads computed independently. Only after <code>o_proj</code> is there <strong>one all-reduce</strong> to sum the partials across 4 GPUs. Communication: once per layer.</span></p>
             </div>
             <div class="tp-pane no">
-              <div class="pt">❌ 按 head_dim 切(没人这么干)</div>
+              <div class="pt"><span lang="zh-CN" class="i18n-zh">❌ 按 head_dim 切(没人这么干)</span><span lang="en" class="i18n-en">❌ Shard by head_dim (nobody does this)</span></div>
               <div class="tp-chain">
                 <span class="op cut">Q<sub>[64h,32]</sub></span><span class="ar">×</span><span class="op cut">K<sup>T</sup></span>
                 <span class="ar tp-warn-pulse">⇅ all-reduce</span><span class="ar">→</span><span class="op">softmax</span>
               </div>
-              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)">
-                点积被劈成 4 段部分和,<strong>每个 token、每个 head 的每个分数</strong>都要跨卡求和才能进 softmax。通信量爆炸,而且 QK-norm(<code>qk_norm: true</code>)也要沿 head_dim 归一化,同样被劈开。
-              </p>
+              <p style="margin-top:10px;font-size:0.84rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">点积被劈成 4 段部分和,<strong>每个 token、每个 head 的每个分数</strong>都要跨卡求和才能进 softmax。通信量爆炸,而且 QK-norm(<code>qk_norm: true</code>)也要沿 head_dim 归一化,同样被劈开。</span><span lang="en" class="i18n-en">The dot product breaks into 4 partial sums, so <strong>every score of every head of every token</strong> needs a cross-GPU sum before softmax. Communication explodes — and QK-norm (<code>qk_norm: true</code>) also normalises along head_dim, so it gets split too.</span></p>
             </div>
           </div>
 
-          <h3>TP=4 下每个张量的真实 shape</h3>
+          <h3><span lang="zh-CN" class="i18n-zh">TP=4 下每个张量的真实 shape</span><span lang="en" class="i18n-en">The real shapes under TP=4</span></h3>
           <table class="shard-tbl">
             <thead>
-              <tr><th>张量</th><th>完整 shape</th><th>TP=4 每卡</th><th>切法</th></tr>
+              <tr><th><span lang="zh-CN" class="i18n-zh">张量</span><span lang="en" class="i18n-en">Tensor</span></th><th><span lang="zh-CN" class="i18n-zh">完整 shape</span><span lang="en" class="i18n-en">Full shape</span></th><th><span lang="zh-CN" class="i18n-zh">TP=4 每卡</span><span lang="en" class="i18n-en">Per GPU at TP=4</span></th><th><span lang="zh-CN" class="i18n-zh">切法</span><span lang="en" class="i18n-en">How it shards</span></th></tr>
             </thead>
             <tbody>
-              <tr><td>q_proj</td><td>[4096, 64&times;128=8192]</td><td>[4096, <b>2048</b>] · 16 heads</td><td class="cut">列并行(切 head)</td></tr>
-              <tr><td>k_proj / v_proj</td><td>[4096, 8&times;128=1024]</td><td>[4096, <b>256</b>] · 2 kv heads</td><td class="cut">列并行(切 kv head)</td></tr>
-              <tr><td>o_proj</td><td>[8192, 4096]</td><td>[<b>2048</b>, 4096]</td><td class="cut">行并行 + all-reduce</td></tr>
-              <tr><td><b>head_dim</b></td><td>128</td><td><b>128</b>(不变)</td><td class="keep">✖ 永不切分</td></tr>
-              <tr><td>dense FFN gate/up<br /><span style="color:var(--text-dim)">(仅第 0 层)</span></td><td>[4096, 13312]</td><td>[4096, <b>3328</b>]</td><td class="cut">列并行</td></tr>
-              <tr><td>dense FFN down</td><td>[13312, 4096]</td><td>[<b>3328</b>, 4096]</td><td class="cut">行并行 + all-reduce</td></tr>
-              <tr><td>embedding / lm_head</td><td>[120832, 4096]</td><td>[<b>30208</b>, 4096]</td><td class="cut">词表并行</td></tr>
+              <tr><td>q_proj</td><td>[4096, 64&times;128=8192]</td><td>[4096, <b>2048</b>] · 16 heads</td><td class="cut"><span lang="zh-CN" class="i18n-zh">列并行(切 head)</span><span lang="en" class="i18n-en">column parallel (shard heads)</span></td></tr>
+              <tr><td>k_proj / v_proj</td><td>[4096, 8&times;128=1024]</td><td>[4096, <b>256</b>] · 2 kv heads</td><td class="cut"><span lang="zh-CN" class="i18n-zh">列并行(切 kv head)</span><span lang="en" class="i18n-en">column parallel (shard kv heads)</span></td></tr>
+              <tr><td>o_proj</td><td>[8192, 4096]</td><td>[<b>2048</b>, 4096]</td><td class="cut"><span lang="zh-CN" class="i18n-zh">行并行 + all-reduce</span><span lang="en" class="i18n-en">row parallel + all-reduce</span></td></tr>
+              <tr><td><b>head_dim</b></td><td>128</td><td><span lang="zh-CN" class="i18n-zh"><b>128</b>(不变)</span><span lang="en" class="i18n-en"><b>128</b> (unchanged)</span></td><td class="keep"><span lang="zh-CN" class="i18n-zh">✖ 永不切分</span><span lang="en" class="i18n-en">✖ never sharded</span></td></tr>
+              <tr><td><span lang="zh-CN" class="i18n-zh">dense FFN gate/up<br /><span style="color:var(--text-dim)">(仅第 0 层)</span></span><span lang="en" class="i18n-en">dense FFN gate/up<br /><span style="color:var(--text-dim)">(layer 0 only)</span></span></td><td>[4096, 13312]</td><td>[4096, <b>3328</b>]</td><td class="cut"><span lang="zh-CN" class="i18n-zh">列并行</span><span lang="en" class="i18n-en">column parallel</span></td></tr>
+              <tr><td>dense FFN down</td><td>[13312, 4096]</td><td>[<b>3328</b>, 4096]</td><td class="cut"><span lang="zh-CN" class="i18n-zh">行并行 + all-reduce</span><span lang="en" class="i18n-en">row parallel + all-reduce</span></td></tr>
+              <tr><td>embedding / lm_head</td><td>[120832, 4096]</td><td>[<b>30208</b>, 4096]</td><td class="cut"><span lang="zh-CN" class="i18n-zh">词表并行</span><span lang="en" class="i18n-en">vocab parallel</span></td></tr>
             </tbody>
           </table>
 
-          <div class="callout tip">
-            <strong>GQA 的自洽性检查:</strong> 64 个 Q head 配 8 个 KV head,组大小 = 8。TP=4 后每卡是 16 Q + 2 KV,组大小还是 <strong>16/2 = 8</strong> ✅。这说明 TP 必须<strong>整除 <code>num_key_value_heads</code></strong>——本模型 KV head 只有 8,所以 <code>TP ∈ {1,2,4,8}</code> 是干净的;<strong>TP=16 就会不够分</strong>,只能把 KV head 复制到多卡(浪费显存)或改用别的策略。<u>MoE 大模型 TP 开不大,这是主因之一。</u>
-          </div>
+          <div class="callout tip"><span lang="zh-CN" class="i18n-zh"><strong>GQA 的自洽性检查:</strong> 64 个 Q head 配 8 个 KV head,组大小 = 8。TP=4 后每卡是 16 Q + 2 KV,组大小还是 <strong>16/2 = 8</strong> ✅。这说明 TP 必须<strong>整除 <code>num_key_value_heads</code></strong>——本模型 KV head 只有 8,所以 <code>TP ∈ {1,2,4,8}</code> 是干净的;<strong>TP=16 就会不够分</strong>,只能把 KV head 复制到多卡(浪费显存)或改用别的策略。<u>MoE 大模型 TP 开不大,这是主因之一。</u></span><span lang="en" class="i18n-en"><strong>A GQA consistency check:</strong> 64 Q heads to 8 KV heads means a group size of 8. After TP=4 each GPU has 16 Q + 2 KV, so the group size is still <strong>16/2 = 8</strong> ✅. This means TP must <strong>divide <code>num_key_value_heads</code></strong> — with only 8 KV heads here, <code>TP ∈ {1,2,4,8}</code> is clean, while <strong>TP=16 runs short</strong> and forces you to replicate KV heads across GPUs (wasting memory) or switch strategy. <u>This is one of the main reasons TP cannot be pushed far on large MoE models.</u></span></div>
 
-          <h2>3 · PP=4:切的是"深度"</h2>
-          <p>流水线并行不动任何一个张量的 shape,它只是把 <strong>80 层按顺序切成 4 段</strong>,每段 20 层放一张(组)卡上。注意 <code>first_k_dense_replace: 1</code> 让第 0 层是 dense FFN,其余 79 层才是 MoE:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">3 · PP=4:切的是"深度"</span><span lang="en" class="i18n-en">3 · PP=4 shards depth</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">流水线并行不动任何一个张量的 shape,它只是把 <strong>80 层按顺序切成 4 段</strong>,每段 20 层放一张(组)卡上。注意 <code>first_k_dense_replace: 1</code> 让第 0 层是 dense FFN,其余 79 层才是 MoE:</span><span lang="en" class="i18n-en">Pipeline parallelism changes no tensor shape at all; it just cuts the <strong>80 layers into 4 sequential segments</strong> of 20 layers, one per GPU (group). Note that <code>first_k_dense_replace: 1</code> makes layer 0 a dense FFN, leaving 79 MoE layers:</span></p>
 
           <figure class="fig">
-            <div class="fig-title">图 3 · 80 层 → 4 个 stage,每段 20 层</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">图 3 · 80 层 → 4 个 stage,每段 20 层</span><span lang="en" class="i18n-en">Figure 3 · 80 layers → 4 stages of 20</span></div>
             <div class="ep-row" style="align-items:stretch">
               <div class="ep-box r0" style="min-width:130px">
                 <div class="eb-h">Stage 0</div>
@@ -344,24 +340,24 @@
               </div>
               <div class="ep-box r1" style="min-width:130px">
                 <div class="eb-h">Stage 1</div>
-                <div class="eb-s">layer 20–39<br />(全 MoE)</div>
+                <div class="eb-s"><span lang="zh-CN" class="i18n-zh">layer 20–39<br />(全 MoE)</span><span lang="en" class="i18n-en">layer 20–39<br />(all MoE)</span></div>
               </div>
               <div class="ep-box r2" style="min-width:130px">
                 <div class="eb-h">Stage 2</div>
-                <div class="eb-s">layer 40–59<br />(全 MoE)</div>
+                <div class="eb-s"><span lang="zh-CN" class="i18n-zh">layer 40–59<br />(全 MoE)</span><span lang="en" class="i18n-en">layer 40–59<br />(all MoE)</span></div>
               </div>
               <div class="ep-box r3" style="min-width:130px">
                 <div class="eb-h">Stage 3</div>
-                <div class="eb-s">layer 60–79<br />final norm + lm_head<br /><b>+ MTP 层</b></div>
+                <div class="eb-s"><span lang="zh-CN" class="i18n-zh">layer 60–79<br />final norm + lm_head<br /><b>+ MTP 层</b></span><span lang="en" class="i18n-en">layer 60–79<br />final norm + lm_head<br /><b>+ MTP layer</b></span></div>
               </div>
             </div>
-            <span class="fig-cap">stage 间只传一个 [batch, seq, 4096] 的 hidden state — 通信量极小(P2P)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">stage 间只传一个 [batch, seq, 4096] 的 hidden state — 通信量极小(P2P)</span><span lang="en" class="i18n-en">Between stages only one [batch, seq, 4096] hidden state crosses — very little traffic (P2P)</span></span>
           </figure>
 
-          <p>PP 的代价不是通信,而是 <strong>bubble(气泡)</strong>:stage 3 必须等 stage 0/1/2 都算完才能开工。解法是把 batch 拆成 micro-batch 流水起来:</p>
+          <p><span lang="zh-CN" class="i18n-zh">PP 的代价不是通信,而是 <strong>bubble(气泡)</strong>:stage 3 必须等 stage 0/1/2 都算完才能开工。解法是把 batch 拆成 micro-batch 流水起来:</span><span lang="en" class="i18n-en">PP's cost is not communication but <strong>bubbles</strong>: stage 3 cannot start until stages 0, 1 and 2 are done. The fix is splitting the batch into micro-batches and pipelining them:</span></p>
 
           <figure class="fig">
-            <div class="fig-title">动图 · PP=4 流水线:micro-batch 错峰填满 4 个 stage</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · PP=4 流水线:micro-batch 错峰填满 4 个 stage</span><span lang="en" class="i18n-en">Figure · PP=4 pipeline: micro-batches stagger to fill all 4 stages</span></div>
             <div class="pp-grid" aria-hidden="true">
               <div class="pp-lane-name">Stage 0</div>
               <div class="pp-lane">
@@ -398,36 +394,32 @@
                 <div class="pp-cell mb r3" style="animation-delay:2.1s"></div>
               </div>
             </div>
-            <div class="pp-time">时间 →&nbsp;&nbsp;&nbsp;斜纹格 = bubble(该 stage 空转)</div>
+            <div class="pp-time"><span lang="zh-CN" class="i18n-zh">时间 →&nbsp;&nbsp;&nbsp;斜纹格 = bubble(该 stage 空转)</span><span lang="en" class="i18n-en">time →&nbsp;&nbsp;&nbsp;hatched cells = bubble (that stage is idle)</span></div>
             <div class="keyrow" style="justify-content:center">
               <span class="rank-key r0"><i></i> micro-batch 1</span>
               <span class="rank-key r1"><i></i> mb 2</span>
               <span class="rank-key r2"><i></i> mb 3</span>
               <span class="rank-key r3"><i></i> mb 4</span>
             </div>
-            <span class="fig-cap">图 4 · bubble 占比 ≈ (PP−1)/(micro-batch 数 + PP−1),所以 micro-batch 要远多于 stage 数</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 4 · bubble 占比 ≈ (PP−1)/(micro-batch 数 + PP−1),所以 micro-batch 要远多于 stage 数</span><span lang="en" class="i18n-en">Figure 4 · Bubble fraction ≈ (PP−1)/(micro-batches + PP−1), which is why you want far more micro-batches than stages</span></span>
           </figure>
 
-          <div class="callout warn">
-            <strong>本模型 PP 切分的隐藏坑:负载不均。</strong> Stage 0 多背一个 embedding(120832×4096 ≈ 0.49B),Stage 3 多背 lm_head(又 0.49B)<u>加上</u> <code>num_nextn_predict_layers: 1</code> 的 MTP 层。所以"每段 20 层"看似整齐,实际首尾两段更重。生产上常用<strong>不均匀切分</strong>(如 21/20/20/19)把首尾的额外负担摊平。
-          </div>
+          <div class="callout warn"><span lang="zh-CN" class="i18n-zh"><strong>本模型 PP 切分的隐藏坑:负载不均。</strong> Stage 0 多背一个 embedding(120832×4096 ≈ 0.49B),Stage 3 多背 lm_head(又 0.49B)<u>加上</u> <code>num_nextn_predict_layers: 1</code> 的 MTP 层。所以"每段 20 层"看似整齐,实际首尾两段更重。生产上常用<strong>不均匀切分</strong>(如 21/20/20/19)把首尾的额外负担摊平。</span><span lang="en" class="i18n-en"><strong>The hidden trap in this model's PP split: load imbalance.</strong> Stage 0 additionally carries the embedding (120832×4096 ≈ 0.49B), and stage 3 carries lm_head (another 0.49B) <u>plus</u> the MTP layer from <code>num_nextn_predict_layers: 1</code>. So "20 layers each" looks tidy but the first and last stages are heavier. Production setups often use an <strong>uneven split</strong> such as 21/20/20/19 to spread that extra weight.</span></div>
 
-          <h2>4 · EP=4:切的是"专家数"</h2>
-          <p>
-            MoE 层里 192 个专家总共 3.62B 参数,但每个 token 只激活 8 个。<strong>专家并行的思路是:与其把每个专家都切碎(TP),不如让每张卡各自拿着一整批完整的专家。</strong> 192 / 4 = <strong>每卡 48 个完整专家</strong>。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">4 · EP=4:切的是"专家数"</span><span lang="en" class="i18n-en">4 · EP=4 shards the expert count</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">MoE 层里 192 个专家总共 3.62B 参数,但每个 token 只激活 8 个。<strong>专家并行的思路是:与其把每个专家都切碎(TP),不如让每张卡各自拿着一整批完整的专家。</strong> 192 / 4 = <strong>每卡 48 个完整专家</strong>。</span><span lang="en" class="i18n-en">A MoE layer's 192 experts total 3.62B parameters, but each token activates only 8. <strong>Expert parallelism's idea: rather than shredding every expert (TP), let each GPU hold a whole batch of complete experts.</strong> 192 / 4 = <strong>48 complete experts per GPU</strong>.</span></p>
 
           <figure class="fig">
-            <div class="fig-title">动图 · EP=4:token 经 All-to-All 派发到专家所在卡,算完再收回</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · EP=4:token 经 All-to-All 派发到专家所在卡,算完再收回</span><span lang="en" class="i18n-en">Figure · EP=4: tokens dispatched via All-to-All to the GPU holding their expert, then gathered back</span></div>
             <div class="ep-wrap">
               <div class="ep-row">
-                <div class="ep-box r0"><div class="eb-h">GPU 0</div><div class="eb-s">token 批次 A</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:0s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i></div></div>
-                <div class="ep-box r1"><div class="eb-h">GPU 1</div><div class="eb-s">token 批次 B</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.3s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.7s"></i></div></div>
-                <div class="ep-box r2"><div class="eb-h">GPU 2</div><div class="eb-s">token 批次 C</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.6s"></i><i style="animation-delay:.8s"></i><i style="animation-delay:1s"></i></div></div>
-                <div class="ep-box r3"><div class="eb-h">GPU 3</div><div class="eb-s">token 批次 D</div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.9s"></i><i style="animation-delay:1.1s"></i><i style="animation-delay:1.3s"></i></div></div>
+                <div class="ep-box r0"><div class="eb-h">GPU 0</div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">token 批次 A</span><span lang="en" class="i18n-en">token batch A</span></div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:0s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i></div></div>
+                <div class="ep-box r1"><div class="eb-h">GPU 1</div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">token 批次 B</span><span lang="en" class="i18n-en">token batch B</span></div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.3s"></i><i style="animation-delay:.5s"></i><i style="animation-delay:.7s"></i></div></div>
+                <div class="ep-box r2"><div class="eb-h">GPU 2</div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">token 批次 C</span><span lang="en" class="i18n-en">token batch C</span></div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.6s"></i><i style="animation-delay:.8s"></i><i style="animation-delay:1s"></i></div></div>
+                <div class="ep-box r3"><div class="eb-h">GPU 3</div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">token 批次 D</span><span lang="en" class="i18n-en">token batch D</span></div><div class="ep-tok" style="margin-top:5px"><i style="animation-delay:.9s"></i><i style="animation-delay:1.1s"></i><i style="animation-delay:1.3s"></i></div></div>
               </div>
 
-              <div class="ep-a2a-tag">▼ router 选 top-8 &nbsp;·&nbsp; All-to-All <b>dispatch</b> ▼</div>
+              <div class="ep-a2a-tag"><span lang="zh-CN" class="i18n-zh">▼ router 选 top-8 &nbsp;·&nbsp; All-to-All <b>dispatch</b> ▼</span><span lang="en" class="i18n-en">▼ router picks top-8 &nbsp;·&nbsp; All-to-All <b>dispatch</b> ▼</span></div>
               <svg class="ep-svg" viewBox="0 0 560 74" aria-hidden="true">
                 <g stroke="#38bdf8" class="ep-line"><path d="M70 4 C 70 40, 70 40, 70 70" /><path d="M70 4 C 70 40, 210 40, 210 70" /><path d="M70 4 C 70 40, 350 40, 350 70" /><path d="M70 4 C 70 40, 490 40, 490 70" /></g>
                 <g stroke="#a855f7" class="ep-line" style="animation-delay:.2s"><path d="M210 4 C 210 40, 70 40, 70 70" /><path d="M210 4 C 210 40, 210 40, 210 70" /><path d="M210 4 C 210 40, 350 40, 350 70" /></g>
@@ -436,205 +428,198 @@
               </svg>
 
               <div class="ep-row">
-                <div class="ep-box r0"><div class="eb-h">专家 0–47</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
-                <div class="ep-box r1"><div class="eb-h">专家 48–95</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
-                <div class="ep-box r2"><div class="eb-h">专家 96–143</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
-                <div class="ep-box r3"><div class="eb-h">专家 144–191</div><div class="eb-s">48 个完整专家<br />0.91B 参数</div></div>
+                <div class="ep-box r0"><div class="eb-h"><span lang="zh-CN" class="i18n-zh">专家 0–47</span><span lang="en" class="i18n-en">experts 0–47</span></div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">48 个完整专家<br />0.91B 参数</span><span lang="en" class="i18n-en">48 complete experts<br />0.91B parameters</span></div></div>
+                <div class="ep-box r1"><div class="eb-h"><span lang="zh-CN" class="i18n-zh">专家 48–95</span><span lang="en" class="i18n-en">experts 48–95</span></div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">48 个完整专家<br />0.91B 参数</span><span lang="en" class="i18n-en">48 complete experts<br />0.91B parameters</span></div></div>
+                <div class="ep-box r2"><div class="eb-h"><span lang="zh-CN" class="i18n-zh">专家 96–143</span><span lang="en" class="i18n-en">experts 96–143</span></div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">48 个完整专家<br />0.91B 参数</span><span lang="en" class="i18n-en">48 complete experts<br />0.91B parameters</span></div></div>
+                <div class="ep-box r3"><div class="eb-h"><span lang="zh-CN" class="i18n-zh">专家 144–191</span><span lang="en" class="i18n-en">experts 144–191</span></div><div class="eb-s"><span lang="zh-CN" class="i18n-zh">48 个完整专家<br />0.91B 参数</span><span lang="en" class="i18n-en">48 complete experts<br />0.91B parameters</span></div></div>
               </div>
-              <div class="ep-a2a-tag">▲ 算完再 All-to-All <b>combine</b> 把结果送回原卡 ▲</div>
+              <div class="ep-a2a-tag"><span lang="zh-CN" class="i18n-zh">▲ 算完再 All-to-All <b>combine</b> 把结果送回原卡 ▲</span><span lang="en" class="i18n-en">▲ after computing, All-to-All <b>combine</b> returns results to the origin GPU ▲</span></div>
             </div>
-            <span class="fig-cap">图 5 · 每 token 的 8 个专家可能散落在 4 张卡上,所以必须两次 All-to-All</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 5 · 每 token 的 8 个专家可能散落在 4 张卡上,所以必须两次 All-to-All</span><span lang="en" class="i18n-en">Figure 5 · A token's 8 experts may be scattered across all 4 GPUs, hence the two All-to-Alls</span></span>
           </figure>
 
           <div class="cols2">
             <div class="col-card good">
-              <h4>EP 的优点</h4>
+              <h4><span lang="zh-CN" class="i18n-zh">EP 的优点</span><span lang="en" class="i18n-en">What EP buys you</span></h4>
               <ul>
-                <li>专家权重<strong>完整不切</strong>,GEMM 形状规整(1536 不用再除以 4),kernel 效率高。</li>
-                <li>显存线性下降:每卡只存 48 个专家。</li>
-                <li>通信量 ∝ <strong>激活的 token 数</strong>,与专家总数无关——192 个专家和 1920 个专家通信一样多。</li>
+                <li><span lang="zh-CN" class="i18n-zh">专家权重<strong>完整不切</strong>,GEMM 形状规整(1536 不用再除以 4),kernel 效率高。</span><span lang="en" class="i18n-en">Expert weights stay <strong>whole</strong>, so GEMM shapes stay regular (1536 is not divided by 4) and kernels run efficiently.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh">显存线性下降:每卡只存 48 个专家。</span><span lang="en" class="i18n-en">Memory falls linearly: each GPU stores only 48 experts.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh">通信量 ∝ <strong>激活的 token 数</strong>,与专家总数无关——192 个专家和 1920 个专家通信一样多。</span><span lang="en" class="i18n-en">Communication scales with the <strong>number of active tokens</strong>, not the expert count — 192 experts and 1920 experts cost the same.</span></li>
               </ul>
             </div>
             <div class="col-card bad">
-              <h4>EP 的代价</h4>
+              <h4><span lang="zh-CN" class="i18n-zh">EP 的代价</span><span lang="en" class="i18n-en">What EP costs you</span></h4>
               <ul>
-                <li>两次 <strong>All-to-All</strong>(dispatch + combine),延迟敏感、对网络拓扑挑剔。</li>
-                <li><strong>负载不均</strong>:热门专家所在卡被打爆,其余卡空等(见 Extra 的 EPLB)。</li>
-                <li>需要 <code>capacity factor</code> / 丢 token 策略,或做 padding 浪费算力。</li>
+                <li><span lang="zh-CN" class="i18n-zh">两次 <strong>All-to-All</strong>(dispatch + combine),延迟敏感、对网络拓扑挑剔。</span><span lang="en" class="i18n-en">Two <strong>All-to-Alls</strong> (dispatch and combine): latency-sensitive and fussy about network topology.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>负载不均</strong>:热门专家所在卡被打爆,其余卡空等(见 Extra 的 EPLB)。</span><span lang="en" class="i18n-en"><strong>Load imbalance</strong>: the GPU holding a popular expert gets hammered while the others wait (see EPLB in the Extra).</span></li>
+                <li><span lang="zh-CN" class="i18n-zh">需要 <code>capacity factor</code> / 丢 token 策略,或做 padding 浪费算力。</span><span lang="en" class="i18n-en">Needs a <code>capacity factor</code> or a token-dropping policy, or you pad and waste compute.</span></li>
               </ul>
             </div>
           </div>
 
-          <div class="callout info">
-            <strong>共享专家怎么处理?</strong> <code>num_shared_experts: 1</code> 意味着有 1 个专家<u>每个 token 都要过</u>。它不参与 EP 切分(切了等于所有 token 都得跨卡),通常是<strong>在每张卡上按 TP 切分并复制一份</strong>——即每卡持有 <code>1536/4 = 384</code> 的中间维分片。这样它和 attention 一样走 all-reduce,不进 All-to-All。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>共享专家怎么处理?</strong> <code>num_shared_experts: 1</code> 意味着有 1 个专家<u>每个 token 都要过</u>。它不参与 EP 切分(切了等于所有 token 都得跨卡),通常是<strong>在每张卡上按 TP 切分并复制一份</strong>——即每卡持有 <code>1536/4 = 384</code> 的中间维分片。这样它和 attention 一样走 all-reduce,不进 All-to-All。</span><span lang="en" class="i18n-en"><strong>What about the shared expert?</strong> <code>num_shared_experts: 1</code> means one expert <u>every token must pass through</u>. It stays out of the EP split (sharding it would send every token across GPUs) and is usually <strong>TP-sharded and replicated on every GPU</strong> — each holding a <code>1536/4 = 384</code> slice of the intermediate dimension. That way it goes through all-reduce like attention, never All-to-All.</span></div>
 
-          <h2>5 · 三者合体:16 张卡怎么摆</h2>
-          <p>
-            <code>TP=4, PP=4, EP=4</code> 最常见的落法(也是 vLLM <code>--tensor-parallel-size 4 --pipeline-parallel-size 4 --enable-expert-parallel</code> 的语义)是:<strong>EP 复用 TP 那一组卡</strong>。世界大小 = <code>TP × PP = 16</code> 张卡,而不是 4×4×4=64。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">5 · 三者合体:16 张卡怎么摆</span><span lang="en" class="i18n-en">5 · All three together: laying out 16 GPUs</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh"><code>TP=4, PP=4, EP=4</code> 最常见的落法(也是 vLLM <code>--tensor-parallel-size 4 --pipeline-parallel-size 4 --enable-expert-parallel</code> 的语义)是:<strong>EP 复用 TP 那一组卡</strong>。世界大小 = <code>TP × PP = 16</code> 张卡,而不是 4×4×4=64。</span><span lang="en" class="i18n-en">The usual way to land <code>TP=4, PP=4, EP=4</code> — and the semantics of vLLM's <code>--tensor-parallel-size 4 --pipeline-parallel-size 4 --enable-expert-parallel</code> — is for <strong>EP to reuse the same GPUs as TP</strong>. World size = <code>TP × PP = 16</code> GPUs, not 4×4×4 = 64.</span></p>
 
-          <div class="callout info">
-            <strong>EP 不是独立乘上去的一维。</strong> vLLM 里 <code>enable_expert_parallel</code> 的注释写得很直白——<em>"Use expert parallelism <u>instead of</u> tensor parallelism for MoE layers"</em>。也就是说同一批卡:<strong>attention 层按 TP 切,MoE 层改按 EP 切</strong>,EP size = <code>TP × DP</code>。所以别把 4×4×4 当成 64 卡去规划机器。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>EP 不是独立乘上去的一维。</strong> vLLM 里 <code>enable_expert_parallel</code> 的注释写得很直白——<em>"Use expert parallelism <u>instead of</u> tensor parallelism for MoE layers"</em>。也就是说同一批卡:<strong>attention 层按 TP 切,MoE 层改按 EP 切</strong>,EP size = <code>TP × DP</code>。所以别把 4×4×4 当成 64 卡去规划机器。</span><span lang="en" class="i18n-en"><strong>EP is not an independent multiplicative dimension.</strong> vLLM's comment on <code>enable_expert_parallel</code> says it plainly: <em>"Use expert parallelism <u>instead of</u> tensor parallelism for MoE layers"</em>. Same GPUs: <strong>attention layers shard by TP, MoE layers shard by EP instead</strong>, with EP size = <code>TP × DP</code>. So do not plan hardware as if 4×4×4 meant 64 GPUs.</span></div>
 
           <figure class="fig">
-            <div class="fig-title">图 6 · 16 卡布局:纵向 PP 切层,横向同一组 4 卡「attention 走 TP,MoE 走 EP」</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">图 6 · 16 卡布局:纵向 PP 切层,横向同一组 4 卡「attention 走 TP,MoE 走 EP」</span><span lang="en" class="i18n-en">Figure 6 · A 16-GPU layout: PP splits layers vertically; horizontally the same 4 GPUs run "TP for attention, EP for MoE"</span></div>
             <div class="grid16">
               <div></div>
               <div class="gh">TP/EP rank 0</div><div class="gh">rank 1</div><div class="gh">rank 2</div><div class="gh">rank 3</div>
 
               <div class="rl">Stage 0<br />L0–19</div>
-              <div class="gcell r0"><b>GPU 0</b><span>16 heads<br />专家 0–47</span></div>
-              <div class="gcell r0"><b>GPU 1</b><span>16 heads<br />专家 48–95</span></div>
-              <div class="gcell r0"><b>GPU 2</b><span>16 heads<br />专家 96–143</span></div>
-              <div class="gcell r0"><b>GPU 3</b><span>16 heads<br />专家 144–191</span></div>
+              <div class="gcell r0"><b>GPU 0</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 0–47</span><span lang="en" class="i18n-en">16 heads<br />experts 0–47</span></span></div>
+              <div class="gcell r0"><b>GPU 1</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 48–95</span><span lang="en" class="i18n-en">16 heads<br />experts 48–95</span></span></div>
+              <div class="gcell r0"><b>GPU 2</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 96–143</span><span lang="en" class="i18n-en">16 heads<br />experts 96–143</span></span></div>
+              <div class="gcell r0"><b>GPU 3</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 144–191</span><span lang="en" class="i18n-en">16 heads<br />experts 144–191</span></span></div>
 
               <div class="rl">Stage 1<br />L20–39</div>
-              <div class="gcell r1"><b>GPU 4</b><span>16 heads<br />专家 0–47</span></div>
-              <div class="gcell r1"><b>GPU 5</b><span>16 heads<br />专家 48–95</span></div>
-              <div class="gcell r1"><b>GPU 6</b><span>16 heads<br />专家 96–143</span></div>
-              <div class="gcell r1"><b>GPU 7</b><span>16 heads<br />专家 144–191</span></div>
+              <div class="gcell r1"><b>GPU 4</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 0–47</span><span lang="en" class="i18n-en">16 heads<br />experts 0–47</span></span></div>
+              <div class="gcell r1"><b>GPU 5</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 48–95</span><span lang="en" class="i18n-en">16 heads<br />experts 48–95</span></span></div>
+              <div class="gcell r1"><b>GPU 6</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 96–143</span><span lang="en" class="i18n-en">16 heads<br />experts 96–143</span></span></div>
+              <div class="gcell r1"><b>GPU 7</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 144–191</span><span lang="en" class="i18n-en">16 heads<br />experts 144–191</span></span></div>
 
               <div class="rl">Stage 2<br />L40–59</div>
-              <div class="gcell r2"><b>GPU 8</b><span>16 heads<br />专家 0–47</span></div>
-              <div class="gcell r2"><b>GPU 9</b><span>16 heads<br />专家 48–95</span></div>
-              <div class="gcell r2"><b>GPU 10</b><span>16 heads<br />专家 96–143</span></div>
-              <div class="gcell r2"><b>GPU 11</b><span>16 heads<br />专家 144–191</span></div>
+              <div class="gcell r2"><b>GPU 8</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 0–47</span><span lang="en" class="i18n-en">16 heads<br />experts 0–47</span></span></div>
+              <div class="gcell r2"><b>GPU 9</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 48–95</span><span lang="en" class="i18n-en">16 heads<br />experts 48–95</span></span></div>
+              <div class="gcell r2"><b>GPU 10</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 96–143</span><span lang="en" class="i18n-en">16 heads<br />experts 96–143</span></span></div>
+              <div class="gcell r2"><b>GPU 11</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 144–191</span><span lang="en" class="i18n-en">16 heads<br />experts 144–191</span></span></div>
 
               <div class="rl">Stage 3<br />L60–79</div>
-              <div class="gcell r3"><b>GPU 12</b><span>16 heads<br />专家 0–47</span></div>
-              <div class="gcell r3"><b>GPU 13</b><span>16 heads<br />专家 48–95</span></div>
-              <div class="gcell r3"><b>GPU 14</b><span>16 heads<br />专家 96–143</span></div>
-              <div class="gcell r3"><b>GPU 15</b><span>16 heads<br />专家 144–191</span></div>
+              <div class="gcell r3"><b>GPU 12</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 0–47</span><span lang="en" class="i18n-en">16 heads<br />experts 0–47</span></span></div>
+              <div class="gcell r3"><b>GPU 13</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 48–95</span><span lang="en" class="i18n-en">16 heads<br />experts 48–95</span></span></div>
+              <div class="gcell r3"><b>GPU 14</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 96–143</span><span lang="en" class="i18n-en">16 heads<br />experts 96–143</span></span></div>
+              <div class="gcell r3"><b>GPU 15</b><span><span lang="zh-CN" class="i18n-zh">16 heads<br />专家 144–191</span><span lang="en" class="i18n-en">16 heads<br />experts 144–191</span></span></div>
             </div>
             <div class="keyrow">
-              <span class="rank-key" style="--rc:var(--accent-1)"><i></i> 行内(横向 4 卡)= TP 组 + EP 组:attn 用 all-reduce,MoE 用 all-to-all</span>
-              <span class="rank-key" style="--rc:var(--accent-2)"><i></i> 列间(纵向)= PP:只传 hidden state,P2P</span>
+              <span class="rank-key" style="--rc:var(--accent-1)"><span lang="zh-CN" class="i18n-zh"><i></i> 行内(横向 4 卡)= TP 组 + EP 组:attn 用 all-reduce,MoE 用 all-to-all</span><span lang="en" class="i18n-en"><i></i> Within a row (4 GPUs across) = the TP group and the EP group: all-reduce for attn, all-to-all for MoE</span></span>
+              <span class="rank-key" style="--rc:var(--accent-2)"><span lang="zh-CN" class="i18n-zh"><i></i> 列间(纵向)= PP:只传 hidden state,P2P</span><span lang="en" class="i18n-en"><i></i> Between columns (vertically) = PP: only the hidden state crosses, over P2P</span></span>
             </div>
-            <span class="fig-cap">同一批 4 张卡,在 attention 部分扮演 TP 组,在 MoE 部分扮演 EP 组</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">同一批 4 张卡,在 attention 部分扮演 TP 组,在 MoE 部分扮演 EP 组</span><span lang="en" class="i18n-en">The same 4 GPUs act as a TP group during attention and an EP group during MoE</span></span>
           </figure>
 
-          <p>一个 token 穿过<strong>一层</strong>时,通信是这样发生的:</p>
+          <p><span lang="zh-CN" class="i18n-zh">一个 token 穿过<strong>一层</strong>时,通信是这样发生的:</span><span lang="en" class="i18n-en">Here is how communication happens as a token crosses <strong>one layer</strong>:</span></p>
           <div class="flow">
             <div class="flow-step">
               <span class="s-n">① attn</span>
-              <div class="s-h">TP 组内</div>
-              <div class="s-d">各算 16 个 head → <code>o_proj</code> 后 <b>all-reduce</b></div>
+              <div class="s-h"><span lang="zh-CN" class="i18n-zh">TP 组内</span><span lang="en" class="i18n-en">Within the TP group</span></div>
+              <div class="s-d"><span lang="zh-CN" class="i18n-zh">各算 16 个 head → <code>o_proj</code> 后 <b>all-reduce</b></span><span lang="en" class="i18n-en">16 heads each → <b>all-reduce</b> after <code>o_proj</code></span></div>
             </div>
             <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
             <div class="flow-step">
               <span class="s-n">② router</span>
-              <div class="s-h">本地</div>
-              <div class="s-d">sigmoid 打分,选 top-8 / 192</div>
+              <div class="s-h"><span lang="zh-CN" class="i18n-zh">本地</span><span lang="en" class="i18n-en">Local</span></div>
+              <div class="s-d"><span lang="zh-CN" class="i18n-zh">sigmoid 打分,选 top-8 / 192</span><span lang="en" class="i18n-en">sigmoid scoring, pick top-8 of 192</span></div>
             </div>
             <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
             <div class="flow-step">
               <span class="s-n">③ MoE</span>
-              <div class="s-h">EP 组内</div>
-              <div class="s-d"><b>all-to-all</b> 派发 → 专家计算 → <b>all-to-all</b> 收回</div>
+              <div class="s-h"><span lang="zh-CN" class="i18n-zh">EP 组内</span><span lang="en" class="i18n-en">Within the EP group</span></div>
+              <div class="s-d"><span lang="zh-CN" class="i18n-zh"><b>all-to-all</b> 派发 → 专家计算 → <b>all-to-all</b> 收回</span><span lang="en" class="i18n-en"><b>all-to-all</b> dispatch → expert compute → <b>all-to-all</b> gather</span></div>
             </div>
             <span class="flow-arrow"><i class="fas fa-arrow-right"></i></span>
             <div class="flow-step">
-              <span class="s-n">④ 跨层</span>
-              <div class="s-h">PP 边界</div>
-              <div class="s-d">每 20 层一次 <b>P2P</b> 送 hidden state</div>
+              <span class="s-n"><span lang="zh-CN" class="i18n-zh">④ 跨层</span><span lang="en" class="i18n-en">④ Across layers</span></span>
+              <div class="s-h"><span lang="zh-CN" class="i18n-zh">PP 边界</span><span lang="en" class="i18n-en">PP boundary</span></div>
+              <div class="s-d"><span lang="zh-CN" class="i18n-zh">每 20 层一次 <b>P2P</b> 送 hidden state</span><span lang="en" class="i18n-en">one <b>P2P</b> hidden-state hand-off every 20 layers</span></div>
             </div>
           </div>
 
-          <h2>6 · 显存账:这样切之后每张卡装什么</h2>
-          <p>按上面 16 卡布局,取中间一个 stage(20 个 MoE 层)算单卡权重:</p>
-          <div class="eq">
-            attn:&nbsp;&nbsp;20 层 &times; 75.5M / 4 &nbsp;=&nbsp; <span class="hl">0.38B</span><br />
+          <h2><span lang="zh-CN" class="i18n-zh">6 · 显存账:这样切之后每张卡装什么</span><span lang="en" class="i18n-en">6 · The memory bill: what each GPU actually holds</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">按上面 16 卡布局,取中间一个 stage(20 个 MoE 层)算单卡权重:</span><span lang="en" class="i18n-en">Taking the 16-GPU layout above and a middle stage (20 MoE layers), the per-GPU weights are:</span></p>
+          <div class="eq"><span lang="zh-CN" class="i18n-zh">attn:&nbsp;&nbsp;20 层 &times; 75.5M / 4 &nbsp;=&nbsp; <span class="hl">0.38B</span><br />
             专家:&nbsp;&nbsp;20 层 &times; 48 个 &times; 18.87M &nbsp;=&nbsp; <span class="hl">18.1B</span>&nbsp;&nbsp;&larr; 绝对大头<br />
             共享专家 + router:&nbsp;20 层 &times; (18.87M/4 + 0.79M) &nbsp;&asymp;&nbsp; <span class="hl">0.11B</span><br />
             ────────────────────────<br />
-            单卡权重 &asymp; <span class="hl-k">18.6B</span> &times; 2 bytes(bf16) &asymp; <span class="hl-k">34.7 GiB</span>
-          </div>
+            单卡权重 &asymp; <span class="hl-k">18.6B</span> &times; 2 bytes(bf16) &asymp; <span class="hl-k">34.7 GiB</span></span><span lang="en" class="i18n-en">attn:&nbsp;&nbsp;20 layers &times; 75.5M / 4 &nbsp;=&nbsp; <span class="hl">0.38B</span><br />
+            experts:&nbsp;&nbsp;20 layers &times; 48 &times; 18.87M &nbsp;=&nbsp; <span class="hl">18.1B</span>&nbsp;&nbsp;&larr; overwhelmingly the bulk<br />
+            shared expert + router:&nbsp;20 layers &times; (18.87M/4 + 0.79M) &nbsp;&asymp;&nbsp; <span class="hl">0.11B</span><br />
+            ────────────────────────<br />
+            per-GPU weights &asymp; <span class="hl-k">18.6B</span> &times; 2 bytes (bf16) &asymp; <span class="hl-k">34.7 GiB</span></span></div>
 
-          <p>再看 KV cache。<code>num_key_value_heads=8</code> 的 GQA 已经把它压得很小,但 <code>max_position_embeddings=262144</code> 依然吓人:</p>
+          <p><span lang="zh-CN" class="i18n-zh">再看 KV cache。<code>num_key_value_heads=8</code> 的 GQA 已经把它压得很小,但 <code>max_position_embeddings=262144</code> 依然吓人:</span><span lang="en" class="i18n-en">Then the KV cache. GQA with <code>num_key_value_heads=8</code> already compresses it hard, but <code>max_position_embeddings=262144</code> is still daunting:</span></p>
           <div class="eq">
-            整模型每 token = 2(K,V) &times; 8 kv_head &times; 128 &times; 80 层 &times; 2 B = <span class="hl">320 KiB</span><br />
-            单卡每 token = 320 KiB / TP4 / PP4 = <span class="hl-k">20 KiB</span><br />
-            <span class="hl-r">一条 262144 的满长序列 = 80 GiB(全局) / 5 GiB(单卡)</span>
+            <span lang="zh-CN" class="i18n-zh">整模型每 token = 2(K,V) &times; 8 kv_head &times; 128 &times; 80 层 &times; 2 B = <span class="hl">320 KiB</span><br />
+            单卡每 token = 320 KiB / TP4 / PP4 = <span class="hl-k">20 KiB</span></span><span lang="en" class="i18n-en">whole model, per token = 2(K,V) &times; 8 kv_head &times; 128 &times; 80 layers &times; 2 B = <span class="hl">320 KiB</span><br />
+            per GPU, per token = 320 KiB / TP4 / PP4 = <span class="hl-k">20 KiB</span></span><br />
+            <span class="hl-r"><span lang="zh-CN" class="i18n-zh">一条 262144 的满长序列 = 80 GiB(全局) / 5 GiB(单卡)</span><span lang="en" class="i18n-en">One full 262144-token sequence = 80 GiB globally / 5 GiB per GPU</span></span>
           </div>
 
-          <div class="callout tip">
-            单卡 34.7 GiB 权重 + KV cache,在 80 GB 卡上还剩约 40 GiB 给 KV,也就是<strong>约 8 条满长上下文</strong>的并发。想再提高并发,要么继续压 KV(量化到 fp8 直接减半),要么调 <code>gpu-memory-utilization</code> 把余额榨出来——那部分我在 <a href="vllm-gpu-memory-utilization.html">《vLLM 的 gpu-memory-utilization 到底管什么》</a> 里拆过。K/V 一路堆到 80 GiB 的完整过程,则在 <a href="qkv-lifecycle-256k.html">《Q / K / V 在 256K 对话窗口中的一生》</a> 里逐步演示过。
-          </div>
+          <div class="callout tip"><span lang="zh-CN" class="i18n-zh">单卡 34.7 GiB 权重 + KV cache,在 80 GB 卡上还剩约 40 GiB 给 KV,也就是<strong>约 8 条满长上下文</strong>的并发。想再提高并发,要么继续压 KV(量化到 fp8 直接减半),要么调 <code>gpu-memory-utilization</code> 把余额榨出来——那部分我在 <a href="vllm-gpu-memory-utilization.html">《vLLM 的 gpu-memory-utilization 到底管什么》</a> 里拆过。K/V 一路堆到 80 GiB 的完整过程,则在 <a href="qkv-lifecycle-256k.html">《Q / K / V 在 256K 对话窗口中的一生》</a> 里逐步演示过。</span><span lang="en" class="i18n-en">With 34.7 GiB of weights per GPU plus KV cache, an 80 GB card has roughly 40 GiB left for KV — about <strong>8 concurrent full-length contexts</strong>. To push concurrency further you either compress KV harder (fp8 halves it outright) or tune <code>gpu-memory-utilization</code> to squeeze out the remainder, which I took apart in <a href="vllm-gpu-memory-utilization.html">"What vLLM's gpu-memory-utilization actually controls"</a>. The full march of K/V up to 80 GiB is walked through step by step in <a href="qkv-lifecycle-256k.html">"The life of Q / K / V in a 256K window"</a>.</span></div>
 
-          <h2>7 · Extra:其余并行维度</h2>
-          <p>TP / PP / EP 之外,实际系统里还叠着好几层并行。这里按"切什么"归类速览:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">7 · Extra:其余并行维度</span><span lang="en" class="i18n-en">7 · Extra: the other parallel dimensions</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">TP / PP / EP 之外,实际系统里还叠着好几层并行。这里按"切什么"归类速览:</span><span lang="en" class="i18n-en">Beyond TP / PP / EP, a real system stacks several more. A quick tour organised by what each one shards:</span></p>
 
           <table>
             <thead>
-              <tr><th>维度</th><th>切什么</th><th>通信</th><th>在这个模型上的意义</th></tr>
+              <tr><th><span lang="zh-CN" class="i18n-zh">维度</span><span lang="en" class="i18n-en">Dimension</span></th><th><span lang="zh-CN" class="i18n-zh">切什么</span><span lang="en" class="i18n-en">What it shards</span></th><th><span lang="zh-CN" class="i18n-zh">通信</span><span lang="en" class="i18n-en">Communication</span></th><th><span lang="zh-CN" class="i18n-zh">在这个模型上的意义</span><span lang="en" class="i18n-en">What it means for this model</span></th></tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>DP</strong><br />数据并行</td>
-                <td>切 <strong>batch</strong>,模型整份复制</td>
-                <td>训练:梯度 all-reduce<br />推理:无</td>
-                <td>295B 权重单份就 590 GB,<strong>朴素 DP 完全不可行</strong>,必须配 ZeRO/FSDP 分片。</td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>DP</strong><br />数据并行</span><span lang="en" class="i18n-en"><strong>DP</strong><br />data parallel</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">切 <strong>batch</strong>,模型整份复制</span><span lang="en" class="i18n-en">shards the <strong>batch</strong>, replicating the whole model</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">训练:梯度 all-reduce<br />推理:无</span><span lang="en" class="i18n-en">training: gradient all-reduce<br />inference: none</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">295B 权重单份就 590 GB,<strong>朴素 DP 完全不可行</strong>,必须配 ZeRO/FSDP 分片。</span><span lang="en" class="i18n-en">One copy of 295B weights is 590 GB, so <strong>naive DP is simply impossible</strong>; it has to be paired with ZeRO/FSDP sharding.</span></td>
               </tr>
               <tr>
-                <td><strong>Attention-DP</strong><br />(DeepSeek 式)</td>
-                <td>attention 部分按 <strong>请求</strong> 切,MoE 部分共用 EP</td>
-                <td>MoE 前后 all-to-all</td>
-                <td><strong>对本模型很划算</strong>:KV head 只有 8,TP 越大 KV 复制/碎片越严重;改用 attention-DP 让每个 DP rank 管自己的 KV,再共享 EP 专家池。vLLM 的 <code>--data-parallel-size</code> 就是这个。</td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>Attention-DP</strong><br />(DeepSeek 式)</span><span lang="en" class="i18n-en"><strong>Attention-DP</strong><br />(DeepSeek style)</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">attention 部分按 <strong>请求</strong> 切,MoE 部分共用 EP</span><span lang="en" class="i18n-en">attention shards by <strong>request</strong>, MoE shares the EP group</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">MoE 前后 all-to-all</span><span lang="en" class="i18n-en">all-to-all around the MoE</span></td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>对本模型很划算</strong>:KV head 只有 8,TP 越大 KV 复制/碎片越严重;改用 attention-DP 让每个 DP rank 管自己的 KV,再共享 EP 专家池。vLLM 的 <code>--data-parallel-size</code> 就是这个。</span><span lang="en" class="i18n-en"><strong>A good trade here</strong>: with only 8 KV heads, larger TP means worse KV replication and fragmentation. Attention-DP lets each DP rank own its KV while sharing the expert pool. This is what vLLM's <code>--data-parallel-size</code> does.</span></td>
               </tr>
               <tr>
-                <td><strong>SP</strong><br />序列并行</td>
-                <td>切 <strong>序列长度</strong>(Megatron-SP 切 norm/dropout 那段激活)</td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>SP</strong><br />序列并行</span><span lang="en" class="i18n-en"><strong>SP</strong><br />sequence parallel</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">切 <strong>序列长度</strong>(Megatron-SP 切 norm/dropout 那段激活)</span><span lang="en" class="i18n-en">shards <strong>sequence length</strong> (Megatron-SP shards the norm/dropout activations)</span></td>
                 <td>all-gather + reduce-scatter</td>
-                <td>TP 的免费搭档:把 LayerNorm 处那份没被 TP 切的激活也切开,省激活显存。</td>
+                <td><span lang="zh-CN" class="i18n-zh">TP 的免费搭档:把 LayerNorm 处那份没被 TP 切的激活也切开,省激活显存。</span><span lang="en" class="i18n-en">TP's free companion: shards the activations around LayerNorm that TP leaves whole, reclaiming activation memory.</span></td>
               </tr>
               <tr>
-                <td><strong>CP</strong><br />上下文并行<br />(Ring / Ulysses)</td>
-                <td>切 <strong>序列长度</strong>,含 attention 本身</td>
-                <td>Ring: P2P 传 KV<br />Ulysses: all-to-all</td>
-                <td><code>max_position_embeddings=262144</code> ⇒ 长上下文训练<strong>绕不开 CP</strong>。细节见 <a href="sequence-parallel-and-comms.html">《主流序列并行方案对比》</a>。</td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>CP</strong><br />上下文并行<br />(Ring / Ulysses)</span><span lang="en" class="i18n-en"><strong>CP</strong><br />context parallel<br />(Ring / Ulysses)</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">切 <strong>序列长度</strong>,含 attention 本身</span><span lang="en" class="i18n-en">shards <strong>sequence length</strong>, attention included</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">Ring: P2P 传 KV<br />Ulysses: all-to-all</span><span lang="en" class="i18n-en">Ring: P2P for KV<br />Ulysses: all-to-all</span></td>
+                <td><span lang="zh-CN" class="i18n-zh"><code>max_position_embeddings=262144</code> ⇒ 长上下文训练<strong>绕不开 CP</strong>。细节见 <a href="sequence-parallel-and-comms.html">《主流序列并行方案对比》</a>。</span><span lang="en" class="i18n-en"><code>max_position_embeddings=262144</code> means long-context training <strong>cannot avoid CP</strong>. Details in <a href="sequence-parallel-and-comms.html">"Comparing the mainstream sequence-parallel schemes"</a>.</span></td>
               </tr>
               <tr>
                 <td><strong>ZeRO / FSDP</strong></td>
-                <td>切 <strong>优化器状态 / 梯度 / 参数</strong></td>
-                <td>参数 all-gather</td>
-                <td>训练必备:295B 用 AdamW 的优化器状态是权重的数倍,不切根本放不下。</td>
+                <td><span lang="zh-CN" class="i18n-zh">切 <strong>优化器状态 / 梯度 / 参数</strong></span><span lang="en" class="i18n-en">shards <strong>optimizer state / gradients / parameters</strong></span></td>
+                <td><span lang="zh-CN" class="i18n-zh">参数 all-gather</span><span lang="en" class="i18n-en">parameter all-gather</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">训练必备:295B 用 AdamW 的优化器状态是权重的数倍,不切根本放不下。</span><span lang="en" class="i18n-en">Mandatory for training: AdamW optimizer state for 295B is several times the weights, and will not fit unsharded.</span></td>
               </tr>
               <tr>
-                <td><strong>EPLB</strong><br />专家负载均衡</td>
-                <td>不是并行,是 EP 的<strong>补丁</strong></td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>EPLB</strong><br />专家负载均衡</span><span lang="en" class="i18n-en"><strong>EPLB</strong><br />expert load balancing</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">不是并行,是 EP 的<strong>补丁</strong></span><span lang="en" class="i18n-en">not parallelism — a <strong>patch</strong> for EP</span></td>
                 <td>—</td>
-                <td>把热门专家<strong>复制到多张卡</strong>、冷门专家合并,拉平 all-to-all 的长尾。<code>moe_router_enable_expert_bias: true</code> 说明这个模型训练时就带了 bias 式均衡。</td>
+                <td><span lang="zh-CN" class="i18n-zh">把热门专家<strong>复制到多张卡</strong>、冷门专家合并,拉平 all-to-all 的长尾。<code>moe_router_enable_expert_bias: true</code> 说明这个模型训练时就带了 bias 式均衡。</span><span lang="en" class="i18n-en"><strong>Replicates hot experts across GPUs</strong> and merges cold ones, flattening the all-to-all tail. <code>moe_router_enable_expert_bias: true</code> shows this model shipped with bias-style balancing during training.</span></td>
               </tr>
               <tr>
-                <td><strong>MTP</strong><br />多 token 预测</td>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>MTP</strong><br />多 token 预测</span><span lang="en" class="i18n-en"><strong>MTP</strong><br />multi-token prediction</span></td>
                 <td><code>num_nextn_predict_layers: 1</code></td>
                 <td>—</td>
-                <td>额外一个预测头,推理时可做<strong>自投机解码</strong>。放在最后一个 PP stage,是 stage 3 负载偏重的原因之一。</td>
+                <td><span lang="zh-CN" class="i18n-zh">额外一个预测头,推理时可做<strong>自投机解码</strong>。放在最后一个 PP stage,是 stage 3 负载偏重的原因之一。</span><span lang="en" class="i18n-en">An extra prediction head, usable for <strong>self-speculative decoding</strong> at inference. It sits on the last PP stage, one of the reasons stage 3 runs heavy.</span></td>
               </tr>
             </tbody>
           </table>
 
-          <h3>一张表收尾:谁切哪一维</h3>
+          <h3><span lang="zh-CN" class="i18n-zh">一张表收尾:谁切哪一维</span><span lang="en" class="i18n-en">One table to close: who shards what</span></h3>
           <table>
             <thead>
-              <tr><th>并行</th><th>切的维度</th><th>本模型的数字</th><th>约束</th></tr>
+              <tr><th><span lang="zh-CN" class="i18n-zh">并行</span><span lang="en" class="i18n-en">Parallelism</span></th><th><span lang="zh-CN" class="i18n-zh">切的维度</span><span lang="en" class="i18n-en">Dimension sharded</span></th><th><span lang="zh-CN" class="i18n-zh">本模型的数字</span><span lang="en" class="i18n-en">The numbers here</span></th><th><span lang="zh-CN" class="i18n-zh">约束</span><span lang="en" class="i18n-en">Constraint</span></th></tr>
             </thead>
             <tbody>
-              <tr><td><b>TP</b></td><td>head 数 / FFN 中间维 / 词表</td><td>64→16 heads,13312→3328</td><td>须整除 <code>num_key_value_heads=8</code></td></tr>
-              <tr><td><b>PP</b></td><td>层数(深度)</td><td>80→20 层/stage</td><td>micro-batch 要远多于 stage 数</td></tr>
-              <tr><td><b>EP</b></td><td>专家个数</td><td>192→48 个/卡</td><td>须整除 <code>num_experts=192</code></td></tr>
-              <tr><td><b>DP</b></td><td>batch / 请求</td><td>—</td><td>需配 ZeRO 才放得下</td></tr>
-              <tr><td><b>CP/SP</b></td><td>序列长度</td><td>最长 262144</td><td>attention 需 Ring/Ulysses 改写</td></tr>
-              <tr><td style="color:#ef4444"><b>(无)</b></td><td style="color:#ef4444"><code>head_dim</code></td><td style="color:#ef4444">128 恒定</td><td style="color:#ef4444">切了就要在点积内部跨卡规约</td></tr>
+              <tr><td><b>TP</b></td><td><span lang="zh-CN" class="i18n-zh">head 数 / FFN 中间维 / 词表</span><span lang="en" class="i18n-en">head count / FFN intermediate / vocab</span></td><td>64→16 heads,13312→3328</td><td><span lang="zh-CN" class="i18n-zh">须整除 <code>num_key_value_heads=8</code></span><span lang="en" class="i18n-en">must divide <code>num_key_value_heads=8</code></span></td></tr>
+              <tr><td><b>PP</b></td><td><span lang="zh-CN" class="i18n-zh">层数(深度)</span><span lang="en" class="i18n-en">layers (depth)</span></td><td><span lang="zh-CN" class="i18n-zh">80→20 层/stage</span><span lang="en" class="i18n-en">80 → 20 layers per stage</span></td><td><span lang="zh-CN" class="i18n-zh">micro-batch 要远多于 stage 数</span><span lang="en" class="i18n-en">needs far more micro-batches than stages</span></td></tr>
+              <tr><td><b>EP</b></td><td><span lang="zh-CN" class="i18n-zh">专家个数</span><span lang="en" class="i18n-en">expert count</span></td><td><span lang="zh-CN" class="i18n-zh">192→48 个/卡</span><span lang="en" class="i18n-en">192 → 48 per GPU</span></td><td><span lang="zh-CN" class="i18n-zh">须整除 <code>num_experts=192</code></span><span lang="en" class="i18n-en">must divide <code>num_experts=192</code></span></td></tr>
+              <tr><td><b>DP</b></td><td><span lang="zh-CN" class="i18n-zh">batch / 请求</span><span lang="en" class="i18n-en">batch / requests</span></td><td>—</td><td><span lang="zh-CN" class="i18n-zh">需配 ZeRO 才放得下</span><span lang="en" class="i18n-en">needs ZeRO to fit</span></td></tr>
+              <tr><td><b>CP/SP</b></td><td><span lang="zh-CN" class="i18n-zh">序列长度</span><span lang="en" class="i18n-en">sequence length</span></td><td><span lang="zh-CN" class="i18n-zh">最长 262144</span><span lang="en" class="i18n-en">up to 262144</span></td><td><span lang="zh-CN" class="i18n-zh">attention 需 Ring/Ulysses 改写</span><span lang="en" class="i18n-en">attention must be rewritten as Ring/Ulysses</span></td></tr>
+              <tr><td style="color:#ef4444"><span lang="zh-CN" class="i18n-zh"><b>(无)</b></span><span lang="en" class="i18n-en"><b>(none)</b></span></td><td style="color:#ef4444"><code>head_dim</code></td><td style="color:#ef4444"><span lang="zh-CN" class="i18n-zh">128 恒定</span><span lang="en" class="i18n-en">fixed at 128</span></td><td style="color:#ef4444"><span lang="zh-CN" class="i18n-zh">切了就要在点积内部跨卡规约</span><span lang="en" class="i18n-en">sharding it forces a cross-GPU reduction inside the dot product</span></td></tr>
             </tbody>
           </table>
 
           <hr />
-          <p style="color:var(--text-dim);font-size:0.9rem">
-            数据来源:<a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">huggingface.co/tencent/Hy3 · config.json</a>。文中参数量为按 config 字段推算的理论值(不含 norm / bias 等小项),与实际 checkpoint 可能有零点几个 B 的出入。
-          </p>
+          <p style="color:var(--text-dim);font-size:0.9rem"><span lang="zh-CN" class="i18n-zh">数据来源:<a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">huggingface.co/tencent/Hy3 · config.json</a>。文中参数量为按 config 字段推算的理论值(不含 norm / bias 等小项),与实际 checkpoint 可能有零点几个 B 的出入。</span><span lang="en" class="i18n-en">Source: <a href="https://huggingface.co/tencent/Hy3/blob/main/config.json" target="_blank" rel="noopener">huggingface.co/tencent/Hy3 · config.json</a>. Parameter counts here are derived from the config fields (excluding small terms like norm and bias) and may differ from the actual checkpoint by a few tenths of a billion.</span></p>
         </div>
       </article>
     </main>
