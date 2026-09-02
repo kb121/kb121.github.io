@@ -131,23 +131,17 @@
         </header>
 
         <div class="prose">
-          <p>
-            这篇笔记用图文 + 动图讲清三件事:<strong>① CUDA Graph 到底是什么、为什么能加速</strong>;<strong>② vLLM 里怎么用 CUDA Graph(piecewise / full)</strong>;<strong>③ vLLM 里 CUDA Graph 模式 vs Eager 模式对精度的影响</strong>。基于 vLLM <strong>V1 引擎</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">这篇笔记用图文 + 动图讲清三件事:<strong>① CUDA Graph 到底是什么、为什么能加速</strong>;<strong>② vLLM 里怎么用 CUDA Graph(piecewise / full)</strong>;<strong>③ vLLM 里 CUDA Graph 模式 vs Eager 模式对精度的影响</strong>。基于 vLLM <strong>V1 引擎</strong>。</span><span lang="en" class="i18n-en">This note uses figures and animations to settle three things: <strong>① what CUDA Graph actually is and why it speeds things up</strong>, <strong>② how vLLM uses CUDA Graph (piecewise vs full)</strong>, and <strong>③ how graph mode compares with eager mode on numerical accuracy</strong>. Based on the vLLM <strong>V1 engine</strong>.</span></p>
 
-          <div class="callout key">
-            <strong>一句话总览:</strong> CUDA Graph = 把一连串 GPU kernel <em>录制成一张图,之后一次发射、整图重放</em>,省掉每个 kernel 的 CPU 发射开销。它对 <strong>decode 阶段(大量小 kernel、访存密集)</strong>提速最明显。vLLM 默认用 <strong>FULL_AND_PIECEWISE</strong>(decode 用整图、prefill/混合用分段图)。CUDA Graph 本身<strong>不改数值</strong>,真正带来微小精度差异的是与之配套的 <strong>torch.compile</strong>(算子融合)和 batch padding。
-          </div>
+          <div class="callout key"><span lang="zh-CN" class="i18n-zh"><strong>一句话总览:</strong> CUDA Graph = 把一连串 GPU kernel <em>录制成一张图,之后一次发射、整图重放</em>,省掉每个 kernel 的 CPU 发射开销。它对 <strong>decode 阶段(大量小 kernel、访存密集)</strong>提速最明显。vLLM 默认用 <strong>FULL_AND_PIECEWISE</strong>(decode 用整图、prefill/混合用分段图)。CUDA Graph 本身<strong>不改数值</strong>,真正带来微小精度差异的是与之配套的 <strong>torch.compile</strong>(算子融合)和 batch padding。</span><span lang="en" class="i18n-en"><strong>In one line:</strong> a CUDA Graph <em>records a run of GPU kernels into a graph, then launches and replays the whole thing at once</em>, eliminating the per-kernel CPU launch cost. The gain is largest in <strong>decode, where kernels are many, small and memory-bound</strong>. vLLM defaults to <strong>FULL_AND_PIECEWISE</strong> — a full graph for decode, piecewise graphs for prefill and mixed batches. The graph itself <strong>does not change any numbers</strong>; the tiny differences people observe come from the <strong>torch.compile</strong> that accompanies it (operator fusion) and from batch padding.</span></div>
 
-          <h2>0 · 先看一眼"问题"</h2>
-          <p>
-            GPU 跑一个 kernel,需要 CPU 先"发射(launch)"它 —— 这一步有固定开销(几微秒)。LLM 的一个 <strong>decode step</strong> 要串行跑成百上千个小 kernel(每层的 norm、QKV 投影、MLP、残差…)。当 batch 很小,<strong>单个 kernel 在 GPU 上跑得比 CPU 发射下一个还快</strong>,GPU 就只能干等 —— 这叫 <em>CPU launch-bound</em>。下面这张动图就是这个浪费:
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">0 · 先看一眼"问题"</span><span lang="en" class="i18n-en">0 · The problem, first</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">GPU 跑一个 kernel,需要 CPU 先"发射(launch)"它 —— 这一步有固定开销(几微秒)。LLM 的一个 <strong>decode step</strong> 要串行跑成百上千个小 kernel(每层的 norm、QKV 投影、MLP、残差…)。当 batch 很小,<strong>单个 kernel 在 GPU 上跑得比 CPU 发射下一个还快</strong>,GPU 就只能干等 —— 这叫 <em>CPU launch-bound</em>。下面这张动图就是这个浪费:</span><span lang="en" class="i18n-en">Running a kernel on the GPU requires the CPU to <em>launch</em> it, and that has a fixed cost of a few microseconds. One LLM <strong>decode step</strong> runs hundreds or thousands of small kernels back to back (per-layer norm, QKV projection, MLP, residual, and so on). At small batch sizes <strong>a single kernel finishes on the GPU faster than the CPU can launch the next one</strong>, so the GPU sits idle — this is being <em>CPU launch-bound</em>. The animation below is that waste:</span></p>
 
           <figure class="fig">
-            <div class="fig-title">动图 · Eager:每个 kernel 都要 CPU 单独发射,GPU 频繁空等</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · Eager:每个 kernel 都要 CPU 单独发射,GPU 频繁空等</span><span lang="en" class="i18n-en">Figure · Eager: every kernel needs its own CPU launch, so the GPU idles repeatedly</span></div>
             <div class="cg-lane">
-              <span class="cg-tag">CPU 发射</span>
+              <span class="cg-tag"><span lang="zh-CN" class="i18n-zh">CPU 发射</span><span lang="en" class="i18n-en">CPU launch</span></span>
               <div class="cg-track">
                 <div class="cg-playhead"></div>
                 <div class="cg-seg cg-launch"></div><div class="cg-seg cg-idle" style="flex:3"></div>
@@ -158,7 +152,7 @@
               </div>
             </div>
             <div class="cg-lane">
-              <span class="cg-tag">GPU 执行</span>
+              <span class="cg-tag"><span lang="zh-CN" class="i18n-zh">GPU 执行</span><span lang="en" class="i18n-en">GPU execute</span></span>
               <div class="cg-track">
                 <div class="cg-playhead"></div>
                 <div class="cg-seg cg-work" style="flex:1"></div><div class="cg-seg cg-idle" style="flex:1"></div>
@@ -169,45 +163,43 @@
               </div>
             </div>
             <div class="cg-legend">
-              <span><i class="cg-key" style="background:var(--accent-3)"></i> CPU 发射 kernel</span>
-              <span><i class="cg-key" style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2))"></i> GPU 在算</span>
-              <span><i class="cg-key cg-idle" style="border:1px dashed var(--border-strong)"></i> GPU 空等(浪费)</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i class="cg-key" style="background:var(--accent-3)"></i> CPU 发射 kernel</span><span lang="en" class="i18n-en"><i class="cg-key" style="background:var(--accent-3)"></i> CPU launching a kernel</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i class="cg-key" style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2))"></i> GPU 在算</span><span lang="en" class="i18n-en"><i class="cg-key" style="background:linear-gradient(135deg,var(--accent-1),var(--accent-2))"></i> GPU computing</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i class="cg-key cg-idle" style="border:1px dashed var(--border-strong)"></i> GPU 空等(浪费)</span><span lang="en" class="i18n-en"><i class="cg-key cg-idle" style="border:1px dashed var(--border-strong)"></i> GPU idle (wasted)</span></span>
             </div>
-            <span class="fig-cap">图 1 · 斜纹格子就是被浪费的 GPU 时间 —— 都耗在"等 CPU 发射下一个 kernel"上</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 1 · 斜纹格子就是被浪费的 GPU 时间 —— 都耗在"等 CPU 发射下一个 kernel"上</span><span lang="en" class="i18n-en">Figure 1 · The hatched cells are wasted GPU time, all of it spent waiting for the CPU to launch the next kernel</span></span>
           </figure>
 
-          <h2>1 · CUDA Graph 是什么</h2>
-          <p>
-            CUDA Graph 的思路非常直接:既然每次 decode step 跑的 kernel 序列<strong>几乎一模一样</strong>,那就把它<strong>录制(capture)成一张静态图</strong>,之后每步只发射这一张图、让 GPU 一口气重放(replay)所有 kernel,中间不再回到 CPU。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">1 · CUDA Graph 是什么</span><span lang="en" class="i18n-en">1 · What a CUDA Graph is</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">CUDA Graph 的思路非常直接:既然每次 decode step 跑的 kernel 序列<strong>几乎一模一样</strong>,那就把它<strong>录制(capture)成一张静态图</strong>,之后每步只发射这一张图、让 GPU 一口气重放(replay)所有 kernel,中间不再回到 CPU。</span><span lang="en" class="i18n-en">The idea is direct: since every decode step runs <strong>almost exactly the same</strong> kernel sequence, <strong>capture it once as a static graph</strong>, then launch just that graph each step and let the GPU replay every kernel in one go without returning to the CPU.</span></p>
 
           <figure class="fig">
-            <div class="fig-title">CUDA Graph 三步:录制 → 实例化 → 重放</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">CUDA Graph 三步:录制 → 实例化 → 重放</span><span lang="en" class="i18n-en">Three steps: capture → instantiate → replay</span></div>
             <ol class="steps">
               <li>
-                <div class="st-h">Capture 录制</div>
-                <div class="st-d">在"捕获模式"下跑一遍前向,CUDA 不真正执行,而是把所有 kernel 调用、依赖关系记录成一张 DAG(有向无环图)。</div>
+                <div class="st-h"><span lang="zh-CN" class="i18n-zh">Capture 录制</span><span lang="en" class="i18n-en">Capture</span></div>
+                <div class="st-d"><span lang="zh-CN" class="i18n-zh">在"捕获模式"下跑一遍前向,CUDA 不真正执行,而是把所有 kernel 调用、依赖关系记录成一张 DAG(有向无环图)。</span><span lang="en" class="i18n-en">Run one forward in capture mode. CUDA does not actually execute; it records every kernel call and dependency into a DAG.</span></div>
               </li>
               <li>
-                <div class="st-h">Instantiate 实例化</div>
-                <div class="st-d">把图编译成一个可执行实例(固化了 kernel 顺序、参数、显存地址)。</div>
+                <div class="st-h"><span lang="zh-CN" class="i18n-zh">Instantiate 实例化</span><span lang="en" class="i18n-en">Instantiate</span></div>
+                <div class="st-d"><span lang="zh-CN" class="i18n-zh">把图编译成一个可执行实例(固化了 kernel 顺序、参数、显存地址)。</span><span lang="en" class="i18n-en">Compile the graph into an executable instance, freezing kernel order, arguments and memory addresses.</span></div>
               </li>
               <li>
-                <div class="st-h">Replay 重放(可重复成千上万次)</div>
-                <div class="st-d">之后每个 step 只需 <code>cudaGraphLaunch</code> 一次,GPU 连续跑完整张图 —— 几乎零发射开销。</div>
+                <div class="st-h"><span lang="zh-CN" class="i18n-zh">Replay 重放(可重复成千上万次)</span><span lang="en" class="i18n-en">Replay (thousands of times over)</span></div>
+                <div class="st-d"><span lang="zh-CN" class="i18n-zh">之后每个 step 只需 <code>cudaGraphLaunch</code> 一次,GPU 连续跑完整张图 —— 几乎零发射开销。</span><span lang="en" class="i18n-en">From then on each step needs one <code>cudaGraphLaunch</code> and the GPU runs the whole graph straight through — launch overhead is essentially zero.</span></div>
               </li>
             </ol>
             <div style="display:flex;align-items:center;gap:16px;justify-content:center;margin-top:10px">
               <span class="cg-replay-loop" aria-hidden="true"><i class="fas fa-rotate-right"></i></span>
-              <span style="color:var(--text-muted);font-size:.9rem">录一次,重放无数次 —— 这就是收益来源</span>
+              <span style="color:var(--text-muted);font-size:.9rem"><span lang="zh-CN" class="i18n-zh">录一次,重放无数次 —— 这就是收益来源</span><span lang="en" class="i18n-en">Record once, replay endlessly — that is where the win comes from</span></span>
             </div>
-            <span class="fig-cap">图 2 · 录制有一次性成本(启动时的 warmup),换来后续每一步的"一次发射"</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 2 · 录制有一次性成本(启动时的 warmup),换来后续每一步的"一次发射"</span><span lang="en" class="i18n-en">Figure 2 · Capture has a one-time cost (warmup at startup) in exchange for a single launch on every step afterwards</span></span>
           </figure>
 
           <figure class="fig">
-            <div class="fig-title">动图 · CUDA Graph:一次发射,GPU 连续跑满</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · CUDA Graph:一次发射,GPU 连续跑满</span><span lang="en" class="i18n-en">Figure · CUDA Graph: one launch, the GPU runs straight through</span></div>
             <div class="cg-lane">
-              <span class="cg-tag">CPU 发射</span>
+              <span class="cg-tag"><span lang="zh-CN" class="i18n-zh">CPU 发射</span><span lang="en" class="i18n-en">CPU launch</span></span>
               <div class="cg-track">
                 <div class="cg-playhead"></div>
                 <div class="cg-seg cg-launch"></div>
@@ -215,238 +207,224 @@
               </div>
             </div>
             <div class="cg-lane">
-              <span class="cg-tag">GPU 执行</span>
+              <span class="cg-tag"><span lang="zh-CN" class="i18n-zh">GPU 执行</span><span lang="en" class="i18n-en">GPU execute</span></span>
               <div class="cg-track">
                 <div class="cg-playhead"></div>
                 <div class="cg-seg cg-work" style="flex:1"></div>
               </div>
             </div>
-            <span class="fig-cap">图 3 · 对比图 1:CPU 只发射一次,GPU 一整块连续执行,空等几乎消失</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 3 · 对比图 1:CPU 只发射一次,GPU 一整块连续执行,空等几乎消失</span><span lang="en" class="i18n-en">Figure 3 · Compare with Figure 1: the CPU launches once, the GPU executes one continuous block, and the idle gaps all but disappear</span></span>
           </figure>
 
-          <div class="callout info">
-            <strong>为什么对 LLM decode 特别有效?</strong> Decode 每步只生成 1 个 token,是 <em>访存密集 + 小 batch</em>:kernel 又多又小、发射开销占比高。CUDA Graph 正好把这部分开销抹平。反观 <strong>prefill</strong>:一次算很多 token,kernel 本身就跑得久,发射开销占比小,收益没那么大。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>为什么对 LLM decode 特别有效?</strong> Decode 每步只生成 1 个 token,是 <em>访存密集 + 小 batch</em>:kernel 又多又小、发射开销占比高。CUDA Graph 正好把这部分开销抹平。反观 <strong>prefill</strong>:一次算很多 token,kernel 本身就跑得久,发射开销占比小,收益没那么大。</span><span lang="en" class="i18n-en"><strong>Why is this so effective for LLM decode?</strong> Decode produces one token per step and is <em>memory-bound at small batch</em>: many small kernels, so launch overhead dominates. CUDA Graph erases exactly that. <strong>Prefill</strong> is the opposite — it computes many tokens at once, the kernels run long enough that launch overhead is a small fraction, and the gain is modest.</span></div>
 
-          <h2>2 · CUDA Graph 的代价与约束</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">2 · CUDA Graph 的代价与约束</span><span lang="en" class="i18n-en">2 · The costs and constraints</span></h2>
           <div class="cols2">
             <div class="col-card good">
-              <h4><i class="fas fa-check" aria-hidden="true"></i> 收益</h4>
+              <h4><span lang="zh-CN" class="i18n-zh"><i class="fas fa-check" aria-hidden="true"></i> 收益</span><span lang="en" class="i18n-en"><i class="fas fa-check" aria-hidden="true"></i> Gains</span></h4>
               <ul>
-                <li>消除每个 kernel 的 CPU 发射开销,decode 延迟显著下降。</li>
-                <li>GPU 利用率拉满,小 batch 场景尤其明显。</li>
+                <li><span lang="zh-CN" class="i18n-zh">消除每个 kernel 的 CPU 发射开销,decode 延迟显著下降。</span><span lang="en" class="i18n-en">Removes the per-kernel CPU launch cost, cutting decode latency noticeably.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh">GPU 利用率拉满,小 batch 场景尤其明显。</span><span lang="en" class="i18n-en">Keeps GPU utilisation high, especially at small batch.</span></li>
               </ul>
             </div>
             <div class="col-card bad">
-              <h4><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> 约束</h4>
+              <h4><span lang="zh-CN" class="i18n-zh"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> 约束</span><span lang="en" class="i18n-en"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Constraints</span></h4>
               <ul>
-                <li><strong>静态形状:</strong>图固化了张量形状和显存地址,batch / 序列长度一变就得换一张图。</li>
-                <li><strong>无动态控制流:</strong>图里跳过所有 CPU 逻辑(if / print / Python 分支),只重放 GPU 算子。</li>
-                <li><strong>额外显存 + 启动耗时:</strong>每张捕获的图都要占显存,启动时 warmup 也要时间。</li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>静态形状:</strong>图固化了张量形状和显存地址,batch / 序列长度一变就得换一张图。</span><span lang="en" class="i18n-en"><strong>Static shapes:</strong> the graph freezes tensor shapes and memory addresses, so any change in batch or sequence length needs a different graph.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>无动态控制流:</strong>图里跳过所有 CPU 逻辑(if / print / Python 分支),只重放 GPU 算子。</span><span lang="en" class="i18n-en"><strong>No dynamic control flow:</strong> the graph skips all CPU logic (if, print, Python branches) and replays only GPU operators.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>额外显存 + 启动耗时:</strong>每张捕获的图都要占显存,启动时 warmup 也要时间。</span><span lang="en" class="i18n-en"><strong>Extra memory and startup time:</strong> every captured graph costs memory, and warmup costs time at startup.</span></li>
               </ul>
             </div>
           </div>
 
-          <h2>3 · vLLM 里的 CUDA Graph</h2>
-          <p>
-            LLM 模型里,<strong>注意力</strong>用的是 FlashAttention 这类专用 kernel,形状多变、对整图捕获不友好;而 <strong>非注意力部分</strong>(LayerNorm、MLP、残差、logits 投影)规整、好捕获。vLLM 据此提供了 <strong>分段(piecewise)</strong> 和 <strong>整图(full)</strong> 两种思路,并建立在 <code>torch.compile</code> 的分段编译之上。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">3 · vLLM 里的 CUDA Graph</span><span lang="en" class="i18n-en">3 · CUDA Graph inside vLLM</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">LLM 模型里,<strong>注意力</strong>用的是 FlashAttention 这类专用 kernel,形状多变、对整图捕获不友好;而 <strong>非注意力部分</strong>(LayerNorm、MLP、残差、logits 投影)规整、好捕获。vLLM 据此提供了 <strong>分段(piecewise)</strong> 和 <strong>整图(full)</strong> 两种思路,并建立在 <code>torch.compile</code> 的分段编译之上。</span><span lang="en" class="i18n-en">In an LLM, <strong>attention</strong> runs specialised kernels like FlashAttention whose shapes vary and which capture poorly; the <strong>non-attention parts</strong> (LayerNorm, MLP, residual, logits projection) are regular and capture well. vLLM therefore offers both <strong>piecewise</strong> and <strong>full</strong> graphs, built on top of <code>torch.compile</code>'s piecewise compilation.</span></p>
 
           <figure class="fig">
-            <div class="fig-title">Piecewise CUDA Graph:注意力跑 eager,其余段进图</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">Piecewise CUDA Graph:注意力跑 eager,其余段进图</span><span lang="en" class="i18n-en">Piecewise CUDA Graph: attention stays eager, everything else goes into the graph</span></div>
             <div class="flow">
-              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h">Norm + QKV 投影</span><span class="s-d">进 CUDA Graph</span></div>
+              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h"><span lang="zh-CN" class="i18n-zh">Norm + QKV 投影</span><span lang="en" class="i18n-en">Norm + QKV projection</span></span><span class="s-d"><span lang="zh-CN" class="i18n-zh">进 CUDA Graph</span><span lang="en" class="i18n-en">in the CUDA Graph</span></span></div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step" style="border-color:var(--accent-3)"><span class="s-n">eager</span><span class="s-h">Attention</span><span class="s-d">FlashAttention,留在 eager</span></div>
+              <div class="flow-step" style="border-color:var(--accent-3)"><span class="s-n">eager</span><span class="s-h">Attention</span><span class="s-d"><span lang="zh-CN" class="i18n-zh">FlashAttention,留在 eager</span><span lang="en" class="i18n-en">FlashAttention, left eager</span></span></div>
               <div class="flow-arrow">→</div>
-              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h">MLP + 残差</span><span class="s-d">进 CUDA Graph</span></div>
+              <div class="flow-step cg-pulse" style="border-color:var(--accent-2)"><span class="s-n">graph</span><span class="s-h"><span lang="zh-CN" class="i18n-zh">MLP + 残差</span><span lang="en" class="i18n-en">MLP + residual</span></span><span class="s-d"><span lang="zh-CN" class="i18n-zh">进 CUDA Graph</span><span lang="en" class="i18n-en">in the CUDA Graph</span></span></div>
             </div>
-            <span class="fig-cap">图 4 · 紫色段被 CUDA Graph 捕获(脉冲高亮),粉色注意力段保持 eager —— 兼顾捕获收益与灵活性</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 4 · 紫色段被 CUDA Graph 捕获(脉冲高亮),粉色注意力段保持 eager —— 兼顾捕获收益与灵活性</span><span lang="en" class="i18n-en">Figure 4 · The purple segments are captured (highlighted by the pulse); the pink attention segment stays eager — capturing what pays while keeping the flexibility</span></span>
           </figure>
 
-          <p>vLLM V1 用一个 <code>cudagraph_mode</code> 开关统一管理这套策略,共 5 种模式:</p>
+          <p><span lang="zh-CN" class="i18n-zh">vLLM V1 用一个 <code>cudagraph_mode</code> 开关统一管理这套策略,共 5 种模式:</span><span lang="en" class="i18n-en">vLLM V1 manages all of this through one <code>cudagraph_mode</code> switch with five settings:</span></p>
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>cudagraph_mode</th><th>含义</th><th>适用</th></tr></thead>
+              <thead><tr><th>cudagraph_mode</th><th><span lang="zh-CN" class="i18n-zh">含义</span><span lang="en" class="i18n-en">Meaning</span></th><th><span lang="zh-CN" class="i18n-zh">适用</span><span lang="en" class="i18n-en">When to use</span></th></tr></thead>
               <tbody>
-                <tr><td><b>NONE</b></td><td>完全关闭 CUDA Graph(= eager)</td><td>调试 / 显存实验</td></tr>
-                <tr><td><b>PIECEWISE</b></td><td>只用分段图,注意力等不兼容算子留 eager</td><td>通用、最灵活</td></tr>
-                <tr><td><b>FULL</b></td><td>整图捕获</td><td>小模型 / 短 prompt</td></tr>
-                <tr><td><b>FULL_DECODE_ONLY</b></td><td>只对 decode 批用整图,混合批不用图</td><td>P/D 分离里的 decode 实例,省显存</td></tr>
-                <tr><td><b>FULL_AND_PIECEWISE</b> <span class="stat-pill"><b>默认</b></span></td><td>decode 批用整图,prefill / 混合批用分段图</td><td>大多数模型最优</td></tr>
+                <tr><td><b>NONE</b></td><td><span lang="zh-CN" class="i18n-zh">完全关闭 CUDA Graph(= eager)</span><span lang="en" class="i18n-en">CUDA Graph fully off (= eager)</span></td><td><span lang="zh-CN" class="i18n-zh">调试 / 显存实验</span><span lang="en" class="i18n-en">Debugging / memory experiments</span></td></tr>
+                <tr><td><b>PIECEWISE</b></td><td><span lang="zh-CN" class="i18n-zh">只用分段图,注意力等不兼容算子留 eager</span><span lang="en" class="i18n-en">Piecewise only; attention and other incompatible operators stay eager</span></td><td><span lang="zh-CN" class="i18n-zh">通用、最灵活</span><span lang="en" class="i18n-en">General-purpose, most flexible</span></td></tr>
+                <tr><td><b>FULL</b></td><td><span lang="zh-CN" class="i18n-zh">整图捕获</span><span lang="en" class="i18n-en">Full-graph capture</span></td><td><span lang="zh-CN" class="i18n-zh">小模型 / 短 prompt</span><span lang="en" class="i18n-en">Small models / short prompts</span></td></tr>
+                <tr><td><b>FULL_DECODE_ONLY</b></td><td><span lang="zh-CN" class="i18n-zh">只对 decode 批用整图,混合批不用图</span><span lang="en" class="i18n-en">Full graph for decode batches only; no graph for mixed batches</span></td><td><span lang="zh-CN" class="i18n-zh">P/D 分离里的 decode 实例,省显存</span><span lang="en" class="i18n-en">Decode instances in disaggregated P/D, to save memory</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh"><b>FULL_AND_PIECEWISE</b> <span class="stat-pill"><b>默认</b></span></span><span lang="en" class="i18n-en"><b>FULL_AND_PIECEWISE</b> <span class="stat-pill"><b>default</b></span></span></td><td><span lang="zh-CN" class="i18n-zh">decode 批用整图,prefill / 混合批用分段图</span><span lang="en" class="i18n-en">Full graph for decode, piecewise for prefill and mixed batches</span></td><td><span lang="zh-CN" class="i18n-zh">大多数模型最优</span><span lang="en" class="i18n-en">Best for most models</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <div class="callout tip">
-            <strong>默认 FULL_AND_PIECEWISE 的巧思:</strong>decode 阶段对延迟最敏感 → 用<strong>整图</strong>把发射开销压到最低(降 ITL,即 token 间延迟);prefill / 混合阶段形状多变 → 用<strong>分段图</strong>保住灵活性和较小的 TTFT。两全其美。
-          </div>
+          <div class="callout tip"><span lang="zh-CN" class="i18n-zh"><strong>默认 FULL_AND_PIECEWISE 的巧思:</strong>decode 阶段对延迟最敏感 → 用<strong>整图</strong>把发射开销压到最低(降 ITL,即 token 间延迟);prefill / 混合阶段形状多变 → 用<strong>分段图</strong>保住灵活性和较小的 TTFT。两全其美。</span><span lang="en" class="i18n-en"><strong>Why FULL_AND_PIECEWISE is a smart default:</strong> decode is the latency-sensitive phase → a <strong>full graph</strong> drives launch overhead to a minimum (lower ITL, the inter-token latency); prefill and mixed batches have varying shapes → <strong>piecewise graphs</strong> preserve flexibility and a decent TTFT. Both ends covered.</span></div>
 
-          <h2>4 · 形状离散化与 padding</h2>
-          <p>
-            CUDA Graph 要静态形状,但运行时 batch 大小千变万化。vLLM 的做法:<strong>只为一组预设的 batch size 捕获图</strong>(<code>cudagraph_capture_sizes</code>,如 1、2、4、8…),运行时把实际 batch <strong>向上 padding 到最近的捕获尺寸</strong>,多出来的是 dummy 行,算完丢弃。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">4 · 形状离散化与 padding</span><span lang="en" class="i18n-en">4 · Shape discretisation and padding</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">CUDA Graph 要静态形状,但运行时 batch 大小千变万化。vLLM 的做法:<strong>只为一组预设的 batch size 捕获图</strong>(<code>cudagraph_capture_sizes</code>,如 1、2、4、8…),运行时把实际 batch <strong>向上 padding 到最近的捕获尺寸</strong>,多出来的是 dummy 行,算完丢弃。</span><span lang="en" class="i18n-en">CUDA Graph wants static shapes, but runtime batch sizes vary constantly. vLLM's answer: <strong>capture graphs only for a preset list of batch sizes</strong> (<code>cudagraph_capture_sizes</code>, e.g. 1, 2, 4, 8…) and at runtime <strong>pad the actual batch up to the nearest captured size</strong>. The extra rows are dummies and get discarded.</span></p>
           <figure class="fig">
-            <div class="fig-title">运行时 batch=5 → padding 到捕获尺寸 8</div>
-            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);margin:0 0 6px">真实请求(5)+ 填充(3)→ 命中捕获图(8):</p>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">运行时 batch=5 → padding 到捕获尺寸 8</span><span lang="en" class="i18n-en">Runtime batch = 5 → padded to captured size 8</span></div>
+            <p style="font-family:var(--font-mono);font-size:.78rem;color:var(--text-dim);margin:0 0 6px"><span lang="zh-CN" class="i18n-zh">真实请求(5)+ 填充(3)→ 命中捕获图(8):</span><span lang="en" class="i18n-en">Real requests (5) + padding (3) → hits the captured graph (8):</span></p>
             <div class="blocks">
               <span class="blk a">R1</span><span class="blk a">R2</span><span class="blk a">R3</span><span class="blk a">R4</span><span class="blk a">R5</span>
               <span class="blk free">pad</span><span class="blk free">pad</span><span class="blk free">pad</span>
             </div>
-            <span class="fig-cap">图 5 · padding 行必须被正确 mask 掉,不能污染真实请求的结果(下一节精度部分会再提)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 5 · padding 行必须被正确 mask 掉,不能污染真实请求的结果(下一节精度部分会再提)</span><span lang="en" class="i18n-en">Figure 5 · The padding rows must be masked correctly so they cannot contaminate real results (the accuracy section returns to this)</span></span>
           </figure>
 
-          <h2>5 · CUDA Graph vs Eager:对精度的影响</h2>
-          <p>这是最容易被误解的一节。先把结论摆出来,再拆开讲:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">5 · CUDA Graph vs Eager:对精度的影响</span><span lang="en" class="i18n-en">5 · CUDA Graph vs eager: the accuracy question</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">这是最容易被误解的一节。先把结论摆出来,再拆开讲:</span><span lang="en" class="i18n-en">This is the most misunderstood part. Conclusion first, then the details:</span></p>
 
-          <div class="callout key">
-            <strong>结论:</strong>CUDA Graph <strong>本身不改变数值</strong> —— 它重放的是和 eager <em>完全相同</em>的 kernel,输入相同,输出逐比特相同。vLLM 里看到的 "graph 模式 vs eager 模式" 的细微差异,主要来自<strong>和 graph 配套的 <code>torch.compile</code></strong>(算子融合、中间精度、kernel 选择),以及 <strong>padding 是否被正确 mask</strong>。
-          </div>
+          <div class="callout key"><span lang="zh-CN" class="i18n-zh"><strong>结论:</strong>CUDA Graph <strong>本身不改变数值</strong> —— 它重放的是和 eager <em>完全相同</em>的 kernel,输入相同,输出逐比特相同。vLLM 里看到的 "graph 模式 vs eager 模式" 的细微差异,主要来自<strong>和 graph 配套的 <code>torch.compile</code></strong>(算子融合、中间精度、kernel 选择),以及 <strong>padding 是否被正确 mask</strong>。</span><span lang="en" class="i18n-en"><strong>Conclusion:</strong> CUDA Graph <strong>does not change numbers</strong> — it replays <em>exactly the same</em> kernels as eager, so identical inputs give bit-identical outputs. The small differences people see between "graph mode and eager mode" in vLLM come mainly from the <strong><code>torch.compile</code> that ships with it</strong> (fusion, intermediate precision, kernel selection) and from <strong>whether padding is masked correctly</strong>.</span></div>
 
           <div class="cols2">
             <div class="col-card good">
-              <h4><i class="fas fa-equals" aria-hidden="true"></i> 不会改数值的部分</h4>
-              <p style="margin:0;color:var(--text-muted);font-size:.9rem">纯 CUDA Graph 的"录制 → 重放":同样的 kernel、同样的顺序、同样的地址。重放 = 把 eager 那次执行原样再放一遍,数值<strong>逐比特一致</strong>。</p>
+              <h4><span lang="zh-CN" class="i18n-zh"><i class="fas fa-equals" aria-hidden="true"></i> 不会改数值的部分</span><span lang="en" class="i18n-en"><i class="fas fa-equals" aria-hidden="true"></i> What does not change numbers</span></h4>
+              <p style="margin:0;color:var(--text-muted);font-size:.9rem"><span lang="zh-CN" class="i18n-zh">纯 CUDA Graph 的"录制 → 重放":同样的 kernel、同样的顺序、同样的地址。重放 = 把 eager 那次执行原样再放一遍,数值<strong>逐比特一致</strong>。</span><span lang="en" class="i18n-en">Pure capture-and-replay: same kernels, same order, same addresses. A replay is the eager execution played back verbatim, and the values are <strong>bit-identical</strong>.</span></p>
             </div>
             <div class="col-card bad">
-              <h4><i class="fas fa-not-equal" aria-hidden="true"></i> 可能带来差异的部分</h4>
+              <h4><span lang="zh-CN" class="i18n-zh"><i class="fas fa-not-equal" aria-hidden="true"></i> 可能带来差异的部分</span><span lang="en" class="i18n-en"><i class="fas fa-not-equal" aria-hidden="true"></i> What can differ</span></h4>
               <ul style="margin:0">
-                <li><strong>torch.compile 融合:</strong>把多个算子融成一个 kernel,中间结果的累加顺序 / 精度变了 → 末位级差异。</li>
-                <li><strong>kernel 选择:</strong>编译后可能选了不同实现(不同 tiling / 算法)。</li>
-                <li><strong>padding 处理:</strong>dummy 行若没 mask 干净,可能影响 reduce / 归一化。</li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>torch.compile 融合:</strong>把多个算子融成一个 kernel,中间结果的累加顺序 / 精度变了 → 末位级差异。</span><span lang="en" class="i18n-en"><strong>torch.compile fusion:</strong> several operators become one kernel, changing accumulation order and intermediate precision → last-bit differences.</span></li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>kernel 选择:</strong>编译后可能选了不同实现(不同 tiling / 算法)。</span><span lang="en" class="i18n-en"><strong>Kernel selection:</strong> compilation may pick a different implementation (different tiling or algorithm).</span></li>
+                <li><span lang="zh-CN" class="i18n-zh"><strong>padding 处理:</strong>dummy 行若没 mask 干净,可能影响 reduce / 归一化。</span><span lang="en" class="i18n-en"><strong>Padding handling:</strong> dummy rows that are not masked cleanly can perturb reductions and normalisations.</span></li>
               </ul>
             </div>
           </div>
 
           <figure class="fig">
-            <div class="fig-title">差异从哪来:同样的输入,两条路径</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">差异从哪来:同样的输入,两条路径</span><span lang="en" class="i18n-en">Where the difference comes from: same input, two paths</span></div>
             <div class="stack">
               <div class="node accent-3">
-                <div class="node-h"><i class="fas fa-flask"></i> Eager(参考基准)</div>
-                <div class="node-sub">逐个 kernel,按模型原始算子顺序执行 —— 数值的"参考答案"</div>
+                <div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-flask"></i> Eager(参考基准)</span><span lang="en" class="i18n-en"><i class="fas fa-flask"></i> Eager (reference baseline)</span></div>
+                <div class="node-sub"><span lang="zh-CN" class="i18n-zh">逐个 kernel,按模型原始算子顺序执行 —— 数值的"参考答案"</span><span lang="en" class="i18n-en">Kernel by kernel, in the model's original operator order — the numerical reference answer</span></div>
               </div>
               <div class="node accent-2">
-                <div class="node-h"><i class="fas fa-wand-magic-sparkles"></i> torch.compile 融合 / 选 kernel</div>
-                <div class="node-sub">这里产生末位级差异(不是 CUDA Graph 造成的)</div>
+                <div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-wand-magic-sparkles"></i> torch.compile 融合 / 选 kernel</span><span lang="en" class="i18n-en"><i class="fas fa-wand-magic-sparkles"></i> torch.compile fusion / kernel choice</span></div>
+                <div class="node-sub"><span lang="zh-CN" class="i18n-zh">这里产生末位级差异(不是 CUDA Graph 造成的)</span><span lang="en" class="i18n-en">This is where last-bit differences appear (not CUDA Graph's doing)</span></div>
               </div>
               <div class="node accent-1">
-                <div class="node-h"><i class="fas fa-clapperboard"></i> CUDA Graph 录制 + 重放</div>
-                <div class="node-sub">对"上一步选定的 kernel"原样重放 —— 这一步不再引入新的数值差异</div>
+                <div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-clapperboard"></i> CUDA Graph 录制 + 重放</span><span lang="en" class="i18n-en"><i class="fas fa-clapperboard"></i> CUDA Graph capture + replay</span></div>
+                <div class="node-sub"><span lang="zh-CN" class="i18n-zh">对"上一步选定的 kernel"原样重放 —— 这一步不再引入新的数值差异</span><span lang="en" class="i18n-en">Replays whatever kernels the previous step selected — introduces no new numerical difference</span></div>
               </div>
             </div>
-            <span class="fig-cap">图 6 · 把差异归因清楚:动数值的是 compile,不是 graph 的录制/重放本身</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 6 · 把差异归因清楚:动数值的是 compile,不是 graph 的录制/重放本身</span><span lang="en" class="i18n-en">Figure 6 · Attribute the difference correctly: compilation moves the numbers, not the capture and replay</span></span>
           </figure>
 
-          <div class="callout info">
-            <strong>差异有多大?</strong> 通常是浮点末位级(在 fp16/bf16 容差内),<strong>极少改变最终采样出的 token</strong>;贪心解码下偶尔可能在某些 step 选到不同 token(累积效应),采样解码下基本是噪声级。PyTorch 官方口径:eager 与 compile 之间存在小数值差异是<strong>预期之内</strong>的,判断对错应与 fp64 参考比较,而非要求和 fp16 eager 逐比特相等。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>差异有多大?</strong> 通常是浮点末位级(在 fp16/bf16 容差内),<strong>极少改变最终采样出的 token</strong>;贪心解码下偶尔可能在某些 step 选到不同 token(累积效应),采样解码下基本是噪声级。PyTorch 官方口径:eager 与 compile 之间存在小数值差异是<strong>预期之内</strong>的,判断对错应与 fp64 参考比较,而非要求和 fp16 eager 逐比特相等。</span><span lang="en" class="i18n-en"><strong>How big is the difference?</strong> Usually last-bit floating point, within fp16/bf16 tolerance, and it <strong>rarely changes the sampled token</strong>. Under greedy decoding it can occasionally pick a different token at some step through accumulation; under sampling it is essentially noise. PyTorch's official position is that small numerical differences between eager and compile are <strong>expected</strong>, and correctness should be judged against an fp64 reference rather than by demanding bit-equality with fp16 eager.</span></div>
 
           <div class="callout warn">
-            <strong>实战调试法:</strong>怀疑精度问题(输出变差、复现某个 bug)时,第一步加 <code>--enforce-eager</code> 关掉 CUDA Graph + 编译,拿到"参考数值"做 A/B:
+            <strong><span lang="zh-CN" class="i18n-zh">实战调试法:</span><span lang="en" class="i18n-en">Debugging in practice:</span></strong><span lang="zh-CN" class="i18n-zh">怀疑精度问题(输出变差、复现某个 bug)时,第一步加 <code>--enforce-eager</code> 关掉 CUDA Graph + 编译,拿到"参考数值"做 A/B:</span><span lang="en" class="i18n-en">When you suspect an accuracy problem — degraded output, or reproducing a bug — the first move is <code>--enforce-eager</code> to turn off CUDA Graph and compilation, giving you reference numbers to A/B against:</span>
             <ul style="margin:8px 0 0">
-              <li>加上后<strong>问题消失</strong> → 差异来自 compile/graph 路径,多半是融合或 padding mask,可接受或针对性修。</li>
-              <li>加上后<strong>问题还在</strong> → 跟 CUDA Graph 无关,去查模型 / 权重 / 量化 / 输入。</li>
+              <li><span lang="zh-CN" class="i18n-zh">加上后<strong>问题消失</strong> → 差异来自 compile/graph 路径,多半是融合或 padding mask,可接受或针对性修。</span><span lang="en" class="i18n-en">Problem <strong>disappears</strong> with it → the difference is on the compile/graph path, most likely fusion or a padding mask; either acceptable or fixable specifically.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">加上后<strong>问题还在</strong> → 跟 CUDA Graph 无关,去查模型 / 权重 / 量化 / 输入。</span><span lang="en" class="i18n-en">Problem <strong>persists</strong> → nothing to do with CUDA Graph; go look at the model, weights, quantisation or inputs.</span></li>
             </ul>
           </div>
 
-          <h2>6 · Eager / 编译 / CUDA Graph 的关系与性能</h2>
-          <p>
-            很多人把 <strong>eager</strong>、<strong>torch.compile(图模式编译)</strong>、<strong>CUDA Graph</strong> 并列,以为是三选一。其实它们不在同一个维度上 —— 是<strong>两条正交的轴</strong>:一条管"<strong>跑哪些 kernel</strong>"(编译层),一条管"<strong>怎么发射这些 kernel</strong>"(下发层)。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">6 · Eager / 编译 / CUDA Graph 的关系与性能</span><span lang="en" class="i18n-en">6 · How eager, compilation and CUDA Graph relate, and what each is worth</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">很多人把 <strong>eager</strong>、<strong>torch.compile(图模式编译)</strong>、<strong>CUDA Graph</strong> 并列,以为是三选一。其实它们不在同一个维度上 —— 是<strong>两条正交的轴</strong>:一条管"<strong>跑哪些 kernel</strong>"(编译层),一条管"<strong>怎么发射这些 kernel</strong>"(下发层)。</span><span lang="en" class="i18n-en">People often line up <strong>eager</strong>, <strong>torch.compile</strong> and <strong>CUDA Graph</strong> as three alternatives to choose between. They are not on the same axis. There are <strong>two orthogonal axes</strong>: one decides "<strong>which kernels run</strong>" (the compilation layer), the other decides "<strong>how those kernels are launched</strong>" (the dispatch layer).</span></p>
 
           <figure class="fig">
-            <div class="fig-title">两层正交:编译层(选 kernel) × 下发层(怎么发射)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">两层正交:编译层(选 kernel) × 下发层(怎么发射)</span><span lang="en" class="i18n-en">Two orthogonal layers: compilation (which kernels) × dispatch (how they launch)</span></div>
             <div class="stack">
               <div class="node accent-2">
-                <div class="node-h"><i class="fas fa-wand-magic-sparkles"></i> 编译层 · 决定"跑哪些 kernel"</div>
-                <div class="node-sub"><strong>Eager(不编译)</strong> &nbsp;—或—&nbsp; <strong>torch.compile</strong>(算子融合 / Triton codegen)。二选一</div>
+                <div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-wand-magic-sparkles"></i> 编译层 · 决定"跑哪些 kernel"</span><span lang="en" class="i18n-en"><i class="fas fa-wand-magic-sparkles"></i> Compilation layer · decides which kernels run</span></div>
+                <div class="node-sub"><span lang="zh-CN" class="i18n-zh"><strong>Eager(不编译)</strong> &nbsp;—或—&nbsp; <strong>torch.compile</strong>(算子融合 / Triton codegen)。二选一</span><span lang="en" class="i18n-en"><strong>Eager (no compilation)</strong> &nbsp;—or—&nbsp; <strong>torch.compile</strong> (fusion / Triton codegen). Pick one.</span></div>
               </div>
               <div class="node accent-1">
-                <div class="node-h"><i class="fas fa-paper-plane"></i> 下发层 · 决定"怎么发射"</div>
-                <div class="node-sub"><strong>逐个 launch</strong> &nbsp;—或—&nbsp; <strong>CUDA Graph 重放</strong>(一次发射整图)。二选一</div>
+                <div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-paper-plane"></i> 下发层 · 决定"怎么发射"</span><span lang="en" class="i18n-en"><i class="fas fa-paper-plane"></i> Dispatch layer · decides how they launch</span></div>
+                <div class="node-sub"><span lang="zh-CN" class="i18n-zh"><strong>逐个 launch</strong> &nbsp;—或—&nbsp; <strong>CUDA Graph 重放</strong>(一次发射整图)。二选一</span><span lang="en" class="i18n-en"><strong>Launch one by one</strong> &nbsp;—or—&nbsp; <strong>CUDA Graph replay</strong> (one launch for the whole graph). Pick one.</span></div>
               </div>
             </div>
-            <span class="fig-cap">图 7 · 编译层在上、下发层在下;CUDA Graph 拿的是"上游已经定好的 kernel 序列",所以它和编译<strong>可叠加</strong>,不是二选一</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 7 · 编译层在上、下发层在下;CUDA Graph 拿的是"上游已经定好的 kernel 序列",所以它和编译<strong>可叠加</strong>,不是二选一</span><span lang="en" class="i18n-en">Figure 7 · Compilation sits above, dispatch below. CUDA Graph takes whatever kernel sequence the layer above settled on, which is why the two <strong>stack</strong> rather than compete.</span></span>
           </figure>
 
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>比较</th><th>关系</th><th>为什么</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">比较</span><span lang="en" class="i18n-en">Comparison</span></th><th><span lang="zh-CN" class="i18n-zh">关系</span><span lang="en" class="i18n-en">Relationship</span></th><th><span lang="zh-CN" class="i18n-zh">为什么</span><span lang="en" class="i18n-en">Why</span></th></tr></thead>
               <tbody>
-                <tr><td>Eager ↔ torch.compile</td><td><b>并行</b>(同层二选一)</td><td>都在编译层,回答同一个问题:跑原始 kernel 还是融合后的 kernel,互斥</td></tr>
-                <tr><td>compile ↔ CUDA Graph</td><td><b>上下</b>(先后,可叠加)</td><td>compile 先产出 kernel(上游),CUDA Graph 再把它们的发射打包(下游)</td></tr>
-                <tr><td>Eager ↔ CUDA Graph</td><td><b>上下</b>(不同层)</td><td>CUDA Graph 不关心上游是 eager 还是 compile,只负责重放定好的 kernel</td></tr>
+                <tr><td>Eager ↔ torch.compile</td><td><span lang="zh-CN" class="i18n-zh"><b>并行</b>(同层二选一)</span><span lang="en" class="i18n-en"><b>Parallel</b> (same layer, pick one)</span></td><td><span lang="zh-CN" class="i18n-zh">都在编译层,回答同一个问题:跑原始 kernel 还是融合后的 kernel,互斥</span><span lang="en" class="i18n-en">Both live in the compilation layer and answer the same question — original kernels or fused ones. Mutually exclusive.</span></td></tr>
+                <tr><td>compile ↔ CUDA Graph</td><td><span lang="zh-CN" class="i18n-zh"><b>上下</b>(先后,可叠加)</span><span lang="en" class="i18n-en"><b>Stacked</b> (sequential, composable)</span></td><td><span lang="zh-CN" class="i18n-zh">compile 先产出 kernel(上游),CUDA Graph 再把它们的发射打包(下游)</span><span lang="en" class="i18n-en">compile produces the kernels (upstream), CUDA Graph then packages their launches (downstream)</span></td></tr>
+                <tr><td>Eager ↔ CUDA Graph</td><td><span lang="zh-CN" class="i18n-zh"><b>上下</b>(不同层)</span><span lang="en" class="i18n-en"><b>Stacked</b> (different layers)</span></td><td><span lang="zh-CN" class="i18n-zh">CUDA Graph 不关心上游是 eager 还是 compile,只负责重放定好的 kernel</span><span lang="en" class="i18n-en">CUDA Graph does not care whether upstream was eager or compiled; it only replays the kernels already chosen</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <p>两条轴一交叉,就是这 4 种组合:</p>
+          <p><span lang="zh-CN" class="i18n-zh">两条轴一交叉,就是这 4 种组合:</span><span lang="en" class="i18n-en">Cross the two axes and you get four combinations:</span></p>
           <figure class="fig">
-            <div class="fig-title">4 组合矩阵(行=下发层 · 列=编译层)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">4 组合矩阵(行=下发层 · 列=编译层)</span><span lang="en" class="i18n-en">The four combinations (rows = dispatch · columns = compilation)</span></div>
             <div style="overflow-x:auto">
               <table>
                 <thead>
-                  <tr><th></th><th>不编译(原始 eager kernel)</th><th>torch.compile(融合后)</th></tr>
+                  <tr><th></th><th><span lang="zh-CN" class="i18n-zh">不编译(原始 eager kernel)</span><span lang="en" class="i18n-en">No compilation (original eager kernels)</span></th><th><span lang="zh-CN" class="i18n-zh">torch.compile(融合后)</span><span lang="en" class="i18n-en">torch.compile (fused)</span></th></tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><b>逐 kernel 发射</b></td>
-                    <td>① <strong>纯 Eager</strong><br /><code>--enforce-eager</code> · 最慢 · 调试 / 参考数值</td>
-                    <td>② <strong>只编译</strong><br />kernel 更优,但仍有逐 kernel launch 开销</td>
+                    <td><span lang="zh-CN" class="i18n-zh"><b>逐 kernel 发射</b></span><span lang="en" class="i18n-en"><b>Launch per kernel</b></span></td>
+                    <td><span lang="zh-CN" class="i18n-zh">① <strong>纯 Eager</strong><br /><code>--enforce-eager</code> · 最慢 · 调试 / 参考数值</span><span lang="en" class="i18n-en">① <strong>Pure eager</strong><br /><code>--enforce-eager</code> · slowest · debugging / reference numbers</span></td>
+                    <td><span lang="zh-CN" class="i18n-zh">② <strong>只编译</strong><br />kernel 更优,但仍有逐 kernel launch 开销</span><span lang="en" class="i18n-en">② <strong>Compile only</strong><br />better kernels, but still per-kernel launch overhead</span></td>
                   </tr>
                   <tr>
-                    <td><b>CUDA Graph 重放</b></td>
-                    <td>③ <strong>full cudagraph(无编译)</strong><br />省了 launch,但 kernel 未融合</td>
-                    <td>④ <strong>compile + CUDA Graph</strong><br /><span class="stat-pill"><b>vLLM 默认</b></span> · 最快</td>
+                    <td><span lang="zh-CN" class="i18n-zh"><b>CUDA Graph 重放</b></span><span lang="en" class="i18n-en"><b>CUDA Graph replay</b></span></td>
+                    <td><span lang="zh-CN" class="i18n-zh">③ <strong>full cudagraph(无编译)</strong><br />省了 launch,但 kernel 未融合</span><span lang="en" class="i18n-en">③ <strong>full cudagraph without compilation</strong><br />launch overhead gone, but kernels unfused</span></td>
+                    <td><span lang="zh-CN" class="i18n-zh">④ <strong>compile + CUDA Graph</strong><br /><span class="stat-pill"><b>vLLM 默认</b></span> · 最快</span><span lang="en" class="i18n-en">④ <strong>compile + CUDA Graph</strong><br /><span class="stat-pill"><b>vLLM default</b></span> · fastest</span></td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <span class="fig-cap">图 8 · <code>--enforce-eager</code> = 左上角①(两层都关到最朴素);vLLM 默认走右下角④(两层都开)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 8 · <code>--enforce-eager</code> = 左上角①(两层都关到最朴素);vLLM 默认走右下角④(两层都开)</span><span lang="en" class="i18n-en">Figure 8 · <code>--enforce-eager</code> = top-left ① (both layers at their most basic); vLLM defaults to bottom-right ④ (both layers on)</span></span>
           </figure>
 
-          <p>性能上,这 4 种在 <strong>decode(小 batch、launch-bound)</strong> 场景下的相对延迟大致是(条越长越慢):</p>
+          <p><span lang="zh-CN" class="i18n-zh">性能上,这 4 种在 <strong>decode(小 batch、launch-bound)</strong> 场景下的相对延迟大致是(条越长越慢):</span><span lang="en" class="i18n-en">On performance, the relative latency of the four in <strong>decode (small batch, launch-bound)</strong> looks roughly like this (longer bar = slower):</span></p>
           <figure class="fig">
-            <div class="fig-title">相对延迟对比 · decode / 小 batch(示意,非绝对值)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">相对延迟对比 · decode / 小 batch(示意,非绝对值)</span><span lang="en" class="i18n-en">Relative latency · decode / small batch (illustrative, not absolute)</span></div>
             <table>
-              <thead><tr><th>模式</th><th>相对延迟</th><th>收益来源</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">模式</span><span lang="en" class="i18n-en">Mode</span></th><th><span lang="zh-CN" class="i18n-zh">相对延迟</span><span lang="en" class="i18n-en">Relative latency</span></th><th><span lang="zh-CN" class="i18n-zh">收益来源</span><span lang="en" class="i18n-en">Where the gain comes from</span></th></tr></thead>
               <tbody>
                 <tr>
-                  <td>① 纯 Eager</td>
+                  <td><span lang="zh-CN" class="i18n-zh">① 纯 Eager</span><span lang="en" class="i18n-en">① Pure eager</span></td>
                   <td><span style="display:inline-block;height:11px;width:100%;border-radius:5px;background:#ef4444;opacity:.8"></span></td>
-                  <td>基准(无优化)</td>
+                  <td><span lang="zh-CN" class="i18n-zh">基准(无优化)</span><span lang="en" class="i18n-en">Baseline (no optimisation)</span></td>
                 </tr>
                 <tr>
-                  <td>② 只 compile</td>
+                  <td><span lang="zh-CN" class="i18n-zh">② 只 compile</span><span lang="en" class="i18n-en">② Compile only</span></td>
                   <td><span style="display:inline-block;height:11px;width:68%;border-radius:5px;background:#f59e0b;opacity:.85"></span></td>
-                  <td>kernel 融合 / codegen,但仍有 launch 开销</td>
+                  <td><span lang="zh-CN" class="i18n-zh">kernel 融合 / codegen,但仍有 launch 开销</span><span lang="en" class="i18n-en">Kernel fusion / codegen, but launch overhead remains</span></td>
                 </tr>
                 <tr>
                   <td>③ eager + CUDA Graph</td>
                   <td><span style="display:inline-block;height:11px;width:46%;border-radius:5px;background:var(--accent-1)"></span></td>
-                  <td>消除 launch 开销(kernel 未融合)</td>
+                  <td><span lang="zh-CN" class="i18n-zh">消除 launch 开销(kernel 未融合)</span><span lang="en" class="i18n-en">Launch overhead removed (kernels unfused)</span></td>
                 </tr>
                 <tr>
                   <td>④ compile + CUDA Graph</td>
                   <td><span style="display:inline-block;height:11px;width:34%;border-radius:5px;background:var(--accent-grad)"></span></td>
-                  <td><strong>融合 + 消除 launch,叠加收益</strong></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong>融合 + 消除 launch,叠加收益</strong></span><span lang="en" class="i18n-en"><strong>Fusion plus launch removal, gains stack</strong></span></td>
                 </tr>
               </tbody>
             </table>
-            <span class="fig-cap">图 9 · 数值只表相对量级,实际取决于模型 / 硬件 / batch。注意:launch 开销在小 batch 占比高,所以 CUDA Graph(③④)的提升在此最明显</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 9 · 数值只表相对量级,实际取决于模型 / 硬件 / batch。注意:launch 开销在小 batch 占比高,所以 CUDA Graph(③④)的提升在此最明显</span><span lang="en" class="i18n-en">Figure 9 · The numbers show relative magnitude only; reality depends on model, hardware and batch. Note that launch overhead is a large fraction at small batch, which is why CUDA Graph (③④) helps most here.</span></span>
           </figure>
 
           <div class="callout key">
-            <strong>什么时候谁更重要?</strong>
+            <strong><span lang="zh-CN" class="i18n-zh">什么时候谁更重要?</span><span lang="en" class="i18n-en">Which matters more, and when?</span></strong>
             <ul style="margin:8px 0 0">
-              <li><strong>小 batch / decode(launch-bound):</strong>瓶颈是 CPU 发射开销 → <strong>CUDA Graph 是最大的杠杆</strong>(③相比①已大幅提升)。</li>
-              <li><strong>大 batch / prefill(compute-bound):</strong>kernel 本身就跑得久、发射占比小 → <strong>kernel 质量(compile 融合)更重要</strong>,CUDA Graph 收益变小。</li>
-              <li>所以 vLLM 默认 <strong>④ compile + CUDA Graph</strong>:两边通吃。两层全关(<code>--enforce-eager</code>)只在调试 / 显存紧张 / backend 不支持时用。</li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>小 batch / decode(launch-bound):</strong>瓶颈是 CPU 发射开销 → <strong>CUDA Graph 是最大的杠杆</strong>(③相比①已大幅提升)。</span><span lang="en" class="i18n-en"><strong>Small batch / decode (launch-bound):</strong> the bottleneck is CPU launch overhead → <strong>CUDA Graph is the biggest lever</strong> (③ alone is already far ahead of ①).</span></li>
+              <li><span lang="zh-CN" class="i18n-zh"><strong>大 batch / prefill(compute-bound):</strong>kernel 本身就跑得久、发射占比小 → <strong>kernel 质量(compile 融合)更重要</strong>,CUDA Graph 收益变小。</span><span lang="en" class="i18n-en"><strong>Large batch / prefill (compute-bound):</strong> kernels run long and launch is a small fraction → <strong>kernel quality (compile fusion) matters more</strong>, and CUDA Graph's gain shrinks.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">所以 vLLM 默认 <strong>④ compile + CUDA Graph</strong>:两边通吃。两层全关(<code>--enforce-eager</code>)只在调试 / 显存紧张 / backend 不支持时用。</span><span lang="en" class="i18n-en">Hence vLLM's default of <strong>④ compile + CUDA Graph</strong>, which covers both. Turning both layers off (<code>--enforce-eager</code>) is for debugging, tight memory, or a backend that cannot capture.</span></li>
             </ul>
           </div>
 
-          <h2>7 · 实操速查</h2>
-          <pre><code># 默认就是 FULL_AND_PIECEWISE,通常无需手动设
+          <h2><span lang="zh-CN" class="i18n-zh">7 · 实操速查</span><span lang="en" class="i18n-en">7 · Quick reference</span></h2>
+          <pre><code><span lang="zh-CN" class="i18n-zh"># 默认就是 FULL_AND_PIECEWISE,通常无需手动设
 vllm serve Qwen/Qwen2.5-7B-Instruct
 
 # 显式指定 cudagraph 模式
@@ -457,27 +435,32 @@ vllm serve MODEL --compilation-config '{"cudagraph_mode": "FULL_AND_PIECEWISE"}'
 vllm serve MODEL --enforce-eager
 
 # 自定义捕获的 batch 尺寸(影响显存与命中率)
-vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,32]}'</code></pre>
+vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,32]}'</span><span lang="en" class="i18n-en"># FULL_AND_PIECEWISE is the default; usually nothing to set
+vllm serve Qwen/Qwen2.5-7B-Instruct
 
-          <div class="callout tip">
-            <strong>什么时候用 <code>--enforce-eager</code>?</strong> ① 调试数值/精度;② 显存非常紧张,不想为捕获图额外占显存;③ 用的 attention backend 不支持图捕获;④ 频繁变化的奇异形状导致图反复 miss。其余情况保持默认(开图)就好,性能更优。
-          </div>
+# Set the cudagraph mode explicitly
+vllm serve MODEL --compilation-config '{"cudagraph_mode": "FULL_AND_PIECEWISE"}'
+# Options: NONE | PIECEWISE | FULL | FULL_DECODE_ONLY | FULL_AND_PIECEWISE
 
-          <h2>8 · 一句话总结</h2>
+# Pure eager: no CUDA Graph, no torch.compile (debugging / memory / reference numbers)
+vllm serve MODEL --enforce-eager
+
+# Customise the captured batch sizes (affects memory and hit rate)
+vllm serve MODEL --compilation-config '{"cudagraph_capture_sizes": [1,2,4,8,16,32]}'</span></code></pre>
+
+          <div class="callout tip"><span lang="zh-CN" class="i18n-zh"><strong>什么时候用 <code>--enforce-eager</code>?</strong> ① 调试数值/精度;② 显存非常紧张,不想为捕获图额外占显存;③ 用的 attention backend 不支持图捕获;④ 频繁变化的奇异形状导致图反复 miss。其余情况保持默认(开图)就好,性能更优。</span><span lang="en" class="i18n-en"><strong>When should you use <code>--enforce-eager</code>?</strong> ① debugging numbers or accuracy; ② memory is very tight and you do not want to spend it on captured graphs; ③ the attention backend cannot capture graphs; ④ constantly shifting odd shapes make the graphs miss repeatedly. Otherwise keep the default (graphs on) — it is faster.</span></div>
+
+          <h2><span lang="zh-CN" class="i18n-zh">8 · 一句话总结</span><span lang="en" class="i18n-en">8 · In one line</span></h2>
           <figure class="fig">
-            <div class="fig-title">三句话记住</div>
-            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0">
-              ① <strong>CUDA Graph</strong> = 录一次 kernel 序列、之后一次发射整图重放,专治 decode 的 CPU launch-bound。<br />
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">三句话记住</span><span lang="en" class="i18n-en">Three sentences to remember</span></div>
+            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0"><span lang="zh-CN" class="i18n-zh">① <strong>CUDA Graph</strong> = 录一次 kernel 序列、之后一次发射整图重放,专治 decode 的 CPU launch-bound。<br />
               ② <strong>vLLM</strong> 默认 <span class="stat-pill"><b>FULL_AND_PIECEWISE</b></span>:decode 整图、prefill/混合分段图,建立在 torch.compile 之上,靠形状离散化 + padding 适配动态 batch。<br />
-              ③ <strong>精度</strong>:graph 的录制/重放不改数值,真正动数值的是配套的 torch.compile(融合/精度/选 kernel)与 padding mask;调试就 <code>--enforce-eager</code> 做 A/B。
-            </p>
-            <span class="fig-cap">图 10 · 把这三句讲清楚,CUDA Graph 在 vLLM 里的来龙去脉就通了</span>
+              ③ <strong>精度</strong>:graph 的录制/重放不改数值,真正动数值的是配套的 torch.compile(融合/精度/选 kernel)与 padding mask;调试就 <code>--enforce-eager</code> 做 A/B。</span><span lang="en" class="i18n-en">① <strong>CUDA Graph</strong> = record the kernel sequence once, then launch and replay the whole graph each step; it targets decode's CPU launch-bound problem.<br />② <strong>vLLM</strong> defaults to <span class="stat-pill"><b>FULL_AND_PIECEWISE</b></span>: full graph for decode, piecewise for prefill and mixed, built on torch.compile, absorbing dynamic batch through shape discretisation and padding.<br />③ <strong>Accuracy</strong>: capture and replay do not move the numbers; the accompanying torch.compile (fusion, precision, kernel choice) and the padding mask do. To debug, A/B against <code>--enforce-eager</code>.</span></p>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 10 · 把这三句讲清楚,CUDA Graph 在 vLLM 里的来龙去脉就通了</span><span lang="en" class="i18n-en">Figure 10 · Get these three straight and CUDA Graph in vLLM makes sense end to end</span></span>
           </figure>
 
           <hr />
-          <p style="color:var(--text-dim);font-size:.88rem">
-            参考:vLLM 官方文档《CUDA Graphs》与 <code>CompilationConfig</code>、vLLM PR #20059(cudagraph_mode)、NVIDIA《CUDA Graph Best Practice — Numerical Errors》、PyTorch torch.compile 数值差异讨论、TensorRT-LLM Piecewise CUDA Graph 文档。架构以 vLLM V1 为准,细节可能随版本演进。
-          </p>
+          <p style="color:var(--text-dim);font-size:.88rem"><span lang="zh-CN" class="i18n-zh">参考:vLLM 官方文档《CUDA Graphs》与 <code>CompilationConfig</code>、vLLM PR #20059(cudagraph_mode)、NVIDIA《CUDA Graph Best Practice — Numerical Errors》、PyTorch torch.compile 数值差异讨论、TensorRT-LLM Piecewise CUDA Graph 文档。架构以 vLLM V1 为准,细节可能随版本演进。</span><span lang="en" class="i18n-en">References: the vLLM docs on CUDA Graphs and <code>CompilationConfig</code>, vLLM PR #20059 (cudagraph_mode), NVIDIA's "CUDA Graph Best Practice — Numerical Errors", PyTorch discussions on torch.compile numerical differences, and the TensorRT-LLM piecewise CUDA Graph docs. The architecture follows vLLM V1; details may shift between releases.</span></p>
         </div>
       </article>
     </main>
