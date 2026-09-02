@@ -202,45 +202,39 @@
           <h1><span lang="zh-CN" class="i18n-zh">混元4 preview 模型结构分析</span><span lang="en" class="i18n-en">Hunyuan 4 preview Model Architecture Analysis</span></h1>
         </header>
 
+
         <div class="prose">
           <p class="h4-lede">
-            分析对象是腾讯混元团队的 <strong>Hy4 preview</strong>,模型卡
-            <a href="https://huggingface.co/tencent/Hy4-preview" target="_blank" rel="noopener">tencent/Hy4-preview</a>,
-            架构名 <code>HYV4ForCausalLM</code>,Apache-2.0。用的还是两个元数据文件:
-            <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
-            与
-            <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>。
+            <span lang="zh-CN" class="i18n-zh">分析对象是腾讯混元团队的 <strong>Hy4 preview</strong>,模型卡 <a href="https://huggingface.co/tencent/Hy4-preview" target="_blank" rel="noopener">tencent/Hy4-preview</a>,架构名 <code>HYV4ForCausalLM</code>,Apache-2.0。用的还是两个元数据文件:<a href="https://huggingface.co/tencent/Hy4-preview/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a> 与 <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>。</span>
+            <span lang="en" class="i18n-en">The subject is <strong>Hy4 preview</strong> from the Tencent Hunyuan team — model card <a href="https://huggingface.co/tencent/Hy4-preview" target="_blank" rel="noopener">tencent/Hy4-preview</a>, architecture <code>HYV4ForCausalLM</code>, Apache-2.0. As before, everything here comes from two metadata files: <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a> and <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>.</span>
           </p>
 
           <p>
-            半个月前我用同样的方法拆过 <a href="hy3-anatomy.html">Hy3</a>。这一代不是把参数堆大那么简单 ——
-            <strong>注意力整个换了架构,残差也换了</strong>。所以这篇除了算账,更多篇幅在看它改了什么。
+            <span lang="zh-CN" class="i18n-zh">半个月前我用同样的方法拆过 <a href="hy3-anatomy.html">Hy3</a>。这一代不是把参数堆大那么简单 —— <strong>注意力整个换了架构,残差也换了</strong>。所以这篇除了算账,更多篇幅在看它改了什么。</span>
+            <span lang="en" class="i18n-en">Two weeks ago I took <a href="hy3-anatomy.html">Hy3</a> apart the same way. This generation is not just a bigger pile of parameters — <strong>the attention architecture was swapped outright, and so was the residual path</strong>. So beyond counting, most of this note is about what changed.</span>
           </p>
 
           <div class="h4-kpis">
-            <div class="h4-kpi"><b>779.96 B</b><span>实测总参数(含 MTP)</span></div>
-            <div class="h4-kpi"><b>49.03 B</b><span>每 token 激活,稀疏 15.9×</span></div>
-            <div class="h4-kpi"><b>87.8 KiB</b><span>每 token KV,比 Hy3 省 3.65×</span></div>
-            <div class="h4-kpi"><b>21 / 78</b><span>真正持有 indexer 的层</span></div>
-            <div class="h4-kpi"><b>1452.8 GiB</b><span>BF16 权重,8 卡放不下</span></div>
+            <div class="h4-kpi"><b>779.96 B</b><span lang="zh-CN" class="i18n-zh">实测总参数(含 MTP)</span><span lang="en" class="i18n-en">measured total params (incl. MTP)</span></div>
+            <div class="h4-kpi"><b>49.03 B</b><span lang="zh-CN" class="i18n-zh">每 token 激活,稀疏 15.9×</span><span lang="en" class="i18n-en">activated per token, 15.9× sparse</span></div>
+            <div class="h4-kpi"><b>87.8 KiB</b><span lang="zh-CN" class="i18n-zh">每 token KV,比 Hy3 省 3.65×</span><span lang="en" class="i18n-en">KV per token, 3.65× less than Hy3</span></div>
+            <div class="h4-kpi"><b>21 / 78</b><span lang="zh-CN" class="i18n-zh">真正持有 indexer 的层</span><span lang="en" class="i18n-en">layers that actually hold an indexer</span></div>
+            <div class="h4-kpi"><b>1452.8 GiB</b><span lang="zh-CN" class="i18n-zh">BF16 权重,8 卡放不下</span><span lang="en" class="i18n-en">BF16 weights — eight GPUs can't hold them</span></div>
           </div>
 
-          <h2>一、这次少了一样东西</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、这次少了一样东西</span><span lang="en" class="i18n-en">1 · Something is missing this time</span></h2>
 
           <p>
-            拆 Hy3 时,<code>index.json</code> 的 <code>metadata.total_size</code> 给了权威的字节数,
-            我拿它和逐项推算对了账。<strong>Hy4 的 index 里 <code>metadata</code> 是空的</strong>,没有这个数;
-            张量条目也只有 2006 条(Hy3 有 47138),因为 256 个专家被<strong>融合成了一个张量</strong>。
+            <span lang="zh-CN" class="i18n-zh">拆 Hy3 时,<code>index.json</code> 的 <code>metadata.total_size</code> 给了权威的字节数,我拿它和逐项推算对了账。<strong>Hy4 的 index 里 <code>metadata</code> 是空的</strong>,没有这个数;张量条目也只有 2006 条(Hy3 有 47138),因为 256 个专家被<strong>融合成了一个张量</strong>。</span>
+            <span lang="en" class="i18n-en">With Hy3, <code>index.json</code> carried an authoritative byte count in <code>metadata.total_size</code>, and I reconciled my term-by-term estimate against it. <strong>Hy4 ships an empty <code>metadata</code> block</strong> — no such number. The index also lists only 2,006 tensors against Hy3's 47,138, because the 256 experts are <strong>fused into a single tensor</strong> per layer.</span>
           </p>
 
           <p>
-            所以这次换了个更硬的办法:<strong>直接读 safetensors 的文件头</strong>。
-            这个格式开头 8 字节是小端 <code>u64</code> 的头长度,紧跟一段 JSON,里面写明每个张量的 dtype 与 shape。
-            用 HTTP Range 只取每个分片的前几十 KB 就够了 —— 131 个分片全部读到,没有失败,
-            于是拿到的不是估算而是<strong>逐个张量的真实形状</strong>。
+            <span lang="zh-CN" class="i18n-zh">所以这次换了个更硬的办法:<strong>直接读 safetensors 的文件头</strong>。这个格式开头 8 字节是小端 <code>u64</code> 的头长度,紧跟一段 JSON,里面写明每个张量的 dtype 与 shape。用 HTTP Range 只取每个分片的前几十 KB 就够了 —— 131 个分片全部读到,没有失败,于是拿到的不是估算而是<strong>逐个张量的真实形状</strong>。</span>
+            <span lang="en" class="i18n-en">So this time I used something firmer: <strong>read the safetensors headers directly</strong>. The format opens with an 8-byte little-endian <code>u64</code> header length, followed by JSON naming every tensor's dtype and shape. An HTTP Range request for the first few tens of KB of each shard is enough — all 131 shards came back, none failed. What that yields is not an estimate but the <strong>real shape of every single tensor</strong>.</span>
           </p>
 
-          <pre><code># safetensors 头部:8 字节长度 + JSON
+          <pre><code># safetensors header: 8-byte length + JSON
 req = Request(url, headers={'Range': 'bytes=0-131071'})
 d   = urlopen(req).read()
 n   = struct.unpack('&lt;Q', d[:8])[0]
@@ -248,219 +242,215 @@ hdr = json.loads(d[8:8+n])
 # {"model.layers.1.mlp.experts.gate_up_proj":
 #     {"dtype":"BF16","shape":[256,4096,6144], ...}}</code></pre>
 
-          <h2>二、总账:770 B 主干 + 10 B MTP</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、总账:770 B 主干 + 10 B MTP</span><span lang="en" class="i18n-en">2 · The tally: 770 B backbone + 10 B MTP</span></h2>
 
-          <p>把 2006 个张量按 dtype 逐个累加:</p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">把 2006 个张量按 dtype 逐个累加:</span>
+            <span lang="en" class="i18n-en">Summing all 2,006 tensors, weighted by dtype:</span>
+          </p>
 
           <div class="h4-fig">
-            <div class="fig-title">动图 1:779.96 B 参数都在哪</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:779.96 B 参数都在哪</span><span lang="en" class="i18n-en">Figure 1 · Where the 779.96 B parameters live</span></div>
             <div class="h4-bars" id="paramBars"></div>
             <span class="fig-cap">
-              <strong>路由专家吃掉 95.4%</strong>。MLA 注意力只占 2.7%,但它是每个 token 都要算的;
-              专家虽然占了绝大多数参数,每 token 只激活其中 8/256。这就是 MoE 的形状 ——
-              <strong>参数几乎全在专家里,计算却大部分不在</strong>。
+              <span lang="zh-CN" class="i18n-zh"><strong>路由专家吃掉 95.4%</strong>。MLA 注意力只占 2.7%,但它是每个 token 都要算的;专家虽然占了绝大多数参数,每 token 只激活其中 8/256。这就是 MoE 的形状 —— <strong>参数几乎全在专家里,计算却大部分不在</strong>。</span>
+              <span lang="en" class="i18n-en"><strong>Routed experts take 95.4%.</strong> MLA attention is only 2.7%, but it runs for every token; the experts hold the overwhelming majority of parameters yet only 8 of 256 fire per token. That is the shape of MoE — <strong>almost all the parameters sit in the experts, and almost none of the compute does</strong>.</span>
             </span>
           </div>
 
           <p>
-            推算完再和模型卡的规格表对照,三个头条数字全部吻合:
+            <span lang="zh-CN" class="i18n-zh">推算完再和模型卡的规格表对照,三个头条数字全部吻合:</span>
+            <span lang="en" class="i18n-en">Only after the derivation did I check the model card's spec table. All three headline numbers line up:</span>
           </p>
 
           <div class="h4-tw">
             <table>
-              <thead><tr><th>项</th><th class="num">模型卡</th><th class="num">本文实测</th><th>说明</th></tr></thead>
+              <thead><tr>
+                <th><span lang="zh-CN" class="i18n-zh">项</span><span lang="en" class="i18n-en">Item</span></th>
+                <th class="num"><span lang="zh-CN" class="i18n-zh">模型卡</span><span lang="en" class="i18n-en">Model card</span></th>
+                <th class="num"><span lang="zh-CN" class="i18n-zh">本文实测</span><span lang="en" class="i18n-en">Measured here</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">说明</span><span lang="en" class="i18n-en">Note</span></th>
+              </tr></thead>
               <tbody>
-                <tr><td>总参数量</td><td class="num">770 B</td><td class="num">769.91 B</td><td>均<strong>不含</strong> MTP</td></tr>
-                <tr><td>激活参数</td><td class="num">49 B</td><td class="num">49.03 B</td><td>含词嵌入与 lm_head</td></tr>
-                <tr><td>MTP 层参数</td><td class="num">10 B</td><td class="num">10.05 B</td><td>模型卡单独列出</td></tr>
-                <tr><td>磁盘总量</td><td class="num">—</td><td class="num"><strong>779.96 B</strong></td><td>= 770 + 10,规格表未给</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">总参数量</span><span lang="en" class="i18n-en">Total parameters</span></td><td class="num">770 B</td><td class="num">769.91 B</td><td><span lang="zh-CN" class="i18n-zh">均<strong>不含</strong> MTP</span><span lang="en" class="i18n-en">both <strong>exclude</strong> MTP</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">激活参数</span><span lang="en" class="i18n-en">Activated parameters</span></td><td class="num">49 B</td><td class="num">49.03 B</td><td><span lang="zh-CN" class="i18n-zh">含词嵌入与 lm_head</span><span lang="en" class="i18n-en">includes embeddings and lm_head</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">MTP 层参数</span><span lang="en" class="i18n-en">MTP layer</span></td><td class="num">10 B</td><td class="num">10.05 B</td><td><span lang="zh-CN" class="i18n-zh">模型卡单独列出</span><span lang="en" class="i18n-en">listed separately on the card</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">磁盘总量</span><span lang="en" class="i18n-en">Total on disk</span></td><td class="num">—</td><td class="num"><strong>779.96 B</strong></td><td><span lang="zh-CN" class="i18n-zh">= 770 + 10,规格表未给</span><span lang="en" class="i18n-en">= 770 + 10; not on the card</span></td></tr>
               </tbody>
             </table>
           </div>
 
           <p>
-            和 Hy3 一样,MTP 是<strong>单独计的</strong>:规格表的 770 B 不含它,磁盘上实际躺着 779.96 B。
-            不同的是这次它被放进 <code>model.mtp_layers.0.*</code>,而不是 Hy3 那种伪装成第 80 层的写法 —— 命名干净了。
-            它也从 3.75 B 涨到了 <strong>10.05 B</strong>。
+            <span lang="zh-CN" class="i18n-zh">和 Hy3 一样,MTP 是<strong>单独计的</strong>:规格表的 770 B 不含它,磁盘上实际躺着 779.96 B。不同的是这次它被放进 <code>model.mtp_layers.0.*</code>,而不是 Hy3 那种伪装成第 80 层的写法 —— 命名干净了。它也从 3.75 B 涨到了 <strong>10.05 B</strong>。</span>
+            <span lang="en" class="i18n-en">As with Hy3, the MTP module is <strong>counted separately</strong>: the card's 770 B excludes it, while 779.96 B actually sits on disk. What changed is the naming — it now lives under <code>model.mtp_layers.0.*</code> instead of masquerading as layer 80 the way Hy3 did. It also grew from 3.75 B to <strong>10.05 B</strong>.</span>
           </p>
 
-          <h2>三、注意力整个换掉:GQA → Gated DSA</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、注意力整个换掉:GQA → Gated DSA</span><span lang="en" class="i18n-en">3 · Attention swapped outright: GQA → Gated DSA</span></h2>
 
           <p>
-            这是 Hy4 最大的结构变化。Hy3 用的是老实的 GQA(64 个 Q 头 / 8 个 KV 头 / head_dim 128)。
-            Hy4 的 <code>config</code> 里写着 <code>use_mla: true</code>、<code>use_dsa: true</code>、<code>gated_mla: true</code>,
-            权重里对应的是一整套 <strong>MLA 低秩压缩</strong>结构:
+            <span lang="zh-CN" class="i18n-zh">这是 Hy4 最大的结构变化。Hy3 用的是老实的 GQA(64 个 Q 头 / 8 个 KV 头 / head_dim 128)。Hy4 的 <code>config</code> 里写着 <code>use_mla: true</code>、<code>use_dsa: true</code>、<code>gated_mla: true</code>,权重里对应的是一整套 <strong>MLA 低秩压缩</strong>结构:</span>
+            <span lang="en" class="i18n-en">This is Hy4's biggest structural change. Hy3 used plain GQA — 64 query heads, 8 KV heads, head_dim 128. Hy4's <code>config</code> sets <code>use_mla: true</code>, <code>use_dsa: true</code> and <code>gated_mla: true</code>, and the weights carry a full <strong>low-rank MLA</strong> stack to match:</span>
           </p>
 
           <div class="h4-fig">
-            <div class="fig-title">动图 2:MLA 的压缩路径(实测 shape)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:MLA 的压缩路径(实测 shape)</span><span lang="en" class="i18n-en">Figure 2 · The MLA compression path (measured shapes)</span></div>
             <div class="h4-flow">
               <div class="h4-stage" style="--c: var(--attn)">
-                <div class="t">输入</div><div class="d">6144</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">输入</span><span lang="en" class="i18n-en">Input</span></div><div class="d">6144</div>
                 <div class="s">hidden_size</div>
               </div>
               <div class="h4-stage" style="--c: var(--exp)">
-                <div class="t">Q 压缩</div><div class="d">2048</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">Q 压缩</span><span lang="en" class="i18n-en">Q compression</span></div><div class="d">2048</div>
                 <div class="s"><code>q_a_proj</code><br />q_lora_rank</div>
                 <div class="h4-pipe"><i style="--d:0s"></i></div>
               </div>
               <div class="h4-stage" style="--c: var(--idx)">
-                <div class="t">KV 压缩(入缓存)</div><div class="d">512 + 64</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">KV 压缩(入缓存)</span><span lang="en" class="i18n-en">KV compression (cached)</span></div><div class="d">512 + 64</div>
                 <div class="s"><code>kv_a_proj_with_mqa</code><br />kv_lora + rope</div>
                 <div class="h4-pipe"><i style="--d:.4s"></i></div>
               </div>
               <div class="h4-stage" style="--c: var(--hc)">
-                <div class="t">展开到头</div><div class="d">64 × 256</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">展开到头</span><span lang="en" class="i18n-en">Expand to heads</span></div><div class="d">64 × 256</div>
                 <div class="s"><code>q_b_proj</code> / <code>kv_b_proj</code><br />qk_head_dim 256</div>
                 <div class="h4-pipe"><i style="--d:.8s"></i></div>
               </div>
             </div>
             <span class="fig-cap">
-              关键在第三格:<strong>真正进 KV cache 的只有 512 + 64 = 576 个数</strong>,
-              而不是展开后的 64 头 × 256 维。<code>kv_b_proj</code> 是在读缓存时才把它还原成各头的 K/V。
-              这就是 MLA 省显存的全部秘密,也是第七节那条曲线的来源。
+              <span lang="zh-CN" class="i18n-zh">关键在第三格:<strong>真正进 KV cache 的只有 512 + 64 = 576 个数</strong>,而不是展开后的 64 头 × 256 维。<code>kv_b_proj</code> 是在读缓存时才把它还原成各头的 K/V。这就是 MLA 省显存的全部秘密,也是第七节那条曲线的来源。</span>
+              <span lang="en" class="i18n-en">The third box is the point: <strong>only 512 + 64 = 576 numbers per token per layer ever enter the KV cache</strong>, not the expanded 64 heads × 256 dims. <code>kv_b_proj</code> reconstitutes the per-head K/V at read time. That is the whole of MLA's memory saving, and the source of the curve in section 7.</span>
             </span>
           </div>
 
           <p>
-            还有两处小东西值得点名。<code>linear_gate.weight</code> 的形状是 <code>(16384, 6144)</code> ——
-            <strong>和 <code>o_proj</code> 一样大</strong>,单层就 100.7 M,全模型 7.9 B。这是 <code>gated_mla</code> 的代价,
-            不算小。另外每层有一个 <code>learnable_sink_param</code>(64 个数,对应 64 个头),
-            对应 <code>learnable_sink: true</code> —— attention sink 从固定位置变成了可学习的标量。
+            <span lang="zh-CN" class="i18n-zh">还有两处小东西值得点名。<code>linear_gate.weight</code> 的形状是 <code>(16384, 6144)</code> —— <strong>和 <code>o_proj</code> 一样大</strong>,单层就 100.7 M,全模型 7.9 B。这是 <code>gated_mla</code> 的代价,不算小。另外每层有一个 <code>learnable_sink_param</code>(64 个数,对应 64 个头),对应 <code>learnable_sink: true</code> —— attention sink 从固定位置变成了可学习的标量。</span>
+            <span lang="en" class="i18n-en">Two smaller things deserve naming. <code>linear_gate.weight</code> has shape <code>(16384, 6144)</code> — <strong>exactly as large as <code>o_proj</code></strong> — 100.7 M per layer, 7.9 B across the model. That is the price of <code>gated_mla</code>, and it is not small. Each layer also carries a <code>learnable_sink_param</code> of 64 values, one per head, matching <code>learnable_sink: true</code>: the attention sink went from a fixed position to a learned scalar.</span>
           </p>
 
-          <h2>四、IndexCache:78 层只养 21 套索引</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、IndexCache:78 层只养 21 套索引</span><span lang="en" class="i18n-en">4 · IndexCache: 78 layers, only 21 indexers</span></h2>
 
           <p>
-            <a href="https://arxiv.org/abs/2512.02556" target="_blank" rel="noopener">DSA</a>
-            的稀疏是靠一个 <strong>indexer</strong> 先给每个 query 挑出 top-2048 个 key,再只在这些位置上算注意力
-            (<code>index_topk: 2048</code>,<code>index_n_heads: 32</code>,<code>index_head_dim: 128</code>)。
-            我本来以为 78 层各有一套,结果<strong>只有 21 层带 indexer 张量</strong>。
+            <span lang="zh-CN" class="i18n-zh"><a href="https://arxiv.org/abs/2512.02556" target="_blank" rel="noopener">DSA</a> 的稀疏是靠一个 <strong>indexer</strong> 先给每个 query 挑出 top-2048 个 key,再只在这些位置上算注意力(<code>index_topk: 2048</code>,<code>index_n_heads: 32</code>,<code>index_head_dim: 128</code>)。我本来以为 78 层各有一套,结果<strong>只有 21 层带 indexer 张量</strong>。</span>
+            <span lang="en" class="i18n-en"><a href="https://arxiv.org/abs/2512.02556" target="_blank" rel="noopener">DSA</a> gets its sparsity from an <strong>indexer</strong> that first picks the top-2048 keys for each query, after which attention runs only over those positions (<code>index_topk: 2048</code>, <code>index_n_heads: 32</code>, <code>index_head_dim: 128</code>). I assumed all 78 layers would carry one. In fact <strong>only 21 layers hold indexer tensors</strong>.</span>
           </p>
 
           <p>
-            对上 config 才发现原因:<code>indexer_types</code> 这个数组里,值是 <code>full</code> 和 <code>shared</code> 交替的,
-            而带 indexer 权重的层号恰好就是所有 <code>full</code> 的位置。模型卡把这个机制叫
-            <a href="https://arxiv.org/abs/2603.12201" target="_blank" rel="noopener">IndexCache</a> ——
-            <strong>跨层复用稀疏索引</strong>:一层算出来的 top-k 选择,后面几层直接拿来用,不再重算。
+            <span lang="zh-CN" class="i18n-zh">对上 config 才发现原因:<code>indexer_types</code> 这个数组里,值是 <code>full</code> 和 <code>shared</code> 交替的,而带 indexer 权重的层号恰好就是所有 <code>full</code> 的位置。模型卡把这个机制叫 <a href="https://arxiv.org/abs/2603.12201" target="_blank" rel="noopener">IndexCache</a> —— <strong>跨层复用稀疏索引</strong>:一层算出来的 top-k 选择,后面几层直接拿来用,不再重算。</span>
+            <span lang="en" class="i18n-en">Cross-referencing the config explains it: the <code>indexer_types</code> array alternates between <code>full</code> and <code>shared</code>, and the layers carrying indexer weights are exactly the <code>full</code> positions. The card calls this <a href="https://arxiv.org/abs/2603.12201" target="_blank" rel="noopener">IndexCache</a> — <strong>reusing the sparse index across layers</strong>: the top-k selection computed by one layer is handed to the next few instead of being recomputed.</span>
           </p>
 
           <div class="h4-fig">
-            <div class="fig-title">动图 3:78 层的 indexer 分布(鼠标划过看细节)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:78 层的 indexer 分布(鼠标划过看细节)</span><span lang="en" class="i18n-en">Figure 3 · Indexer distribution across 78 layers (hover for detail)</span></div>
             <div class="h4-legend">
-              <span><i style="background: var(--idx)"></i>full — 自己算索引(21 层)</span>
-              <span><i style="background: color-mix(in srgb, var(--exp), transparent 60%)"></i>shared — 复用上游索引(57 层)</span>
-              <span><i style="background: transparent; outline: 2px solid var(--ok); outline-offset:-2px"></i>dense FFN(仅第 0 层)</span>
+              <span><i style="background: var(--idx)"></i><span lang="zh-CN" class="i18n-zh">full — 自己算索引(21 层)</span><span lang="en" class="i18n-en">full — computes its own index (21 layers)</span></span>
+              <span><i style="background: color-mix(in srgb, var(--exp), transparent 60%)"></i><span lang="zh-CN" class="i18n-zh">shared — 复用上游索引(57 层)</span><span lang="en" class="i18n-en">shared — reuses an upstream index (57 layers)</span></span>
+              <span><i style="background: transparent; outline: 2px solid var(--ok); outline-offset:-2px"></i><span lang="zh-CN" class="i18n-zh">dense FFN(仅第 0 层)</span><span lang="en" class="i18n-en">dense FFN (layer 0 only)</span></span>
             </div>
             <div class="h4-strip" id="layStrip"></div>
             <div class="h4-info" id="layInfo"></div>
             <span class="fig-cap">
-              规律很整齐:第 0、1 层各自算,之后<strong>每 4 层一个 full</strong>(5、9、13 … 77)。
-              也就是说索引的计算量只有朴素做法的 <strong>27%</strong>,而 indexer 权重本身也只存 21 份。
-              这是个纯粹的工程优化 —— 相邻层选中的 token 高度重合,那就没必要每层重挑一遍。
+              <span lang="zh-CN" class="i18n-zh">规律很整齐:第 0、1 层各自算,之后<strong>每 4 层一个 full</strong>(5、9、13 … 77)。也就是说索引的计算量只有朴素做法的 <strong>27%</strong>,而 indexer 权重本身也只存 21 份。这是个纯粹的工程优化 —— 相邻层选中的 token 高度重合,那就没必要每层重挑一遍。</span>
+              <span lang="en" class="i18n-en">The pattern is tidy: layers 0 and 1 each compute their own, then <strong>one full layer every four</strong> (5, 9, 13 … 77). Index compute therefore drops to <strong>27%</strong> of the naive layout, and only 21 copies of the indexer weights are stored. This is pure engineering — adjacent layers select heavily overlapping tokens, so there is no reason to re-pick every layer.</span>
             </span>
           </div>
 
-          <h2>五、iHC:残差从一条变成四条</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、iHC:残差从一条变成四条</span><span lang="en" class="i18n-en">5 · iHC: one residual path becomes four</span></h2>
 
           <p>
-            权重里还有一组在 Hy3 完全不存在的张量:每层两组 <code>hc_pre.{hc_base, hc_fn, hc_scale}</code>,
-            外加一个全局的 <code>model.hc_head.*</code>。对应 config 里的 <code>enable_ihc: true</code>、<code>hc_mult: 4</code>。
+            <span lang="zh-CN" class="i18n-zh">权重里还有一组在 Hy3 完全不存在的张量:每层两组 <code>hc_pre.{hc_base, hc_fn, hc_scale}</code>,外加一个全局的 <code>model.hc_head.*</code>。对应 config 里的 <code>enable_ihc: true</code>、<code>hc_mult: 4</code>。</span>
+            <span lang="en" class="i18n-en">The weights also contain a family that simply does not exist in Hy3: two sets of <code>hc_pre.{hc_base, hc_fn, hc_scale}</code> per layer, plus a global <code>model.hc_head.*</code>. These match <code>enable_ihc: true</code> and <code>hc_mult: 4</code> in the config.</span>
           </p>
 
           <p>
-            模型卡称之为 <strong>iHC(identity Hyper-Connections)</strong>,规格表里那行
-            「Residual Streams: 4」就是它 —— <strong>残差通路从一条拓宽成四条并行的流</strong>,层与层之间用学到的系数在这四条流之间做混合。
-            <code>hc_fn</code> 的形状 <code>(8, 24576)</code> 正好是 <code>2 × hc_mult × hidden = 8 × 24576</code>,对得上。
+            <span lang="zh-CN" class="i18n-zh">模型卡称之为 <strong>iHC(identity Hyper-Connections)</strong>,规格表里那行「Residual Streams: 4」就是它 —— <strong>残差通路从一条拓宽成四条并行的流</strong>,层与层之间用学到的系数在这四条流之间做混合。<code>hc_fn</code> 的形状 <code>(8, 24576)</code> 正好是 <code>2 × hc_mult × hidden = 8 × 24576</code>,对得上。</span>
+            <span lang="en" class="i18n-en">The card names it <strong>iHC (identity Hyper-Connections)</strong>; the spec table's "Residual Streams: 4" is this — <strong>the residual path widens from one stream to four parallel ones</strong>, with learned coefficients mixing between them from layer to layer. The shape of <code>hc_fn</code>, <code>(8, 24576)</code>, is exactly <code>2 × hc_mult × hidden = 8 × 24576</code>. It checks out.</span>
           </p>
 
           <p>
-            成本极低:整个 iHC 加起来只有 <strong>0.03 B</strong> 参数,占总量 0.004%。
-            这类改动的特点就是<strong>几乎不花参数,却动了信息在深度方向的流动方式</strong>。
+            <span lang="zh-CN" class="i18n-zh">成本极低:整个 iHC 加起来只有 <strong>0.03 B</strong> 参数,占总量 0.004%。这类改动的特点就是<strong>几乎不花参数,却动了信息在深度方向的流动方式</strong>。</span>
+            <span lang="en" class="i18n-en">It costs almost nothing: all of iHC comes to <strong>0.03 B</strong> parameters, 0.004% of the model. That is characteristic of this class of change — <strong>it barely spends parameters, yet it alters how information flows through depth</strong>.</span>
           </p>
 
-          <h2>六、MoE:专家更多,也更宽</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、MoE:专家更多,也更宽</span><span lang="en" class="i18n-en">6 · MoE: more experts, and wider ones</span></h2>
 
           <div class="h4-tw">
             <table>
-              <thead><tr><th>项</th><th class="num">Hy3</th><th class="num">Hy4 preview</th><th class="num">变化</th></tr></thead>
+              <thead><tr>
+                <th><span lang="zh-CN" class="i18n-zh">项</span><span lang="en" class="i18n-en">Item</span></th>
+                <th class="num">Hy3</th><th class="num">Hy4 preview</th>
+                <th class="num"><span lang="zh-CN" class="i18n-zh">变化</span><span lang="en" class="i18n-en">Change</span></th>
+              </tr></thead>
               <tbody>
-                <tr><td>路由专家数</td><td class="num">192</td><td class="num">256</td><td class="num"><span class="up">+33%</span></td></tr>
-                <tr><td>每 token 激活</td><td class="num">8</td><td class="num">8</td><td class="num">不变</td></tr>
-                <tr><td>共享专家</td><td class="num">1</td><td class="num">1</td><td class="num">不变</td></tr>
-                <tr><td>单专家中间维</td><td class="num">1536</td><td class="num">2048</td><td class="num"><span class="up">+33%</span></td></tr>
-                <tr><td>单专家参数</td><td class="num">18.9 M</td><td class="num">37.7 M</td><td class="num"><span class="up">×2.0</span></td></tr>
-                <tr><td>单 MoE 层参数</td><td class="num">3.72 B</td><td class="num">9.70 B</td><td class="num"><span class="up">×2.6</span></td></tr>
-                <tr><td>稀疏度</td><td class="num">14.5×</td><td class="num">15.9×</td><td class="num"><span class="up">更稀疏</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">路由专家数</span><span lang="en" class="i18n-en">Routed experts</span></td><td class="num">192</td><td class="num">256</td><td class="num"><span class="up">+33%</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">每 token 激活</span><span lang="en" class="i18n-en">Activated per token</span></td><td class="num">8</td><td class="num">8</td><td class="num"><span lang="zh-CN" class="i18n-zh">不变</span><span lang="en" class="i18n-en">unchanged</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">共享专家</span><span lang="en" class="i18n-en">Shared experts</span></td><td class="num">1</td><td class="num">1</td><td class="num"><span lang="zh-CN" class="i18n-zh">不变</span><span lang="en" class="i18n-en">unchanged</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">单专家中间维</span><span lang="en" class="i18n-en">Expert intermediate size</span></td><td class="num">1536</td><td class="num">2048</td><td class="num"><span class="up">+33%</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">单专家参数</span><span lang="en" class="i18n-en">Params per expert</span></td><td class="num">18.9 M</td><td class="num">37.7 M</td><td class="num"><span class="up">×2.0</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">单 MoE 层参数</span><span lang="en" class="i18n-en">Params per MoE layer</span></td><td class="num">3.72 B</td><td class="num">9.70 B</td><td class="num"><span class="up">×2.6</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">稀疏度</span><span lang="en" class="i18n-en">Sparsity</span></td><td class="num">14.5×</td><td class="num">15.9×</td><td class="num"><span class="up"><span lang="zh-CN" class="i18n-zh">更稀疏</span><span lang="en" class="i18n-en">sparser</span></span></td></tr>
               </tbody>
             </table>
           </div>
 
           <p>
-            单专家参数翻倍是两个因素叠出来的:中间维从 1536 到 2048(1.33×),hidden 从 4096 到 6144(1.5×)。
-            专家数只加了三分之一,但因为每个都更宽,<strong>单层 MoE 的参数量变成了 2.6 倍</strong>。
-            激活的专家数没变,所以稀疏度反而从 14.5× 上升到 15.9×。
+            <span lang="zh-CN" class="i18n-zh">单专家参数翻倍是两个因素叠出来的:中间维从 1536 到 2048(1.33×),hidden 从 4096 到 6144(1.5×)。专家数只加了三分之一,但因为每个都更宽,<strong>单层 MoE 的参数量变成了 2.6 倍</strong>。激活的专家数没变,所以稀疏度反而从 14.5× 上升到 15.9×。</span>
+            <span lang="en" class="i18n-en">Per-expert parameters doubled from two compounding factors: intermediate size 1536 → 2048 (1.33×) and hidden 4096 → 6144 (1.5×). The expert count only grew by a third, but because each is wider, <strong>a single MoE layer got 2.6× heavier</strong>. The number of activated experts did not change, so sparsity actually rose from 14.5× to 15.9×.</span>
           </p>
 
-          <h2>七、上下文 ×4,每 token 的 KV 反而省了</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、上下文 ×4,每 token 的 KV 反而省了</span><span lang="en" class="i18n-en">7 · 4× the context, and less KV per token</span></h2>
 
           <p>
-            这是我觉得整份 config 里最漂亮的一处。Hy3 靠 GQA 把 KV 压到八分之一,
-            每 token 每层仍要存 <code>2 × 8 头 × 128</code> = 2048 个数。
-            Hy4 换成 MLA 之后,进缓存的只有压缩后的 <code>kv_lora_rank + qk_rope_head_dim = 512 + 64 = 576</code> 个数。
+            <span lang="zh-CN" class="i18n-zh">这是我觉得整份 config 里最漂亮的一处。Hy3 靠 GQA 把 KV 压到八分之一,每 token 每层仍要存 <code>2 × 8 头 × 128</code> = 2048 个数。Hy4 换成 MLA 之后,进缓存的只有压缩后的 <code>kv_lora_rank + qk_rope_head_dim = 512 + 64 = 576</code> 个数。</span>
+            <span lang="en" class="i18n-en">This is the prettiest thing in the whole config. Hy3's GQA cut KV to an eighth, but still stored <code>2 × 8 heads × 128</code> = 2048 numbers per token per layer. With MLA, what enters the cache is just the compressed <code>kv_lora_rank + qk_rope_head_dim = 512 + 64 = 576</code>.</span>
           </p>
 
           <div class="h4-fig">
-            <div class="fig-title">动图 4:KV cache 随上下文增长(同一张图上比两代)</div>
-            <div class="h4-chead"><span>上下文</span><span>Hy3 · GQA(320 KiB/token)</span><span>Hy4 · MLA(87.8 KiB/token)</span></div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:KV cache 随上下文增长(同一张图上比两代)</span><span lang="en" class="i18n-en">Figure 4 · KV cache vs context length, both generations on one chart</span></div>
+            <div class="h4-chead">
+              <span><span lang="zh-CN" class="i18n-zh">上下文</span><span lang="en" class="i18n-en">Context</span></span>
+              <span>Hy3 · GQA (320 KiB/token)</span>
+              <span>Hy4 · MLA (87.8 KiB/token)</span>
+            </div>
             <div id="kvCurve"></div>
             <span class="fig-cap">
-              Hy3 在 <strong>256K</strong> 时要 80 GiB;Hy4 在 <strong>1M</strong> 时是 87.8 GiB。
-              <strong>上下文长了 4 倍,KV 只多了 10%。</strong>
-              代价是 <code>kv_b_proj</code> 那步还原计算 —— 用一点算力换了四倍的窗口。
-              另外 21 层 indexer 还各要一份自己的 key 缓存(<code>index_head_dim</code> 128),
-              按结构推算约 5.2 KiB/token,1M 时再加约 5.2 GiB。
+              <span lang="zh-CN" class="i18n-zh">Hy3 在 <strong>256K</strong> 时要 80 GiB;Hy4 在 <strong>1M</strong> 时是 87.8 GiB。<strong>上下文长了 4 倍,KV 只多了 10%。</strong>代价是 <code>kv_b_proj</code> 那步还原计算 —— 用一点算力换了四倍的窗口。另外 21 层 indexer 还各要一份自己的 key 缓存(<code>index_head_dim</code> 128),按结构推算约 5.2 KiB/token,1M 时再加约 5.2 GiB。</span>
+              <span lang="en" class="i18n-en">Hy3 needs 80 GiB at <strong>256K</strong>; Hy4 needs 87.8 GiB at <strong>1M</strong>. <strong>Four times the context for 10% more KV.</strong> The price is the <code>kv_b_proj</code> reconstruction step — a little compute traded for a 4× window. Separately, the 21 indexer layers each need their own key cache (<code>index_head_dim</code> 128), which the structure implies is about 5.2 KiB/token, adding roughly 5.2 GiB at 1M.</span>
             </span>
           </div>
 
-          <h2>八、BF16 装不下,所以官方直接发 FP8</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">八、BF16 装不下,所以官方直接发 FP8</span><span lang="en" class="i18n-en">8 · BF16 doesn't fit, so the FP8 repo is the real one</span></h2>
 
           <p>
-            权重 BF16 是 <strong>1452.8 GiB</strong>,是 Hy3 的 2.6 倍。这个体积意味着:
-            <strong>8 卡无论 H100 还是 H20-3e,BF16 都放不进去</strong>,连权重都装不下,更别说 KV。
+            <span lang="zh-CN" class="i18n-zh">权重 BF16 是 <strong>1452.8 GiB</strong>,是 Hy3 的 2.6 倍。这个体积意味着:<strong>8 卡无论 H100 还是 H20-3e,BF16 都放不进去</strong>,连权重都装不下,更别说 KV。</span>
+            <span lang="en" class="i18n-en">BF16 weights come to <strong>1452.8 GiB</strong>, 2.6× Hy3. At that size, <strong>eight GPUs cannot hold them on either H100 or H20-3e</strong> — not the weights alone, let alone any KV.</span>
           </p>
 
           <p>
-            所以官方仓库里还有一个
-            <a href="https://huggingface.co/tencent/Hy4-preview-FP8" target="_blank" rel="noopener">tencent/Hy4-preview-FP8</a>,
-            而且<a href="https://recipes.vllm.ai/tencent/Hy4-preview" target="_blank" rel="noopener">部署脚本</a>里
-            <code>--tensor-parallel-size 8</code> 后面跟的正是 FP8 那个仓库。我把 FP8 版的 130 个分片头部也读了一遍:
-            专家权重是 <code>F8_E4M3</code>,配一组 <code>U8</code> 的 block scale,实测 <strong>757.9 GiB</strong>,
-            压到 BF16 的 <strong>52.2%</strong>(不是 50%,因为 scale 和没量化的部分还占 43 GB)。
+            <span lang="zh-CN" class="i18n-zh">所以官方仓库里还有一个 <a href="https://huggingface.co/tencent/Hy4-preview-FP8" target="_blank" rel="noopener">tencent/Hy4-preview-FP8</a>,而且<a href="https://recipes.vllm.ai/tencent/Hy4-preview" target="_blank" rel="noopener">部署脚本</a>里 <code>--tensor-parallel-size 8</code> 后面跟的正是 FP8 那个仓库。我把 FP8 版的 130 个分片头部也读了一遍:专家权重是 <code>F8_E4M3</code>,配一组 <code>U8</code> 的 block scale,实测 <strong>757.9 GiB</strong>,压到 BF16 的 <strong>52.2%</strong>(不是 50%,因为 scale 和没量化的部分还占 43 GB)。</span>
+            <span lang="en" class="i18n-en">Which is why the org also publishes <a href="https://huggingface.co/tencent/Hy4-preview-FP8" target="_blank" rel="noopener">tencent/Hy4-preview-FP8</a>, and why the <a href="https://recipes.vllm.ai/tencent/Hy4-preview" target="_blank" rel="noopener">deployment recipe</a> points <code>--tensor-parallel-size 8</code> at that repo rather than this one. I read all 130 FP8 shard headers too: expert weights are <code>F8_E4M3</code> with a set of <code>U8</code> block scales, measuring <strong>757.9 GiB</strong> — <strong>52.2%</strong> of BF16, not 50%, because the scales and the un-quantised parts still account for 43 GB.</span>
           </p>
 
           <div class="h4-fig">
-            <div class="fig-title">动图 5:显存预算(可切精度、卡型与卡数)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 5:显存预算(可切精度、卡型与卡数)</span><span lang="en" class="i18n-en">Figure 5 · Memory budget (switch precision, card type and count)</span></div>
             <div class="h4-legend">
-              <span><i style="background: var(--exp)"></i>模型权重</span>
-              <span><i style="background: var(--attn)"></i>KV cache(1 条满 1M 窗口)</span>
-              <span><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i>剩余</span>
-              <span><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i>超出</span>
+              <span><i style="background: var(--exp)"></i><span lang="zh-CN" class="i18n-zh">模型权重</span><span lang="en" class="i18n-en">Model weights</span></span>
+              <span><i style="background: var(--attn)"></i><span lang="zh-CN" class="i18n-zh">KV cache(1 条满 1M 窗口)</span><span lang="en" class="i18n-en">KV cache (one full 1M window)</span></span>
+              <span><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i><span lang="zh-CN" class="i18n-zh">剩余</span><span lang="en" class="i18n-en">Free</span></span>
+              <span><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i><span lang="zh-CN" class="i18n-zh">超出</span><span lang="en" class="i18n-en">Over budget</span></span>
             </div>
             <div class="h4-budget" id="budget"></div>
             <div class="h4-scale"><span>0</span><span id="poolLabel">—</span></div>
             <div class="h4-ctrls">
-              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)">精度</span>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)"><span lang="zh-CN" class="i18n-zh">精度</span><span lang="en" class="i18n-en">Precision</span></span>
               <div class="h4-seg" id="precSeg">
                 <button data-p="bf16" class="on">BF16</button>
                 <button data-p="fp8">FP8</button>
               </div>
-              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">卡型</span>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px"><span lang="zh-CN" class="i18n-zh">卡型</span><span lang="en" class="i18n-en">Card</span></span>
               <div class="h4-seg" id="cardSeg">
                 <button data-c="80" class="on">H100 80GB</button>
                 <button data-c="141">H20-3e 141GB</button>
               </div>
-              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">卡数</span>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px"><span lang="zh-CN" class="i18n-zh">卡数</span><span lang="en" class="i18n-en">Count</span></span>
               <div class="h4-seg" id="gpuSeg">
                 <button data-g="8" class="on">8</button>
                 <button data-g="16">16</button>
@@ -469,62 +459,67 @@ hdr = json.loads(d[8:8+n])
             </div>
             <div class="h4-verdict" id="budgetVerdict"></div>
             <span class="fig-cap">
-              只算权重与 KV,未计激活、通信缓冲与框架 workspace,是乐观上界。显存按标称值计。
-              把三个开关都切一遍会看到:<strong>唯一能用 8 卡跑起来的组合是「FP8 + 141 GB 卡」</strong> ——
-              这正好解释了官方脚本为什么指向 FP8 仓库。
+              <span lang="zh-CN" class="i18n-zh">只算权重与 KV,未计激活、通信缓冲与框架 workspace,是乐观上界。显存按标称值计。把三个开关都切一遍会看到:<strong>唯一能用 8 卡跑起来的组合是「FP8 + 141 GB 卡」</strong> —— 这正好解释了官方脚本为什么指向 FP8 仓库。</span>
+              <span lang="en" class="i18n-en">Weights and KV only — activations, communication buffers and framework workspace are not counted, so this is an optimistic upper bound. GPU capacity is nominal. Cycle through all three switches and one thing stands out: <strong>the only eight-GPU combination that fits is FP8 on 141 GB cards</strong> — precisely why the official recipe points at the FP8 repo.</span>
             </span>
           </div>
 
-          <h2>九、Hy3 → Hy4 逐项对比</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">九、Hy3 → Hy4 逐项对比</span><span lang="en" class="i18n-en">9 · Hy3 → Hy4, item by item</span></h2>
 
           <div class="h4-tw">
             <table>
-              <thead><tr><th>维度</th><th>Hy3</th><th>Hy4 preview</th></tr></thead>
+              <thead><tr>
+                <th><span lang="zh-CN" class="i18n-zh">维度</span><span lang="en" class="i18n-en">Dimension</span></th>
+                <th>Hy3</th><th>Hy4 preview</th>
+              </tr></thead>
               <tbody>
-                <tr><td>总参数(不含 MTP)</td><td>295 B</td><td><strong>770 B</strong>(2.6×)</td></tr>
-                <tr><td>激活参数</td><td>21 B</td><td><strong>49 B</strong>(2.3×)</td></tr>
-                <tr><td>层数</td><td>80</td><td>78(略减)</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">总参数(不含 MTP)</span><span lang="en" class="i18n-en">Total params (excl. MTP)</span></td><td>295 B</td><td><strong>770 B</strong> (2.6×)</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">激活参数</span><span lang="en" class="i18n-en">Activated params</span></td><td>21 B</td><td><strong>49 B</strong> (2.3×)</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">层数</span><span lang="en" class="i18n-en">Layers</span></td><td>80</td><td><span lang="zh-CN" class="i18n-zh">78(略减)</span><span lang="en" class="i18n-en">78 (slightly fewer)</span></td></tr>
                 <tr><td>hidden_size</td><td>4096</td><td><strong>6144</strong></td></tr>
-                <tr><td>注意力</td><td>GQA 64/8,head_dim 128</td><td><strong>Gated DSA</strong>(MLA 压缩 + 稀疏索引)</td></tr>
-                <tr><td>残差</td><td>普通残差</td><td><strong>iHC,4 条流</strong></td></tr>
-                <tr><td>上下文</td><td>256K</td><td><strong>1M</strong>(4×)</td></tr>
-                <tr><td>KV / token</td><td>320 KiB</td><td><strong>87.8 KiB</strong>(省 3.65×)</td></tr>
-                <tr><td>专家</td><td>192 × 1536</td><td><strong>256 × 2048</strong></td></tr>
-                <tr><td>MTP</td><td>1 层,3.8 B</td><td>1 层,<strong>10 B</strong></td></tr>
-                <tr><td>BF16 权重</td><td>556.5 GiB</td><td><strong>1452.8 GiB</strong></td></tr>
-                <tr><td>官方部署精度</td><td>BF16</td><td><strong>FP8</strong></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">注意力</span><span lang="en" class="i18n-en">Attention</span></td><td>GQA 64/8, head_dim 128</td><td><strong>Gated DSA</strong><span lang="zh-CN" class="i18n-zh">(MLA 压缩 + 稀疏索引)</span><span lang="en" class="i18n-en"> (MLA compression + sparse index)</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">残差</span><span lang="en" class="i18n-en">Residual</span></td><td><span lang="zh-CN" class="i18n-zh">普通残差</span><span lang="en" class="i18n-en">plain residual</span></td><td><strong><span lang="zh-CN" class="i18n-zh">iHC,4 条流</span><span lang="en" class="i18n-en">iHC, 4 streams</span></strong></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">上下文</span><span lang="en" class="i18n-en">Context</span></td><td>256K</td><td><strong>1M</strong> (4×)</td></tr>
+                <tr><td>KV / token</td><td>320 KiB</td><td><strong>87.8 KiB</strong><span lang="zh-CN" class="i18n-zh">(省 3.65×)</span><span lang="en" class="i18n-en"> (3.65× less)</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">专家</span><span lang="en" class="i18n-en">Experts</span></td><td>192 × 1536</td><td><strong>256 × 2048</strong></td></tr>
+                <tr><td>MTP</td><td><span lang="zh-CN" class="i18n-zh">1 层,3.8 B</span><span lang="en" class="i18n-en">1 layer, 3.8 B</span></td><td><span lang="zh-CN" class="i18n-zh">1 层,<strong>10 B</strong></span><span lang="en" class="i18n-en">1 layer, <strong>10 B</strong></span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">BF16 权重</span><span lang="en" class="i18n-en">BF16 weights</span></td><td>556.5 GiB</td><td><strong>1452.8 GiB</strong></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">官方部署精度</span><span lang="en" class="i18n-en">Official serving precision</span></td><td>BF16</td><td><strong>FP8</strong></td></tr>
               </tbody>
             </table>
           </div>
 
           <p>
-            读下来会发现两代的取舍很不一样。Hy3 是把成熟方案(GQA + DeepSeek 式路由)做扎实;
-            Hy4 则在<strong>注意力和残差两条主干上同时换了新东西</strong>,
-            换来的是四倍上下文和更省的 KV,代价是权重体积翻了 2.6 倍、必须靠 FP8 才装得下。
+            <span lang="zh-CN" class="i18n-zh">读下来会发现两代的取舍很不一样。Hy3 是把成熟方案(GQA + DeepSeek 式路由)做扎实;Hy4 则在<strong>注意力和残差两条主干上同时换了新东西</strong>,换来的是四倍上下文和更省的 KV,代价是权重体积翻了 2.6 倍、必须靠 FP8 才装得下。</span>
+            <span lang="en" class="i18n-en">Read together, the two generations made very different bets. Hy3 executed well on proven pieces — GQA plus DeepSeek-style routing. Hy4 <strong>replaced components on two load-bearing paths at once</strong>, attention and the residual, buying a 4× window and cheaper KV at the cost of 2.6× the weight volume and a hard dependency on FP8 to fit at all.</span>
           </p>
 
-          <h2>十、要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">十、要点</span><span lang="en" class="i18n-en">10 · Takeaways</span></h2>
 
           <div class="h4-takes">
-            <div class="h4-take"><div class="n">01</div><h5>没有 total_size 就去读文件头</h5>
-              <p>Hy4 的 index 把 <code>metadata</code> 留空了。safetensors 开头 8 字节是头长度、紧跟 JSON,用 HTTP Range 取每个分片前几十 KB 就能拿到<strong>逐张量的真实 shape</strong>,比 total_size 还硬。</p></div>
-            <div class="h4-take"><div class="n">02</div><h5>MLA 让上下文和显存脱钩</h5>
-              <p>进缓存的只有压缩后的 <code>512+64</code>,而不是展开的 64 头 × 256 维。于是上下文从 256K 涨到 1M,KV 总量只从 80 GiB 变成 87.8 GiB。用 <code>kv_b_proj</code> 的还原计算换了四倍窗口。</p></div>
-            <div class="h4-take"><div class="n">03</div><h5>稀疏索引也可以跨层复用</h5>
-              <p>78 层里只有 21 层真的持有 indexer,其余复用上游的选择结果。相邻层选中的 token 高度重合,那就没必要每层重挑 —— 索引计算量直接降到 27%。</p></div>
-            <div class="h4-take"><div class="n">04</div><h5>有些改动几乎不花参数</h5>
-              <p>iHC 把残差拓宽成 4 条流,总共只用了 <strong>0.03 B</strong>,占比 0.004%。它改的不是容量,是信息在深度方向的流动方式 —— 这类改动在参数表上完全看不出来。</p></div>
-            <div class="h4-take"><div class="n">05</div><h5>gated 不是免费的</h5>
-              <p><code>linear_gate</code> 和 <code>o_proj</code> 一样大,单层 100.7 M,全模型 7.9 B。比整个 iHC 大两个数量级。给注意力加门控,账要算在这里。</p></div>
-            <div class="h4-take"><div class="n">06</div><h5>量化从可选项变成前提</h5>
-              <p>1452.8 GiB 意味着 8 卡在 BF16 下连权重都装不下,H20-3e 也不行。官方直接发 FP8 仓库并让部署脚本指向它 —— 到这个尺寸,量化已经不是优化而是能不能跑的问题。</p></div>
+            <div class="h4-take"><div class="n">01</div>
+              <h5><span lang="zh-CN" class="i18n-zh">没有 total_size 就去读文件头</span><span lang="en" class="i18n-en">No total_size? Read the headers</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Hy4 的 index 把 <code>metadata</code> 留空了。safetensors 开头 8 字节是头长度、紧跟 JSON,用 HTTP Range 取每个分片前几十 KB 就能拿到<strong>逐张量的真实 shape</strong>,比 total_size 还硬。</span><span lang="en" class="i18n-en">Hy4 left <code>metadata</code> empty. Safetensors opens with an 8-byte length then JSON, so a Range request for the first few tens of KB of each shard yields <strong>the true shape of every tensor</strong> — firmer evidence than total_size ever was.</span></p></div>
+            <div class="h4-take"><div class="n">02</div>
+              <h5><span lang="zh-CN" class="i18n-zh">MLA 让上下文和显存脱钩</span><span lang="en" class="i18n-en">MLA decouples context from memory</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">进缓存的只有压缩后的 <code>512+64</code>,而不是展开的 64 头 × 256 维。于是上下文从 256K 涨到 1M,KV 总量只从 80 GiB 变成 87.8 GiB。用 <code>kv_b_proj</code> 的还原计算换了四倍窗口。</span><span lang="en" class="i18n-en">Only the compressed <code>512+64</code> enters the cache, not the expanded 64 heads × 256 dims. Context grew from 256K to 1M while total KV went from 80 GiB to just 87.8 GiB — a 4× window bought with the <code>kv_b_proj</code> reconstruction.</span></p></div>
+            <div class="h4-take"><div class="n">03</div>
+              <h5><span lang="zh-CN" class="i18n-zh">稀疏索引也可以跨层复用</span><span lang="en" class="i18n-en">Sparse indices can be reused across layers</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">78 层里只有 21 层真的持有 indexer,其余复用上游的选择结果。相邻层选中的 token 高度重合,那就没必要每层重挑 —— 索引计算量直接降到 27%。</span><span lang="en" class="i18n-en">Only 21 of 78 layers actually hold an indexer; the rest reuse an upstream selection. Adjacent layers pick heavily overlapping tokens, so re-picking every layer is wasted work — index compute falls to 27%.</span></p></div>
+            <div class="h4-take"><div class="n">04</div>
+              <h5><span lang="zh-CN" class="i18n-zh">有些改动几乎不花参数</span><span lang="en" class="i18n-en">Some changes cost almost no parameters</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">iHC 把残差拓宽成 4 条流,总共只用了 <strong>0.03 B</strong>,占比 0.004%。它改的不是容量,是信息在深度方向的流动方式 —— 这类改动在参数表上完全看不出来。</span><span lang="en" class="i18n-en">iHC widens the residual into four streams for a total of <strong>0.03 B</strong>, 0.004% of the model. It changes not capacity but how information moves through depth — the kind of change a parameter table cannot show you.</span></p></div>
+            <div class="h4-take"><div class="n">05</div>
+              <h5><span lang="zh-CN" class="i18n-zh">gated 不是免费的</span><span lang="en" class="i18n-en">Gating is not free</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>linear_gate</code> 和 <code>o_proj</code> 一样大,单层 100.7 M,全模型 7.9 B。比整个 iHC 大两个数量级。给注意力加门控,账要算在这里。</span><span lang="en" class="i18n-en"><code>linear_gate</code> is the same size as <code>o_proj</code>: 100.7 M per layer, 7.9 B in total — two orders of magnitude more than all of iHC. If you gate attention, this is where the bill lands.</span></p></div>
+            <div class="h4-take"><div class="n">06</div>
+              <h5><span lang="zh-CN" class="i18n-zh">量化从可选项变成前提</span><span lang="en" class="i18n-en">Quantisation stopped being optional</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">1452.8 GiB 意味着 8 卡在 BF16 下连权重都装不下,H20-3e 也不行。官方直接发 FP8 仓库并让部署脚本指向它 —— 到这个尺寸,量化已经不是优化而是能不能跑的问题。</span><span lang="en" class="i18n-en">1452.8 GiB means eight GPUs cannot hold the weights in BF16, H20-3e included. The org publishes an FP8 repo and points the recipe at it — at this size, quantisation is no longer an optimisation but the difference between running and not.</span></p></div>
           </div>
 
           <blockquote>
-            结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,
-            字节数由 HTTP Range 读取 131 个 safetensors 分片头部的真实 shape 累加得到,未下载权重本体;
-            推算完成后才与模型卡规格表核对。indexer 的额外 key 缓存为按结构推断,非官方数字。
-            显存部分只算权重与 KV,未计激活与框架 workspace,属乐观上界;GPU 容量按标称值计。
+            <span lang="zh-CN" class="i18n-zh">结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,字节数由 HTTP Range 读取 131 个 safetensors 分片头部的真实 shape 累加得到,未下载权重本体;推算完成后才与模型卡规格表核对。indexer 的额外 key 缓存为按结构推断,非官方数字。显存部分只算权重与 KV,未计激活与框架 workspace,属乐观上界;GPU 容量按标称值计。</span>
+            <span lang="en" class="i18n-en">Structure and parameter counts are derived solely from <code>config.json</code> and <code>model.safetensors.index.json</code>; byte totals come from summing real tensor shapes read out of all 131 safetensors shard headers over HTTP Range, without downloading any weights. The model card's spec table was consulted only after the derivation. The extra indexer key cache is inferred from structure, not an official figure. Memory figures count weights and KV only, excluding activations and framework workspace, and are therefore an optimistic upper bound; GPU capacity is nominal.</span>
           </blockquote>
         </div>
       </article>
@@ -545,28 +540,43 @@ hdr = json.loads(d[8:8+n])
         var GiB = Math.pow(1024, 3);
         function fg(b) { return (b / GiB).toFixed(1) + ' GiB'; }
 
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function t(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
         /* ===== 动图 1:参数构成 ===== */
         (function () {
           var ROWS = [
-            { nm: '路由专家', sub: '256 × 77 层,融合张量', v: 744.10, c: 'var(--exp)' },
-            { nm: 'MLA 注意力', sub: '含 gated 的 linear_gate', v: 20.72, c: 'var(--attn)' },
-            { nm: 'MTP 模块', sub: 'mtp_layers.0,规格表单列', v: 10.05, c: 'var(--hc)' },
-            { nm: '共享专家', sub: '每层 1 个', v: 2.91, c: 'var(--ok)' },
-            { nm: '词嵌入 + lm_head', sub: '未共享权重', v: 1.48, c: 'var(--idx)' },
-            { nm: 'router + dense', sub: 'gate 与第 0 层 FFN', v: 0.46, c: 'var(--attn)' },
-            { nm: 'DSA indexer', sub: '仅 21 层', v: 0.20, c: 'var(--idx)' },
-            { nm: 'iHC', sub: '4 条残差流', v: 0.03, c: 'var(--hc)' },
+            { zh: '路由专家', en: 'Routed experts', szh: '256 × 77 层,融合张量', sen: '256 × 77 layers, fused', v: 744.10, c: 'var(--exp)' },
+            { zh: 'MLA 注意力', en: 'MLA attention', szh: '含 gated 的 linear_gate', sen: 'incl. gated linear_gate', v: 20.72, c: 'var(--attn)' },
+            { zh: 'MTP 模块', en: 'MTP module', szh: 'mtp_layers.0,规格表单列', sen: 'mtp_layers.0, listed apart', v: 10.05, c: 'var(--hc)' },
+            { zh: '共享专家', en: 'Shared expert', szh: '每层 1 个', sen: 'one per layer', v: 2.91, c: 'var(--ok)' },
+            { zh: '词嵌入 + lm_head', en: 'Embed + lm_head', szh: '未共享权重', sen: 'not tied', v: 1.48, c: 'var(--idx)' },
+            { zh: 'router + dense', en: 'router + dense', szh: 'gate 与第 0 层 FFN', sen: 'gate and layer-0 FFN', v: 0.46, c: 'var(--attn)' },
+            { zh: 'DSA indexer', en: 'DSA indexer', szh: '仅 21 层', sen: '21 layers only', v: 0.20, c: 'var(--idx)' },
+            { zh: 'iHC', en: 'iHC', szh: '4 条残差流', sen: '4 residual streams', v: 0.03, c: 'var(--hc)' },
           ];
           var host = document.getElementById('paramBars');
           var max = ROWS[0].v, total = 779.96;
-          ROWS.forEach(function (r, i) {
-            var d = document.createElement('div');
-            d.className = 'h4-brow';
-            d.innerHTML = '<div class="nm">' + r.nm + '<small>' + r.sub + '</small></div>' +
-              '<div class="h4-btrack"><i style="--w:' + (r.v / max * 100) + '%; --c:' + r.c + '; --d:' + (i * 0.08) + 's"></i></div>' +
-              '<div class="vl">' + r.v.toFixed(2) + ' B · ' + (r.v / total * 100).toFixed(1) + '%</div>';
-            host.appendChild(d);
-          });
+          function draw() {
+            host.innerHTML = '';
+            ROWS.forEach(function (r, i) {
+              var d = document.createElement('div');
+              d.className = 'h4-brow';
+              d.innerHTML = '<div class="nm">' + t(r.zh, r.en) + '<small>' + t(r.szh, r.sen) + '</small></div>' +
+                '<div class="h4-btrack"><i style="--w:' + (r.v / max * 100) + '%; --c:' + r.c + '; --d:' + (i * 0.08) + 's"></i></div>' +
+                '<div class="vl">' + r.v.toFixed(2) + ' B · ' + (r.v / total * 100).toFixed(1) + '%</div>';
+              host.appendChild(d);
+            });
+          }
+          redraw.push(draw); draw();
         })();
 
         /* ===== 动图 3:78 层 indexer 分布 ===== */
@@ -574,52 +584,74 @@ hdr = json.loads(d[8:8+n])
           var FULL = [0, 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77];
           var strip = document.getElementById('layStrip');
           var info = document.getElementById('layInfo');
-          for (var i = 0; i < 78; i++) {
-            var d = document.createElement('div');
-            var isFull = FULL.indexOf(i) !== -1;
-            d.className = 'h4-lay' + (isFull ? ' full' : '') + (i === 0 ? ' dense' : '');
-            d.dataset.i = i;
-            d.dataset.full = isFull ? '1' : '0';
-            d.title = '层 ' + i;
-            d.addEventListener('mouseenter', function () {
-              var n = +this.dataset.i, f = this.dataset.full === '1';
-              var owner = null;
-              for (var k = FULL.length - 1; k >= 0; k--) { if (FULL[k] <= n) { owner = FULL[k]; break; } }
-              info.innerHTML = '<b>层 ' + n + '</b> · ' +
-                (f ? '<b style="color:var(--idx)">full</b> —— 自己算稀疏索引,持有 <code>indexer.wq_b / wk / weights_proj / k_norm</code>,约 9.37 M 参数。'
-                   : '<b>shared</b> —— 不持有 indexer 权重,复用<b>层 ' + owner + '</b> 算出的 top-2048 选择。') +
-                (n === 0 ? '<br>同时是唯一的 <b style="color:var(--ok)">dense FFN</b> 层,其余 77 层都是 MoE。' : '');
-            });
-            strip.appendChild(d);
+          var hovered = null;
+
+          function describe(n) {
+            var f = FULL.indexOf(n) !== -1, owner = null;
+            for (var k = FULL.length - 1; k >= 0; k--) { if (FULL[k] <= n) { owner = FULL[k]; break; } }
+            var head = t('<b>层 ' + n + '</b> · ', '<b>Layer ' + n + '</b> · ');
+            var body = f
+              ? t('<b style="color:var(--idx)">full</b> —— 自己算稀疏索引,持有 <code>indexer.wq_b / wk / weights_proj / k_norm</code>,约 9.37 M 参数。',
+                  '<b style="color:var(--idx)">full</b> — computes its own sparse index; holds <code>indexer.wq_b / wk / weights_proj / k_norm</code>, about 9.37 M parameters.')
+              : t('<b>shared</b> —— 不持有 indexer 权重,复用<b>层 ' + owner + '</b> 算出的 top-2048 选择。',
+                  '<b>shared</b> — holds no indexer weights; reuses the top-2048 selection computed by <b>layer ' + owner + '</b>.');
+            var extra = n === 0
+              ? t('<br>同时是唯一的 <b style="color:var(--ok)">dense FFN</b> 层,其余 77 层都是 MoE。',
+                  '<br>Also the only <b style="color:var(--ok)">dense FFN</b> layer; the other 77 are MoE.')
+              : '';
+            return head + body + extra;
           }
-          info.innerHTML = '<b>21 / 78</b> 层持有 indexer 权重,其余 57 层复用 —— 把鼠标放到任意一格看它属于哪种。';
+          function idle() {
+            return t('<b>21 / 78</b> 层持有 indexer 权重,其余 57 层复用 —— 把鼠标放到任意一格看它属于哪种。',
+                     '<b>21 of 78</b> layers hold indexer weights; the other 57 reuse one — hover any cell to see which.');
+          }
+          function draw() {
+            strip.innerHTML = '';
+            for (var i = 0; i < 78; i++) {
+              var d = document.createElement('div');
+              var isFull = FULL.indexOf(i) !== -1;
+              d.className = 'h4-lay' + (isFull ? ' full' : '') + (i === 0 ? ' dense' : '');
+              d.dataset.i = i;
+              d.title = t('层 ', 'Layer ') + i;
+              d.addEventListener('mouseenter', function () {
+                hovered = +this.dataset.i;
+                info.innerHTML = describe(hovered);
+              });
+              strip.appendChild(d);
+            }
+            info.innerHTML = hovered === null ? idle() : describe(hovered);
+          }
+          redraw.push(draw); draw();
         })();
 
         /* ===== 动图 4:KV cache 曲线 ===== */
         (function () {
           var host = document.getElementById('kvCurve');
-          var HY3 = 320 * 1024, HY4 = (512 + 64) * 2 * 78; // 每 token 字节
+          var HY3 = 320 * 1024, HY4 = (512 + 64) * 2 * 78;
           var CTX = [32768, 131072, 262144, 524288, 1048576];
           var NAMES = { 32768: '32K', 131072: '128K', 262144: '256K', 524288: '512K', 1048576: '1M' };
           var max = HY3 * CTX[CTX.length - 1];
-          CTX.forEach(function (n, i) {
-            var a = HY3 * n, b = HY4 * n;
-            var over3 = n > 262144;
-            var d = document.createElement('div');
-            d.className = 'h4-crow';
-            d.innerHTML = '<span class="n">' + NAMES[n] + '</span>' +
-              '<span class="h4-cbar"><i style="--w:' + (a / max * 100) + '%; --c:' + (over3 ? 'var(--warn)' : 'var(--exp)') + '; --d:' + (i * 0.07) + 's"></i>' +
-              '<span>' + (a / GiB).toFixed(0) + ' GiB' + (over3 ? ' ·超窗口' : '') + '</span></span>' +
-              '<span class="h4-cbar"><i style="--w:' + (b / max * 100) + '%; --c: var(--attn); --d:' + (i * 0.07 + 0.06) + 's"></i>' +
-              '<span>' + (b / GiB).toFixed(1) + ' GiB</span></span>';
-            host.appendChild(d);
-          });
+          function draw() {
+            host.innerHTML = '';
+            CTX.forEach(function (n, i) {
+              var a = HY3 * n, b = HY4 * n, over3 = n > 262144;
+              var d = document.createElement('div');
+              d.className = 'h4-crow';
+              d.innerHTML = '<span class="n">' + NAMES[n] + '</span>' +
+                '<span class="h4-cbar"><i style="--w:' + (a / max * 100) + '%; --c:' + (over3 ? 'var(--warn)' : 'var(--exp)') + '; --d:' + (i * 0.07) + 's"></i>' +
+                '<span>' + (a / GiB).toFixed(0) + ' GiB' + (over3 ? t(' ·超窗口', ' · past its window') : '') + '</span></span>' +
+                '<span class="h4-cbar"><i style="--w:' + (b / max * 100) + '%; --c: var(--attn); --d:' + (i * 0.07 + 0.06) + 's"></i>' +
+                '<span>' + (b / GiB).toFixed(1) + ' GiB</span></span>';
+              host.appendChild(d);
+            });
+          }
+          redraw.push(draw); draw();
         })();
 
         /* ===== 动图 5:显存预算 ===== */
         (function () {
-          var W = { bf16: 1559983576308, fp8: 813765813492 };  // 实测字节
-          var KV_TOK = (512 + 64) * 2 * 78;                     // 87.75 KiB
+          var W = { bf16: 1559983576308, fp8: 813765813492 };
+          var KV_TOK = (512 + 64) * 2 * 78;
           var CTX = 1048576;
           var prec = 'bf16', cardGB = 80, gpus = 8;
           var NAME = { 80: 'H100 80GB', 141: 'H20-3e 141GB' };
@@ -646,30 +678,38 @@ hdr = json.loads(d[8:8+n])
               s.textContent = (bytes / denom > 0.07) ? label : '';
               bar.appendChild(s);
             }
-            seg('w', w, '权重 ' + fg(w));
+            seg('w', w, t('权重 ', 'Weights ') + fg(w));
             seg('kv', kvShown, 'KV ' + fg(kvShown));
-            seg('free', rest, '剩余 ' + fg(rest));
-            seg('over', over, '超出 ' + fg(over));
+            seg('free', rest, t('剩余 ', 'Free ') + fg(rest));
+            seg('over', over, t('超出 ', 'Over ') + fg(over));
 
             poolLabel.textContent = gpus + '×' + NAME[cardGB] + ' = ' + fg(pool);
 
             if (free <= 0) {
               verdict.className = 'h4-verdict bad';
-              verdict.innerHTML = '<b>连权重都装不下</b>:需要 ' + fg(w) + ',池子只有 ' + fg(pool) +
-                ',缺 <b>' + fg(-free) + '</b>。' +
-                (prec === 'bf16' ? ' 试试切到 FP8。' : ' 加卡吧。');
+              verdict.innerHTML = t(
+                '<b>连权重都装不下</b>:需要 ' + fg(w) + ',池子只有 ' + fg(pool) + ',缺 <b>' + fg(-free) + '</b>。' +
+                  (prec === 'bf16' ? ' 试试切到 FP8。' : ' 加卡吧。'),
+                '<b>The weights alone do not fit</b>: ' + fg(w) + ' needed against a pool of ' + fg(pool) +
+                  ', short by <b>' + fg(-free) + '</b>.' + (prec === 'bf16' ? ' Try switching to FP8.' : ' Add GPUs.'));
             } else if (over > 0) {
               verdict.className = 'h4-verdict bad';
-              verdict.innerHTML = '权重放得下,但装完只剩 <b>' + fg(free) + '</b>,而一条满 1M 窗口的 KV 要 <b>' +
-                fg(kvFull) + '</b> —— 缺 ' + fg(over) + '。最长约 <b>' +
-                Math.floor(free / KV_TOK).toLocaleString('en-US') + '</b> token。';
+              verdict.innerHTML = t(
+                '权重放得下,但装完只剩 <b>' + fg(free) + '</b>,而一条满 1M 窗口的 KV 要 <b>' + fg(kvFull) +
+                  '</b> —— 缺 ' + fg(over) + '。最长约 <b>' + Math.floor(free / KV_TOK).toLocaleString('en-US') + '</b> token。',
+                'The weights fit, but only <b>' + fg(free) + '</b> is left and one full 1M window of KV needs <b>' +
+                  fg(kvFull) + '</b> — short by ' + fg(over) + '. That caps you at roughly <b>' +
+                  Math.floor(free / KV_TOK).toLocaleString('en-US') + '</b> tokens.');
             } else {
               verdict.className = 'h4-verdict good';
-              verdict.innerHTML = '装完权重还剩 <b>' + fg(free) + '</b>,可放约 <b>' +
-                (free / kvFull).toFixed(1) + '</b> 条满 1M 窗口(合计 ' +
-                Math.floor(free / KV_TOK).toLocaleString('en-US') + ' token)。' +
-                (prec === 'fp8' && cardGB === 141 && gpus === 8
-                  ? ' <b>这正是官方部署脚本用的配置。</b>' : '');
+              var official = (prec === 'fp8' && cardGB === 141 && gpus === 8);
+              verdict.innerHTML = t(
+                '装完权重还剩 <b>' + fg(free) + '</b>,可放约 <b>' + (free / kvFull).toFixed(1) + '</b> 条满 1M 窗口(合计 ' +
+                  Math.floor(free / KV_TOK).toLocaleString('en-US') + ' token)。' +
+                  (official ? ' <b>这正是官方部署脚本用的配置。</b>' : ''),
+                '<b>' + fg(free) + '</b> left after the weights — room for about <b>' + (free / kvFull).toFixed(1) +
+                  '</b> full 1M windows (' + Math.floor(free / KV_TOK).toLocaleString('en-US') + ' tokens in total).' +
+                  (official ? ' <b>This is exactly what the official recipe uses.</b>' : ''));
             }
           }
 
@@ -684,7 +724,7 @@ hdr = json.loads(d[8:8+n])
                 render();
               });
             });
-          render();
+          redraw.push(render); render();
         })();
       })();
     </script>
