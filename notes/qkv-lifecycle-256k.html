@@ -266,80 +266,80 @@
         </header>
 
         <div class="prose">
-          <p class="qkv-lede">
-            同一个聊天窗口里持续对话,直到上下文用满 262,144 token。这个过程中 Query 每一步都被造出来又立刻丢弃,
-            而 Key / Value 只增不减,一路堆到 80 GiB 显存。下面用三段动画把这件事拆开看。
-          </p>
+          <p class="qkv-lede"><span lang="zh-CN" class="i18n-zh">同一个聊天窗口里持续对话,直到上下文用满 262,144 token。这个过程中 Query 每一步都被造出来又立刻丢弃,
+            而 Key / Value 只增不减,一路堆到 80 GiB 显存。下面用三段动画把这件事拆开看。</span><span lang="en" class="i18n-en">One chat window, one conversation, carried on until the context is full at 262,144 tokens.
+            Along the way every Query is built and thrown away immediately, while Key and Value only ever grow,
+            climbing to 80 GiB of GPU memory. Three animations below take that apart.</span></p>
 
           <div class="qkv-specs">
-            <span class="chip">层数 <b>80</b></span>
-            <span class="chip">Q 头 <b>64</b></span>
-            <span class="chip">KV 头 <b>8</b> (GQA)</span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">层数 <b>80</b></span><span lang="en" class="i18n-en">Layers <b>80</b></span></span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">Q 头 <b>64</b></span><span lang="en" class="i18n-en">Q heads <b>64</b></span></span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">KV 头 <b>8</b> (GQA)</span><span lang="en" class="i18n-en">KV heads <b>8</b> (GQA)</span></span>
             <span class="chip">head_dim <b>128</b></span>
             <span class="chip">hidden <b>4096</b></span>
-            <span class="chip">上下文 <b>262,144</b></span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">上下文 <b>262,144</b></span><span lang="en" class="i18n-en">Context <b>262,144</b></span></span>
             <span class="chip">dtype <b>bf16</b></span>
           </div>
 
-          <h2>一、三个张量,两种命运</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、三个张量,两种命运</span><span lang="en" class="i18n-en">1 · Three tensors, two fates</span></h2>
 
-          <p>
-            Q、K、V 都由同一个 token 的隐状态线性投影而来,但它们在时间轴上的行为完全不同:
-            Q 是「一次性」的,K/V 是「永久」的。这个区别决定了长上下文推理的全部工程难点。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">Q、K、V 都由同一个 token 的隐状态线性投影而来,但它们在时间轴上的行为完全不同:
+            Q 是「一次性」的,K/V 是「永久」的。这个区别决定了长上下文推理的全部工程难点。</span><span lang="en" class="i18n-en">Q, K and V all come from the same linear projection of a token's hidden state, yet they behave
+            completely differently over time: Q is single-use, K/V are permanent. That difference accounts for
+            every engineering difficulty in long-context inference.</span></p>
 
           <div class="qkv-roles">
             <div class="qkv-role" style="--c: var(--q)">
               <div class="glyph">Q</div>
-              <div class="tag">Query · 瞬时</div>
-              <h4>我现在想找什么</h4>
-              <p>只属于「当前正在计算的那些 token」。算完这一层的 attention 就被释放,不进缓存、不跨步复用。序列再长,Q 也不会变大。</p>
+              <div class="tag"><span lang="zh-CN" class="i18n-zh">Query · 瞬时</span><span lang="en" class="i18n-en">Query · transient</span></div>
+              <h4><span lang="zh-CN" class="i18n-zh">我现在想找什么</span><span lang="en" class="i18n-en">What am I looking for right now</span></h4>
+              <p><span lang="zh-CN" class="i18n-zh">只属于「当前正在计算的那些 token」。算完这一层的 attention 就被释放,不进缓存、不跨步复用。序列再长,Q 也不会变大。</span><span lang="en" class="i18n-en">Belongs only to the tokens currently being computed. It is released as soon as this layer's attention is done — never cached, never reused across steps. However long the sequence gets, Q does not grow.</span></p>
               <div class="shape">q_proj: 4096 → <span>64 × 128 = 8192</span></div>
-              <div class="life"><i class="pip pulse"></i> 生命周期:单层单步,用完即弃</div>
+              <div class="life"><span lang="zh-CN" class="i18n-zh"><i class="pip pulse"></i> 生命周期:单层单步,用完即弃</span><span lang="en" class="i18n-en"><i class="pip pulse"></i> Lifetime: one layer, one step, discarded on use</span></div>
             </div>
 
             <div class="qkv-role" style="--c: var(--k)">
               <div class="glyph">K</div>
-              <div class="tag">Key · 累积</div>
-              <h4>历史里都有什么</h4>
-              <p>每个 token 算一次,然后<strong>永久写进 KV cache</strong>。后续每生成一个 token,都要把整条历史的 K 重新读一遍算注意力分数。</p>
+              <div class="tag"><span lang="zh-CN" class="i18n-zh">Key · 累积</span><span lang="en" class="i18n-en">Key · accumulating</span></div>
+              <h4><span lang="zh-CN" class="i18n-zh">历史里都有什么</span><span lang="en" class="i18n-en">What is there in the history</span></h4>
+              <p><span lang="zh-CN" class="i18n-zh">每个 token 算一次,然后<strong>永久写进 KV cache</strong>。后续每生成一个 token,都要把整条历史的 K 重新读一遍算注意力分数。</span><span lang="en" class="i18n-en">Computed once per token, then <strong>written permanently into the KV cache</strong>. Every subsequent generated token re-reads the entire history of K to compute attention scores.</span></p>
               <div class="shape">k_proj: 4096 → <span>8 × 128 = 1024</span></div>
-              <div class="life"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</div>
+              <div class="life"><span lang="zh-CN" class="i18n-zh"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</span><span lang="en" class="i18n-en"><i class="pip"></i> Lifetime: resident from the moment it is written until the session ends</span></div>
             </div>
 
             <div class="qkv-role" style="--c: var(--v)">
               <div class="glyph">V</div>
-              <div class="tag">Value · 累积</div>
-              <h4>取到之后拿走什么</h4>
-              <p>与 K 完全同步地累积。注意力权重算好后,用它对全部历史 V 做加权求和。K 和 V 一起构成 KV cache 的两半。</p>
+              <div class="tag"><span lang="zh-CN" class="i18n-zh">Value · 累积</span><span lang="en" class="i18n-en">Value · accumulating</span></div>
+              <h4><span lang="zh-CN" class="i18n-zh">取到之后拿走什么</span><span lang="en" class="i18n-en">What do I take away once I have found it</span></h4>
+              <p><span lang="zh-CN" class="i18n-zh">与 K 完全同步地累积。注意力权重算好后,用它对全部历史 V 做加权求和。K 和 V 一起构成 KV cache 的两半。</span><span lang="en" class="i18n-en">Accumulates in exact lockstep with K. Once the attention weights are computed, they weight a sum over the whole history of V. K and V together are the two halves of the KV cache.</span></p>
               <div class="shape">v_proj: 4096 → <span>8 × 128 = 1024</span></div>
-              <div class="life"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</div>
+              <div class="life"><span lang="zh-CN" class="i18n-zh"><i class="pip"></i> 生命周期:写入后常驻,直到会话结束</span><span lang="en" class="i18n-en"><i class="pip"></i> Lifetime: resident from the moment it is written until the session ends</span></div>
             </div>
           </div>
 
           <div class="qkv-card qkv-gqa">
-            <h4>GQA:64 个 Q 头,只养 8 份 K/V</h4>
-            <p>
-              每组 8 个 Query 头共享同一份 Key/Value。KV cache 因此比 MHA 小 8 倍 —— 这是 256K 上下文能跑起来的前提。
-              鼠标划过任意一组看分组关系。
-            </p>
+            <h4><span lang="zh-CN" class="i18n-zh">GQA:64 个 Q 头,只养 8 份 K/V</span><span lang="en" class="i18n-en">GQA: 64 Q heads, only 8 copies of K/V</span></h4>
+            <p><span lang="zh-CN" class="i18n-zh">每组 8 个 Query 头共享同一份 Key/Value。KV cache 因此比 MHA 小 8 倍 —— 这是 256K 上下文能跑起来的前提。
+              鼠标划过任意一组看分组关系。</span><span lang="en" class="i18n-en">Each group of 8 Query heads shares one Key/Value. The KV cache is therefore 8× smaller than under MHA —
+              which is the precondition for 256K context being feasible at all.
+              Hover any group to see the grouping.</span></p>
             <div class="qkv-gqa-grid" id="gqaGrid"></div>
-            <div class="qkv-gqa-cap">8 组 × (1 份 KV + 8 个 Q 头) &nbsp;·&nbsp; 若用 MHA 则需 64 份 KV,cache 将达 640 GiB</div>
+            <div class="qkv-gqa-cap"><span lang="zh-CN" class="i18n-zh">8 组 × (1 份 KV + 8 个 Q 头) &nbsp;·&nbsp; 若用 MHA 则需 64 份 KV,cache 将达 640 GiB</span><span lang="en" class="i18n-en">8 groups × (1 KV + 8 Q heads) &nbsp;·&nbsp; under MHA this would need 64 KV copies and the cache would reach 640 GiB</span></div>
           </div>
 
-          <h2>二、显微镜:逐 token 慢放</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、显微镜:逐 token 慢放</span><span lang="en" class="i18n-en">2 · Under the microscope: token by token, slowed down</span></h2>
 
-          <p>
-            把时间放慢,看清一轮对话内部发生了什么。每个方块 = 序列里的一个 token 位置。
+          <p><span lang="zh-CN" class="i18n-zh">把时间放慢,看清一轮对话内部发生了什么。每个方块 = 序列里的一个 token 位置。
             注意 <b style="color: var(--q)">Q 行</b> 亮一下就消失,而 <b style="color: var(--k)">K</b> /
-            <b style="color: var(--v)">V</b> 行只增不减,且每个 decode step 都被从头扫一遍。
-          </p>
+            <b style="color: var(--v)">V</b> 行只增不减,且每个 decode step 都被从头扫一遍。</span><span lang="en" class="i18n-en">Slow time down and watch what happens inside one turn. Each square is one token position in the sequence.
+            Note that the <b style="color: var(--q)">Q row</b> flashes and vanishes, while the <b style="color: var(--k)">K</b> and
+            <b style="color: var(--v)">V</b> rows only grow, and get scanned from the beginning on every decode step.</span></p>
 
           <div class="qkv-card">
             <div class="qkv-scope-top">
               <div class="qkv-stage">
                 <span class="qkv-pill pf" id="scopePill">PREFILL</span>
-                <span class="t" id="scopeTitle">第 1 轮 · 用户输入</span>
+                <span class="t" id="scopeTitle"><span lang="zh-CN" class="i18n-zh">第 1 轮 · 用户输入</span><span lang="en" class="i18n-en">Turn 1 · user input</span></span>
               </div>
               <div style="font-family: var(--font-mono); font-size: .7rem; color: var(--text-dim)" id="scopeStep">step —</div>
             </div>
@@ -348,157 +348,156 @@
 
             <div class="qkv-lanes">
               <div class="qkv-lane">
-                <div class="qkv-lane-lab q"><b>Q</b><small>瞬时 / 丢弃</small></div>
+                <div class="qkv-lane-lab q"><span lang="zh-CN" class="i18n-zh"><b>Q</b><small>瞬时 / 丢弃</small></span><span lang="en" class="i18n-en"><b>Q</b><small>transient / discarded</small></span></div>
                 <div class="qkv-track" id="laneQ"></div>
               </div>
               <div class="qkv-lane">
-                <div class="qkv-lane-lab k"><b>K cache</b><small>累积 / 常驻</small></div>
+                <div class="qkv-lane-lab k"><span lang="zh-CN" class="i18n-zh"><b>K cache</b><small>累积 / 常驻</small></span><span lang="en" class="i18n-en"><b>K cache</b><small>accumulating / resident</small></span></div>
                 <div class="qkv-track" id="laneK"><div class="qkv-scan" id="scanK"></div></div>
               </div>
               <div class="qkv-lane">
-                <div class="qkv-lane-lab v"><b>V cache</b><small>累积 / 常驻</small></div>
+                <div class="qkv-lane-lab v"><span lang="zh-CN" class="i18n-zh"><b>V cache</b><small>累积 / 常驻</small></span><span lang="en" class="i18n-en"><b>V cache</b><small>accumulating / resident</small></span></div>
                 <div class="qkv-track" id="laneV"><div class="qkv-scan" id="scanV"></div></div>
               </div>
             </div>
 
             <div class="qkv-readout">
-              <div class="qkv-ro"><div class="kk">本步 Q 形状</div><div class="vv"><span class="q" id="roQ">—</span></div></div>
-              <div class="qkv-ro"><div class="kk">本步新增 K / V</div><div class="vv"><span class="k" id="roKV">—</span></div></div>
-              <div class="qkv-ro"><div class="kk">Attention 矩阵</div><div class="vv" id="roAttn">—</div></div>
-              <div class="qkv-ro"><div class="kk">KV cache 累计</div><div class="vv" id="roCache">—</div></div>
+              <div class="qkv-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">本步 Q 形状</span><span lang="en" class="i18n-en">Q shape this step</span></div><div class="vv"><span class="q" id="roQ">—</span></div></div>
+              <div class="qkv-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">本步新增 K / V</span><span lang="en" class="i18n-en">New K / V this step</span></div><div class="vv"><span class="k" id="roKV">—</span></div></div>
+              <div class="qkv-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">Attention 矩阵</span><span lang="en" class="i18n-en">Attention matrix</span></div><div class="vv" id="roAttn">—</div></div>
+              <div class="qkv-ro"><div class="kk"><span lang="zh-CN" class="i18n-zh">KV cache 累计</span><span lang="en" class="i18n-en">KV cache total</span></div><div class="vv" id="roCache">—</div></div>
             </div>
 
             <div class="qkv-ctrls">
-              <button class="primary" id="scopePlay">暂停</button>
-              <button id="scopeStepBtn">单步 →</button>
-              <button id="scopeReset">重置</button>
+              <button class="primary" id="scopePlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <button id="scopeStepBtn"><span lang="zh-CN" class="i18n-zh">单步 →</span><span lang="en" class="i18n-en">Step →</span></button>
+              <button id="scopeReset"><span lang="zh-CN" class="i18n-zh">重置</span><span lang="en" class="i18n-en">Reset</span></button>
               <div class="qkv-seg" id="scopeSpeed">
-                <button data-s="1600">慢</button>
-                <button data-s="900" class="on">正常</button>
-                <button data-s="420">快</button>
+                <button data-s="1600"><span lang="zh-CN" class="i18n-zh">慢</span><span lang="en" class="i18n-en">Slow</span></button>
+                <button data-s="900" class="on"><span lang="zh-CN" class="i18n-zh">正常</span><span lang="en" class="i18n-en">Normal</span></button>
+                <button data-s="420"><span lang="zh-CN" class="i18n-zh">快</span><span lang="en" class="i18n-en">Fast</span></button>
               </div>
             </div>
           </div>
 
-          <h2>三、全程:聊到 256K 用满</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、全程:聊到 256K 用满</span><span lang="en" class="i18n-en">3 · The whole run: chatting until 256K is full</span></h2>
 
-          <p>
-            快进视角。约 260 轮往返对话,逐步吃满 262,144 token 的窗口。
+          <p><span lang="zh-CN" class="i18n-zh">快进视角。约 260 轮往返对话,逐步吃满 262,144 token 的窗口。
             每一轮用户提问触发一次 <b style="color: var(--ok)">prefill</b>(只处理新增部分,历史命中前缀缓存),
-            模型回答则是成百上千次 <b style="color: var(--hot)">decode</b>。
-          </p>
+            模型回答则是成百上千次 <b style="color: var(--hot)">decode</b>。</span><span lang="en" class="i18n-en">Fast-forward view. Around 260 round trips gradually fill the 262,144-token window.
+            Every user message triggers one <b style="color: var(--ok)">prefill</b> (only the new part; the history hits the prefix cache),
+            and every model reply is hundreds or thousands of <b style="color: var(--hot)">decode</b> steps.</span></p>
 
           <div class="qkv-card" id="act3">
             <div class="qkv-macro-head">
               <div class="qkv-bigstat">
-                <div class="qkv-bs"><div class="n q" id="mCtx">0</div><div class="l">已用 token</div></div>
-                <div class="qkv-bs"><div class="n k" id="mMem">0.00 GiB</div><div class="l">KV cache 显存</div></div>
-                <div class="qkv-bs"><div class="n o" id="mTurn">0</div><div class="l">对话轮次</div></div>
-                <div class="qkv-bs"><div class="n h" id="mSpeed">— tok/s</div><div class="l">decode 吞吐</div></div>
+                <div class="qkv-bs"><div class="n q" id="mCtx">0</div><div class="l"><span lang="zh-CN" class="i18n-zh">已用 token</span><span lang="en" class="i18n-en">Tokens used</span></div></div>
+                <div class="qkv-bs"><div class="n k" id="mMem">0.00 GiB</div><div class="l"><span lang="zh-CN" class="i18n-zh">KV cache 显存</span><span lang="en" class="i18n-en">KV cache memory</span></div></div>
+                <div class="qkv-bs"><div class="n o" id="mTurn">0</div><div class="l"><span lang="zh-CN" class="i18n-zh">对话轮次</span><span lang="en" class="i18n-en">Turns</span></div></div>
+                <div class="qkv-bs"><div class="n h" id="mSpeed">— tok/s</div><div class="l"><span lang="zh-CN" class="i18n-zh">decode 吞吐</span><span lang="en" class="i18n-en">Decode throughput</span></div></div>
               </div>
               <div style="text-align: right">
-                <div style="font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; color: var(--text-dim); text-transform: uppercase">当前阶段</div>
+                <div style="font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em; color: var(--text-dim); text-transform: uppercase"><span lang="zh-CN" class="i18n-zh">当前阶段</span><span lang="en" class="i18n-en">Current phase</span></div>
                 <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700" id="mPhase">—</div>
               </div>
             </div>
 
             <canvas id="ribbon" height="132"></canvas>
             <div class="qkv-legend">
-              <span><i style="background: #34d399"></i>用户输入 (prefill)</span>
-              <span><i style="background: #fb7185"></i>模型输出 (decode)</span>
-              <span><i style="background: var(--surface-strong)"></i>剩余窗口</span>
-              <span><i style="background: var(--q)"></i>当前写入位置</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: #34d399"></i>用户输入 (prefill)</span><span lang="en" class="i18n-en"><i style="background: #34d399"></i>user input (prefill)</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: #fb7185"></i>模型输出 (decode)</span><span lang="en" class="i18n-en"><i style="background: #fb7185"></i>model output (decode)</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--surface-strong)"></i>剩余窗口</span><span lang="en" class="i18n-en"><i style="background: var(--surface-strong)"></i>window remaining</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="background: var(--q)"></i>当前写入位置</span><span lang="en" class="i18n-en"><i style="background: var(--q)"></i>current write position</span></span>
             </div>
 
             <div class="qkv-timeline">
-              <button class="primary" id="mPlay">▶ 播放</button>
-              <input type="range" id="mScrub" min="0" max="1000" value="0" aria-label="播放进度" />
+              <button class="primary" id="mPlay"><span lang="zh-CN" class="i18n-zh">▶ 播放</span><span lang="en" class="i18n-en">▶ Play</span></button>
+              <input type="range" id="mScrub" min="0" max="1000" value="0" aria-label="Playback progress" />
               <div class="qkv-seg" id="mSpeedSel">
                 <button data-s="1" class="on">1×</button>
                 <button data-s="2">2×</button>
                 <button data-s="4">4×</button>
               </div>
-              <button id="mReset">重置</button>
+              <button id="mReset"><span lang="zh-CN" class="i18n-zh">重置</span><span lang="en" class="i18n-en">Reset</span></button>
             </div>
 
             <div class="qkv-bars">
               <div class="qkv-qb">
-                <h5 class="q">Q · 每步重新生成</h5>
-                <div class="st">无论上下文多长,单步 Q 永远只有当前 token 那么大,算完立刻归还显存。</div>
+                <h5 class="q"><span lang="zh-CN" class="i18n-zh">Q · 每步重新生成</span><span lang="en" class="i18n-en">Q · rebuilt every step</span></h5>
+                <div class="st"><span lang="zh-CN" class="i18n-zh">无论上下文多长,单步 Q 永远只有当前 token 那么大,算完立刻归还显存。</span><span lang="en" class="i18n-en">However long the context, one step's Q is only ever as large as the current token, and its memory is returned the moment the computation finishes.</span></div>
                 <div class="qkv-meter"><i class="q" id="barQ" style="width: 4%"></i></div>
-                <div class="num"><span>本步临时占用</span><b id="numQ">16 KiB</b></div>
+                <div class="num"><span><span lang="zh-CN" class="i18n-zh">本步临时占用</span><span lang="en" class="i18n-en">temporary this step</span></span><b id="numQ">16 KiB</b></div>
               </div>
               <div class="qkv-qb">
-                <h5 class="k">K cache · 只增不减</h5>
-                <div class="st">每 token 每层写入 8×128 的 bf16 向量,全 80 层合计 160 KiB,永不释放。</div>
+                <h5 class="k"><span lang="zh-CN" class="i18n-zh">K cache · 只增不减</span><span lang="en" class="i18n-en">K cache · only grows</span></h5>
+                <div class="st"><span lang="zh-CN" class="i18n-zh">每 token 每层写入 8×128 的 bf16 向量,全 80 层合计 160 KiB,永不释放。</span><span lang="en" class="i18n-en">Every token writes an 8×128 bf16 vector per layer, 160 KiB across all 80 layers, never released.</span></div>
                 <div class="qkv-meter"><i class="k" id="barK" style="width: 0%"></i></div>
-                <div class="num"><span>已累计</span><b id="numK">0.00 GiB</b></div>
+                <div class="num"><span><span lang="zh-CN" class="i18n-zh">已累计</span><span lang="en" class="i18n-en">accumulated</span></span><b id="numK">0.00 GiB</b></div>
               </div>
               <div class="qkv-qb">
-                <h5 class="v">V cache · 只增不减</h5>
-                <div class="st">与 K 完全同步增长。两者相加就是那条决定推理成本的 80 GiB。</div>
+                <h5 class="v"><span lang="zh-CN" class="i18n-zh">V cache · 只增不减</span><span lang="en" class="i18n-en">V cache · only grows</span></h5>
+                <div class="st"><span lang="zh-CN" class="i18n-zh">与 K 完全同步增长。两者相加就是那条决定推理成本的 80 GiB。</span><span lang="en" class="i18n-en">Grows in exact lockstep with K. The two together are the 80 GiB that determines the cost of inference.</span></div>
                 <div class="qkv-meter"><i class="v" id="barV" style="width: 0%"></i></div>
-                <div class="num"><span>已累计</span><b id="numV">0.00 GiB</b></div>
+                <div class="num"><span><span lang="zh-CN" class="i18n-zh">已累计</span><span lang="en" class="i18n-en">accumulated</span></span><b id="numV">0.00 GiB</b></div>
               </div>
             </div>
 
             <div class="qkv-chatlog" id="chatlog"></div>
           </div>
 
-          <h2>四、代价曲线</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、代价曲线</span><span lang="en" class="i18n-en">4 · The cost curves</span></h2>
 
-          <p>
-            KV cache 随上下文线性增长,而 decode 吞吐随之衰减 —— 因为每生成一个 token,都必须把整条 cache 从 HBM 完整读一遍。
-            下图按 H100 SXM(3.35 TB/s,单序列,理论下界)估算。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">KV cache 随上下文线性增长,而 decode 吞吐随之衰减 —— 因为每生成一个 token,都必须把整条 cache 从 HBM 完整读一遍。
+            下图按 H100 SXM(3.35 TB/s,单序列,理论下界)估算。</span><span lang="en" class="i18n-en">KV cache grows linearly with context while decode throughput decays — because generating each token
+            requires reading the entire cache out of HBM. The figures below estimate against an H100 SXM
+            (3.35 TB/s, single sequence, theoretical lower bound).</span></p>
 
           <div class="qkv-charts">
             <div class="qkv-card qkv-chart">
-              <h5>KV cache 显存 vs 上下文长度</h5>
-              <div class="cs">320 KiB / token(80 层 × 2 × 8 头 × 128 × 2B)</div>
+              <h5><span lang="zh-CN" class="i18n-zh">KV cache 显存 vs 上下文长度</span><span lang="en" class="i18n-en">KV cache memory vs context length</span></h5>
+              <div class="cs"><span lang="zh-CN" class="i18n-zh">320 KiB / token(80 层 × 2 × 8 头 × 128 × 2B)</span><span lang="en" class="i18n-en">320 KiB / token (80 layers × 2 × 8 heads × 128 × 2B)</span></div>
               <canvas id="chartMem" height="250"></canvas>
             </div>
             <div class="qkv-card qkv-chart">
-              <h5>decode 吞吐 vs 上下文长度</h5>
-              <div class="cs">权重 40 GB 常数 + KV cache 线性项,全部访存受限</div>
+              <h5><span lang="zh-CN" class="i18n-zh">decode 吞吐 vs 上下文长度</span><span lang="en" class="i18n-en">Decode throughput vs context length</span></h5>
+              <div class="cs"><span lang="zh-CN" class="i18n-zh">权重 40 GB 常数 + KV cache 线性项,全部访存受限</span><span lang="en" class="i18n-en">A constant 40 GB of weights plus a linear KV cache term, all memory-bound</span></div>
               <canvas id="chartSpd" height="250"></canvas>
             </div>
           </div>
 
-          <h2>五、五个要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、五个要点</span><span lang="en" class="i18n-en">5 · Five things to take away</span></h2>
 
           <div class="qkv-takes">
             <div class="qkv-take">
               <div class="n">01</div>
-              <h5>Q 不是问题,KV 才是</h5>
-              <p>Q 的显存占用与序列长度无关,decode 时单层仅 <code>64×128×2B = 16 KiB</code>。真正撑爆显存的是那 80 GiB 的 K/V。优化长上下文,本质上是在优化 KV cache。</p>
+              <h5><span lang="zh-CN" class="i18n-zh">Q 不是问题,KV 才是</span><span lang="en" class="i18n-en">Q is not the problem; KV is</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Q 的显存占用与序列长度无关,decode 时单层仅 <code>64×128×2B = 16 KiB</code>。真正撑爆显存的是那 80 GiB 的 K/V。优化长上下文,本质上是在优化 KV cache。</span><span lang="en" class="i18n-en">Q's memory footprint is independent of sequence length — during decode it is only <code>64×128×2B = 16 KiB</code> per layer. What actually blows out memory is the 80 GiB of K/V. Optimising long context <em>is</em> optimising KV cache.</span></p>
             </div>
             <div class="qkv-take">
               <div class="n">02</div>
-              <h5>prefill 算力密集,decode 访存密集</h5>
-              <p>prefill 把成千上万个 token 的 Q/K/V 一次性算出来,是漂亮的大 GEMM;decode 每步只有一个 Q 向量,退化成 GEMV,算术强度约 <code>8 FLOP/byte</code>,远低于 H100 约 590 的拐点。</p>
+              <h5><span lang="zh-CN" class="i18n-zh">prefill 算力密集,decode 访存密集</span><span lang="en" class="i18n-en">Prefill is compute-bound, decode is memory-bound</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">prefill 把成千上万个 token 的 Q/K/V 一次性算出来,是漂亮的大 GEMM;decode 每步只有一个 Q 向量,退化成 GEMV,算术强度约 <code>8 FLOP/byte</code>,远低于 H100 约 590 的拐点。</span><span lang="en" class="i18n-en">Prefill computes Q/K/V for thousands of tokens at once, a nice large GEMM. Decode has a single Q vector per step, degenerating into a GEMV with an arithmetic intensity around <code>8 FLOP/byte</code> — far below the H100's roughly 590 knee.</span></p>
             </div>
             <div class="qkv-take">
               <div class="n">03</div>
-              <h5>多轮对话不重算历史</h5>
-              <p>第 2 轮起,用户新消息只需 prefill 新增的那几百个 token,之前所有 K/V 直接命中缓存。这就是「前缀缓存」,也是同一窗口连续对话比新开窗口快得多的原因。</p>
+              <h5><span lang="zh-CN" class="i18n-zh">多轮对话不重算历史</span><span lang="en" class="i18n-en">Multi-turn conversation does not recompute history</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">第 2 轮起,用户新消息只需 prefill 新增的那几百个 token,之前所有 K/V 直接命中缓存。这就是「前缀缓存」,也是同一窗口连续对话比新开窗口快得多的原因。</span><span lang="en" class="i18n-en">From turn 2 onward, a new user message only needs to prefill its own few hundred tokens; all previous K/V hit the cache. This is prefix caching, and it is why continuing in one window is so much faster than opening a new one.</span></p>
             </div>
             <div class="qkv-take">
               <div class="n">04</div>
-              <h5>越聊越慢是物理规律</h5>
-              <p>空窗口时每 token 约 12 ms(只需读 20B 激活权重),满窗口时约 38 ms(额外读 80 GiB cache)。吞吐从约 84 tok/s 掉到约 27 tok/s,与模型质量无关。</p>
+              <h5><span lang="zh-CN" class="i18n-zh">越聊越慢是物理规律</span><span lang="en" class="i18n-en">Slowing down as you chat is physics</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">空窗口时每 token 约 12 ms(只需读 20B 激活权重),满窗口时约 38 ms(额外读 80 GiB cache)。吞吐从约 84 tok/s 掉到约 27 tok/s,与模型质量无关。</span><span lang="en" class="i18n-en">On an empty window each token takes about 12 ms (reading 20B of active weights); on a full one about 38 ms (an extra 80 GiB of cache to read). Throughput falls from roughly 84 tok/s to roughly 27 tok/s, and none of it has to do with model quality.</span></p>
             </div>
             <div class="qkv-take">
               <div class="n">05</div>
-              <h5>GQA 是这一切的前提</h5>
-              <p>若用 MHA(64 份 KV),256K 的 cache 会是 640 GiB,单机八卡都放不下。GQA 把它压到 80 GiB,同时让每份 KV 被 8 个 Q 头复用,decode 的算术强度也提高 8 倍。</p>
+              <h5><span lang="zh-CN" class="i18n-zh">GQA 是这一切的前提</span><span lang="en" class="i18n-en">GQA is what makes all of this possible</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">若用 MHA(64 份 KV),256K 的 cache 会是 640 GiB,单机八卡都放不下。GQA 把它压到 80 GiB,同时让每份 KV 被 8 个 Q 头复用,decode 的算术强度也提高 8 倍。</span><span lang="en" class="i18n-en">Under MHA (64 KV copies) a 256K cache would be 640 GiB, beyond even an eight-GPU node. GQA compresses it to 80 GiB and, by having 8 Q heads reuse each KV, raises decode's arithmetic intensity 8× as well.</span></p>
             </div>
           </div>
 
-          <blockquote>
-            参数取自 HYV3 配置:80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 / max_position_embeddings 262144。
-            性能数字为访存理论下界估算,未计入通信、调度与 kernel 效率损失,仅用于说明量级关系。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">参数取自 HYV3 配置:80 层 / 64 Q 头 / 8 KV 头 / head_dim 128 / bf16 / max_position_embeddings 262144。
+            性能数字为访存理论下界估算,未计入通信、调度与 kernel 效率损失,仅用于说明量级关系。</span><span lang="en" class="i18n-en">Parameters taken from the HYV3 config: 80 layers / 64 Q heads / 8 KV heads / head_dim 128 / bf16 / max_position_embeddings 262144.
+            Performance numbers are memory-bandwidth lower bounds, excluding communication, scheduling and kernel efficiency losses; they illustrate magnitudes only.</span></blockquote>
         </div>
       </article>
     </main>
@@ -522,6 +521,17 @@
         var HBM = 3.35e12; // B/s
         var W_BYTES = 20e9 * EB; // 激活权重 40 GB
         var GiB = Math.pow(1024, 3);
+
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
         var fmtInt = function (n) { return Math.round(n).toLocaleString('en-US'); };
         var gib = function (b) { return (b / GiB).toFixed(2) + ' GiB'; };
@@ -565,38 +575,43 @@
 
         /* ================= 二、显微镜 ================= */
         (function () {
-          // 剧本:一轮 = prefill(n) + 若干 decode step
+          // 剧本:一轮 = prefill(n) + 若干 decode step。
+          // 语种切换时整段重建,所以放进函数里。
           var script = [];
+          function buildScript() {
+          script = [];
           script.push({
-            t: 'pf', turn: 1, n: 8, label: '第 1 轮 · 用户输入',
-            desc: '会话开始。用户发来 8 个 token,模型<em>一次性并行</em>为这 8 个位置算出 Q、K、V。Q 用于计算 8×8 的因果注意力后立即丢弃;K、V 被<em>写入 KV cache 并永久保留</em>。'
+            t: 'pf', turn: 1, n: 8, label: tr('第 1 轮 · 用户输入', 'Turn 1 · user input'),
+            desc: tr('会话开始。用户发来 8 个 token,模型<em>一次性并行</em>为这 8 个位置算出 Q、K、V。Q 用于计算 8×8 的因果注意力后立即丢弃;K、V 被<em>写入 KV cache 并永久保留</em>。', 'The session begins. The user sends 8 tokens, and the model computes Q, K and V for all 8 positions <em>in parallel, in one pass</em>. Q is used for the 8×8 causal attention and discarded immediately; K and V are <em>written into the KV cache and kept for good</em>.')
           });
           for (var i = 1; i <= 5; i++) {
             script.push({
-              t: 'dc', turn: 1, n: 1, step: i, label: '第 1 轮 · 模型输出',
-              desc: '生成第 ' + i + ' 个回复 token。<em>只有 1 个新 Q</em>(形状与序列长度无关),它要和 cache 里<em>全部 ' + (8 + i) + ' 个位置</em>的 K 做点积、再对全部 V 加权求和。新的 K、V 追加到 cache 尾部。'
+              t: 'dc', turn: 1, n: 1, step: i, label: tr('第 1 轮 · 模型输出', 'Turn 1 · model output'),
+              desc: tr('生成第 ' + i + ' 个回复 token。<em>只有 1 个新 Q</em>(形状与序列长度无关),它要和 cache 里<em>全部 ' + (8 + i) + ' 个位置</em>的 K 做点积、再对全部 V 加权求和。新的 K、V 追加到 cache 尾部。', 'Generating reply token ' + i + '. There is <em>exactly one new Q</em>, whose shape is independent of sequence length, and it must dot against the K of <em>all ' + (8 + i) + ' positions</em> in the cache and then weight-sum all of V. The new K and V are appended to the end of the cache.')
             });
           }
           script.push({
-            t: 'pf', turn: 2, n: 4, label: '第 2 轮 · 用户追问',
-            desc: '用户继续追问,新增 4 个 token。关键点:<em>前面 13 个位置的 K/V 直接复用</em>,不需要重算 —— 这就是前缀缓存。只有新增的 4 个位置需要 prefill。'
+            t: 'pf', turn: 2, n: 4, label: tr('第 2 轮 · 用户追问', 'Turn 2 · user follow-up'),
+            desc: tr('用户继续追问,新增 4 个 token。关键点:<em>前面 13 个位置的 K/V 直接复用</em>,不需要重算 —— 这就是前缀缓存。只有新增的 4 个位置需要 prefill。', 'The user follows up with 4 more tokens. The key point: <em>the K/V of the previous 13 positions is reused directly</em>, with no recomputation — this is prefix caching. Only the 4 new positions need prefill.')
           });
           for (var j = 1; j <= 4; j++) {
             script.push({
-              t: 'dc', turn: 2, n: 1, step: j, label: '第 2 轮 · 模型输出',
-              desc: '继续逐 token 生成。cache 已经跨越两轮对话,长度 ' + (17 + j) + '。每一步扫描的历史都比上一步更长 —— 这就是「越聊越慢」的微观来源。'
+              t: 'dc', turn: 2, n: 1, step: j, label: tr('第 2 轮 · 模型输出', 'Turn 2 · model output'),
+              desc: tr('继续逐 token 生成。cache 已经跨越两轮对话,长度 ' + (17 + j) + '。每一步扫描的历史都比上一步更长 —— 这就是「越聊越慢」的微观来源。', 'Generation continues token by token. The cache now spans two turns, length ' + (17 + j) + '. Each step scans a longer history than the last — this is, in miniature, why a conversation slows down as it goes on.')
             });
           }
           script.push({
-            t: 'pf', turn: 3, n: 3, label: '第 3 轮 · 用户追问',
-            desc: '又一轮。注意 K/V 行从第 1 轮开始就<em>从未被清空过</em>,它记录了整个会话的全部历史。而 Q 行始终只有当前这一下。'
+            t: 'pf', turn: 3, n: 3, label: tr('第 3 轮 · 用户追问', 'Turn 3 · user follow-up'),
+            desc: tr('又一轮。注意 K/V 行从第 1 轮开始就<em>从未被清空过</em>,它记录了整个会话的全部历史。而 Q 行始终只有当前这一下。', 'Another turn. Note that the K/V rows have <em>never been cleared</em> since turn 1; they hold the entire history of the session. The Q row, meanwhile, only ever holds the current moment.')
           });
           for (var m = 1; m <= 3; m++) {
             script.push({
-              t: 'dc', turn: 3, n: 1, step: m, label: '第 3 轮 · 模型输出',
-              desc: '把这个循环重复几百次,cache 就会一路长到 262,144 —— 也就是下一节的内容。'
+              t: 'dc', turn: 3, n: 1, step: m, label: tr('第 3 轮 · 模型输出', 'Turn 3 · model output'),
+              desc: tr('把这个循环重复几百次,cache 就会一路长到 262,144 —— 也就是下一节的内容。', 'Repeat this loop a few hundred times and the cache climbs all the way to 262,144 — which is what the next section shows.')
             });
           }
+          }
+          buildScript();
 
           var laneQ = document.getElementById('laneQ'),
             laneK = document.getElementById('laneK'),
@@ -627,7 +642,7 @@
             elPill.className = 'qkv-pill ' + (s.t === 'pf' ? 'pf' : 'dc');
             elTitle.textContent = s.label;
             elDesc.innerHTML = s.desc;
-            elStep.textContent = s.t === 'pf' ? '并行处理 ' + s.n + ' 个位置' : 'decode step ' + s.step;
+            elStep.textContent = s.t === 'pf' ? tr('并行处理 ' + s.n + ' 个位置', 'computing ' + s.n + ' positions in parallel') : 'decode step ' + s.step;
 
             if (s.t === 'pf' && turnStarts.indexOf(cache) === -1 && cache > 0) {
               turnStarts.push(cache);
@@ -673,8 +688,8 @@
             roQ.textContent = '[1, ' + QH + ', ' + n + ', ' + HD + ']';
             roKV.textContent = '[1, ' + KVH + ', ' + n + ', ' + HD + '] ×2';
             roAttn.innerHTML = s.t === 'pf'
-              ? '<span style="color: var(--ok)">' + n + ' × ' + n + '</span> 因果三角'
-              : '<span style="color: var(--hot)">1 × ' + cache + '</span> 单行全扫';
+              ? '<span style="color: var(--ok)">' + n + ' × ' + n + '</span>' + tr(' 因果三角', ' causal triangle')
+              : '<span style="color: var(--hot)">1 × ' + cache + '</span>' + tr(' 单行全扫', ' one row, full scan');
             roCache.innerHTML = cache + ' token · <b style="color: var(--k)">' + (cache * KV_PER_TOK / 1024).toFixed(0) + ' KiB</b>';
 
             [laneQ, laneK, laneV].forEach(function (ln) { ln.scrollLeft = ln.scrollWidth; });
@@ -699,12 +714,12 @@
 
           document.getElementById('scopePlay').addEventListener('click', function (e) {
             playing = !playing;
-            e.target.textContent = playing ? '暂停' : '继续';
+            e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume');
             loop();
           });
           document.getElementById('scopeStepBtn').addEventListener('click', function () {
             playing = false;
-            document.getElementById('scopePlay').textContent = '继续';
+            document.getElementById('scopePlay').textContent = tr('继续', 'Resume');
             clearInterval(timer);
             next();
           });
@@ -723,6 +738,7 @@
 
           render();
           loop();
+          redraw.push(function () { buildScript(); render(); });
         })();
 
         /* ================= 三、全程宏观 ================= */
@@ -750,10 +766,16 @@
           })();
           var TOTAL_TURNS = segs[segs.length - 1].turn;
 
-          var TOPICS_U = ['帮我看下这段 kernel', '这个 shape 为什么不对', '再给个更快的版本', '解释一下这段 profile', '对比下两种实现', '有没有别的思路',
+          var TOPICS_U_ZH = ['帮我看下这段 kernel', '这个 shape 为什么不对', '再给个更快的版本', '解释一下这段 profile', '对比下两种实现', '有没有别的思路',
             '这里的显存怎么算', '把上面的整理成表', '继续', '那 batch 大了呢', '换成 fp8 会怎样', '再展开讲讲'];
-          var TOPICS_A = ['已定位到访存瓶颈…', '这里的分组索引可以省掉一次拷贝…', '建议改成 grouped GEMM…', '逐层拆解如下…', '两者差异主要在…',
+          var TOPICS_U_EN = ['take a look at this kernel', 'why is this shape wrong', 'give me a faster version', 'explain this profile', 'compare the two implementations', 'any other approach',
+            'how do I compute the memory here', 'turn the above into a table', 'go on', 'what about a larger batch', 'what changes under fp8', 'expand on that'];
+          function topicsU() { return isEn() ? TOPICS_U_EN : TOPICS_U_ZH; }
+          var TOPICS_A_ZH = ['已定位到访存瓶颈…', '这里的分组索引可以省掉一次拷贝…', '建议改成 grouped GEMM…', '逐层拆解如下…', '两者差异主要在…',
             '按带宽估算大约…', '结论是…', '补充一点…', '需要注意边界情况…', '实测数据显示…'];
+          var TOPICS_A_EN = ['found the memory-bandwidth bottleneck…', 'this group index can save one copy…', 'suggest switching to a grouped GEMM…', 'breaking it down layer by layer…', 'the difference is mainly in…',
+            'estimating from bandwidth, roughly…', 'the conclusion is…', 'one more thing…', 'watch the edge case here…', 'the measurements show…'];
+          function topicsA() { return isEn() ? TOPICS_A_EN : TOPICS_A_ZH; }
 
           var cv = document.getElementById('ribbon'), ctx2d = cv.getContext('2d');
           var elCtx = document.getElementById('mCtx'), elMem = document.getElementById('mMem'),
@@ -852,16 +874,29 @@
             ctx2d.font = '600 11px ui-monospace, Menlo, monospace';
             ctx2d.fillText('CONTEXT WINDOW  ·  262,144 tokens', 0, 12);
             ctx2d.textAlign = 'right';
-            ctx2d.fillText((cursor / CTX * 100).toFixed(1) + '% 已用', W, 12);
+            ctx2d.fillText((cursor / CTX * 100).toFixed(1) + tr('% 已用', '% used'), W, 12);
+          }
+
+          function topicFor(si) {
+            var list = segs[si].type === 'u' ? topicsU() : topicsA();
+            return list[si % list.length];
+          }
+
+          // 气泡已经渲染在 DOM 里,切语种时按记下的 segment 序号重写文字
+          function relabelLog() {
+            [].forEach.call(chatlog.querySelectorAll('.qkv-msg'), function (m) {
+              var si = +m.dataset.si;
+              if (!isNaN(si) && segs[si]) m.querySelector('.tx').textContent = topicFor(si);
+            });
           }
 
           function pushLog(si) {
             var s = segs[si];
             var who = s.type === 'u' ? 'USER' : 'MODEL';
-            var tx = s.type === 'u' ? TOPICS_U[si % TOPICS_U.length] : TOPICS_A[si % TOPICS_A.length];
             var d = document.createElement('div');
             d.className = 'qkv-msg ' + (s.type === 'u' ? 'u' : 'a');
-            d.innerHTML = '<span class="who">' + who + '</span><span class="tx">' + tx + '</span><span class="tk">' + (s.end - s.start) + ' tok</span>';
+            d.dataset.si = si;
+            d.innerHTML = '<span class="who">' + who + '</span><span class="tx">' + topicFor(si) + '</span><span class="tk">' + (s.end - s.start) + ' tok</span>';
             chatlog.appendChild(d);
             [].forEach.call(chatlog.querySelectorAll('.qkv-msg'), function (m) { m.classList.remove('cur'); });
             d.classList.add('cur');
@@ -892,11 +927,11 @@
             if (isPF) {
               var chunk = Math.min(2048, s.end - s.start);
               barQ.style.width = Math.min(100, 8 + chunk / 2048 * 92) + '%';
-              numQ.textContent = (chunk * Q_PER_TOK_LAYER / 1048576).toFixed(1) + ' MiB / 层';
+              numQ.textContent = (chunk * Q_PER_TOK_LAYER / 1048576).toFixed(1) + tr(' MiB / 层', ' MiB / layer');
               barQ.classList.remove('blink');
             } else {
               barQ.style.width = '3.5%';
-              numQ.textContent = '16 KiB / 层';
+              numQ.textContent = tr('16 KiB / 层', '16 KiB / layer');
               barQ.classList.add('blink');
             }
             var p = cursor / CTX * 100;
@@ -918,7 +953,7 @@
               if (t >= DUR) {
                 t = DUR;
                 playing = false;
-                document.getElementById('mPlay').textContent = '↻ 重放';
+                document.getElementById('mPlay').textContent = tr('↻ 重放', '↻ Replay');
               }
               update();
             }
@@ -929,14 +964,14 @@
             t = 0; cursor = 0; lastSegIdx = -1;
             chatlog.innerHTML = '';
             playing = false;
-            document.getElementById('mPlay').textContent = '▶ 播放';
+            document.getElementById('mPlay').textContent = tr('▶ 播放', '▶ Play');
             update();
           }
 
           document.getElementById('mPlay').addEventListener('click', function (e) {
             if (t >= DUR) reset();
             playing = !playing;
-            e.target.textContent = playing ? '❚❚ 暂停' : '▶ 播放';
+            e.target.textContent = playing ? tr('❚❚ 暂停', '❚❚ Pause') : tr('▶ 播放', '▶ Play');
           });
           document.getElementById('mReset').addEventListener('click', reset);
           scrub.addEventListener('input', function (e) {
@@ -965,11 +1000,18 @@
             es.forEach(function (en) {
               if (en.isIntersecting && t === 0 && !playing) {
                 playing = true;
-                document.getElementById('mPlay').textContent = '❚❚ 暂停';
+                document.getElementById('mPlay').textContent = tr('❚❚ 暂停', '❚❚ Pause');
               }
             });
           }, { threshold: 0.45 });
           io.observe(document.getElementById('act3'));
+          redraw.push(function () {
+            draw();
+            relabelLog();
+            var pb = document.getElementById('mPlay');
+            pb.textContent = playing ? tr('❚❚ 暂停', '❚❚ Pause')
+              : (t >= DUR ? tr('↻ 重放', '↻ Replay') : tr('▶ 播放', '▶ Play'));
+          });
         })();
 
         /* ================= 四、代价曲线 ================= */
