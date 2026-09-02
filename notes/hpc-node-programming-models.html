@@ -184,24 +184,16 @@
         </header>
 
         <div class="prose nl-note">
-          <p>
-            TUM / LRZ 的 BEAST 实验课(Evaluierung moderner HPC-Architekturen und -Beschleuniger)范围写得很清楚:<strong>节点内</strong>,不讲 MPI 集群。任务围着多核 CPU 和加速器转,大纲点名六件事 —— <strong>OpenMP(含 GPU offload)、SIMD、同步、OpenCL、SYCL、CUDA</strong>。BEAST(Bavarian Energy, Architecture and Software Testbed)是 LRZ 用来摸新型号、测能耗、给 SuperMUC-NG 后继机做 co-design 的试验床,不是对外服务;课上能碰到的硬件来自 Intel、AMD、NVIDIA、Marvell、Fujitsu 这一档,后来还加过 Cerebras 这类更偏门的加速器。
-          </p>
-          <p>
-            课程原文里 SuperMUC-NG「2020 年 6 月 Top500 第 13」是当时的定位,不是今天的排名。对我有用的是那句话的后半:<strong>先在节点上把一种架构吃透,再谈怎么把它编进下一台大机器</strong>。这篇是上课前的地图,不是实验报告。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">TUM / LRZ 的 BEAST 实验课(Evaluierung moderner HPC-Architekturen und -Beschleuniger)范围写得很清楚:<strong>节点内</strong>,不讲 MPI 集群。任务围着多核 CPU 和加速器转,大纲点名六件事 —— <strong>OpenMP(含 GPU offload)、SIMD、同步、OpenCL、SYCL、CUDA</strong>。BEAST(Bavarian Energy, Architecture and Software Testbed)是 LRZ 用来摸新型号、测能耗、给 SuperMUC-NG 后继机做 co-design 的试验床,不是对外服务;课上能碰到的硬件来自 Intel、AMD、NVIDIA、Marvell、Fujitsu 这一档,后来还加过 Cerebras 这类更偏门的加速器。</span><span lang="en" class="i18n-en">The BEAST practical at TUM / LRZ (Evaluierung moderner HPC-Architekturen und -Beschleuniger) is explicit about its scope: <strong>inside a node</strong>, no MPI clusters. The work revolves around multi-core CPUs and accelerators, and the syllabus names six things — <strong>OpenMP (including GPU offload), SIMD, synchronisation, OpenCL, SYCL and CUDA</strong>. BEAST (Bavarian Energy, Architecture and Software Testbed) is LRZ's bench for trying out new parts, measuring energy and doing co-design for SuperMUC-NG's successor; it is not a production service. The hardware you meet in the course comes from Intel, AMD, NVIDIA, Marvell and Fujitsu, with more unusual accelerators such as Cerebras added later.</span></p>
+          <p><span lang="zh-CN" class="i18n-zh">课程原文里 SuperMUC-NG「2020 年 6 月 Top500 第 13」是当时的定位,不是今天的排名。对我有用的是那句话的后半:<strong>先在节点上把一种架构吃透,再谈怎么把它编进下一台大机器</strong>。这篇是上课前的地图,不是实验报告。</span><span lang="en" class="i18n-en">The course text's "13th on the Top500, June 2020" for SuperMUC-NG was its standing at the time, not today's ranking. What matters to me is the second half of that sentence: <strong>master one architecture at the node level first, then talk about programming the next big machine</strong>. This is a map drawn before the course, not a lab report.</span></p>
 
-          <div class="callout key">
-            <strong>一句话总览:</strong> 大纲里的六件事不是六座孤岛。<strong>SIMD 和同步是横切机制</strong>,在每一种模型里都会再出现一次;<strong>OpenMP / CUDA / OpenCL / SYCL 是同一套执行层次上的四个 API</strong>,差别主要在「谁写 kernel、数据怎么搬、能跑上哪家硬件」。先把名字对齐,再上机,才不会把 <code>team</code>、<code>block</code>、<code>work-group</code> 当成三件不同的东西。
-          </div>
+          <div class="callout key"><span lang="zh-CN" class="i18n-zh"><strong>一句话总览:</strong> 大纲里的六件事不是六座孤岛。<strong>SIMD 和同步是横切机制</strong>,在每一种模型里都会再出现一次;<strong>OpenMP / CUDA / OpenCL / SYCL 是同一套执行层次上的四个 API</strong>,差别主要在「谁写 kernel、数据怎么搬、能跑上哪家硬件」。先把名字对齐,再上机,才不会把 <code>team</code>、<code>block</code>、<code>work-group</code> 当成三件不同的东西。</span><span lang="en" class="i18n-en"><strong>In one line:</strong> the six items are not six islands. <strong>SIMD and synchronisation are cross-cutting mechanisms</strong> that reappear inside every model; <strong>OpenMP, CUDA, OpenCL and SYCL are four APIs over the same execution hierarchy</strong>, differing mainly in who writes the kernel, how data moves, and whose hardware it runs on. Align the vocabulary before you sit down at the machine, and you will not mistake <code>team</code>, <code>block</code> and <code>work-group</code> for three different things.</span></div>
 
-          <h2>0 · 课在哪一层</h2>
-          <p>
-            HPC 程序通常叠三层:进程间(MPI)→ 节点内线程/队(OpenMP、CUDA grid)→ 核内向量(SIMD / warp)。这门课停在后两层。一个节点上你真正要调度的,是「若干 CPU 核 + 零到多块加速器 + 它们之间那条又窄又贵的总线」。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">0 · 课在哪一层</span><span lang="en" class="i18n-en">0 · Which layer this course sits on</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">HPC 程序通常叠三层:进程间(MPI)→ 节点内线程/队(OpenMP、CUDA grid)→ 核内向量(SIMD / warp)。这门课停在后两层。一个节点上你真正要调度的,是「若干 CPU 核 + 零到多块加速器 + 它们之间那条又窄又贵的总线」。</span><span lang="en" class="i18n-en">HPC programs usually stack three layers: between processes (MPI) → threads and teams within a node (OpenMP, CUDA grid) → vectors within a core (SIMD / warp). This course stops at the latter two. What you actually schedule on one node is some number of CPU cores, zero or more accelerators, and the narrow, expensive bus between them.</span></p>
 
           <figure class="nl-fig">
-            <div class="fig-title">动图 · 一个节点里同时发生的两件事:CPU 核在推 SIMD 通道,GPU 在推 SIMT warp</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 一个节点里同时发生的两件事:CPU 核在推 SIMD 通道,GPU 在推 SIMT warp</span><span lang="en" class="i18n-en">Figure · Two things happening at once inside a node: CPU cores pushing SIMD lanes, the GPU pushing SIMT warps</span></div>
             <div class="nl-nest">
               <div class="nl-box">
                 <div class="h">CPU socket <small>OpenMP parallel · SIMD lanes</small></div>
@@ -222,18 +214,16 @@
                 </div>
               </div>
             </div>
-            <span class="fig-cap">图 1 · 上半是多核 + 每核一条 SIMD 向量;下半是 GPU 的 grid→block→lane。四个 API 只是给这两套硬件起了不同的名字。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 1 · 上半是多核 + 每核一条 SIMD 向量;下半是 GPU 的 grid→block→lane。四个 API 只是给这两套硬件起了不同的名字。</span><span lang="en" class="i18n-en">Figure 1 · Above, multiple cores each with a SIMD vector; below, the GPU's grid → block → lane. The four APIs simply give these two pieces of hardware different names.</span></span>
           </figure>
 
-          <h2>1 · 先把名字对齐</h2>
-          <p>
-            异构设备几乎都按同一套三级来切工作:大范围切成组,组内再切成工作项,工作项在硬件上往往还被捆成一小波锁步执行。对照关系可以当字典用 —— 课上换 API 时,先在这张表里找同一行。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">1 · 先把名字对齐</span><span lang="en" class="i18n-en">1 · Aligning the vocabulary first</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">异构设备几乎都按同一套三级来切工作:大范围切成组,组内再切成工作项,工作项在硬件上往往还被捆成一小波锁步执行。对照关系可以当字典用 —— 课上换 API 时,先在这张表里找同一行。</span><span lang="en" class="i18n-en">Heterogeneous devices almost all carve up work the same three ways: a broad range split into groups, groups split into work items, and work items bundled on the hardware into small lockstep waves. Use the mapping as a dictionary — when the course switches API, find the same row first.</span></p>
 
           <table>
             <thead>
               <tr>
-                <th>层次</th>
+                <th><span lang="zh-CN" class="i18n-zh">层次</span><span lang="en" class="i18n-en">Level</span></th>
                 <th>OpenMP (device)</th>
                 <th>CUDA</th>
                 <th>OpenCL</th>
@@ -242,42 +232,42 @@
             </thead>
             <tbody>
               <tr>
-                <td>整次发射</td>
-                <td><code>target</code> 区域</td>
+                <td><span lang="zh-CN" class="i18n-zh">整次发射</span><span lang="en" class="i18n-en">Whole launch</span></td>
+                <td><span lang="zh-CN" class="i18n-zh"><code>target</code> 区域</span><span lang="en" class="i18n-en"><code>target</code> region</span></td>
                 <td>kernel launch</td>
                 <td>NDRange</td>
                 <td><code>parallel_for</code> / <code>nd_range</code></td>
               </tr>
               <tr>
-                <td>粗粒度组</td>
+                <td><span lang="zh-CN" class="i18n-zh">粗粒度组</span><span lang="en" class="i18n-en">Coarse group</span></td>
                 <td><code>teams</code>(league of teams)</td>
                 <td>grid of blocks</td>
                 <td>work-groups</td>
                 <td>work-groups</td>
               </tr>
               <tr>
-                <td>组内并行</td>
-                <td><code>parallel</code> 里的 threads</td>
+                <td><span lang="zh-CN" class="i18n-zh">组内并行</span><span lang="en" class="i18n-en">Parallelism within a group</span></td>
+                <td><span lang="zh-CN" class="i18n-zh"><code>parallel</code> 里的 threads</span><span lang="en" class="i18n-en">threads inside <code>parallel</code></span></td>
                 <td>threads in a block</td>
                 <td>work-items</td>
                 <td>work-items</td>
               </tr>
               <tr>
-                <td>锁步向量</td>
-                <td><code>simd</code> / 实现定义</td>
+                <td><span lang="zh-CN" class="i18n-zh">锁步向量</span><span lang="en" class="i18n-en">Lockstep vector</span></td>
+                <td><span lang="zh-CN" class="i18n-zh"><code>simd</code> / 实现定义</span><span lang="en" class="i18n-en"><code>simd</code> / implementation-defined</span></td>
                 <td>warp(NVIDIA 32)</td>
                 <td>sub-group</td>
                 <td>sub-group</td>
               </tr>
               <tr>
-                <td>组内共享内存</td>
-                <td>team 局部 / <code>allocate</code></td>
+                <td><span lang="zh-CN" class="i18n-zh">组内共享内存</span><span lang="en" class="i18n-en">Memory shared within a group</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">team 局部 / <code>allocate</code></span><span lang="en" class="i18n-en">team-local / <code>allocate</code></span></td>
                 <td><code>__shared__</code></td>
                 <td><code>__local</code></td>
                 <td><code>local_accessor</code></td>
               </tr>
               <tr>
-                <td>组内栅栏</td>
+                <td><span lang="zh-CN" class="i18n-zh">组内栅栏</span><span lang="en" class="i18n-en">Barrier within a group</span></td>
                 <td><code>barrier</code></td>
                 <td><code>__syncthreads</code></td>
                 <td><code>barrier(CLK_LOCAL_MEM_FENCE)</code></td>
@@ -286,17 +276,13 @@
             </tbody>
           </table>
 
-          <div class="callout info">
-            <strong>记一个方向就够:</strong> CUDA 的 <code>block</code> = OpenCL/SYCL 的 <code>work-group</code> = OpenMP 的 <code>team</code>。能在这一层共享的内存,换个 API 只是换关键字;不能跨组同步(除非 cooperative launch 这类扩展),这条在四套模型里都成立。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>记一个方向就够:</strong> CUDA 的 <code>block</code> = OpenCL/SYCL 的 <code>work-group</code> = OpenMP 的 <code>team</code>。能在这一层共享的内存,换个 API 只是换关键字;不能跨组同步(除非 cooperative launch 这类扩展),这条在四套模型里都成立。</span><span lang="en" class="i18n-en"><strong>One direction is enough to memorise:</strong> CUDA's <code>block</code> = OpenCL/SYCL's <code>work-group</code> = OpenMP's <code>team</code>. Memory shareable at that level is just a different keyword in a different API, and the inability to synchronise across groups (barring extensions like cooperative launch) holds in all four models.</span></div>
 
-          <h2>2 · SIMD:核里面那条向量带</h2>
-          <p>
-            SIMD(Single Instruction, Multiple Data)是<strong>一条指令同时喂给多个数据通道</strong>。CPU 上它长在每个核的向量寄存器里:AVX2 是 256-bit,AVX-512 是 512-bit(16 个 <code>float</code>),ARM 的 NEON 通常 128-bit,Fujitsu A64FX / 部分 ARM 则是长度可伸缩的 SVE。编译器自动向量化、<code>#pragma omp simd</code>、手写 intrinsic,是同一件事的三个控制旋钮,从「听天由命」到「我指定通道数」。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">2 · SIMD:核里面那条向量带</span><span lang="en" class="i18n-en">2 · SIMD: the vector lane inside a core</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">SIMD(Single Instruction, Multiple Data)是<strong>一条指令同时喂给多个数据通道</strong>。CPU 上它长在每个核的向量寄存器里:AVX2 是 256-bit,AVX-512 是 512-bit(16 个 <code>float</code>),ARM 的 NEON 通常 128-bit,Fujitsu A64FX / 部分 ARM 则是长度可伸缩的 SVE。编译器自动向量化、<code>#pragma omp simd</code>、手写 intrinsic,是同一件事的三个控制旋钮,从「听天由命」到「我指定通道数」。</span><span lang="en" class="i18n-en">SIMD (Single Instruction, Multiple Data) feeds <strong>one instruction to several data lanes at once</strong>. On CPUs it lives in each core's vector registers: AVX2 is 256-bit, AVX-512 is 512-bit (16 <code>float</code>s), ARM's NEON is typically 128-bit, and Fujitsu A64FX and some ARM parts use length-agnostic SVE. Compiler auto-vectorisation, <code>#pragma omp simd</code> and hand-written intrinsics are three control knobs on the same thing, running from "leave it to fate" to "I am naming the lane count".</span></p>
 
           <figure class="nl-fig">
-            <div class="fig-title">动图 · 一条 ADD 同时打在 8 条 lane 上(把 AVX-256 的 float 通道画成格子)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 一条 ADD 同时打在 8 条 lane 上(把 AVX-256 的 float 通道画成格子)</span><span lang="en" class="i18n-en">Figure · One ADD landing on 8 lanes at once (AVX-256 float lanes drawn as cells)</span></div>
             <div class="nl-lanes8" aria-hidden="true">
               <span class="nl-cell on">a0</span>
               <span class="nl-cell on">a1</span>
@@ -307,7 +293,7 @@
               <span class="nl-cell on">a6</span>
               <span class="nl-cell on">a7</span>
             </div>
-            <p style="text-align:center;margin:.8em 0 .4em;font-family:var(--font-mono);font-size:.78rem;color:var(--text-muted)">+ 同一拍</p>
+            <p style="text-align:center;margin:.8em 0 .4em;font-family:var(--font-mono);font-size:.78rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">+ 同一拍</span><span lang="en" class="i18n-en">+ same cycle</span></p>
             <div class="nl-lanes8" aria-hidden="true">
               <span class="nl-cell on">b0</span>
               <span class="nl-cell on">b1</span>
@@ -318,88 +304,84 @@
               <span class="nl-cell on">b6</span>
               <span class="nl-cell on">b7</span>
             </div>
-            <span class="fig-cap">图 2 · CPU SIMD 是「一条指令,一排数据」。循环尾段不够一整个向量宽时,编译器会再吐一个标量 remainder —— 小 <code>N</code> 时向量化看起来「没加速」,经常是这个原因。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 2 · CPU SIMD 是「一条指令,一排数据」。循环尾段不够一整个向量宽时,编译器会再吐一个标量 remainder —— 小 <code>N</code> 时向量化看起来「没加速」,经常是这个原因。</span><span lang="en" class="i18n-en">Figure 2 · CPU SIMD is one instruction over a row of data. When the loop tail is narrower than a full vector, the compiler emits a scalar remainder — which is often why vectorisation "does nothing" at small <code>N</code>.</span></span>
           </figure>
 
-          <p>上课时值得主动查的三件事:</p>
+          <p><span lang="zh-CN" class="i18n-zh">上课时值得主动查的三件事:</span><span lang="en" class="i18n-en">Three things worth checking during the lab:</span></p>
           <ul>
-            <li><strong>对齐与单位跨步。</strong> <code>aligned(A:64)</code>、<code>restrict</code> / <code>__restrict</code> 告诉编译器没有别名。跨步不是 1 的访问会变成 gather/scatter,向量化收益很快被吃光。</li>
-            <li><strong>报告,不要猜。</strong> Intel <code>-qopt-report=3</code>、Clang <code>-Rpass=loop-vectorize</code>、NVIDIA <code>-Minfo=vect</code>。报告里写 <em>vectorized</em> 才算数。</li>
-            <li><strong>和 GPU 的 SIMT 不要混名。</strong> GPU warp 也是「一拍多数据」,但编程模型按<strong>线程</strong>写,硬件再把相邻线程捆成 warp。CPU SIMD 是你(或编译器)在指令级把循环切成向量;GPU SIMT 是硬件把标量线程锁步执行。发散(<code>if</code> 让 warp 里一半走 A、一半走 B)会把一拍拆成两拍串行。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>对齐与单位跨步。</strong> <code>aligned(A:64)</code>、<code>restrict</code> / <code>__restrict</code> 告诉编译器没有别名。跨步不是 1 的访问会变成 gather/scatter,向量化收益很快被吃光。</span><span lang="en" class="i18n-en"><strong>Alignment and unit stride.</strong> <code>aligned(A:64)</code> and <code>restrict</code> / <code>__restrict</code> tell the compiler there is no aliasing. Accesses with stride other than 1 turn into gather/scatter, and the vectorisation gain evaporates fast.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>报告,不要猜。</strong> Intel <code>-qopt-report=3</code>、Clang <code>-Rpass=loop-vectorize</code>、NVIDIA <code>-Minfo=vect</code>。报告里写 <em>vectorized</em> 才算数。</span><span lang="en" class="i18n-en"><strong>Read the report, do not guess.</strong> Intel <code>-qopt-report=3</code>, Clang <code>-Rpass=loop-vectorize</code>, NVIDIA <code>-Minfo=vect</code>. It only counts if the report says <em>vectorized</em>.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>和 GPU 的 SIMT 不要混名。</strong> GPU warp 也是「一拍多数据」,但编程模型按<strong>线程</strong>写,硬件再把相邻线程捆成 warp。CPU SIMD 是你(或编译器)在指令级把循环切成向量;GPU SIMT 是硬件把标量线程锁步执行。发散(<code>if</code> 让 warp 里一半走 A、一半走 B)会把一拍拆成两拍串行。</span><span lang="en" class="i18n-en"><strong>Do not confuse it with GPU SIMT.</strong> A GPU warp is also many data per cycle, but the programming model is written per <strong>thread</strong> and the hardware bundles neighbouring threads into a warp afterwards. CPU SIMD is you (or the compiler) slicing the loop into vectors at the instruction level; GPU SIMT is hardware running scalar threads in lockstep. Divergence — an <code>if</code> sending half the warp down A and half down B — splits one cycle into two serial ones.</span></li>
           </ul>
 
           <figure class="nl-fig">
-            <div class="fig-title">SIMT 发散:同一 warp 里 mask 掉一半 lane,硬件仍占着整条 warp 的发射槽</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">SIMT 发散:同一 warp 里 mask 掉一半 lane,硬件仍占着整条 warp 的发射槽</span><span lang="en" class="i18n-en">SIMT divergence: half the lanes masked off, yet the warp still occupies a full issue slot</span></div>
             <div class="nl-vs">
               <div>
-                <div class="fig-title" style="margin-bottom:8px">无发散 · 8/8 有效</div>
+                <div class="fig-title" style="margin-bottom:8px"><span lang="zh-CN" class="i18n-zh">无发散 · 8/8 有效</span><span lang="en" class="i18n-en">No divergence · 8/8 active</span></div>
                 <div class="nl-lanes8">
                   <span class="nl-cell on">0</span><span class="nl-cell on">1</span><span class="nl-cell on">2</span><span class="nl-cell on">3</span>
                   <span class="nl-cell on">4</span><span class="nl-cell on">5</span><span class="nl-cell on">6</span><span class="nl-cell on">7</span>
                 </div>
               </div>
               <div>
-                <div class="fig-title" style="margin-bottom:8px">奇数线程走 else · 4/8 有效</div>
+                <div class="fig-title" style="margin-bottom:8px"><span lang="zh-CN" class="i18n-zh">奇数线程走 else · 4/8 有效</span><span lang="en" class="i18n-en">Odd threads take the else branch · 4/8 active</span></div>
                 <div class="nl-lanes8">
                   <span class="nl-cell on">0</span><span class="nl-cell off">1</span><span class="nl-cell on">2</span><span class="nl-cell off">3</span>
                   <span class="nl-cell on">4</span><span class="nl-cell off">5</span><span class="nl-cell on">6</span><span class="nl-cell off">7</span>
                 </div>
               </div>
             </div>
-            <span class="fig-cap">图 3 · 灰度格子仍占着硬件,只是这拍不写回。BEAST 上换 NVIDIA / AMD GPU 时,把「按 warp/wavefront 对齐的分支」写进报告,比只报 GFLOP/s 更像在评架构。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 3 · 灰度格子仍占着硬件,只是这拍不写回。BEAST 上换 NVIDIA / AMD GPU 时,把「按 warp/wavefront 对齐的分支」写进报告,比只报 GFLOP/s 更像在评架构。</span><span lang="en" class="i18n-en">Figure 3 · The greyed cells still occupy hardware; they simply do not write back this cycle. When switching between NVIDIA and AMD GPUs on BEAST, writing up "branches aligned to warp/wavefront" reads far more like architecture evaluation than reporting GFLOP/s alone.</span></span>
           </figure>
 
-          <pre><code>#pragma omp simd aligned(A, B, C: 64)
+          <pre><code><span lang="zh-CN" class="i18n-zh">#pragma omp simd aligned(A, B, C: 64)
 for (int i = 0; i &lt; N; ++i)
-    C[i] = A[i] + B[i];   /* 编译器负责挑 AVX-512 / SVE 宽度 */</code></pre>
+    C[i] = A[i] + B[i];   /* 编译器负责挑 AVX-512 / SVE 宽度 */</span><span lang="en" class="i18n-en">#pragma omp simd aligned(A, B, C: 64)
+for (int i = 0; i &lt; N; ++i)
+    C[i] = A[i] + B[i];   /* the compiler picks the AVX-512 / SVE width */</span></code></pre>
 
-          <h2>3 · 同步:每个边界一把锁</h2>
-          <p>
-            并行程序里「算得快」和「算得对」之间隔的就是同步。课把 synchronization 单列一项,是因为它<strong>不属于某一个 API</strong>,而是每个 API 都要你显式或隐式选一种。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">3 · 同步:每个边界一把锁</span><span lang="en" class="i18n-en">3 · Synchronisation: a lock at every boundary</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">并行程序里「算得快」和「算得对」之间隔的就是同步。课把 synchronization 单列一项,是因为它<strong>不属于某一个 API</strong>,而是每个 API 都要你显式或隐式选一种。</span><span lang="en" class="i18n-en">What separates "fast" from "correct" in a parallel program is synchronisation. The course lists it separately because it <strong>belongs to no single API</strong> — every API makes you choose one, explicitly or implicitly.</span></p>
           <ul>
-            <li><strong>Barrier / 栅栏。</strong> OpenMP 并行区末尾默认有一道隐式 barrier(<code>nowait</code> 才拿掉);CUDA 的 <code>__syncthreads()</code> 只在 <em>block</em> 内有效;warp 内用 <code>__syncwarp</code>。跨 block 的栅栏不是默认能力。</li>
-            <li><strong>互斥 vs 原子 vs 规约。</strong> <code>critical</code> 是一把大锁;<code>atomic</code> 是一条硬件原子;<code>reduction</code> 才是 HPC 里该先伸手去拿的 —— 它把「每人一份私有累加器,最后再合」这个模式写进运行时,避免伪共享。</li>
-            <li><strong>伪共享(false sharing)。</strong> 两个线程写同一 cache line(常见 64 B)里的不同字节,一致性协议仍当它们在抢。OpenMP 里给每个线程的累加器做 padding,或直接用 <code>reduction</code>,这个坑在 CPU 多核实验里几乎必现。</li>
-            <li><strong>内存序。</strong> C++ / OpenMP 5.x / CUDA 原子都有 relaxed / acquire-release / seq_cst。计数器用 relaxed 通常够;发布指针给别的线程看,就要 acquire-release。默认 seq_cst 正确但贵,报告里值得写你选了哪一档。</li>
-            <li><strong>数据传输也是同步。</strong> <code>cudaMemcpy</code>、OpenMP <code>map</code>、SYCL accessor 的依赖图,本质都是「这边写完,那边才能读」。把 H2D/D2H 算进或不算进计时,会让同一段 kernel 的「加速比」差出一个数量级。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>Barrier / 栅栏。</strong> OpenMP 并行区末尾默认有一道隐式 barrier(<code>nowait</code> 才拿掉);CUDA 的 <code>__syncthreads()</code> 只在 <em>block</em> 内有效;warp 内用 <code>__syncwarp</code>。跨 block 的栅栏不是默认能力。</span><span lang="en" class="i18n-en"><strong>Barriers.</strong> An OpenMP parallel region has an implicit barrier at the end (removed only by <code>nowait</code>); CUDA's <code>__syncthreads()</code> works only within a <em>block</em>, and <code>__syncwarp</code> within a warp. A barrier across blocks is not a default capability.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>互斥 vs 原子 vs 规约。</strong> <code>critical</code> 是一把大锁;<code>atomic</code> 是一条硬件原子;<code>reduction</code> 才是 HPC 里该先伸手去拿的 —— 它把「每人一份私有累加器,最后再合」这个模式写进运行时,避免伪共享。</span><span lang="en" class="i18n-en"><strong>Mutex vs atomic vs reduction.</strong> <code>critical</code> is one big lock; <code>atomic</code> is a single hardware atomic; <code>reduction</code> is what you should reach for first in HPC — it encodes "a private accumulator each, combined at the end" into the runtime and avoids false sharing.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>伪共享(false sharing)。</strong> 两个线程写同一 cache line(常见 64 B)里的不同字节,一致性协议仍当它们在抢。OpenMP 里给每个线程的累加器做 padding,或直接用 <code>reduction</code>,这个坑在 CPU 多核实验里几乎必现。</span><span lang="en" class="i18n-en"><strong>False sharing.</strong> Two threads writing different bytes of the same cache line (commonly 64 B) still look like contention to the coherence protocol. Padding each thread's accumulator, or just using <code>reduction</code>, avoids it; the trap shows up in almost every multi-core CPU lab.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>内存序。</strong> C++ / OpenMP 5.x / CUDA 原子都有 relaxed / acquire-release / seq_cst。计数器用 relaxed 通常够;发布指针给别的线程看,就要 acquire-release。默认 seq_cst 正确但贵,报告里值得写你选了哪一档。</span><span lang="en" class="i18n-en"><strong>Memory ordering.</strong> C++, OpenMP 5.x and CUDA atomics all offer relaxed / acquire-release / seq_cst. Relaxed is usually enough for a counter; publishing a pointer for another thread to read needs acquire-release. The seq_cst default is correct but expensive, and it is worth stating in the report which one you picked.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>数据传输也是同步。</strong> <code>cudaMemcpy</code>、OpenMP <code>map</code>、SYCL accessor 的依赖图,本质都是「这边写完,那边才能读」。把 H2D/D2H 算进或不算进计时,会让同一段 kernel 的「加速比」差出一个数量级。</span><span lang="en" class="i18n-en"><strong>Data transfer is synchronisation too.</strong> <code>cudaMemcpy</code>, OpenMP <code>map</code> and SYCL's accessor dependency graph all mean the same thing: this side finishes writing before that side can read. Counting H2D/D2H in or out of your timing can change the same kernel's "speedup" by an order of magnitude.</span></li>
           </ul>
 
           <figure class="nl-fig">
-            <div class="fig-title">动图 · 节点里最贵的同步之一:host ↔ device 搬数据</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · 节点里最贵的同步之一:host ↔ device 搬数据</span><span lang="en" class="i18n-en">Figure · One of the most expensive synchronisations in a node: moving data host ↔ device</span></div>
             <div class="nl-xfer">
               <div class="nl-mem">Host DRAM<small>malloc / map(to:)</small></div>
               <div class="nl-bus"><i class="nl-pkt"></i><span class="lab">PCIe / NVLink / xGMI</span></div>
               <div class="nl-mem">Device HBM<small>cudaMalloc / USM device</small></div>
             </div>
-            <span class="fig-cap">图 4 · 小工作量实验最容易测到的不是算力,是这条总线。OpenMP 漏写 <code>map</code>、CUDA 每次 kernel 都 <code>cudaMalloc</code>、SYCL 用 buffer 却在 host 侧反复 <code>host_accessor</code>,都会让加速器「看起来很慢」。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 4 · 小工作量实验最容易测到的不是算力,是这条总线。OpenMP 漏写 <code>map</code>、CUDA 每次 kernel 都 <code>cudaMalloc</code>、SYCL 用 buffer 却在 host 侧反复 <code>host_accessor</code>,都会让加速器「看起来很慢」。</span><span lang="en" class="i18n-en">Figure 4 · At small problem sizes what you measure is not compute but this bus. Forgetting <code>map</code> in OpenMP, calling <code>cudaMalloc</code> on every kernel, or using SYCL buffers while repeatedly taking a <code>host_accessor</code> all make an accelerator "look slow".</span></span>
           </figure>
 
-          <div class="callout warn">
-            <strong>OpenMP GPU 的静默回退:</strong> 如果 offload 失败(没链上 libomptarget、没 GPU、编译目标不对),实现可以改在 CPU 上跑,程序照样「正确」。测加速比之前先 <code>OMP_TARGET_OFFLOAD=mandatory</code>,失败就失败,不要拿一个其实跑在主机上的数字去写报告。
-          </div>
+          <div class="callout warn"><span lang="zh-CN" class="i18n-zh"><strong>OpenMP GPU 的静默回退:</strong> 如果 offload 失败(没链上 libomptarget、没 GPU、编译目标不对),实现可以改在 CPU 上跑,程序照样「正确」。测加速比之前先 <code>OMP_TARGET_OFFLOAD=mandatory</code>,失败就失败,不要拿一个其实跑在主机上的数字去写报告。</span><span lang="en" class="i18n-en"><strong>OpenMP GPU's silent fallback:</strong> if offload fails — libomptarget not linked, no GPU, wrong compile target — the implementation is allowed to run on the CPU instead, and the program is still "correct". Set <code>OMP_TARGET_OFFLOAD=mandatory</code> before measuring speedup; let it fail rather than reporting a number that was actually produced on the host.</span></div>
 
-          <h2>4 · OpenMP:同一套 pragma,从多核接到 GPU</h2>
-          <p>
-            OpenMP 的卖点是<strong>增量并行</strong>:串行循环上插 pragma,编译器负责 outline 出线程或 device kernel。CPU 上 <code>parallel for</code> 管核;向量化用 <code>simd</code>;从 4.0/4.5 起,<code>target</code> 把同一思路接到加速器。课标「OpenMP(用于 GPU)」,指的就是后面这条,不是把 CPU OpenMP 再讲一遍。
-          </p>
-          <p>GPU 上那串组合 pragma 可以按层次拆:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">4 · OpenMP:同一套 pragma,从多核接到 GPU</span><span lang="en" class="i18n-en">4 · OpenMP: one set of pragmas, from multi-core out to the GPU</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">OpenMP 的卖点是<strong>增量并行</strong>:串行循环上插 pragma,编译器负责 outline 出线程或 device kernel。CPU 上 <code>parallel for</code> 管核;向量化用 <code>simd</code>;从 4.0/4.5 起,<code>target</code> 把同一思路接到加速器。课标「OpenMP(用于 GPU)」,指的就是后面这条,不是把 CPU OpenMP 再讲一遍。</span><span lang="en" class="i18n-en">OpenMP sells <strong>incremental parallelism</strong>: add a pragma to a serial loop and the compiler outlines threads or a device kernel. On CPUs, <code>parallel for</code> handles cores and <code>simd</code> handles vectorisation; since 4.0/4.5, <code>target</code> extends the same idea to accelerators. When the syllabus says "OpenMP (for GPU)", it means that second part, not a second pass over CPU OpenMP.</span></p>
+          <p><span lang="zh-CN" class="i18n-zh">GPU 上那串组合 pragma 可以按层次拆:</span><span lang="en" class="i18n-en">The pragma stack on the GPU decomposes by level:</span></p>
           <ol class="steps">
             <li>
-              <div class="st-h"><code>target</code> —— 把区域丢到设备,并建立一份 data environment</div>
-              <div class="st-d"><code>map(to: A[0:N])</code> 进、<code>map(from: C[0:N])</code> 出。<code>target data</code> / <code>enter data</code> 用来避免每个循环都来回拷。</div>
+              <div class="st-h"><span lang="zh-CN" class="i18n-zh"><code>target</code> —— 把区域丢到设备,并建立一份 data environment</span><span lang="en" class="i18n-en"><code>target</code> — hand the region to the device and establish a data environment</span></div>
+              <div class="st-d"><span lang="zh-CN" class="i18n-zh"><code>map(to: A[0:N])</code> 进、<code>map(from: C[0:N])</code> 出。<code>target data</code> / <code>enter data</code> 用来避免每个循环都来回拷。</span><span lang="en" class="i18n-en"><code>map(to: A[0:N])</code> in, <code>map(from: C[0:N])</code> out. <code>target data</code> / <code>enter data</code> avoid copying back and forth around every loop.</span></div>
             </li>
             <li>
-              <div class="st-h"><code>teams</code> —— 在设备上拉起一支 league,对应 CUDA grid</div>
-              <div class="st-d">每个 team 有自己的 master。没有 <code>teams</code>,很多 GPU 运行时只能动到一小块计算单元。</div>
+              <div class="st-h"><span lang="zh-CN" class="i18n-zh"><code>teams</code> —— 在设备上拉起一支 league,对应 CUDA grid</span><span lang="en" class="i18n-en"><code>teams</code> — raise a league on the device, corresponding to a CUDA grid</span></div>
+              <div class="st-d"><span lang="zh-CN" class="i18n-zh">每个 team 有自己的 master。没有 <code>teams</code>,很多 GPU 运行时只能动到一小块计算单元。</span><span lang="en" class="i18n-en">Each team has its own master. Without <code>teams</code>, many GPU runtimes can only reach a small fraction of the compute units.</span></div>
             </li>
             <li>
-              <div class="st-h"><code>distribute</code> —— 把外层迭代分给各个 team</div>
-              <div class="st-d">只分到 team 一级,还没动 team 内部的线程。</div>
+              <div class="st-h"><span lang="zh-CN" class="i18n-zh"><code>distribute</code> —— 把外层迭代分给各个 team</span><span lang="en" class="i18n-en"><code>distribute</code> — divide the outer iterations among teams</span></div>
+              <div class="st-d"><span lang="zh-CN" class="i18n-zh">只分到 team 一级,还没动 team 内部的线程。</span><span lang="en" class="i18n-en">This only reaches the team level; the threads inside a team are still untouched.</span></div>
             </li>
             <li>
-              <div class="st-h"><code>parallel for</code> —— team 内部再切,对应 block 内的 threads</div>
-              <div class="st-d">常用合体:<code>#pragma omp target teams distribute parallel for</code>。二维循环再加 <code>collapse(2)</code>。</div>
+              <div class="st-h"><span lang="zh-CN" class="i18n-zh"><code>parallel for</code> —— team 内部再切,对应 block 内的 threads</span><span lang="en" class="i18n-en"><code>parallel for</code> — subdivide within a team, corresponding to threads in a block</span></div>
+              <div class="st-d"><span lang="zh-CN" class="i18n-zh">常用合体:<code>#pragma omp target teams distribute parallel for</code>。二维循环再加 <code>collapse(2)</code>。</span><span lang="en" class="i18n-en">The common composite: <code>#pragma omp target teams distribute parallel for</code>. Add <code>collapse(2)</code> for a two-dimensional loop.</span></div>
             </li>
           </ol>
 
@@ -408,78 +390,62 @@ for (int i = 0; i &lt; N; ++i)
 for (int i = 0; i &lt; N; ++i)
     C[i] = A[i] + B[i];</code></pre>
 
-          <p>厂商编译器不是同一条命令:</p>
+          <p><span lang="zh-CN" class="i18n-zh">厂商编译器不是同一条命令:</span><span lang="en" class="i18n-en">Vendor compilers do not share one command line:</span></p>
           <table>
             <thead>
-              <tr><th>编译器</th><th>典型旗标</th><th>常见目标</th></tr>
+              <tr><th><span lang="zh-CN" class="i18n-zh">编译器</span><span lang="en" class="i18n-en">Compiler</span></th><th><span lang="zh-CN" class="i18n-zh">典型旗标</span><span lang="en" class="i18n-en">Typical flags</span></th><th><span lang="zh-CN" class="i18n-zh">常见目标</span><span lang="en" class="i18n-en">Common targets</span></th></tr>
             </thead>
             <tbody>
-              <tr><td>GCC</td><td><code>-fopenmp -foffload=nvptx-none</code> 或 <code>amdgcn-amdhsa</code></td><td>NVIDIA / AMD GPU</td></tr>
-              <tr><td>Clang/LLVM</td><td><code>-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda</code></td><td>NVIDIA;AMD 用 <code>amdgcn-amd-amdhsa</code></td></tr>
-              <tr><td>NVIDIA nvc</td><td><code>-mp=gpu -Minfo=mp,opt</code></td><td>NVIDIA;<code>-gpu=managed</code> 走统一内存</td></tr>
+              <tr><td>GCC</td><td><span lang="zh-CN" class="i18n-zh"><code>-fopenmp -foffload=nvptx-none</code> 或 <code>amdgcn-amdhsa</code></span><span lang="en" class="i18n-en"><code>-fopenmp -foffload=nvptx-none</code> or <code>amdgcn-amdhsa</code></span></td><td>NVIDIA / AMD GPU</td></tr>
+              <tr><td>Clang/LLVM</td><td><code>-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda</code></td><td><span lang="zh-CN" class="i18n-zh">NVIDIA;AMD 用 <code>amdgcn-amd-amdhsa</code></span><span lang="en" class="i18n-en">NVIDIA; AMD uses <code>amdgcn-amd-amdhsa</code></span></td></tr>
+              <tr><td>NVIDIA nvc</td><td><code>-mp=gpu -Minfo=mp,opt</code></td><td><span lang="zh-CN" class="i18n-zh">NVIDIA;<code>-gpu=managed</code> 走统一内存</span><span lang="en" class="i18n-en">NVIDIA; <code>-gpu=managed</code> for unified memory</span></td></tr>
               <tr><td>Intel icx</td><td><code>-fiopenmp -fopenmp-targets=spir64</code></td><td>Intel GPU(Level Zero / SPIR-V)</td></tr>
             </tbody>
           </table>
-          <p>
-            数据生命周期是 OpenMP GPU 实验里比 kernel 本身更容易丢分的部分。循环外用 <code>target data</code> 把数组钉在设备上,再在里面多次 <code>target</code> 只 <code>map(tofrom:)</code> 真正变的那一块。LRZ 自己的 OpenMP GPU lab 也是按「先能 offload,再管 data management」这个顺序排的。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">数据生命周期是 OpenMP GPU 实验里比 kernel 本身更容易丢分的部分。循环外用 <code>target data</code> 把数组钉在设备上,再在里面多次 <code>target</code> 只 <code>map(tofrom:)</code> 真正变的那一块。LRZ 自己的 OpenMP GPU lab 也是按「先能 offload,再管 data management」这个顺序排的。</span><span lang="en" class="i18n-en">Data lifetime loses more marks in an OpenMP GPU lab than the kernel itself. Pin arrays to the device with <code>target data</code> outside the loop, then use several <code>target</code> regions inside that only <code>map(tofrom:)</code> what actually changes. LRZ's own OpenMP GPU lab is ordered the same way: get offload working first, then manage the data.</span></p>
 
-          <h2>5 · CUDA:在 NVIDIA 上把控制权拿满</h2>
-          <p>
-            CUDA 是这张表里<strong>控制粒度最细、可移植性最窄</strong>的一档。kernel 用 <code>__global__</code> 写,发射用 <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code>,线程坐标是 <code>blockIdx * blockDim + threadIdx</code>。内存分成 global / shared / local / constant,shared memory 就是 block 级暂存,对应上面那张表的「组内共享」。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">5 · CUDA:在 NVIDIA 上把控制权拿满</span><span lang="en" class="i18n-en">5 · CUDA: taking full control on NVIDIA</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">CUDA 是这张表里<strong>控制粒度最细、可移植性最窄</strong>的一档。kernel 用 <code>__global__</code> 写,发射用 <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code>,线程坐标是 <code>blockIdx * blockDim + threadIdx</code>。内存分成 global / shared / local / constant,shared memory 就是 block 级暂存,对应上面那张表的「组内共享」。</span><span lang="en" class="i18n-en">CUDA is the <strong>finest-grained and least portable</strong> entry in this table. Kernels are written with <code>__global__</code>, launched with <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code>, and thread coordinates are <code>blockIdx * blockDim + threadIdx</code>. Memory divides into global / shared / local / constant, where shared memory is the block-level scratchpad — the "shared within a group" row of the table above.</span></p>
           <ul>
-            <li><strong>合并访存(coalescing)。</strong> 同一 warp 的线程读连续地址,硬件合成一次事务;按列读二维数组会把带宽打成碎片。这是 CUDA 实验里最稳的「架构相关」观察。</li>
-            <li><strong>Occupancy ≠ 最快。</strong> 寄存器和 shared memory 用多用少,决定一个 SM 能常驻多少 warp。Occupancy 高有助于藏延迟,但不是目标函数;Nsight Compute 里看实际吞吐和 stall 理由。</li>
-            <li><strong>Stream。</strong> 默认流是同步的。独立 stream 才能把 H2D、kernel、D2H 叠起来 —— 又回到「同步」那一节:你要显式决定哪些可以重叠。</li>
-            <li><strong>统一内存。</strong> <code>cudaMallocManaged</code> 让代码变短,page migration 的代价会写进第一次 touch。和 OpenMP <code>-gpu=managed</code>、SYCL USM shared 是同一类权衡。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>合并访存(coalescing)。</strong> 同一 warp 的线程读连续地址,硬件合成一次事务;按列读二维数组会把带宽打成碎片。这是 CUDA 实验里最稳的「架构相关」观察。</span><span lang="en" class="i18n-en"><strong>Coalescing.</strong> When threads in a warp read consecutive addresses the hardware merges them into one transaction; reading a 2-D array by column shatters bandwidth. This is the most reliable architecture-dependent observation in a CUDA lab.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>Occupancy ≠ 最快。</strong> 寄存器和 shared memory 用多用少,决定一个 SM 能常驻多少 warp。Occupancy 高有助于藏延迟,但不是目标函数;Nsight Compute 里看实际吞吐和 stall 理由。</span><span lang="en" class="i18n-en"><strong>Occupancy ≠ fastest.</strong> How many registers and how much shared memory you use determines how many warps an SM can keep resident. High occupancy helps hide latency but is not the objective function; look at actual throughput and stall reasons in Nsight Compute.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>Stream。</strong> 默认流是同步的。独立 stream 才能把 H2D、kernel、D2H 叠起来 —— 又回到「同步」那一节:你要显式决定哪些可以重叠。</span><span lang="en" class="i18n-en"><strong>Streams.</strong> The default stream is synchronous. Only independent streams let H2D, kernel and D2H overlap — which returns to the synchronisation section: you decide explicitly what may overlap.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>统一内存。</strong> <code>cudaMallocManaged</code> 让代码变短,page migration 的代价会写进第一次 touch。和 OpenMP <code>-gpu=managed</code>、SYCL USM shared 是同一类权衡。</span><span lang="en" class="i18n-en"><strong>Unified memory.</strong> <code>cudaMallocManaged</code> makes the code shorter, and the cost of page migration lands on first touch. It is the same trade-off as OpenMP's <code>-gpu=managed</code> and SYCL's shared USM.</span></li>
           </ul>
-          <p>
-            AMD 上的对位不是 CUDA,是 <strong>HIP</strong>(接口几乎一对一,后端换 ROCm)。课如果给 AMD GPU,不要硬套 nvcc;SYCL 或 OpenMP offload 往往比手写一份 CUDA、再指望 HIPIFY 更符合「评架构」的目标。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">AMD 上的对位不是 CUDA,是 <strong>HIP</strong>(接口几乎一对一,后端换 ROCm)。课如果给 AMD GPU,不要硬套 nvcc;SYCL 或 OpenMP offload 往往比手写一份 CUDA、再指望 HIPIFY 更符合「评架构」的目标。</span><span lang="en" class="i18n-en">On AMD the counterpart is not CUDA but <strong>HIP</strong> (a near one-to-one interface over the ROCm backend). If the course gives you an AMD GPU, do not force nvcc; SYCL or OpenMP offload usually fits the goal of evaluating architectures better than writing CUDA and hoping HIPIFY sorts it out.</span></p>
 
-          <h2>6 · OpenCL:最「标准」,也最啰嗦</h2>
-          <p>
-            OpenCL 把异构计算拆成一条显式流水线:<strong>platform → device → context → queue → program → kernel → NDRange</strong>。kernel 用 OpenCL C 写成字符串或预编译的 SPIR-V,host 侧全是 C API。它能跑的地方最杂(GPU、CPU、历史上还有 FPGA),代价是启动一个 SAXPY 就要写几十行样板。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">6 · OpenCL:最「标准」,也最啰嗦</span><span lang="en" class="i18n-en">6 · OpenCL: the most standard, and the most verbose</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">OpenCL 把异构计算拆成一条显式流水线:<strong>platform → device → context → queue → program → kernel → NDRange</strong>。kernel 用 OpenCL C 写成字符串或预编译的 SPIR-V,host 侧全是 C API。它能跑的地方最杂(GPU、CPU、历史上还有 FPGA),代价是启动一个 SAXPY 就要写几十行样板。</span><span lang="en" class="i18n-en">OpenCL breaks heterogeneous compute into an explicit pipeline: <strong>platform → device → context → queue → program → kernel → NDRange</strong>. Kernels are written in OpenCL C as strings or precompiled SPIR-V, and the host side is all C API. It runs in the widest variety of places (GPUs, CPUs, historically FPGAs), at the price of dozens of lines of boilerplate to launch a SAXPY.</span></p>
           <pre><code>__kernel void add(__global const float* A,
                   __global const float* B,
                   __global float* C) {
     int i = get_global_id(0);
     C[i] = A[i] + B[i];
 }</code></pre>
-          <p>
-            为什么课还要教它:因为 CUDA / SYCL / OpenMP offload 的设备侧执行模型,几乎都是从这套 NDRange 语义长出来的。<code>get_global_id</code> / <code>get_local_id</code> / <code>get_group_id</code> 对上 CUDA 的 <code>threadIdx</code> 三件套之后,后面换 API 只是换皮。新代码更常经 SYCL 或 OpenMP 到达设备;OpenCL 仍是「看见运行时到底在干什么」的底图,也是某些非 NVIDIA 设备上仍能找到的最低公共 API。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">为什么课还要教它:因为 CUDA / SYCL / OpenMP offload 的设备侧执行模型,几乎都是从这套 NDRange 语义长出来的。<code>get_global_id</code> / <code>get_local_id</code> / <code>get_group_id</code> 对上 CUDA 的 <code>threadIdx</code> 三件套之后,后面换 API 只是换皮。新代码更常经 SYCL 或 OpenMP 到达设备;OpenCL 仍是「看见运行时到底在干什么」的底图,也是某些非 NVIDIA 设备上仍能找到的最低公共 API。</span><span lang="en" class="i18n-en">Why teach it anyway: because the device-side execution model of CUDA, SYCL and OpenMP offload all grew out of these NDRange semantics. Once <code>get_global_id</code> / <code>get_local_id</code> / <code>get_group_id</code> line up with CUDA's <code>threadIdx</code> trio, switching APIs later is mostly cosmetic. New code more often reaches the device through SYCL or OpenMP; OpenCL remains the base map for seeing what the runtime is really doing, and on some non-NVIDIA devices it is still the lowest common API available.</span></p>
 
-          <h2>7 · SYCL:单源 C++,后端再接各家</h2>
-          <p>
-            SYCL 的承诺是:<strong>一份现代 C++ ,kernel 就写在 lambda 里</strong>,由实现接到 CUDA、HIP、Level Zero 或 OpenCL。<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html">Intel DPC++</a>(<code>icpx -fsycl</code>)和 AdaptiveCpp(原 hipSYCL)是课上最可能碰到的两套。SYCL 2020 起有两条数据路:
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">7 · SYCL:单源 C++,后端再接各家</span><span lang="en" class="i18n-en">7 · SYCL: single-source C++, backends underneath</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">SYCL 的承诺是:<strong>一份现代 C++ ,kernel 就写在 lambda 里</strong>,由实现接到 CUDA、HIP、Level Zero 或 OpenCL。<a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html">Intel DPC++</a>(<code>icpx -fsycl</code>)和 AdaptiveCpp(原 hipSYCL)是课上最可能碰到的两套。SYCL 2020 起有两条数据路:</span><span lang="en" class="i18n-en">SYCL's promise: <strong>one piece of modern C++ with the kernel written inline as a lambda</strong>, mapped by the implementation onto CUDA, HIP, Level Zero or OpenCL. <a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html">Intel DPC++</a> (<code>icpx -fsycl</code>) and AdaptiveCpp (formerly hipSYCL) are the two you are most likely to meet. Since SYCL 2020 there are two data paths:</span></p>
           <div class="cols2">
             <div class="col-card">
               <h4>Buffer + accessor</h4>
-              <p>运行时根据 accessor 的读写意图建 DAG,自己插入拷贝。安全、啰嗦少一些,调试时要习惯「这次 accessor 到底触发了一次 H2D 没有」。</p>
+              <p><span lang="zh-CN" class="i18n-zh">运行时根据 accessor 的读写意图建 DAG,自己插入拷贝。安全、啰嗦少一些,调试时要习惯「这次 accessor 到底触发了一次 H2D 没有」。</span><span lang="en" class="i18n-en">The runtime builds a DAG from the read/write intent of your accessors and inserts the copies itself. Safer and less verbose, though when debugging you have to develop a feel for whether a given accessor triggered an H2D or not.</span></p>
             </div>
             <div class="col-card">
               <h4>USM</h4>
-              <p><code>malloc_device</code> / <code>malloc_shared</code> / <code>malloc_host</code>。指针语义接近 CUDA。device 指针不能在 host 解引用;shared 可以,但迁移成本和 managed CUDA 同类。</p>
+              <p><span lang="zh-CN" class="i18n-zh"><code>malloc_device</code> / <code>malloc_shared</code> / <code>malloc_host</code>。指针语义接近 CUDA。device 指针不能在 host 解引用;shared 可以,但迁移成本和 managed CUDA 同类。</span><span lang="en" class="i18n-en"><code>malloc_device</code> / <code>malloc_shared</code> / <code>malloc_host</code>. The pointer semantics are close to CUDA's. A device pointer cannot be dereferenced on the host; a shared one can, with migration costs comparable to CUDA managed memory.</span></p>
             </div>
           </div>
           <pre><code>q.parallel_for(N, [=](sycl::id&lt;1&gt; i) {
     C[i] = A[i] + B[i];
 }).wait();</code></pre>
-          <p>
-            SYCL 不是「CUDA 的开源版」。它在 Intel GPU 上是一等公民,在 NVIDIA / AMD 上取决于你的编译器有没有把对应 backend 编进来。课上换节点时,第一件事是 <code>sycl-ls</code>(或实现提供的 device 列表)确认 queue 绑的是你以为的那块设备,而不是偷偷落到 OpenCL CPU 回退。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">SYCL 不是「CUDA 的开源版」。它在 Intel GPU 上是一等公民,在 NVIDIA / AMD 上取决于你的编译器有没有把对应 backend 编进来。课上换节点时,第一件事是 <code>sycl-ls</code>(或实现提供的 device 列表)确认 queue 绑的是你以为的那块设备,而不是偷偷落到 OpenCL CPU 回退。</span><span lang="en" class="i18n-en">SYCL is not "open-source CUDA". It is a first-class citizen on Intel GPUs; on NVIDIA and AMD it depends on whether your compiler was built with the matching backend. When you move to a new node, the first thing to run is <code>sycl-ls</code> (or the implementation's device list) to confirm the queue is bound to the device you think it is, rather than quietly falling back to an OpenCL CPU.</span></p>
 
-          <h2>8 · 同一份 SAXPY,四个 API</h2>
-          <p>
-            下面这块可以来回切。四段代码做同一件事:<code>C[i] = A[i] + B[i]</code>。差别不在算术,在<strong>谁负责切工作、谁负责搬数据、谁负责等结束</strong>。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">8 · 同一份 SAXPY,四个 API</span><span lang="en" class="i18n-en">8 · The same SAXPY, four APIs</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">下面这块可以来回切。四段代码做同一件事:<code>C[i] = A[i] + B[i]</code>。差别不在算术,在<strong>谁负责切工作、谁负责搬数据、谁负责等结束</strong>。</span><span lang="en" class="i18n-en">The block below switches between them. Four pieces of code doing the same thing: <code>C[i] = A[i] + B[i]</code>. The difference is not arithmetic but <strong>who splits the work, who moves the data, and who waits for the end</strong>.</span></p>
 
           <figure class="nl-fig">
-            <div class="fig-title">可切换 · 同一循环的四种写法(数据搬运在注释里)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">可切换 · 同一循环的四种写法(数据搬运在注释里)</span><span lang="en" class="i18n-en">Switchable · four ways to write the same loop (data movement in the comments)</span></div>
             <div class="nl-seg" id="apiTabs" role="tablist" aria-label="SAXPY API">
               <button type="button" class="on" data-api="omp">OpenMP GPU</button>
               <button type="button" data-api="cuda">CUDA</button>
@@ -490,15 +456,13 @@ for (int i = 0; i &lt; N; ++i)
             <p class="fig-cap" id="apiCap"></p>
           </figure>
 
-          <h2>9 · BEAST 上谁能跑什么</h2>
-          <p>
-            LRZ 公开写过 BEAST 上出现过 AMD、Cerebras、Fujitsu、Intel、NVIDIA 等处理器,课程简介还点了 Marvell。具体机架清单会变,所以下面这张表按<strong>架构家族 × 编程模型</strong>来记,不绑定某一代 SKU。Cerebras 走自己的 SDK,不在这六件事里,别用 CUDA 思维硬套。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">9 · BEAST 上谁能跑什么</span><span lang="en" class="i18n-en">9 · What runs on what on BEAST</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">LRZ 公开写过 BEAST 上出现过 AMD、Cerebras、Fujitsu、Intel、NVIDIA 等处理器,课程简介还点了 Marvell。具体机架清单会变,所以下面这张表按<strong>架构家族 × 编程模型</strong>来记,不绑定某一代 SKU。Cerebras 走自己的 SDK,不在这六件事里,别用 CUDA 思维硬套。</span><span lang="en" class="i18n-en">LRZ has published that BEAST has hosted AMD, Cerebras, Fujitsu, Intel and NVIDIA processors, and the course blurb also names Marvell. The exact rack list changes, so the table below is organised by <strong>architecture family × programming model</strong> rather than a specific SKU generation. Cerebras uses its own SDK and is outside these six topics; do not force CUDA thinking onto it.</span></p>
 
           <table class="nl-matrix">
             <thead>
               <tr>
-                <th>硬件家族</th>
+                <th><span lang="zh-CN" class="i18n-zh">硬件家族</span><span lang="en" class="i18n-en">Hardware family</span></th>
                 <th>OpenMP</th>
                 <th>SIMD</th>
                 <th>CUDA</th>
@@ -510,25 +474,25 @@ for (int i = 0; i &lt; N; ++i)
               <tr>
                 <td>Intel CPU / GPU</td>
                 <td class="y">CPU + offload</td>
-                <td class="y">AVX-512 / 隐式</td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">AVX-512 / 隐式</span><span lang="en" class="i18n-en">AVX-512 / implicit</span></td>
                 <td class="n">—</td>
-                <td class="y">有</td>
-                <td class="y">一等(oneAPI)</td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">有</span><span lang="en" class="i18n-en">yes</span></td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">一等(oneAPI)</span><span lang="en" class="i18n-en">first-class (oneAPI)</span></td>
               </tr>
               <tr>
                 <td>AMD CPU / Instinct</td>
                 <td class="y">CPU + offload</td>
                 <td class="y">AVX2/512 · wave64/32</td>
-                <td class="p">经 HIP</td>
-                <td class="y">有</td>
+                <td class="p"><span lang="zh-CN" class="i18n-zh">经 HIP</span><span lang="en" class="i18n-en">via HIP</span></td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">有</span><span lang="en" class="i18n-en">yes</span></td>
                 <td class="y">AdaptiveCpp / DPC++</td>
               </tr>
               <tr>
                 <td>NVIDIA GPU</td>
                 <td class="y">nvc/clang offload</td>
                 <td class="y">warp 32</td>
-                <td class="y">原生</td>
-                <td class="y">有</td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">原生</span><span lang="en" class="i18n-en">native</span></td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">有</span><span lang="en" class="i18n-en">yes</span></td>
                 <td class="p">CUDA backend</td>
               </tr>
               <tr>
@@ -536,42 +500,38 @@ for (int i = 0; i &lt; N; ++i)
                 <td class="y">CPU OpenMP</td>
                 <td class="y">NEON / SVE</td>
                 <td class="n">—</td>
-                <td class="p">视栈</td>
-                <td class="p">视栈</td>
+                <td class="p"><span lang="zh-CN" class="i18n-zh">视栈</span><span lang="en" class="i18n-en">depends on the stack</span></td>
+                <td class="p"><span lang="zh-CN" class="i18n-zh">视栈</span><span lang="en" class="i18n-en">depends on the stack</span></td>
               </tr>
               <tr>
                 <td>Fujitsu A64FX</td>
-                <td class="y">强项</td>
+                <td class="y"><span lang="zh-CN" class="i18n-zh">强项</span><span lang="en" class="i18n-en">a strength</span></td>
                 <td class="y">SVE 512-bit</td>
                 <td class="n">—</td>
-                <td class="p">有限</td>
-                <td class="p">有限</td>
+                <td class="p"><span lang="zh-CN" class="i18n-zh">有限</span><span lang="en" class="i18n-en">limited</span></td>
+                <td class="p"><span lang="zh-CN" class="i18n-zh">有限</span><span lang="en" class="i18n-en">limited</span></td>
               </tr>
             </tbody>
           </table>
-          <p class="nl-legend">
-            <span><i class="nl-key" style="background:var(--omp)"></i> 一等/直接支持</span>
+          <p class="nl-legend"><span lang="zh-CN" class="i18n-zh"><span><i class="nl-key" style="background:var(--omp)"></i> 一等/直接支持</span>
             <span><i class="nl-key" style="background:var(--sync)"></i> 间接或看软件栈</span>
-            <span><i class="nl-key" style="background:var(--text-dim)"></i> 基本不走这条路</span>
-          </p>
+            <span><i class="nl-key" style="background:var(--text-dim)"></i> 基本不走这条路</span></span><span lang="en" class="i18n-en"><span><i class="nl-key" style="background:var(--omp)"></i> first-class / direct support</span>
+            <span><i class="nl-key" style="background:var(--sync)"></i> indirect, or depends on the software stack</span>
+            <span><i class="nl-key" style="background:var(--text-dim)"></i> not really this route</span></span></p>
 
-          <div class="callout tip">
-            <strong>同一算法、换节点,才是这门课的单位。</strong> 厂商短讲听的是「这块硅片的向量宽、缓存、HBM、互联」。报告里要对齐的是:问题规模、是否含拷贝、编译器旗标、绑核(<code>OMP_PROC_BIND</code> / <code>OMP_PLACES</code>)、以及设备到底是不是你以为的那一块。GFLOP/s 单独出现没有对照价值。
-          </div>
+          <div class="callout tip"><span lang="zh-CN" class="i18n-zh"><strong>同一算法、换节点,才是这门课的单位。</strong> 厂商短讲听的是「这块硅片的向量宽、缓存、HBM、互联」。报告里要对齐的是:问题规模、是否含拷贝、编译器旗标、绑核(<code>OMP_PROC_BIND</code> / <code>OMP_PLACES</code>)、以及设备到底是不是你以为的那一块。GFLOP/s 单独出现没有对照价值。</span><span lang="en" class="i18n-en"><strong>The unit of this course is one algorithm across different nodes.</strong> Vendor talks are about a chip's vector width, caches, HBM and interconnect. What a report has to align on is: problem size, whether copies are included, compiler flags, pinning (<code>OMP_PROC_BIND</code> / <code>OMP_PLACES</code>), and whether the device really is the one you think. A GFLOP/s figure on its own has nothing to compare against.</span></div>
 
-          <h2>10 · 上课前我给自己的清单</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">10 · 上课前我给自己的清单</span><span lang="en" class="i18n-en">10 · My own checklist before the course</span></h2>
           <ul>
-            <li>能把 <code>team</code> / <code>block</code> / <code>work-group</code> 画在同一层,不靠背定义。</li>
-            <li>CPU 上先看向量化报告,再谈 OpenMP 线程数;线程数 × SIMD 宽度才是峰值口径。</li>
-            <li>GPU 上先证明 kernel 跑在设备上,再谈快慢。<code>mandatory</code> offload、SYCL device 列表、CUDA <code>nvidia-smi</code> 是三种等价的「别骗自己」。</li>
-            <li>计时拆三截:H2D、kernel、D2H。加速比要写清楚包不包含搬运。</li>
-            <li>同步实验优先做 reduction / false sharing / barrier 的代价,而不是再写一把大 <code>critical</code>。</li>
-            <li>可移植性实验:同一份 OpenMP 或 SYCL,在 NVIDIA 和 Intel/AMD 节点上编过去 —— 这比在一块卡上把 CUDA occupancy 调到理论峰值,更贴近 BEAST 存在的理由。</li>
+            <li><span lang="zh-CN" class="i18n-zh">能把 <code>team</code> / <code>block</code> / <code>work-group</code> 画在同一层,不靠背定义。</span><span lang="en" class="i18n-en">Be able to draw <code>team</code> / <code>block</code> / <code>work-group</code> on the same level without reciting definitions.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">CPU 上先看向量化报告,再谈 OpenMP 线程数;线程数 × SIMD 宽度才是峰值口径。</span><span lang="en" class="i18n-en">On CPUs, read the vectorisation report before discussing thread counts; peak is thread count × SIMD width.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">GPU 上先证明 kernel 跑在设备上,再谈快慢。<code>mandatory</code> offload、SYCL device 列表、CUDA <code>nvidia-smi</code> 是三种等价的「别骗自己」。</span><span lang="en" class="i18n-en">On GPUs, prove the kernel ran on the device before discussing speed. <code>mandatory</code> offload, the SYCL device list and CUDA's <code>nvidia-smi</code> are three equivalent ways of not fooling yourself.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">计时拆三截:H2D、kernel、D2H。加速比要写清楚包不包含搬运。</span><span lang="en" class="i18n-en">Split timing three ways: H2D, kernel, D2H. State clearly whether the speedup includes the transfers.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">同步实验优先做 reduction / false sharing / barrier 的代价,而不是再写一把大 <code>critical</code>。</span><span lang="en" class="i18n-en">For synchronisation, measure the cost of reduction, false sharing and barriers rather than writing yet another big <code>critical</code>.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">可移植性实验:同一份 OpenMP 或 SYCL,在 NVIDIA 和 Intel/AMD 节点上编过去 —— 这比在一块卡上把 CUDA occupancy 调到理论峰值,更贴近 BEAST 存在的理由。</span><span lang="en" class="i18n-en">Portability experiment: compile the same OpenMP or SYCL on both an NVIDIA and an Intel/AMD node — closer to why BEAST exists than tuning CUDA occupancy to the theoretical peak on one card.</span></li>
           </ul>
 
-          <blockquote>
-            预期技能课表只写了「C 要熟,对体系结构和低层优化有兴趣」。六个名词里,真正要带上机的心态是:先画层次,再选 API,最后才碰旗标。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">预期技能课表只写了「C 要熟,对体系结构和低层优化有兴趣」。六个名词里,真正要带上机的心态是:先画层次,再选 API,最后才碰旗标。</span><span lang="en" class="i18n-en">The expected-skills list only says "solid C, and an interest in architecture and low-level optimisation". Across those six topics, the mindset worth bringing to the machine is: draw the hierarchy first, choose the API second, and only then touch the flags.</span></blockquote>
         </div>
       </article>
     </main>
@@ -587,9 +547,19 @@ for (int i = 0; i &lt; N; ++i)
     <script src="../scripts/app.js?ver=2.5.0" defer></script>
     <script>
       (function () {
-        var codes = {
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so figures register a redraw.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
+        function buildCodes() { return {
           omp: {
-            cap: '图 5a · 编译器 outline 出 device kernel;map 是数据搬运,循环本身不写线程坐标。',
+            cap: tr('图 5a · 编译器 outline 出 device kernel;map 是数据搬运,循环本身不写线程坐标。', 'Figure 5a · The compiler outlines a device kernel; map moves the data, and the loop itself never writes thread coordinates.'),
             src:
 '#pragma omp target teams distribute parallel for \\\n' +
 '    map(to: A[0:N], B[0:N]) map(from: C[0:N])\n' +
@@ -597,7 +567,7 @@ for (int i = 0; i &lt; N; ++i)
 '    C[i] = A[i] + B[i];'
           },
           cuda: {
-            cap: '图 5b · 自己算全局下标,自己 cudaMalloc / cudaMemcpy,自己选 grid 和 block。',
+            cap: tr('图 5b · 自己算全局下标,自己 cudaMalloc / cudaMemcpy,自己选 grid 和 block。', 'Figure 5b · You compute the global index, you cudaMalloc and cudaMemcpy, and you choose the grid and block.'),
             src:
 '__global__ void add(const float* A, const float* B, float* C, int N) {\n' +
 '    int i = blockIdx.x * blockDim.x + threadIdx.x;\n' +
@@ -606,7 +576,7 @@ for (int i = 0; i &lt; N; ++i)
 '// cudaMemcpy H2D; add<<<(N+255)/256, 256>>>(...); cudaMemcpy D2H;'
           },
           ocl: {
-            cap: '图 5c · kernel 是另一份 OpenCL C;host 负责 platform/device/queue/buffer 这条长链。',
+            cap: tr('图 5c · kernel 是另一份 OpenCL C;host 负责 platform/device/queue/buffer 这条长链。', 'Figure 5c · The kernel is a separate piece of OpenCL C; the host carries the long platform/device/queue/buffer chain.'),
             src:
 '__kernel void add(__global const float* A,\n' +
 '                  __global const float* B,\n' +
@@ -617,14 +587,15 @@ for (int i = 0; i &lt; N; ++i)
 '// clEnqueueWriteBuffer → clEnqueueNDRangeKernel → clEnqueueReadBuffer'
           },
           sycl: {
-            cap: '图 5d · 单源 lambda。buffer/accessor 让运行时插拷贝;USM 则自己管指针。',
+            cap: tr('图 5d · 单源 lambda。buffer/accessor 让运行时插拷贝;USM 则自己管指针。', 'Figure 5d · A single-source lambda. Buffers and accessors let the runtime insert copies; with USM you manage the pointers yourself.'),
             src:
 'q.parallel_for(sycl::range<1>(N), [=](sycl::id<1> i) {\n' +
 '    C[i] = A[i] + B[i];\n' +
 '}).wait();\n' +
-'// 或 USM: sycl::malloc_device / memcpy / free'
+tr('// 或 USM: sycl::malloc_device / memcpy / free', '// or USM: sycl::malloc_device / memcpy / free')
           }
-        };
+        }; }
+        var codes = buildCodes();
         var codeEl = document.getElementById('apiCode');
         var capEl = document.getElementById('apiCap');
         var tabs = document.getElementById('apiTabs');
@@ -644,6 +615,12 @@ for (int i = 0; i &lt; N; ++i)
           });
         }
         show('omp');
+        // 说明文字在建表时就定住了,切语种要重建再重放当前这一页
+        redraw.push(function () {
+          codes = buildCodes();
+          var on = tabs && tabs.querySelector('.on');
+          show(on ? on.getAttribute('data-api') : 'omp');
+        });
       })();
     </script>
   </body>
