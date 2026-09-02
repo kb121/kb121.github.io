@@ -38,6 +38,20 @@
 
 window.NOTES = [
   {
+    slug: "hy4-anatomy",
+    title: {
+      zh: "混元4 preview 模型结构分析",
+      en: "Hunyuan 4 preview Model Architecture Analysis",
+    },
+    summary: {
+      zh: "从 tencent/Hy4-preview 的 config.json 与 model.safetensors.index.json 拆这个 770B-A49B MoE。这一版 index 的 metadata 是空的、没有 total_size,改用 HTTP Range 逐个读 131 个分片的 safetensors 头部,按真实 shape 累加出 779.96B,再与模型卡的 770B / 49B / 10B 三项核对吻合。重点在它相对 Hy3 换掉了什么:注意力从 GQA 整个换成 Gated DSA(MLA 低秩压缩 + 稀疏索引),78 层只养 21 套 indexer(IndexCache 跨层复用),残差换成 4 条流的 iHC(只花 0.03B),上下文到 1M 而每 token 的 KV 反而省 3.65 倍,以及 BF16 八卡装不下、官方直接发 FP8 的部署账。",
+      en: "Takes tencent/Hy4-preview apart from config.json and model.safetensors.index.json. This release ships an empty metadata block with no total_size, so the parameter count comes from HTTP Range reads of all 131 safetensors shard headers, summing real tensor shapes to 779.96B — which then checks out against the card's 770B / 49B / 10B. The focus is what changed since Hy3: attention swapped wholesale from GQA to Gated DSA (low-rank MLA plus a sparse indexer), only 21 of 78 layers actually hold an indexer thanks to cross-layer IndexCache reuse, the residual path became four-stream iHC for all of 0.03B, context grew to 1M while per-token KV shrank 3.65x, and BF16 no longer fits on eight GPUs — which is why the official recipe points at the FP8 repo.",
+    },
+    date: "2026-09-02",
+    tags: ["MoE", "Model Anatomy", "MLA", "Sparse Attention", "KV Cache"],
+    category: "model",
+  },
+  {
     slug: "hpc-node-programming-models",
     title: {
       zh: "节点级编程模型:OpenMP GPU、SIMD、同步、OpenCL、SYCL 与 CUDA",

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<!--
+  =========================================================================
+  混元4 preview 模型结构分析 —— 从两个元数据文件把 770B 拆开
+  -------------------------------------------------------------------------
+  这一版的 index.json 里 metadata 是空的,没有 total_size,所以参数量改用
+  HTTP Range 逐个读 safetensors 分片头部的真实 shape 累加得到(131 个分片
+  全部读到,无失败)。推算完成后才与模型卡规格表核对,三个头条数字吻合。
+  显存部分只算权重与 KV,未计激活与框架 workspace,属乐观上界。
+  =========================================================================
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="混元4 preview 模型结构分析 — 庄宏" data-en="Hunyuan 4 preview Model Architecture Analysis — Hong Zhuang">混元4 preview 模型结构分析 — 庄宏</title>
+    <meta
+      name="description"
+      content="从 tencent/Hy4-preview 的 config.json 与 model.safetensors.index.json 拆解这个 770B-A49B MoE:这一版 index 没有 total_size,改用 HTTP Range 读 131 个分片的 safetensors 头部实测出 779.96B;注意力从 GQA 整个换成 Gated DSA(MLA 压缩 + 稀疏索引),78 层只养 21 套 indexer(IndexCache),残差换成 4 条流的 iHC,上下文到 1M 而每 token 的 KV 反而比 Hy3 省 3.65 倍,以及 BF16 装不下、官方直接发 FP8 的部署账。"
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+
+    <style>
+      .h4-note {
+        --attn: #22d3ee;
+        --exp: #a78bfa;
+        --idx: #fbbf24;
+        --hc: #f472b6;
+        --ok: #34d399;
+        --warn: #fb7185;
+        --on-accent: #08101c;
+        --inset: color-mix(in srgb, var(--surface-strong), transparent 30%);
+      }
+      [data-theme="light"] .h4-note {
+        --attn: #0e7490; --exp: #6d28d9; --idx: #b45309; --hc: #be185d; --ok: #047857; --warn: #be123c;
+        --on-accent: #fff;
+      }
+
+      .h4-note .h4-lede { font-size: 1.02rem; line-height: 1.85; }
+
+      .h4-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 1.2rem 0 1.6rem; }
+      .h4-kpi { padding: 13px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .h4-kpi b { display: block; font-family: var(--font-mono); font-size: 1.22rem; color: var(--accent-1); }
+      .h4-kpi span { display: block; margin-top: 4px; font-size: .74rem; line-height: 1.5; color: var(--text-muted); }
+
+      .h4-fig { margin: 1.6rem 0; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); overflow: hidden; }
+      .h4-fig .fig-title { margin-bottom: 13px; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .02em; color: var(--accent-1); }
+      .h4-fig .fig-cap { display: block; margin-top: 12px; font-size: .8rem; line-height: 1.65; color: var(--text-muted); }
+      .h4-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 12px; font-family: var(--font-mono); font-size: .63rem; color: var(--text-muted); }
+      .h4-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 3px; vertical-align: -1px; }
+
+      .h4-note button { padding: 9px 13px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-strong); color: var(--text); font-family: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; transition: .16s; }
+      .h4-note button:hover { border-color: var(--border-strong); }
+      .h4-seg { display: flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+      .h4-note .h4-seg button { border: 0; border-radius: 0; padding: 9px 12px; background: transparent; }
+      .h4-note .h4-seg button.on { background: color-mix(in srgb, var(--attn), transparent 84%); color: var(--attn); }
+      .h4-ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 14px; }
+
+      /* 参数构成条 */
+      .h4-bars { display: grid; gap: 7px; }
+      .h4-brow { display: grid; grid-template-columns: 132px 1fr 116px; align-items: center; gap: 10px; }
+      @media (max-width: 620px) { .h4-brow { grid-template-columns: 100px 1fr 88px; } }
+      .h4-brow .nm { font-family: var(--font-mono); font-size: .64rem; color: var(--text); }
+      .h4-brow .nm small { display: block; font-size: .53rem; color: var(--text-dim); }
+      .h4-btrack { height: 21px; border-radius: 6px; background: var(--inset); overflow: hidden; }
+      .h4-btrack i { display: block; height: 100%; width: var(--w); border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--c), transparent 55%), var(--c)); transform-origin: left; transform: scaleX(0); animation: h4grow 1s cubic-bezier(.2,.7,.2,1) var(--d,0s) forwards; }
+      @keyframes h4grow { to { transform: scaleX(1); } }
+      .h4-brow .vl { font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); text-align: right; }
+
+      /* MLA 压缩路径 */
+      .h4-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: stretch; }
+      .h4-stage { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--inset); text-align: center; }
+      .h4-stage .t { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); }
+      .h4-stage .d { margin: 7px 0 4px; font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--c); }
+      .h4-stage .s { font-size: .68rem; color: var(--text-muted); line-height: 1.55; }
+      .h4-pipe { position: relative; height: 16px; margin: 6px 0; border-radius: 99px; background: var(--inset); overflow: hidden; }
+      .h4-pipe i { position: absolute; top: 0; bottom: 0; width: 22px; border-radius: 99px; background: var(--c); animation: h4slide 2.2s linear var(--d,0s) infinite; }
+      @keyframes h4slide { 0% { left: -24px; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+      /* 78 层 indexer 带 */
+      .h4-strip { display: flex; flex-wrap: wrap; gap: 2px; }
+      .h4-lay { width: 15px; height: 26px; border-radius: 3px; background: color-mix(in srgb, var(--exp), transparent 60%); transition: .2s; }
+      .h4-lay.full { background: var(--idx); }
+      .h4-lay.dense { outline: 2px solid var(--ok); outline-offset: -2px; }
+      .h4-lay:hover { transform: translateY(-3px); }
+      .h4-info { margin-top: 11px; min-height: 42px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--inset); font-family: var(--font-mono); font-size: .66rem; line-height: 1.65; color: var(--text-muted); }
+      .h4-info b { color: var(--text); }
+
+      /* KV 曲线 */
+      .h4-crow { display: grid; grid-template-columns: 66px 1fr 1fr; align-items: center; gap: 9px; margin-bottom: 5px; }
+      .h4-crow .n { font-family: var(--font-mono); font-size: .62rem; color: var(--text-dim); text-align: right; }
+      .h4-cbar { position: relative; height: 20px; border-radius: 5px; background: var(--inset); overflow: hidden; }
+      .h4-cbar i { display: block; height: 100%; width: var(--w); background: var(--c); transform-origin: left; transform: scaleX(0); animation: h4grow .9s cubic-bezier(.2,.7,.2,1) var(--d,0s) forwards; }
+      .h4-cbar span { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: .57rem; color: var(--text); }
+      .h4-chead { display: grid; grid-template-columns: 66px 1fr 1fr; gap: 9px; margin-bottom: 6px; font-family: var(--font-mono); font-size: .6rem; color: var(--text-dim); }
+
+      /* 显存预算 */
+      .h4-budget { position: relative; height: 58px; border: 1px solid var(--border); border-radius: 11px; background: var(--inset); overflow: hidden; display: flex; }
+      .h4-bseg { height: 100%; display: grid; place-items: center; font-family: var(--font-mono); font-size: .59rem; color: var(--on-accent); transition: width .4s cubic-bezier(.2,.7,.2,1); overflow: hidden; white-space: nowrap; }
+      .h4-bseg.w { background: linear-gradient(90deg, color-mix(in srgb, var(--exp), transparent 30%), var(--exp)); }
+      .h4-bseg.kv { background: linear-gradient(90deg, color-mix(in srgb, var(--attn), transparent 30%), var(--attn)); }
+      .h4-bseg.free { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--ok), transparent 84%) 0 6px, transparent 6px 12px); color: var(--ok); }
+      .h4-bseg.over { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--warn), transparent 55%) 0 6px, transparent 6px 12px); border-left: 2px solid var(--warn); color: var(--warn); }
+      .h4-scale { display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--font-mono); font-size: .56rem; color: var(--text-dim); }
+      .h4-verdict { margin-top: 13px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--inset); font-size: .81rem; line-height: 1.72; color: var(--text-muted); }
+      .h4-verdict b { color: var(--text); }
+      .h4-verdict.bad { border-color: color-mix(in srgb, var(--warn), transparent 60%); background: color-mix(in srgb, var(--warn), transparent 92%); }
+      .h4-verdict.good { border-color: color-mix(in srgb, var(--ok), transparent 60%); background: color-mix(in srgb, var(--ok), transparent 92%); }
+
+      .h4-tw { overflow-x: auto; margin: 1.3rem 0; }
+      .h4-note table { width: 100%; border-collapse: collapse; font-size: .81rem; }
+      .h4-note table th, .h4-note table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+      .h4-note table th { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-1); white-space: nowrap; }
+      .h4-note table td code { font-size: .73rem; }
+      .h4-note table td.num { font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+      .h4-note table tbody tr:hover { background: var(--inset); }
+      .h4-note table td .up { color: var(--warn); font-weight: 600; }
+      .h4-note table td .dn { color: var(--ok); font-weight: 600; }
+
+      .h4-takes { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 13px; margin: 1.4rem 0; }
+      .h4-take { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+      .h4-take .n { margin-bottom: 9px; font-family: var(--font-mono); font-size: .7rem; font-weight: 700; color: var(--text-dim); }
+      .h4-take h5 { margin: 0 0 8px; font-size: .92rem; }
+      .h4-take p { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .h4-note *, .h4-note *::before, .h4-note *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+      }
+    </style>
+  </head>
+  <body id="top" class="note-page h4-note">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../notes.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回笔记列表</span><span lang="en" class="i18n-en">Back to notes</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-09-02</span>
+            <span class="tags"><span>MoE</span><span>Model Anatomy</span><span>MLA</span><span>Sparse Attention</span><span>KV Cache</span></span>
+          </div>
+          <h1><span lang="zh-CN" class="i18n-zh">混元4 preview 模型结构分析</span><span lang="en" class="i18n-en">Hunyuan 4 preview Model Architecture Analysis</span></h1>
+        </header>
+
+        <div class="prose">
+          <p class="h4-lede">
+            分析对象是腾讯混元团队的 <strong>Hy4 preview</strong>,模型卡
+            <a href="https://huggingface.co/tencent/Hy4-preview" target="_blank" rel="noopener">tencent/Hy4-preview</a>,
+            架构名 <code>HYV4ForCausalLM</code>,Apache-2.0。用的还是两个元数据文件:
+            <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/config.json" target="_blank" rel="noopener"><code>config.json</code></a>
+            与
+            <a href="https://huggingface.co/tencent/Hy4-preview/blob/main/model.safetensors.index.json" target="_blank" rel="noopener"><code>model.safetensors.index.json</code></a>。
+          </p>
+
+          <p>
+            半个月前我用同样的方法拆过 <a href="hy3-anatomy.html">Hy3</a>。这一代不是把参数堆大那么简单 ——
+            <strong>注意力整个换了架构,残差也换了</strong>。所以这篇除了算账,更多篇幅在看它改了什么。
+          </p>
+
+          <div class="h4-kpis">
+            <div class="h4-kpi"><b>779.96 B</b><span>实测总参数(含 MTP)</span></div>
+            <div class="h4-kpi"><b>49.03 B</b><span>每 token 激活,稀疏 15.9×</span></div>
+            <div class="h4-kpi"><b>87.8 KiB</b><span>每 token KV,比 Hy3 省 3.65×</span></div>
+            <div class="h4-kpi"><b>21 / 78</b><span>真正持有 indexer 的层</span></div>
+            <div class="h4-kpi"><b>1452.8 GiB</b><span>BF16 权重,8 卡放不下</span></div>
+          </div>
+
+          <h2>一、这次少了一样东西</h2>
+
+          <p>
+            拆 Hy3 时,<code>index.json</code> 的 <code>metadata.total_size</code> 给了权威的字节数,
+            我拿它和逐项推算对了账。<strong>Hy4 的 index 里 <code>metadata</code> 是空的</strong>,没有这个数;
+            张量条目也只有 2006 条(Hy3 有 47138),因为 256 个专家被<strong>融合成了一个张量</strong>。
+          </p>
+
+          <p>
+            所以这次换了个更硬的办法:<strong>直接读 safetensors 的文件头</strong>。
+            这个格式开头 8 字节是小端 <code>u64</code> 的头长度,紧跟一段 JSON,里面写明每个张量的 dtype 与 shape。
+            用 HTTP Range 只取每个分片的前几十 KB 就够了 —— 131 个分片全部读到,没有失败,
+            于是拿到的不是估算而是<strong>逐个张量的真实形状</strong>。
+          </p>
+
+          <pre><code># safetensors 头部:8 字节长度 + JSON
+req = Request(url, headers={'Range': 'bytes=0-131071'})
+d   = urlopen(req).read()
+n   = struct.unpack('&lt;Q', d[:8])[0]
+hdr = json.loads(d[8:8+n])
+# {"model.layers.1.mlp.experts.gate_up_proj":
+#     {"dtype":"BF16","shape":[256,4096,6144], ...}}</code></pre>
+
+          <h2>二、总账:770 B 主干 + 10 B MTP</h2>
+
+          <p>把 2006 个张量按 dtype 逐个累加:</p>
+
+          <div class="h4-fig">
+            <div class="fig-title">动图 1:779.96 B 参数都在哪</div>
+            <div class="h4-bars" id="paramBars"></div>
+            <span class="fig-cap">
+              <strong>路由专家吃掉 95.4%</strong>。MLA 注意力只占 2.7%,但它是每个 token 都要算的;
+              专家虽然占了绝大多数参数,每 token 只激活其中 8/256。这就是 MoE 的形状 ——
+              <strong>参数几乎全在专家里,计算却大部分不在</strong>。
+            </span>
+          </div>
+
+          <p>
+            推算完再和模型卡的规格表对照,三个头条数字全部吻合:
+          </p>
+
+          <div class="h4-tw">
+            <table>
+              <thead><tr><th>项</th><th class="num">模型卡</th><th class="num">本文实测</th><th>说明</th></tr></thead>
+              <tbody>
+                <tr><td>总参数量</td><td class="num">770 B</td><td class="num">769.91 B</td><td>均<strong>不含</strong> MTP</td></tr>
+                <tr><td>激活参数</td><td class="num">49 B</td><td class="num">49.03 B</td><td>含词嵌入与 lm_head</td></tr>
+                <tr><td>MTP 层参数</td><td class="num">10 B</td><td class="num">10.05 B</td><td>模型卡单独列出</td></tr>
+                <tr><td>磁盘总量</td><td class="num">—</td><td class="num"><strong>779.96 B</strong></td><td>= 770 + 10,规格表未给</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            和 Hy3 一样,MTP 是<strong>单独计的</strong>:规格表的 770 B 不含它,磁盘上实际躺着 779.96 B。
+            不同的是这次它被放进 <code>model.mtp_layers.0.*</code>,而不是 Hy3 那种伪装成第 80 层的写法 —— 命名干净了。
+            它也从 3.75 B 涨到了 <strong>10.05 B</strong>。
+          </p>
+
+          <h2>三、注意力整个换掉:GQA → Gated DSA</h2>
+
+          <p>
+            这是 Hy4 最大的结构变化。Hy3 用的是老实的 GQA(64 个 Q 头 / 8 个 KV 头 / head_dim 128)。
+            Hy4 的 <code>config</code> 里写着 <code>use_mla: true</code>、<code>use_dsa: true</code>、<code>gated_mla: true</code>,
+            权重里对应的是一整套 <strong>MLA 低秩压缩</strong>结构:
+          </p>
+
+          <div class="h4-fig">
+            <div class="fig-title">动图 2:MLA 的压缩路径(实测 shape)</div>
+            <div class="h4-flow">
+              <div class="h4-stage" style="--c: var(--attn)">
+                <div class="t">输入</div><div class="d">6144</div>
+                <div class="s">hidden_size</div>
+              </div>
+              <div class="h4-stage" style="--c: var(--exp)">
+                <div class="t">Q 压缩</div><div class="d">2048</div>
+                <div class="s"><code>q_a_proj</code><br />q_lora_rank</div>
+                <div class="h4-pipe"><i style="--d:0s"></i></div>
+              </div>
+              <div class="h4-stage" style="--c: var(--idx)">
+                <div class="t">KV 压缩(入缓存)</div><div class="d">512 + 64</div>
+                <div class="s"><code>kv_a_proj_with_mqa</code><br />kv_lora + rope</div>
+                <div class="h4-pipe"><i style="--d:.4s"></i></div>
+              </div>
+              <div class="h4-stage" style="--c: var(--hc)">
+                <div class="t">展开到头</div><div class="d">64 × 256</div>
+                <div class="s"><code>q_b_proj</code> / <code>kv_b_proj</code><br />qk_head_dim 256</div>
+                <div class="h4-pipe"><i style="--d:.8s"></i></div>
+              </div>
+            </div>
+            <span class="fig-cap">
+              关键在第三格:<strong>真正进 KV cache 的只有 512 + 64 = 576 个数</strong>,
+              而不是展开后的 64 头 × 256 维。<code>kv_b_proj</code> 是在读缓存时才把它还原成各头的 K/V。
+              这就是 MLA 省显存的全部秘密,也是第七节那条曲线的来源。
+            </span>
+          </div>
+
+          <p>
+            还有两处小东西值得点名。<code>linear_gate.weight</code> 的形状是 <code>(16384, 6144)</code> ——
+            <strong>和 <code>o_proj</code> 一样大</strong>,单层就 100.7 M,全模型 7.9 B。这是 <code>gated_mla</code> 的代价,
+            不算小。另外每层有一个 <code>learnable_sink_param</code>(64 个数,对应 64 个头),
+            对应 <code>learnable_sink: true</code> —— attention sink 从固定位置变成了可学习的标量。
+          </p>
+
+          <h2>四、IndexCache:78 层只养 21 套索引</h2>
+
+          <p>
+            <a href="https://arxiv.org/abs/2512.02556" target="_blank" rel="noopener">DSA</a>
+            的稀疏是靠一个 <strong>indexer</strong> 先给每个 query 挑出 top-2048 个 key,再只在这些位置上算注意力
+            (<code>index_topk: 2048</code>,<code>index_n_heads: 32</code>,<code>index_head_dim: 128</code>)。
+            我本来以为 78 层各有一套,结果<strong>只有 21 层带 indexer 张量</strong>。
+          </p>
+
+          <p>
+            对上 config 才发现原因:<code>indexer_types</code> 这个数组里,值是 <code>full</code> 和 <code>shared</code> 交替的,
+            而带 indexer 权重的层号恰好就是所有 <code>full</code> 的位置。模型卡把这个机制叫
+            <a href="https://arxiv.org/abs/2603.12201" target="_blank" rel="noopener">IndexCache</a> ——
+            <strong>跨层复用稀疏索引</strong>:一层算出来的 top-k 选择,后面几层直接拿来用,不再重算。
+          </p>
+
+          <div class="h4-fig">
+            <div class="fig-title">动图 3:78 层的 indexer 分布(鼠标划过看细节)</div>
+            <div class="h4-legend">
+              <span><i style="background: var(--idx)"></i>full — 自己算索引(21 层)</span>
+              <span><i style="background: color-mix(in srgb, var(--exp), transparent 60%)"></i>shared — 复用上游索引(57 层)</span>
+              <span><i style="background: transparent; outline: 2px solid var(--ok); outline-offset:-2px"></i>dense FFN(仅第 0 层)</span>
+            </div>
+            <div class="h4-strip" id="layStrip"></div>
+            <div class="h4-info" id="layInfo"></div>
+            <span class="fig-cap">
+              规律很整齐:第 0、1 层各自算,之后<strong>每 4 层一个 full</strong>(5、9、13 … 77)。
+              也就是说索引的计算量只有朴素做法的 <strong>27%</strong>,而 indexer 权重本身也只存 21 份。
+              这是个纯粹的工程优化 —— 相邻层选中的 token 高度重合,那就没必要每层重挑一遍。
+            </span>
+          </div>
+
+          <h2>五、iHC:残差从一条变成四条</h2>
+
+          <p>
+            权重里还有一组在 Hy3 完全不存在的张量:每层两组 <code>hc_pre.{hc_base, hc_fn, hc_scale}</code>,
+            外加一个全局的 <code>model.hc_head.*</code>。对应 config 里的 <code>enable_ihc: true</code>、<code>hc_mult: 4</code>。
+          </p>
+
+          <p>
+            模型卡称之为 <strong>iHC(identity Hyper-Connections)</strong>,规格表里那行
+            「Residual Streams: 4」就是它 —— <strong>残差通路从一条拓宽成四条并行的流</strong>,层与层之间用学到的系数在这四条流之间做混合。
+            <code>hc_fn</code> 的形状 <code>(8, 24576)</code> 正好是 <code>2 × hc_mult × hidden = 8 × 24576</code>,对得上。
+          </p>
+
+          <p>
+            成本极低:整个 iHC 加起来只有 <strong>0.03 B</strong> 参数,占总量 0.004%。
+            这类改动的特点就是<strong>几乎不花参数,却动了信息在深度方向的流动方式</strong>。
+          </p>
+
+          <h2>六、MoE:专家更多,也更宽</h2>
+
+          <div class="h4-tw">
+            <table>
+              <thead><tr><th>项</th><th class="num">Hy3</th><th class="num">Hy4 preview</th><th class="num">变化</th></tr></thead>
+              <tbody>
+                <tr><td>路由专家数</td><td class="num">192</td><td class="num">256</td><td class="num"><span class="up">+33%</span></td></tr>
+                <tr><td>每 token 激活</td><td class="num">8</td><td class="num">8</td><td class="num">不变</td></tr>
+                <tr><td>共享专家</td><td class="num">1</td><td class="num">1</td><td class="num">不变</td></tr>
+                <tr><td>单专家中间维</td><td class="num">1536</td><td class="num">2048</td><td class="num"><span class="up">+33%</span></td></tr>
+                <tr><td>单专家参数</td><td class="num">18.9 M</td><td class="num">37.7 M</td><td class="num"><span class="up">×2.0</span></td></tr>
+                <tr><td>单 MoE 层参数</td><td class="num">3.72 B</td><td class="num">9.70 B</td><td class="num"><span class="up">×2.6</span></td></tr>
+                <tr><td>稀疏度</td><td class="num">14.5×</td><td class="num">15.9×</td><td class="num"><span class="up">更稀疏</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            单专家参数翻倍是两个因素叠出来的:中间维从 1536 到 2048(1.33×),hidden 从 4096 到 6144(1.5×)。
+            专家数只加了三分之一,但因为每个都更宽,<strong>单层 MoE 的参数量变成了 2.6 倍</strong>。
+            激活的专家数没变,所以稀疏度反而从 14.5× 上升到 15.9×。
+          </p>
+
+          <h2>七、上下文 ×4,每 token 的 KV 反而省了</h2>
+
+          <p>
+            这是我觉得整份 config 里最漂亮的一处。Hy3 靠 GQA 把 KV 压到八分之一,
+            每 token 每层仍要存 <code>2 × 8 头 × 128</code> = 2048 个数。
+            Hy4 换成 MLA 之后,进缓存的只有压缩后的 <code>kv_lora_rank + qk_rope_head_dim = 512 + 64 = 576</code> 个数。
+          </p>
+
+          <div class="h4-fig">
+            <div class="fig-title">动图 4:KV cache 随上下文增长(同一张图上比两代)</div>
+            <div class="h4-chead"><span>上下文</span><span>Hy3 · GQA(320 KiB/token)</span><span>Hy4 · MLA(87.8 KiB/token)</span></div>
+            <div id="kvCurve"></div>
+            <span class="fig-cap">
+              Hy3 在 <strong>256K</strong> 时要 80 GiB;Hy4 在 <strong>1M</strong> 时是 87.8 GiB。
+              <strong>上下文长了 4 倍,KV 只多了 10%。</strong>
+              代价是 <code>kv_b_proj</code> 那步还原计算 —— 用一点算力换了四倍的窗口。
+              另外 21 层 indexer 还各要一份自己的 key 缓存(<code>index_head_dim</code> 128),
+              按结构推算约 5.2 KiB/token,1M 时再加约 5.2 GiB。
+            </span>
+          </div>
+
+          <h2>八、BF16 装不下,所以官方直接发 FP8</h2>
+
+          <p>
+            权重 BF16 是 <strong>1452.8 GiB</strong>,是 Hy3 的 2.6 倍。这个体积意味着:
+            <strong>8 卡无论 H100 还是 H20-3e,BF16 都放不进去</strong>,连权重都装不下,更别说 KV。
+          </p>
+
+          <p>
+            所以官方仓库里还有一个
+            <a href="https://huggingface.co/tencent/Hy4-preview-FP8" target="_blank" rel="noopener">tencent/Hy4-preview-FP8</a>,
+            而且<a href="https://recipes.vllm.ai/tencent/Hy4-preview" target="_blank" rel="noopener">部署脚本</a>里
+            <code>--tensor-parallel-size 8</code> 后面跟的正是 FP8 那个仓库。我把 FP8 版的 130 个分片头部也读了一遍:
+            专家权重是 <code>F8_E4M3</code>,配一组 <code>U8</code> 的 block scale,实测 <strong>757.9 GiB</strong>,
+            压到 BF16 的 <strong>52.2%</strong>(不是 50%,因为 scale 和没量化的部分还占 43 GB)。
+          </p>
+
+          <div class="h4-fig">
+            <div class="fig-title">动图 5:显存预算(可切精度、卡型与卡数)</div>
+            <div class="h4-legend">
+              <span><i style="background: var(--exp)"></i>模型权重</span>
+              <span><i style="background: var(--attn)"></i>KV cache(1 条满 1M 窗口)</span>
+              <span><i style="background: color-mix(in srgb, var(--ok), transparent 60%)"></i>剩余</span>
+              <span><i style="background: color-mix(in srgb, var(--warn), transparent 40%)"></i>超出</span>
+            </div>
+            <div class="h4-budget" id="budget"></div>
+            <div class="h4-scale"><span>0</span><span id="poolLabel">—</span></div>
+            <div class="h4-ctrls">
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted)">精度</span>
+              <div class="h4-seg" id="precSeg">
+                <button data-p="bf16" class="on">BF16</button>
+                <button data-p="fp8">FP8</button>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">卡型</span>
+              <div class="h4-seg" id="cardSeg">
+                <button data-c="80" class="on">H100 80GB</button>
+                <button data-c="141">H20-3e 141GB</button>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: .64rem; color: var(--text-muted); margin-left: 6px">卡数</span>
+              <div class="h4-seg" id="gpuSeg">
+                <button data-g="8" class="on">8</button>
+                <button data-g="16">16</button>
+                <button data-g="32">32</button>
+              </div>
+            </div>
+            <div class="h4-verdict" id="budgetVerdict"></div>
+            <span class="fig-cap">
+              只算权重与 KV,未计激活、通信缓冲与框架 workspace,是乐观上界。显存按标称值计。
+              把三个开关都切一遍会看到:<strong>唯一能用 8 卡跑起来的组合是「FP8 + 141 GB 卡」</strong> ——
+              这正好解释了官方脚本为什么指向 FP8 仓库。
+            </span>
+          </div>
+
+          <h2>九、Hy3 → Hy4 逐项对比</h2>
+
+          <div class="h4-tw">
+            <table>
+              <thead><tr><th>维度</th><th>Hy3</th><th>Hy4 preview</th></tr></thead>
+              <tbody>
+                <tr><td>总参数(不含 MTP)</td><td>295 B</td><td><strong>770 B</strong>(2.6×)</td></tr>
+                <tr><td>激活参数</td><td>21 B</td><td><strong>49 B</strong>(2.3×)</td></tr>
+                <tr><td>层数</td><td>80</td><td>78(略减)</td></tr>
+                <tr><td>hidden_size</td><td>4096</td><td><strong>6144</strong></td></tr>
+                <tr><td>注意力</td><td>GQA 64/8,head_dim 128</td><td><strong>Gated DSA</strong>(MLA 压缩 + 稀疏索引)</td></tr>
+                <tr><td>残差</td><td>普通残差</td><td><strong>iHC,4 条流</strong></td></tr>
+                <tr><td>上下文</td><td>256K</td><td><strong>1M</strong>(4×)</td></tr>
+                <tr><td>KV / token</td><td>320 KiB</td><td><strong>87.8 KiB</strong>(省 3.65×)</td></tr>
+                <tr><td>专家</td><td>192 × 1536</td><td><strong>256 × 2048</strong></td></tr>
+                <tr><td>MTP</td><td>1 层,3.8 B</td><td>1 层,<strong>10 B</strong></td></tr>
+                <tr><td>BF16 权重</td><td>556.5 GiB</td><td><strong>1452.8 GiB</strong></td></tr>
+                <tr><td>官方部署精度</td><td>BF16</td><td><strong>FP8</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            读下来会发现两代的取舍很不一样。Hy3 是把成熟方案(GQA + DeepSeek 式路由)做扎实;
+            Hy4 则在<strong>注意力和残差两条主干上同时换了新东西</strong>,
+            换来的是四倍上下文和更省的 KV,代价是权重体积翻了 2.6 倍、必须靠 FP8 才装得下。
+          </p>
+
+          <h2>十、要点</h2>
+
+          <div class="h4-takes">
+            <div class="h4-take"><div class="n">01</div><h5>没有 total_size 就去读文件头</h5>
+              <p>Hy4 的 index 把 <code>metadata</code> 留空了。safetensors 开头 8 字节是头长度、紧跟 JSON,用 HTTP Range 取每个分片前几十 KB 就能拿到<strong>逐张量的真实 shape</strong>,比 total_size 还硬。</p></div>
+            <div class="h4-take"><div class="n">02</div><h5>MLA 让上下文和显存脱钩</h5>
+              <p>进缓存的只有压缩后的 <code>512+64</code>,而不是展开的 64 头 × 256 维。于是上下文从 256K 涨到 1M,KV 总量只从 80 GiB 变成 87.8 GiB。用 <code>kv_b_proj</code> 的还原计算换了四倍窗口。</p></div>
+            <div class="h4-take"><div class="n">03</div><h5>稀疏索引也可以跨层复用</h5>
+              <p>78 层里只有 21 层真的持有 indexer,其余复用上游的选择结果。相邻层选中的 token 高度重合,那就没必要每层重挑 —— 索引计算量直接降到 27%。</p></div>
+            <div class="h4-take"><div class="n">04</div><h5>有些改动几乎不花参数</h5>
+              <p>iHC 把残差拓宽成 4 条流,总共只用了 <strong>0.03 B</strong>,占比 0.004%。它改的不是容量,是信息在深度方向的流动方式 —— 这类改动在参数表上完全看不出来。</p></div>
+            <div class="h4-take"><div class="n">05</div><h5>gated 不是免费的</h5>
+              <p><code>linear_gate</code> 和 <code>o_proj</code> 一样大,单层 100.7 M,全模型 7.9 B。比整个 iHC 大两个数量级。给注意力加门控,账要算在这里。</p></div>
+            <div class="h4-take"><div class="n">06</div><h5>量化从可选项变成前提</h5>
+              <p>1452.8 GiB 意味着 8 卡在 BF16 下连权重都装不下,H20-3e 也不行。官方直接发 FP8 仓库并让部署脚本指向它 —— 到这个尺寸,量化已经不是优化而是能不能跑的问题。</p></div>
+          </div>
+
+          <blockquote>
+            结构与参数量仅由 <code>config.json</code> 与 <code>model.safetensors.index.json</code> 推导,
+            字节数由 HTTP Range 读取 131 个 safetensors 分片头部的真实 shape 累加得到,未下载权重本体;
+            推算完成后才与模型卡规格表核对。indexer 的额外 key 缓存为按结构推断,非官方数字。
+            显存部分只算权重与 KV,未计激活与框架 workspace,属乐观上界;GPU 容量按标称值计。
+          </blockquote>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../notes.html"><span lang="zh-CN" class="i18n-zh">返回笔记</span><span lang="en" class="i18n-en">Back to notes</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+
+    <script>
+      (function () {
+        var GiB = Math.pow(1024, 3);
+        function fg(b) { return (b / GiB).toFixed(1) + ' GiB'; }
+
+        /* ===== 动图 1:参数构成 ===== */
+        (function () {
+          var ROWS = [
+            { nm: '路由专家', sub: '256 × 77 层,融合张量', v: 744.10, c: 'var(--exp)' },
+            { nm: 'MLA 注意力', sub: '含 gated 的 linear_gate', v: 20.72, c: 'var(--attn)' },
+            { nm: 'MTP 模块', sub: 'mtp_layers.0,规格表单列', v: 10.05, c: 'var(--hc)' },
+            { nm: '共享专家', sub: '每层 1 个', v: 2.91, c: 'var(--ok)' },
+            { nm: '词嵌入 + lm_head', sub: '未共享权重', v: 1.48, c: 'var(--idx)' },
+            { nm: 'router + dense', sub: 'gate 与第 0 层 FFN', v: 0.46, c: 'var(--attn)' },
+            { nm: 'DSA indexer', sub: '仅 21 层', v: 0.20, c: 'var(--idx)' },
+            { nm: 'iHC', sub: '4 条残差流', v: 0.03, c: 'var(--hc)' },
+          ];
+          var host = document.getElementById('paramBars');
+          var max = ROWS[0].v, total = 779.96;
+          ROWS.forEach(function (r, i) {
+            var d = document.createElement('div');
+            d.className = 'h4-brow';
+            d.innerHTML = '<div class="nm">' + r.nm + '<small>' + r.sub + '</small></div>' +
+              '<div class="h4-btrack"><i style="--w:' + (r.v / max * 100) + '%; --c:' + r.c + '; --d:' + (i * 0.08) + 's"></i></div>' +
+              '<div class="vl">' + r.v.toFixed(2) + ' B · ' + (r.v / total * 100).toFixed(1) + '%</div>';
+            host.appendChild(d);
+          });
+        })();
+
+        /* ===== 动图 3:78 层 indexer 分布 ===== */
+        (function () {
+          var FULL = [0, 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77];
+          var strip = document.getElementById('layStrip');
+          var info = document.getElementById('layInfo');
+          for (var i = 0; i < 78; i++) {
+            var d = document.createElement('div');
+            var isFull = FULL.indexOf(i) !== -1;
+            d.className = 'h4-lay' + (isFull ? ' full' : '') + (i === 0 ? ' dense' : '');
+            d.dataset.i = i;
+            d.dataset.full = isFull ? '1' : '0';
+            d.title = '层 ' + i;
+            d.addEventListener('mouseenter', function () {
+              var n = +this.dataset.i, f = this.dataset.full === '1';
+              var owner = null;
+              for (var k = FULL.length - 1; k >= 0; k--) { if (FULL[k] <= n) { owner = FULL[k]; break; } }
+              info.innerHTML = '<b>层 ' + n + '</b> · ' +
+                (f ? '<b style="color:var(--idx)">full</b> —— 自己算稀疏索引,持有 <code>indexer.wq_b / wk / weights_proj / k_norm</code>,约 9.37 M 参数。'
+                   : '<b>shared</b> —— 不持有 indexer 权重,复用<b>层 ' + owner + '</b> 算出的 top-2048 选择。') +
+                (n === 0 ? '<br>同时是唯一的 <b style="color:var(--ok)">dense FFN</b> 层,其余 77 层都是 MoE。' : '');
+            });
+            strip.appendChild(d);
+          }
+          info.innerHTML = '<b>21 / 78</b> 层持有 indexer 权重,其余 57 层复用 —— 把鼠标放到任意一格看它属于哪种。';
+        })();
+
+        /* ===== 动图 4:KV cache 曲线 ===== */
+        (function () {
+          var host = document.getElementById('kvCurve');
+          var HY3 = 320 * 1024, HY4 = (512 + 64) * 2 * 78; // 每 token 字节
+          var CTX = [32768, 131072, 262144, 524288, 1048576];
+          var NAMES = { 32768: '32K', 131072: '128K', 262144: '256K', 524288: '512K', 1048576: '1M' };
+          var max = HY3 * CTX[CTX.length - 1];
+          CTX.forEach(function (n, i) {
+            var a = HY3 * n, b = HY4 * n;
+            var over3 = n > 262144;
+            var d = document.createElement('div');
+            d.className = 'h4-crow';
+            d.innerHTML = '<span class="n">' + NAMES[n] + '</span>' +
+              '<span class="h4-cbar"><i style="--w:' + (a / max * 100) + '%; --c:' + (over3 ? 'var(--warn)' : 'var(--exp)') + '; --d:' + (i * 0.07) + 's"></i>' +
+              '<span>' + (a / GiB).toFixed(0) + ' GiB' + (over3 ? ' ·超窗口' : '') + '</span></span>' +
+              '<span class="h4-cbar"><i style="--w:' + (b / max * 100) + '%; --c: var(--attn); --d:' + (i * 0.07 + 0.06) + 's"></i>' +
+              '<span>' + (b / GiB).toFixed(1) + ' GiB</span></span>';
+            host.appendChild(d);
+          });
+        })();
+
+        /* ===== 动图 5:显存预算 ===== */
+        (function () {
+          var W = { bf16: 1559983576308, fp8: 813765813492 };  // 实测字节
+          var KV_TOK = (512 + 64) * 2 * 78;                     // 87.75 KiB
+          var CTX = 1048576;
+          var prec = 'bf16', cardGB = 80, gpus = 8;
+          var NAME = { 80: 'H100 80GB', 141: 'H20-3e 141GB' };
+          var bar = document.getElementById('budget');
+          var poolLabel = document.getElementById('poolLabel');
+          var verdict = document.getElementById('budgetVerdict');
+
+          function render() {
+            var pool = gpus * cardGB * 1e9;
+            var w = W[prec];
+            var kvFull = KV_TOK * CTX;
+            var free = pool - w;
+            var kvShown = Math.max(0, Math.min(kvFull, free));
+            var over = Math.max(0, (w + kvFull) - pool);
+            var rest = Math.max(0, free - kvFull);
+            var denom = Math.max(pool, w + kvFull);
+
+            bar.innerHTML = '';
+            function seg(cls, bytes, label) {
+              if (bytes <= 0) return;
+              var s = document.createElement('div');
+              s.className = 'h4-bseg ' + cls;
+              s.style.width = (bytes / denom * 100) + '%';
+              s.textContent = (bytes / denom > 0.07) ? label : '';
+              bar.appendChild(s);
+            }
+            seg('w', w, '权重 ' + fg(w));
+            seg('kv', kvShown, 'KV ' + fg(kvShown));
+            seg('free', rest, '剩余 ' + fg(rest));
+            seg('over', over, '超出 ' + fg(over));
+
+            poolLabel.textContent = gpus + '×' + NAME[cardGB] + ' = ' + fg(pool);
+
+            if (free <= 0) {
+              verdict.className = 'h4-verdict bad';
+              verdict.innerHTML = '<b>连权重都装不下</b>:需要 ' + fg(w) + ',池子只有 ' + fg(pool) +
+                ',缺 <b>' + fg(-free) + '</b>。' +
+                (prec === 'bf16' ? ' 试试切到 FP8。' : ' 加卡吧。');
+            } else if (over > 0) {
+              verdict.className = 'h4-verdict bad';
+              verdict.innerHTML = '权重放得下,但装完只剩 <b>' + fg(free) + '</b>,而一条满 1M 窗口的 KV 要 <b>' +
+                fg(kvFull) + '</b> —— 缺 ' + fg(over) + '。最长约 <b>' +
+                Math.floor(free / KV_TOK).toLocaleString('en-US') + '</b> token。';
+            } else {
+              verdict.className = 'h4-verdict good';
+              verdict.innerHTML = '装完权重还剩 <b>' + fg(free) + '</b>,可放约 <b>' +
+                (free / kvFull).toFixed(1) + '</b> 条满 1M 窗口(合计 ' +
+                Math.floor(free / KV_TOK).toLocaleString('en-US') + ' token)。' +
+                (prec === 'fp8' && cardGB === 141 && gpus === 8
+                  ? ' <b>这正是官方部署脚本用的配置。</b>' : '');
+            }
+          }
+
+          [['precSeg', function (v) { prec = v; }], ['cardSeg', function (v) { cardGB = +v; }], ['gpuSeg', function (v) { gpus = +v; }]]
+            .forEach(function (pair) {
+              document.getElementById(pair[0]).addEventListener('click', function (e) {
+                var b = e.target.closest('button');
+                if (!b) return;
+                [].forEach.call(e.currentTarget.children, function (x) { x.classList.remove('on'); });
+                b.classList.add('on');
+                pair[1](b.dataset.p || b.dataset.c || b.dataset.g);
+                render();
+              });
+            });
+          render();
+        })();
+      })();
+    </script>
+  </body>
+</html>
