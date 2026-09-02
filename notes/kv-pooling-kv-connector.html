@@ -275,54 +275,53 @@
         </header>
 
         <div class="prose">
-          <p class="kv-lede">
-            上一篇 <a href="qkv-lifecycle-256k.html">Q / K / V 在 256K 对话窗口中的一生</a> 算过一笔账:一个满窗口会攒下 80 GiB 的 KV cache。
+          <p class="kv-lede"><span lang="zh-CN" class="i18n-zh">上一篇 <a href="qkv-lifecycle-256k.html">Q / K / V 在 256K 对话窗口中的一生</a> 算过一笔账:一个满窗口会攒下 80 GiB 的 KV cache。
             这篇讲的是这 80 GiB 的<strong>归属权</strong>问题 —— 它默认属于某一个 vLLM 进程,进程之间看不见彼此,请求一结束就蒸发。
             <strong>池化(pooling)</strong>就是把它从「实例私有的临时显存」改造成「可共享、可分层、可跨节点流动的资源」,
-            而 vLLM v1 里承接这件事的接口,就是 <strong>KVConnector</strong>。
-          </p>
+            而 vLLM v1 里承接这件事的接口,就是 <strong>KVConnector</strong>。</span><span lang="en" class="i18n-en">An earlier note, <a href="qkv-lifecycle-256k.html">The life of Q / K / V in a 256K window</a>, worked out that a full window accumulates 80 GiB of KV cache.
+            This one is about who <strong>owns</strong> those 80 GiB — by default they belong to one vLLM process, invisible to any other, and they evaporate when the request ends.
+            <strong>Pooling</strong> turns that from "temporary memory private to an instance" into "a shareable, tierable resource that can move across nodes",
+            and the interface carrying it in vLLM v1 is the <strong>KVConnector</strong>.</span></p>
 
           <div class="kv-kpis">
-            <div class="kv-kpi"><b>2</b><span>职责侧:Scheduler / Worker</span></div>
-            <div class="kv-kpi"><b>8</b><span>一次请求经过的关键回调</span></div>
-            <div class="kv-kpi"><b>3</b><span>池化形态:分层 / PD / 共享池</span></div>
-            <div class="kv-kpi"><b>2·L</b><span>连续布局带来的块放大倍数</span></div>
-            <div class="kv-kpi"><b>0.9.0</b><span>连接器转为异步的版本</span></div>
+            <div class="kv-kpi"><b>2</b><span><span lang="zh-CN" class="i18n-zh">职责侧:Scheduler / Worker</span><span lang="en" class="i18n-en">Sides: Scheduler / Worker</span></span></div>
+            <div class="kv-kpi"><b>8</b><span><span lang="zh-CN" class="i18n-zh">一次请求经过的关键回调</span><span lang="en" class="i18n-en">Key callbacks one request passes through</span></span></div>
+            <div class="kv-kpi"><b>3</b><span><span lang="zh-CN" class="i18n-zh">池化形态:分层 / PD / 共享池</span><span lang="en" class="i18n-en">Pooling shapes: tiering / PD / shared pool</span></span></div>
+            <div class="kv-kpi"><b>2·L</b><span><span lang="zh-CN" class="i18n-zh">连续布局带来的块放大倍数</span><span lang="en" class="i18n-en">Block amplification from contiguous layout</span></span></div>
+            <div class="kv-kpi"><b>0.9.0</b><span><span lang="zh-CN" class="i18n-zh">连接器转为异步的版本</span><span lang="en" class="i18n-en">Release that made the connector asynchronous</span></span></div>
           </div>
 
-          <h2>一、为什么 KV 需要池化</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、为什么 KV 需要池化</span><span lang="en" class="i18n-en">1 · Why KV needs pooling</span></h2>
 
-          <p>
-            默认状态下,KV cache 有三个「反资源化」的性质,每一个都在浪费算力:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">默认状态下,KV cache 有三个「反资源化」的性质,每一个都在浪费算力:</span><span lang="en" class="i18n-en">By default KV cache has three properties that keep it from behaving like a resource, each of them wasting compute:</span></p>
 
           <ul>
-            <li><strong>私有</strong> —— 实例 A 算过的系统提示词 KV,实例 B 用不上,只能自己再算一遍。同一个 20K 的公司知识库前缀,10 个副本就要算 10 次。</li>
-            <li><strong>易失</strong> —— 请求结束、或被抢占(preempt)时块被回收,下一轮对话回来,历史前缀得从头 prefill。</li>
-            <li><strong>同构</strong> —— prefill 是算力密集的大 GEMM,decode 是访存密集的 GEMV。两者挤在同一张卡上,prefill 的长尾会直接拉高 decode 的 ITL。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>私有</strong> —— 实例 A 算过的系统提示词 KV,实例 B 用不上,只能自己再算一遍。同一个 20K 的公司知识库前缀,10 个副本就要算 10 次。</span><span lang="en" class="i18n-en"><strong>Private</strong> — the system-prompt KV that instance A computed is unusable by instance B, which has to recompute it. The same 20K company knowledge-base prefix gets computed 10 times across 10 replicas.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>易失</strong> —— 请求结束、或被抢占(preempt)时块被回收,下一轮对话回来,历史前缀得从头 prefill。</span><span lang="en" class="i18n-en"><strong>Volatile</strong> — blocks are reclaimed when the request ends or is preempted, so the next turn of a conversation has to prefill the history from scratch.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>同构</strong> —— prefill 是算力密集的大 GEMM,decode 是访存密集的 GEMV。两者挤在同一张卡上,prefill 的长尾会直接拉高 decode 的 ITL。</span><span lang="en" class="i18n-en"><strong>Homogeneous</strong> — prefill is a compute-bound large GEMM, decode a memory-bound GEMV. Squeeze both onto one GPU and prefill's long tail drives up decode's ITL directly.</span></li>
           </ul>
 
           <div class="kv-fig">
-            <div class="fig-title">动图 1:池化前 vs 池化后 —— 同一个前缀被算了几次</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 1:池化前 vs 池化后 —— 同一个前缀被算了几次</span><span lang="en" class="i18n-en">Figure 1: before and after pooling — how many times the same prefix gets computed</span></div>
             <div class="kv-legend">
-              <span><i style="--c: var(--gpu)"></i>实例本地 KV</span>
-              <span><i style="--c: var(--warn)"></i>重复计算的相同前缀</span>
-              <span><i style="--c: var(--net)"></i>共享池中的唯一副本</span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--c: var(--gpu)"></i>实例本地 KV</span><span lang="en" class="i18n-en"><i style="--c: var(--gpu)"></i>instance-local KV</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--c: var(--warn)"></i>重复计算的相同前缀</span><span lang="en" class="i18n-en"><i style="--c: var(--warn)"></i>the same prefix, recomputed</span></span>
+              <span><span lang="zh-CN" class="i18n-zh"><i style="--c: var(--net)"></i>共享池中的唯一副本</span><span lang="en" class="i18n-en"><i style="--c: var(--net)"></i>the single copy in the shared pool</span></span>
             </div>
             <div class="kv-split">
               <div class="kv-pane">
-                <h5 class="bad">池化前:各算各的</h5>
-                <div class="sub">3 个实例 × 同一段前缀 = 3 份重复</div>
+                <h5 class="bad"><span lang="zh-CN" class="i18n-zh">池化前:各算各的</span><span lang="en" class="i18n-en">Before pooling: everyone computes their own</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">3 个实例 × 同一段前缀 = 3 份重复</span><span lang="en" class="i18n-en">3 instances × the same prefix = 3 duplicates</span></div>
                 <div class="kv-insts">
                   <div class="kv-inst"><div class="nm">vLLM #1</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
                   <div class="kv-inst"><div class="nm">vLLM #2</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
                   <div class="kv-inst"><div class="nm">vLLM #3</div><div class="bar"><i class="blk dup"></i><i class="blk dup"></i><i class="blk"></i></div></div>
                 </div>
-                <div class="kv-xmark">✕ 彼此不可见,红块是同一段前缀算了 3 遍</div>
+                <div class="kv-xmark"><span lang="zh-CN" class="i18n-zh">✕ 彼此不可见,红块是同一段前缀算了 3 遍</span><span lang="en" class="i18n-en">✕ mutually invisible; the red blocks are one prefix computed 3 times</span></div>
               </div>
               <div class="kv-pane">
-                <h5 class="good">池化后:算一次,大家用</h5>
-                <div class="sub">前缀落到共享池,命中即跳过 prefill</div>
+                <h5 class="good"><span lang="zh-CN" class="i18n-zh">池化后:算一次,大家用</span><span lang="en" class="i18n-en">After pooling: compute once, everyone uses it</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">前缀落到共享池,命中即跳过 prefill</span><span lang="en" class="i18n-en">The prefix lands in the shared pool; a hit skips prefill</span></div>
                 <div class="kv-insts">
                   <div class="kv-inst"><div class="nm">vLLM #1</div><div class="bar"><i class="blk"></i></div></div>
                   <div class="kv-inst"><div class="nm">vLLM #2</div><div class="bar"><i class="blk"></i></div></div>
@@ -339,54 +338,53 @@
                 </div>
               </div>
             </div>
-            <span class="fig-cap">池化解决的不是「KV 太大」,而是「同一份 KV 被算了很多遍、又很快被丢掉」。容量问题靠 GQA 和量化,重复问题只能靠共享。</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">池化解决的不是「KV 太大」,而是「同一份 KV 被算了很多遍、又很快被丢掉」。容量问题靠 GQA 和量化,重复问题只能靠共享。</span><span lang="en" class="i18n-en">What pooling solves is not "KV is too large" but "the same KV is computed many times and then thrown away". Capacity is a job for GQA and quantisation; duplication can only be solved by sharing.</span></span>
           </div>
 
-          <h2>二、KVConnector:调度器与 Worker 的分工</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">二、KVConnector:调度器与 Worker 的分工</span><span lang="en" class="i18n-en">2 · KVConnector: the split between scheduler and worker</span></h2>
 
-          <p>
-            vLLM 没有把池化写死成某一种存储,而是抽了一个接口
+          <p><span lang="zh-CN" class="i18n-zh">vLLM 没有把池化写死成某一种存储,而是抽了一个接口
             <a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/base.py" target="_blank" rel="noopener"><code>KVConnectorBase_V1</code></a>,
-            让 LMCache、Mooncake、NIXL 这些后端各自去实现。这个接口最关键的设计是<strong>按进程切成两侧</strong>:
-          </p>
+            让 LMCache、Mooncake、NIXL 这些后端各自去实现。这个接口最关键的设计是<strong>按进程切成两侧</strong>:</span><span lang="en" class="i18n-en">Rather than hard-coding one storage backend, vLLM abstracts an interface,
+            <a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/base.py" target="_blank" rel="noopener"><code>KVConnectorBase_V1</code></a>,
+            and lets LMCache, Mooncake, NIXL and others implement it. Its most important design decision is to <strong>split along process boundaries</strong>:</span></p>
 
           <div class="kv-table-wrap">
             <table>
               <thead>
-                <tr><th>侧</th><th>跑在哪</th><th>负责什么</th><th>代表方法</th></tr>
+                <tr><th><span lang="zh-CN" class="i18n-zh">侧</span><span lang="en" class="i18n-en">Side</span></th><th><span lang="zh-CN" class="i18n-zh">跑在哪</span><span lang="en" class="i18n-en">Runs where</span></th><th><span lang="zh-CN" class="i18n-zh">负责什么</span><span lang="en" class="i18n-en">Responsible for</span></th><th><span lang="zh-CN" class="i18n-zh">代表方法</span><span lang="en" class="i18n-en">Representative methods</span></th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong style="color: var(--cpu)">Scheduler 侧</strong></td>
-                  <td>调度器进程<br />(单点)</td>
-                  <td>做<strong>决策与记账</strong>:外部有多少 token 可省、块怎么分配、元数据怎么打包给 Worker、请求结束后块归谁释放。不碰张量。</td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong style="color: var(--cpu)">Scheduler 侧</strong></span><span lang="en" class="i18n-en"><strong style="color: var(--cpu)">Scheduler side</strong></span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">调度器进程<br />(单点)</span><span lang="en" class="i18n-en">The scheduler process<br />(single)</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">做<strong>决策与记账</strong>:外部有多少 token 可省、块怎么分配、元数据怎么打包给 Worker、请求结束后块归谁释放。不碰张量。</span><span lang="en" class="i18n-en"><strong>Decisions and bookkeeping</strong>: how many tokens the external side can save, how blocks are allocated, how metadata is packed for the workers, and who frees the blocks when the request ends. It never touches a tensor.</span></td>
                   <td><code>get_num_new_matched_tokens</code><br /><code>update_state_after_alloc</code><br /><code>build_connector_meta</code><br /><code>request_finished</code></td>
                 </tr>
                 <tr>
-                  <td><strong style="color: var(--gpu)">Worker 侧</strong></td>
-                  <td>每个 Worker<br />(TP/PP 各一份)</td>
-                  <td>做<strong>搬运</strong>:按元数据把 KV 从外部拉进 paged buffer、把新算出的 KV 推出去。全部尽量异步,与前向计算重叠。</td>
+                  <td><span lang="zh-CN" class="i18n-zh"><strong style="color: var(--gpu)">Worker 侧</strong></span><span lang="en" class="i18n-en"><strong style="color: var(--gpu)">Worker side</strong></span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">每个 Worker<br />(TP/PP 各一份)</span><span lang="en" class="i18n-en">Each worker<br />(one per TP/PP rank)</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">做<strong>搬运</strong>:按元数据把 KV 从外部拉进 paged buffer、把新算出的 KV 推出去。全部尽量异步,与前向计算重叠。</span><span lang="en" class="i18n-en"><strong>Movement</strong>: pulling KV from outside into the paged buffer and pushing freshly computed KV out, following the metadata. As asynchronous as possible, overlapping the forward pass.</span></td>
                   <td><code>start_load_kv</code><br /><code>wait_for_layer_load</code><br /><code>save_kv_layer</code><br /><code>wait_for_save</code></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <p>
-            这个切分的意义在于:<strong>调度器只需要知道「能省多少」这个数字就能排程,不必等数据真的到位</strong>。
+          <p><span lang="zh-CN" class="i18n-zh">这个切分的意义在于:<strong>调度器只需要知道「能省多少」这个数字就能排程,不必等数据真的到位</strong>。
             所以 <code>get_num_new_matched_tokens</code> 被要求是<strong>无副作用</strong>的 —— 它可能被同一个请求反复调用,
-            而且允许返回 <code>None</code> 表示「还没查完,下个调度周期再问我」。
-          </p>
+            而且允许返回 <code>None</code> 表示「还没查完,下个调度周期再问我」。</span><span lang="en" class="i18n-en">The point of this split: <strong>the scheduler only needs the number "how much can be saved" in order to schedule</strong>, without waiting for the data to arrive.
+            That is why <code>get_num_new_matched_tokens</code> is required to be <strong>side-effect free</strong> — it may be called repeatedly for the same request —
+            and why it may return <code>None</code> to mean "the lookup has not finished; ask me again next scheduling cycle".</span></p>
 
-          <h2>三、一次请求的完整生命周期</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">三、一次请求的完整生命周期</span><span lang="en" class="i18n-en">3 · The full lifecycle of one request</span></h2>
 
-          <p>
-            下面这张时序图把两侧的回调按真实顺序串起来。点「单步」逐个看,注意
-            <strong>加载/保存都是按层进行的</strong> —— 第 <em>i</em> 层的数据还在路上时,第 <em>i-1</em> 层已经在算了,这是延迟能被吃掉的关键。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">下面这张时序图把两侧的回调按真实顺序串起来。点「单步」逐个看,注意
+            <strong>加载/保存都是按层进行的</strong> —— 第 <em>i</em> 层的数据还在路上时,第 <em>i-1</em> 层已经在算了,这是延迟能被吃掉的关键。</span><span lang="en" class="i18n-en">The sequence figure below puts both sides' callbacks in their real order. Use "Step" to walk through it, and note that
+            <strong>loading and saving both happen per layer</strong> — while layer <em>i</em>'s data is still in flight, layer <em>i-1</em> is already computing. That is what lets the latency be absorbed.</span></p>
 
           <div class="kv-fig">
-            <div class="fig-title">动图 2:KVConnector 回调时序(可交互)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 2:KVConnector 回调时序(可交互)</span><span lang="en" class="i18n-en">Figure 2: KVConnector callback sequence (interactive)</span></div>
             <div class="kv-life-top">
               <div class="kv-badge">
                 <span class="kv-side sch" id="lifeSide">SCHEDULER</span>
@@ -398,51 +396,49 @@
             <p class="kv-life-desc" id="lifeDesc"></p>
 
             <div class="kv-lane sch">
-              <div class="lab"><b>Scheduler</b><small>决策</small></div>
+              <div class="lab"><span lang="zh-CN" class="i18n-zh"><b>Scheduler</b><small>决策</small></span><span lang="en" class="i18n-en"><b>Scheduler</b><small>decides</small></span></div>
               <div class="kv-steps" id="laneSch"></div>
             </div>
             <div class="kv-lane wrk">
-              <div class="lab"><b>Worker</b><small>搬运</small></div>
+              <div class="lab"><span lang="zh-CN" class="i18n-zh"><b>Worker</b><small>搬运</small></span><span lang="en" class="i18n-en"><b>Worker</b><small>moves data</small></span></div>
               <div class="kv-steps" id="laneWrk"></div>
             </div>
 
             <div class="kv-flow" id="lifeFlow">
               <div class="node gpu">GPU paged KV</div>
               <div class="wire"></div>
-              <div class="node ext">外部 KV 池</div>
-              <div class="idle" id="flowIdle">—— 本步无数据搬运 ——</div>
+              <div class="node ext"><span lang="zh-CN" class="i18n-zh">外部 KV 池</span><span lang="en" class="i18n-en">External KV pool</span></div>
+              <div class="idle" id="flowIdle"><span lang="zh-CN" class="i18n-zh">—— 本步无数据搬运 ——</span><span lang="en" class="i18n-en">—— no data movement this step ——</span></div>
             </div>
 
             <div class="kv-ctrls">
-              <button class="primary" id="lifePlay">暂停</button>
-              <button id="lifeStep">单步 →</button>
-              <button id="lifeReset">重置</button>
+              <button class="primary" id="lifePlay"><span lang="zh-CN" class="i18n-zh">暂停</span><span lang="en" class="i18n-en">Pause</span></button>
+              <button id="lifeStep"><span lang="zh-CN" class="i18n-zh">单步 →</span><span lang="en" class="i18n-en">Step →</span></button>
+              <button id="lifeReset"><span lang="zh-CN" class="i18n-zh">重置</span><span lang="en" class="i18n-en">Reset</span></button>
               <div class="kv-seg" id="lifeSpeed">
-                <button data-s="3200">慢</button>
-                <button data-s="2100" class="on">正常</button>
-                <button data-s="1200">快</button>
+                <button data-s="3200"><span lang="zh-CN" class="i18n-zh">慢</span><span lang="en" class="i18n-en">Slow</span></button>
+                <button data-s="2100" class="on"><span lang="zh-CN" class="i18n-zh">正常</span><span lang="en" class="i18n-en">Normal</span></button>
+                <button data-s="1200"><span lang="zh-CN" class="i18n-zh">快</span><span lang="en" class="i18n-en">Fast</span></button>
               </div>
             </div>
-            <span class="fig-cap">
-              <code>request_finished()</code> 的返回值常被忽略,但它决定了<strong>块由谁释放</strong>:
-              若连接器接管异步发送(比如 PD 里 prefill 端还在往外推数据),调度器就不能立刻回收这些块,否则会把正在传输的数据覆盖掉。
-            </span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh"><code>request_finished()</code> 的返回值常被忽略,但它决定了<strong>块由谁释放</strong>:
+              若连接器接管异步发送(比如 PD 里 prefill 端还在往外推数据),调度器就不能立刻回收这些块,否则会把正在传输的数据覆盖掉。</span><span lang="en" class="i18n-en"><code>request_finished()</code>'s return value is often overlooked, yet it determines <strong>who frees the blocks</strong>:
+              if the connector takes over an asynchronous send (say the prefill side of a PD setup is still pushing data out), the scheduler must not reclaim those blocks immediately or it will overwrite data still in flight.</span></span>
           </div>
 
-          <h2>四、池化的三种形态</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">四、池化的三种形态</span><span lang="en" class="i18n-en">4 · Three shapes of pooling</span></h2>
 
-          <p>
-            同一个接口下,「池」可以是三种完全不同的东西。它们解决的问题不一样,也可以用
-            <code>MultiConnector</code> 叠在一起用(典型组合:PD 传输走 NIXL,同时各自向本地 LMCache 卸载)。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">同一个接口下,「池」可以是三种完全不同的东西。它们解决的问题不一样,也可以用
+            <code>MultiConnector</code> 叠在一起用(典型组合:PD 传输走 NIXL,同时各自向本地 LMCache 卸载)。</span><span lang="en" class="i18n-en">Under one interface, "the pool" can be three entirely different things. They solve different problems, and can be stacked with
+            <code>MultiConnector</code> (a typical combination: NIXL for PD transfer while each side also offloads to a local LMCache).</span></p>
 
           <div class="kv-fig">
-            <div class="fig-title">动图 3:三种池化拓扑(点标签切换)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 3:三种池化拓扑(点标签切换)</span><span lang="en" class="i18n-en">Figure 3: three pooling topologies (click a label to switch)</span></div>
             <div class="kv-ctrls" style="margin: 0 0 6px">
               <div class="kv-seg" id="topoTabs">
-                <button data-t="tier" class="on">① 分层卸载</button>
-                <button data-t="pd">② PD 分离</button>
-                <button data-t="hub">③ 全局共享池</button>
+                <button data-t="tier" class="on"><span lang="zh-CN" class="i18n-zh">① 分层卸载</span><span lang="en" class="i18n-en">① Tiered offload</span></button>
+                <button data-t="pd"><span lang="zh-CN" class="i18n-zh">② PD 分离</span><span lang="en" class="i18n-en">② PD disaggregation</span></button>
+                <button data-t="hub"><span lang="zh-CN" class="i18n-zh">③ 全局共享池</span><span lang="en" class="i18n-en">③ Global shared pool</span></button>
               </div>
             </div>
 
@@ -457,31 +453,31 @@
                   <div class="kv-tier">
                     <div class="nm">DRAM<small>Primary Tier</small></div>
                     <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 34%; --c: var(--cpu); --d: .2s"></i><span class="kv-cascade" style="--d: .4s"></span></div>
-                    <div class="meta">TB 级 · ~64 GB/s</div>
+                    <div class="meta"><span lang="zh-CN" class="i18n-zh">TB 级 · ~64 GB/s</span><span lang="en" class="i18n-en">terabytes · ~64 GB/s</span></div>
                   </div>
                   <div class="kv-tier">
-                    <div class="nm">本地 NVMe<small>Secondary Tier</small></div>
+                    <div class="nm"><span lang="zh-CN" class="i18n-zh">本地 NVMe<small>Secondary Tier</small></span><span lang="en" class="i18n-en">Local NVMe<small>Secondary Tier</small></span></div>
                     <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 66%; --c: var(--disk); --d: .35s"></i><span class="kv-cascade" style="--d: 1s"></span></div>
-                    <div class="meta">十 TB 级 · ~7 GB/s</div>
+                    <div class="meta"><span lang="zh-CN" class="i18n-zh">十 TB 级 · ~7 GB/s</span><span lang="en" class="i18n-en">tens of terabytes · ~7 GB/s</span></div>
                   </div>
                   <div class="kv-tier">
-                    <div class="nm">对象存储<small>Secondary Tier</small></div>
+                    <div class="nm"><span lang="zh-CN" class="i18n-zh">对象存储<small>Secondary Tier</small></span><span lang="en" class="i18n-en">Object storage<small>Secondary Tier</small></span></div>
                     <div class="kv-tier-bar"><i class="kv-tier-fill" style="--w: 96%; --c: var(--net); --d: .5s"></i><span class="kv-cascade" style="--d: 1.6s"></span></div>
-                    <div class="meta">PB 级 · 网络受限</div>
+                    <div class="meta"><span lang="zh-CN" class="i18n-zh">PB 级 · 网络受限</span><span lang="en" class="i18n-en">petabytes · network-limited</span></div>
                   </div>
                 </div>
-                <span class="fig-cap">
-                  容量越往下越大,带宽越往下越小。规则是<strong>只有 Primary Tier(CPU)能碰 GPU 显存</strong>,
+                <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">容量越往下越大,带宽越往下越小。规则是<strong>只有 Primary Tier(CPU)能碰 GPU 显存</strong>,
                   二级层通过 CPU 内存的<strong>零拷贝视图</strong>读写,数据向下逐级异步级联。
-                  多层设计见 <a href="https://github.com/vllm-project/vllm/issues/38260" target="_blank" rel="noopener">RFC #38260</a>(部分接口仍在推进中)。
-                </span>
+                  多层设计见 <a href="https://github.com/vllm-project/vllm/issues/38260" target="_blank" rel="noopener">RFC #38260</a>(部分接口仍在推进中)。</span><span lang="en" class="i18n-en">Capacity grows as you go down, bandwidth shrinks. The rule is that <strong>only the Primary Tier (CPU) may touch GPU memory</strong>;
+                  secondary tiers read and write through a <strong>zero-copy view</strong> of CPU memory, and data cascades downwards asynchronously.
+                  For the tiering design see <a href="https://github.com/vllm-project/vllm/issues/38260" target="_blank" rel="noopener">RFC #38260</a> (some interfaces are still in progress).</span></span>
               </div>
 
               <div class="kv-topo-panel" data-panel="pd">
                 <div class="kv-pd">
                   <div class="kv-pool-card">
-                    <h6 class="p">Prefill 池</h6>
-                    <div class="desc">算力密集 · 大 GEMM<br />kv_role = kv_producer</div>
+                    <h6 class="p"><span lang="zh-CN" class="i18n-zh">Prefill 池</span><span lang="en" class="i18n-en">Prefill pool</span></h6>
+                    <div class="desc"><span lang="zh-CN" class="i18n-zh">算力密集 · 大 GEMM<br />kv_role = kv_producer</span><span lang="en" class="i18n-en">compute-bound · large GEMM<br />kv_role = kv_producer</span></div>
                     <div class="kv-gpus">
                       <i style="--c: var(--net); --d: 0s"></i><i style="--c: var(--net); --d: .2s"></i><i style="--c: var(--net); --d: .4s"></i>
                     </div>
@@ -494,19 +490,20 @@
                     <div class="tag">NIXL / RDMA</div>
                   </div>
                   <div class="kv-pool-card">
-                    <h6 class="d">Decode 池</h6>
-                    <div class="desc">访存密集 · GEMV<br />kv_role = kv_consumer</div>
+                    <h6 class="d"><span lang="zh-CN" class="i18n-zh">Decode 池</span><span lang="en" class="i18n-en">Decode pool</span></h6>
+                    <div class="desc"><span lang="zh-CN" class="i18n-zh">访存密集 · GEMV<br />kv_role = kv_consumer</span><span lang="en" class="i18n-en">memory-bound · GEMV<br />kv_role = kv_consumer</span></div>
                     <div class="kv-gpus">
                       <i style="--c: var(--warn); --d: .1s"></i><i style="--c: var(--warn); --d: .3s"></i><i style="--c: var(--warn); --d: .5s"></i>
                     </div>
                   </div>
                 </div>
-                <span class="fig-cap">
-                  把两个特性相反的阶段拆到不同机器上,TTFT 和 ITL 就能各自独立调参、独立扩缩容,decode 也不再被 prefill 的长尾干扰。
+                <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">把两个特性相反的阶段拆到不同机器上,TTFT 和 ITL 就能各自独立调参、独立扩缩容,decode 也不再被 prefill 的长尾干扰。
                   代价是 KV 必须跨节点搬,所以传输层要用
                   <a href="https://github.com/ai-dynamo/nixl" target="_blank" rel="noopener">NIXL</a> 这类 RDMA 库压住延迟。
-                  多轮对话还可反向拉取(<code>bidirectional_kv_xfer</code>):D 端已有的历史 KV 让 P 端直接取,免得重算。
-                </span>
+                  多轮对话还可反向拉取(<code>bidirectional_kv_xfer</code>):D 端已有的历史 KV 让 P 端直接取,免得重算。</span><span lang="en" class="i18n-en">Split two phases with opposite characteristics onto different machines and TTFT and ITL can be tuned and scaled independently, with decode no longer disturbed by prefill's long tail.
+                  The cost is that KV must cross nodes, so the transport needs an RDMA library like
+                  <a href="https://github.com/ai-dynamo/nixl" target="_blank" rel="noopener">NIXL</a> to keep latency down.
+                  Multi-turn conversations can also pull in reverse (<code>bidirectional_kv_xfer</code>): the P side fetches history the D side already holds, rather than recomputing it.</span></span>
               </div>
 
               <div class="kv-topo-panel" data-panel="hub">
@@ -522,69 +519,68 @@
                       <span class="kv-sat" style="--d: .7s">vLLM #3</span>
                       <span class="kv-sat" style="--d: 1.05s">vLLM #4</span>
                     </div>
-                    <div class="kv-hit">任一实例算过的前缀,其余实例直接命中</div>
+                    <div class="kv-hit"><span lang="zh-CN" class="i18n-zh">任一实例算过的前缀,其余实例直接命中</span><span lang="en" class="i18n-en">A prefix computed by any instance is a hit for all the others</span></div>
                   </div>
                 </div>
-                <span class="fig-cap">
-                  把 KV 提到集群级的独立服务,前缀复用就从「单实例内」变成「全集群」。
+                <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">把 KV 提到集群级的独立服务,前缀复用就从「单实例内」变成「全集群」。
                   <a href="https://github.com/kvcache-ai/Mooncake" target="_blank" rel="noopener">Mooncake</a>
                   进一步把多机的 DRAM 与 SSD 聚成一个分布式池;
                   <a href="https://docs.lmcache.ai/mp/disaggregated_prefill.html" target="_blank" rel="noopener">LMCache MP</a>
-                  则用独立进程持有 KV,让多个 vLLM 实例共享。查找顺序通常是:本地 GPU → 共享池 → 重算。
-                </span>
+                  则用独立进程持有 KV,让多个 vLLM 实例共享。查找顺序通常是:本地 GPU → 共享池 → 重算。</span><span lang="en" class="i18n-en">Promote KV to a standalone cluster-level service and prefix reuse widens from within one instance to the whole cluster.
+                  <a href="https://github.com/kvcache-ai/Mooncake" target="_blank" rel="noopener">Mooncake</a>
+                  goes further and aggregates DRAM and SSD across machines into one distributed pool;
+                  <a href="https://docs.lmcache.ai/mp/disaggregated_prefill.html" target="_blank" rel="noopener">LMCache MP</a>
+                  holds KV in a separate process so several vLLM instances can share it. The lookup order is usually local GPU → shared pool → recompute.</span></span>
               </div>
             </div>
           </div>
 
-          <h2>五、两处决定成败的工程细节</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、两处决定成败的工程细节</span><span lang="en" class="i18n-en">5 · Two engineering details that decide whether it works</span></h2>
 
-          <p>
-            池化听起来只是「把数据搬走再搬回来」,但它能不能用,取决于两件很具体的事。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">池化听起来只是「把数据搬走再搬回来」,但它能不能用,取决于两件很具体的事。</span><span lang="en" class="i18n-en">Pooling sounds like just moving data out and back, but whether it is usable comes down to two very concrete things.</span></p>
 
-          <p>
-            <strong>其一,搬运必须是异步的。</strong> 连接器 API 最早是同步的:vLLM 在读写外部 KV 时整个引擎是阻塞的,
+          <p><span lang="zh-CN" class="i18n-zh"><strong>其一,搬运必须是异步的。</strong> 连接器 API 最早是同步的:vLLM 在读写外部 KV 时整个引擎是阻塞的,
             省下的 prefill 时间还不够赔上等待时间。0.9.0 起 API 扩展为支持异步加载与保存,搬运才真正能和前向计算重叠 —— 
-            这也是为什么接口里 <code>start_load_kv</code> 和 <code>wait_for_layer_load</code> 是分开的两个方法。
-          </p>
+            这也是为什么接口里 <code>start_load_kv</code> 和 <code>wait_for_layer_load</code> 是分开的两个方法。</span><span lang="en" class="i18n-en"><strong>First, the movement has to be asynchronous.</strong> The connector API started out synchronous: the whole engine blocked while vLLM read or wrote external KV,
+            and the prefill time saved did not cover the time spent waiting. From 0.9.0 the API was extended to support asynchronous load and save, which is what finally lets movement overlap the forward pass —
+            and why the interface separates <code>start_load_kv</code> from <code>wait_for_layer_load</code>.</span></p>
 
-          <p>
-            <strong>其二,显存布局决定了 DMA 效率。</strong> 这一点最不直观:KV 在显存里怎么摆,对模型计算的性能几乎没有影响,
+          <p><span lang="zh-CN" class="i18n-zh"><strong>其二,显存布局决定了 DMA 效率。</strong> 这一点最不直观:KV 在显存里怎么摆,对模型计算的性能几乎没有影响,
             但对卸载是致命的。原本每层的 K、V 各自成块,一次搬运被切成 <code>2 × num_layers</code> 个小片,DMA 全耗在发起开销上。
             改成「一个连续物理块装下所有层」之后,有效块大小放大了 <code>2 × num_layers</code> 倍,
-            卸载吞吐<strong>提升了一个数量级</strong>。
-          </p>
+            卸载吞吐<strong>提升了一个数量级</strong>。</span><span lang="en" class="i18n-en"><strong>Second, memory layout determines DMA efficiency.</strong> This is the least intuitive part: how KV is arranged in memory barely affects model computation,
+            but it is fatal for offloading. With each layer's K and V as their own block, one transfer is chopped into <code>2 × num_layers</code> fragments and DMA spends all its time on issue overhead.
+            Pack all layers into one contiguous physical block and the effective block size grows <code>2 × num_layers</code>×,
+            raising offload throughput <strong>by an order of magnitude</strong>.</span></p>
 
           <div class="kv-fig">
-            <div class="fig-title">动图 4:KV 显存布局 —— 碎片化 vs 连续</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 4:KV 显存布局 —— 碎片化 vs 连续</span><span lang="en" class="i18n-en">Figure 4: KV memory layout — fragmented vs contiguous</span></div>
             <div class="kv-layout">
               <div class="kv-lay">
-                <h5 class="old">改造前:按层切碎</h5>
-                <div class="sub">2 × num_layers 个独立小块</div>
+                <h5 class="old"><span lang="zh-CN" class="i18n-zh">改造前:按层切碎</span><span lang="en" class="i18n-en">Before: sliced per layer</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">2 × num_layers 个独立小块</span><span lang="en" class="i18n-en">2 × num_layers separate small blocks</span></div>
                 <div class="kv-chunks" id="chunksOld"></div>
-                <div class="kv-dma">DMA 发起次数:<b>160</b> · 每次搬 <b>2 KiB</b> 量级</div>
+                <div class="kv-dma"><span lang="zh-CN" class="i18n-zh">DMA 发起次数:<b>160</b> · 每次搬 <b>2 KiB</b> 量级</span><span lang="en" class="i18n-en">DMA issues: <b>160</b> · about <b>2 KiB</b> each</span></div>
               </div>
               <div class="kv-lay">
-                <h5 class="new">改造后:全层连续</h5>
-                <div class="sub">1 个大块,涵盖全部 80 层的 K 与 V</div>
+                <h5 class="new"><span lang="zh-CN" class="i18n-zh">改造后:全层连续</span><span lang="en" class="i18n-en">After: all layers contiguous</span></h5>
+                <div class="sub"><span lang="zh-CN" class="i18n-zh">1 个大块,涵盖全部 80 层的 K 与 V</span><span lang="en" class="i18n-en">One large block covering K and V for all 80 layers</span></div>
                 <div class="kv-chunks"><i class="kv-onechunk" style="width: 100%"></i></div>
-                <div class="kv-dma">DMA 发起次数:<b>1</b> · 一次搬 <b>320 KiB</b> 量级</div>
+                <div class="kv-dma"><span lang="zh-CN" class="i18n-zh">DMA 发起次数:<b>1</b> · 一次搬 <b>320 KiB</b> 量级</span><span lang="en" class="i18n-en">DMA issues: <b>1</b> · about <b>320 KiB</b> in one go</span></div>
               </div>
             </div>
-            <span class="fig-cap">
-              左边每个小块都要单独发起一次拷贝,带宽被发起开销吃光;右边一次连续大拷贝才能把 DMA 跑满。
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">左边每个小块都要单独发起一次拷贝,带宽被发起开销吃光;右边一次连续大拷贝才能把 DMA 跑满。
               细节见 vLLM 官方博客
-              <a href="https://blog.vllm.ai/2026/01/08/kv-offloading-connector.html" target="_blank" rel="noopener">Inside vLLM's New KV Offloading Connector</a>。
-            </span>
+              <a href="https://blog.vllm.ai/2026/01/08/kv-offloading-connector.html" target="_blank" rel="noopener">Inside vLLM's New KV Offloading Connector</a>。</span><span lang="en" class="i18n-en">On the left every small block needs its own copy request, and issue overhead consumes the bandwidth; on the right a single large contiguous copy is what saturates DMA.
+              Details in the vLLM blog post
+              <a href="https://blog.vllm.ai/2026/01/08/kv-offloading-connector.html" target="_blank" rel="noopener">Inside vLLM's New KV Offloading Connector</a>.</span></span>
           </div>
 
-          <h2>六、配置速查与选型</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、配置速查与选型</span><span lang="en" class="i18n-en">6 · Configuration reference and choosing between them</span></h2>
 
-          <p>
-            三种形态都通过同一个启动参数 <code>--kv-transfer-config</code> 打开,区别只在 <code>kv_connector</code> 和 <code>kv_role</code>:
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">三种形态都通过同一个启动参数 <code>--kv-transfer-config</code> 打开,区别只在 <code>kv_connector</code> 和 <code>kv_role</code>:</span><span lang="en" class="i18n-en">All three shapes are enabled through the same launch flag, <code>--kv-transfer-config</code>; only <code>kv_connector</code> and <code>kv_role</code> differ:</span></p>
 
-          <pre><code># ① 分层卸载:把溢出的 KV 异步卸到 CPU 内存
+          <pre><code><span lang="zh-CN" class="i18n-zh"># ① 分层卸载:把溢出的 KV 异步卸到 CPU 内存
 vllm serve MODEL --kv-transfer-config '{
   "kv_connector": "OffloadingConnector",
   "kv_role": "kv_both",
@@ -601,49 +597,66 @@ vllm serve MODEL --kv-transfer-config '{
 
 # ③ 组合:PD 传输走 NIXL,同时各自向共享池卸载
 #    kv_connector 设为 "MultiConnector",
-#    子连接器列在 kv_connector_extra_config.connectors 里</code></pre>
+#    子连接器列在 kv_connector_extra_config.connectors 里</span><span lang="en" class="i18n-en"># ① Tiered offload: asynchronously offload overflow KV to CPU memory
+vllm serve MODEL --kv-transfer-config '{
+  "kv_connector": "OffloadingConnector",
+  "kv_role": "kv_both",
+  "kv_connector_extra_config": {"num_cpu_blocks": 100000}
+}'
 
-          <p>
-            两个容易踩的参数:<code>kv_role</code> 有 <code>kv_producer</code> / <code>kv_consumer</code> / <code>kv_both</code> 三种,
+# ② PD disaggregation: prefill produces, decode consumes, over NIXL
+vllm serve MODEL --kv-transfer-config '{
+  "kv_connector": "NixlConnector",
+  "kv_role": "kv_producer",
+  "kv_load_failure_policy": "fail"
+}'
+# Same for the decode instance, with kv_role changed to "kv_consumer"
+
+# ③ Combined: NIXL for PD transfer, each side also offloading to a shared pool
+#    set kv_connector to "MultiConnector",
+#    and list the sub-connectors in kv_connector_extra_config.connectors</span></code></pre>
+
+          <p><span lang="zh-CN" class="i18n-zh">两个容易踩的参数:<code>kv_role</code> 有 <code>kv_producer</code> / <code>kv_consumer</code> / <code>kv_both</code> 三种,
             分层卸载要用 <code>kv_both</code>(既存又取),PD 才是一产一消。
             <code>kv_load_failure_policy</code> 默认是 <code>fail</code> —— 传输失败直接报错,而不是
-            <code>recompute</code> 悄悄回退去重算,因为在 decode 实例上临时插一段 prefill 会打乱低延迟调度、造成抖动。
-          </p>
+            <code>recompute</code> 悄悄回退去重算,因为在 decode 实例上临时插一段 prefill 会打乱低延迟调度、造成抖动。</span><span lang="en" class="i18n-en">Two parameters that trip people up: <code>kv_role</code> takes <code>kv_producer</code> / <code>kv_consumer</code> / <code>kv_both</code>,
+            and tiered offload wants <code>kv_both</code> (it both stores and fetches) — only PD is one producer and one consumer.
+            <code>kv_load_failure_policy</code> defaults to <code>fail</code>: a failed transfer raises rather than quietly falling back to
+            <code>recompute</code>, because slipping a prefill into a decode instance disrupts low-latency scheduling and causes jitter.</span></p>
 
           <div class="kv-table-wrap">
             <table>
               <thead>
-                <tr><th>你的瓶颈</th><th>选哪种</th><th>主要收益</th><th>主要代价</th></tr>
+                <tr><th><span lang="zh-CN" class="i18n-zh">你的瓶颈</span><span lang="en" class="i18n-en">Your bottleneck</span></th><th><span lang="zh-CN" class="i18n-zh">选哪种</span><span lang="en" class="i18n-en">Which one</span></th><th><span lang="zh-CN" class="i18n-zh">主要收益</span><span lang="en" class="i18n-en">Main benefit</span></th><th><span lang="zh-CN" class="i18n-zh">主要代价</span><span lang="en" class="i18n-en">Main cost</span></th></tr>
               </thead>
               <tbody>
-                <tr><td>显存不够,前缀反复被挤掉</td><td>① 分层卸载</td><td>扩大有效缓存容量,命中即省 prefill</td><td>PCIe 带宽,冷数据回取有延迟</td></tr>
-                <tr><td>TTFT 与 ITL 互相拖累</td><td>② PD 分离</td><td>两阶段独立扩缩容,decode 尾延迟稳</td><td>需要 RDMA 网络,运维复杂度上一个台阶</td></tr>
-                <tr><td>多副本重复算同一前缀</td><td>③ 全局共享池</td><td>集群级前缀复用,副本越多越划算</td><td>多一跳网络,需维护独立存储服务</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">显存不够,前缀反复被挤掉</span><span lang="en" class="i18n-en">Not enough memory; prefixes keep getting evicted</span></td><td><span lang="zh-CN" class="i18n-zh">① 分层卸载</span><span lang="en" class="i18n-en">① Tiered offload</span></td><td><span lang="zh-CN" class="i18n-zh">扩大有效缓存容量,命中即省 prefill</span><span lang="en" class="i18n-en">Larger effective cache; a hit saves the prefill</span></td><td><span lang="zh-CN" class="i18n-zh">PCIe 带宽,冷数据回取有延迟</span><span lang="en" class="i18n-en">PCIe bandwidth, and latency when fetching cold data back</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">TTFT 与 ITL 互相拖累</span><span lang="en" class="i18n-en">TTFT and ITL dragging on each other</span></td><td><span lang="zh-CN" class="i18n-zh">② PD 分离</span><span lang="en" class="i18n-en">② PD disaggregation</span></td><td><span lang="zh-CN" class="i18n-zh">两阶段独立扩缩容,decode 尾延迟稳</span><span lang="en" class="i18n-en">Independent scaling of the two phases; stable decode tail latency</span></td><td><span lang="zh-CN" class="i18n-zh">需要 RDMA 网络,运维复杂度上一个台阶</span><span lang="en" class="i18n-en">Requires an RDMA network; a step up in operational complexity</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">多副本重复算同一前缀</span><span lang="en" class="i18n-en">Replicas recomputing the same prefix</span></td><td><span lang="zh-CN" class="i18n-zh">③ 全局共享池</span><span lang="en" class="i18n-en">③ Global shared pool</span></td><td><span lang="zh-CN" class="i18n-zh">集群级前缀复用,副本越多越划算</span><span lang="en" class="i18n-en">Cluster-wide prefix reuse; the more replicas, the better it pays</span></td><td><span lang="zh-CN" class="i18n-zh">多一跳网络,需维护独立存储服务</span><span lang="en" class="i18n-en">One more network hop, and a separate storage service to run</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <h2>七、六个要点</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、六个要点</span><span lang="en" class="i18n-en">7 · Six takeaways</span></h2>
 
           <div class="kv-takes">
-            <div class="kv-take"><div class="n">01</div><h5>池化治的是重复,不是容量</h5>
-              <p>KV 太大靠 GQA、量化、稀疏来压;而<strong>同一份 KV 被反复计算又被丢弃</strong>,只能靠共享和持久化解决。这是两类正交的优化,别混为一谈。</p></div>
-            <div class="kv-take"><div class="n">02</div><h5>接口按进程切,而不是按功能切</h5>
-              <p>Scheduler 侧只做决策与记账、不碰张量,Worker 侧只管搬运。这让调度器<strong>拿到「能省多少 token」这个数字就能排程</strong>,不必等数据落地。</p></div>
-            <div class="kv-take"><div class="n">03</div><h5>查询必须无副作用</h5>
-              <p><code>get_num_new_matched_tokens</code> 会被同一请求反复调用,实现里不能改状态。它还能返回 <code>None</code> 表示「查询未完成」,让调度器下轮再问 —— 这是远端查询不阻塞调度的关键。</p></div>
-            <div class="kv-take"><div class="n">04</div><h5>逐层流水是延迟能被吃掉的原因</h5>
-              <p>加载和保存都以层为粒度:<code>wait_for_layer_load(i)</code> 只挡住第 <em>i</em> 层。前面的层在算,后面的层在传,搬运时间被计算掩盖掉。</p></div>
-            <div class="kv-take"><div class="n">05</div><h5>布局比算法更能决定吞吐</h5>
-              <p>把 KV 改成「全层一个连续块」,有效块放大 <code>2 × num_layers</code> 倍,卸载吞吐提升一个数量级。对计算无感的排布方式,对 DMA 是生死线。</p></div>
-            <div class="kv-take"><div class="n">06</div><h5>谁释放块,是正确性问题</h5>
-              <p><code>request_finished()</code> 要回答「现在能不能回收这些块」。连接器若还在异步外推,块就得由它接管释放,否则正在传输的数据会被下一个请求覆盖。</p></div>
+            <div class="kv-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">池化治的是重复,不是容量</span><span lang="en" class="i18n-en">Pooling treats duplication, not capacity</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">KV 太大靠 GQA、量化、稀疏来压;而<strong>同一份 KV 被反复计算又被丢弃</strong>,只能靠共享和持久化解决。这是两类正交的优化,别混为一谈。</span><span lang="en" class="i18n-en">KV being too large is a job for GQA, quantisation and sparsity; <strong>the same KV being computed repeatedly and then discarded</strong> can only be solved by sharing and persistence. Two orthogonal optimisations — do not conflate them.</span></p></div>
+            <div class="kv-take"><div class="n">02</div><h5><span lang="zh-CN" class="i18n-zh">接口按进程切,而不是按功能切</span><span lang="en" class="i18n-en">The interface splits by process, not by function</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Scheduler 侧只做决策与记账、不碰张量,Worker 侧只管搬运。这让调度器<strong>拿到「能省多少 token」这个数字就能排程</strong>,不必等数据落地。</span><span lang="en" class="i18n-en">The scheduler side only decides and keeps books, never touching tensors; the worker side only moves data. This lets the scheduler <strong>schedule from the single number "how many tokens can be saved"</strong> without waiting for data to land.</span></p></div>
+            <div class="kv-take"><div class="n">03</div><h5><span lang="zh-CN" class="i18n-zh">查询必须无副作用</span><span lang="en" class="i18n-en">The lookup must be side-effect free</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>get_num_new_matched_tokens</code> 会被同一请求反复调用,实现里不能改状态。它还能返回 <code>None</code> 表示「查询未完成」,让调度器下轮再问 —— 这是远端查询不阻塞调度的关键。</span><span lang="en" class="i18n-en"><code>get_num_new_matched_tokens</code> gets called repeatedly for the same request, so the implementation cannot mutate state. It can also return <code>None</code> for "lookup incomplete", letting the scheduler ask again next round — which is how a remote lookup avoids blocking scheduling.</span></p></div>
+            <div class="kv-take"><div class="n">04</div><h5><span lang="zh-CN" class="i18n-zh">逐层流水是延迟能被吃掉的原因</span><span lang="en" class="i18n-en">Per-layer pipelining is why the latency disappears</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">加载和保存都以层为粒度:<code>wait_for_layer_load(i)</code> 只挡住第 <em>i</em> 层。前面的层在算,后面的层在传,搬运时间被计算掩盖掉。</span><span lang="en" class="i18n-en">Load and save are both per layer: <code>wait_for_layer_load(i)</code> blocks only layer <em>i</em>. Earlier layers compute while later ones transfer, and the movement hides behind the computation.</span></p></div>
+            <div class="kv-take"><div class="n">05</div><h5><span lang="zh-CN" class="i18n-zh">布局比算法更能决定吞吐</span><span lang="en" class="i18n-en">Layout decides throughput more than algorithms do</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">把 KV 改成「全层一个连续块」,有效块放大 <code>2 × num_layers</code> 倍,卸载吞吐提升一个数量级。对计算无感的排布方式,对 DMA 是生死线。</span><span lang="en" class="i18n-en">Rearranging KV into one contiguous block per all layers grows the effective block <code>2 × num_layers</code>× and lifts offload throughput by an order of magnitude. An arrangement the computation cannot feel is a life-or-death matter for DMA.</span></p></div>
+            <div class="kv-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">谁释放块,是正确性问题</span><span lang="en" class="i18n-en">Who frees the blocks is a correctness question</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>request_finished()</code> 要回答「现在能不能回收这些块」。连接器若还在异步外推,块就得由它接管释放,否则正在传输的数据会被下一个请求覆盖。</span><span lang="en" class="i18n-en"><code>request_finished()</code> has to answer "can these blocks be reclaimed now". If the connector is still pushing asynchronously, it must take over freeing them, or the next request will overwrite data still in flight.</span></p></div>
           </div>
 
-          <blockquote>
-            API 方法名与语义以 vLLM v1 <code>KVConnectorBase_V1</code> 源码为准;分层卸载的 TieringManager / SecondaryTierManager 属设计阶段接口,
-            落地范围以上游合入为准。容量与带宽为量级示意,非实测。
-          </blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">API 方法名与语义以 vLLM v1 <code>KVConnectorBase_V1</code> 源码为准;分层卸载的 TieringManager / SecondaryTierManager 属设计阶段接口,
+            落地范围以上游合入为准。容量与带宽为量级示意,非实测。</span><span lang="en" class="i18n-en">Method names and semantics follow the vLLM v1 <code>KVConnectorBase_V1</code> source; the tiered-offload TieringManager / SecondaryTierManager are design-stage interfaces,
+            and what actually lands depends on upstream. Capacity and bandwidth figures indicate orders of magnitude and are not measurements.</span></blockquote>
         </div>
       </article>
     </main>
@@ -660,42 +673,54 @@ vllm serve MODEL --kv-transfer-config '{
 
     <script>
       (function () {
+        // ---- i18n for JS-generated text -------------------------------
+        // The site toggle only flips html[lang]; CSS handles .i18n-* spans.
+        // Text built in JS has to be rebuilt, so every figure registers a
+        // redraw and we re-run them whenever that attribute changes.
+        function isEn() { return document.documentElement.lang === 'en'; }
+        function tr(zh, en) { return isEn() ? en : zh; }
+        var redraw = [];
+        new MutationObserver(function () {
+          redraw.forEach(function (fn) { try { fn(); } catch (_) {} });
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
         /* ============ 动图 2:生命周期时序 ============ */
         (function () {
-          var STEPS = [
+          function buildSteps() { return [
             {
               side: 'sch', slot: 0, api: 'get_num_new_matched_tokens()', flow: 'none',
-              desc: '调度器问连接器:「除了本地已算的 <em>num_computed_tokens</em>,外部还能再给我多少个 token?」返回一个数字加一个布尔值(是否异步加载)。这个方法<em>必须无副作用</em>,因为同一请求可能被反复问;也可以返回 <em>None</em> 表示还没查完,下轮再来。'
+              desc: tr('调度器问连接器:「除了本地已算的 <em>num_computed_tokens</em>,外部还能再给我多少个 token?」返回一个数字加一个布尔值(是否异步加载)。这个方法<em>必须无副作用</em>,因为同一请求可能被反复问;也可以返回 <em>None</em> 表示还没查完,下轮再来。', 'The scheduler asks the connector: beyond the <em>num_computed_tokens</em> already computed locally, how many more tokens can you give me? It returns a number plus a boolean for whether the load is asynchronous. The method <em>must be side-effect free</em>, because the same request may be asked repeatedly; it may also return <em>None</em> to say the lookup is unfinished and to come back next round.')
             },
             {
               side: 'sch', slot: 1, api: 'update_state_after_alloc()', flow: 'none',
-              desc: 'CacheManager 按上一步的答复分配好块之后回调。注意判断依据是 <em>num_external_tokens</em> 而不是 blocks 是否为空 —— 在 MultiConnector 下,没被选中的子连接器同样会收到真实的 blocks。'
+              desc: tr('CacheManager 按上一步的答复分配好块之后回调。注意判断依据是 <em>num_external_tokens</em> 而不是 blocks 是否为空 —— 在 MultiConnector 下,没被选中的子连接器同样会收到真实的 blocks。', 'Called back once CacheManager has allocated blocks according to the previous answer. Note that the test is <em>num_external_tokens</em>, not whether blocks is empty — under MultiConnector, sub-connectors that were not selected still receive real blocks.')
             },
             {
               side: 'sch', slot: 2, api: 'build_connector_meta()', flow: 'none',
-              desc: '把这一轮所有请求的搬运计划打包成 <em>KVConnectorMetadata</em>,随 scheduler output 一起发给各个 Worker。到这里调度侧的活就干完了,它自始至终没有碰过一个张量。'
+              desc: tr('把这一轮所有请求的搬运计划打包成 <em>KVConnectorMetadata</em>,随 scheduler output 一起发给各个 Worker。到这里调度侧的活就干完了,它自始至终没有碰过一个张量。', 'Packs this round\'s transfer plan for every request into <em>KVConnectorMetadata</em> and ships it to the workers alongside the scheduler output. The scheduler side is done here, never having touched a single tensor.')
             },
             {
               side: 'wrk', slot: 0, api: 'start_load_kv()', flow: 'load',
-              desc: 'Worker 在前向开始前发起加载,把外部 KV 异步拉进 vLLM 的 paged buffer。<em>只是发起,不等待</em> —— 这样传输就能和随后的计算重叠起来。'
+              desc: tr('Worker 在前向开始前发起加载,把外部 KV 异步拉进 vLLM 的 paged buffer。<em>只是发起,不等待</em> —— 这样传输就能和随后的计算重叠起来。', 'Before the forward begins, the worker starts the load, pulling external KV asynchronously into vLLM\'s paged buffer. <em>It only starts; it does not wait</em> — which is what lets the transfer overlap the computation that follows.')
             },
             {
               side: 'wrk', slot: 1, api: 'wait_for_layer_load(i)', flow: 'load',
-              desc: '算到第 <em>i</em> 层时才阻塞等这一层的数据到位。粒度是层而不是整个请求,所以第 1 层算完时第 5 层可能还在路上 —— <em>逐层流水</em>正是搬运延迟能被计算掩盖的原因。'
+              desc: tr('算到第 <em>i</em> 层时才阻塞等这一层的数据到位。粒度是层而不是整个请求,所以第 1 层算完时第 5 层可能还在路上 —— <em>逐层流水</em>正是搬运延迟能被计算掩盖的原因。', 'Only when layer <em>i</em> is reached does it block for that layer\'s data. The granularity is the layer rather than the whole request, so layer 5 may still be in flight when layer 1 finishes — this <em>per-layer pipelining</em> is exactly why transfer latency hides behind computation.')
             },
             {
               side: 'wrk', slot: 2, api: 'save_kv_layer(i)', flow: 'save',
-              desc: '第 <em>i</em> 层刚算出来的 KV,立刻从 attention 层内部发起异步外推。同样是<em>发起即返回</em>,不阻塞后面几层继续计算。'
+              desc: tr('第 <em>i</em> 层刚算出来的 KV,立刻从 attention 层内部发起异步外推。同样是<em>发起即返回</em>,不阻塞后面几层继续计算。', 'The KV just computed for layer <em>i</em> is pushed out asynchronously from inside the attention layer. Again it <em>returns as soon as it starts</em>, without blocking the layers that follow.')
             },
             {
               side: 'wrk', slot: 3, api: 'wait_for_save()', flow: 'save',
-              desc: '前向结束前的兜底屏障:阻塞直到所有保存完成。少了这一步,paged buffer 会在数据还没推完时就被下一批请求覆盖掉。'
+              desc: tr('前向结束前的兜底屏障:阻塞直到所有保存完成。少了这一步,paged buffer 会在数据还没推完时就被下一批请求覆盖掉。', 'A backstop barrier before the forward ends: block until every save has completed. Without it, the paged buffer would be overwritten by the next batch while data was still being pushed out.')
             },
             {
               side: 'sch', slot: 3, api: 'request_finished()', flow: 'none',
-              desc: '请求结束时调用一次,返回值回答「块现在能不能释放」。若连接器还在异步外推(比如 PD 里 prefill 端仍在发送),它就<em>接管块的释放责任</em>,调度器必须放手,否则会覆盖正在传输的数据。'
+              desc: tr('请求结束时调用一次,返回值回答「块现在能不能释放」。若连接器还在异步外推(比如 PD 里 prefill 端仍在发送),它就<em>接管块的释放责任</em>,调度器必须放手,否则会覆盖正在传输的数据。', 'Called once when the request finishes; the return value answers whether the blocks can be freed now. If the connector is still pushing asynchronously — the prefill side of a PD setup still sending, say — it <em>takes over responsibility for freeing them</em> and the scheduler must let go, or data still in flight gets overwritten.')
             },
-          ];
+          ]; }
+          var STEPS = buildSteps();
           var SCH_LABELS = ['matched_tokens', 'after_alloc', 'build_meta', 'finished'];
           var WRK_LABELS = ['start_load', 'wait_layer', 'save_layer', 'wait_save'];
 
@@ -764,12 +789,12 @@ vllm serve MODEL --kv-transfer-config '{
 
           document.getElementById('lifePlay').addEventListener('click', function (e) {
             playing = !playing;
-            e.target.textContent = playing ? '暂停' : '继续';
+            e.target.textContent = playing ? tr('暂停', 'Pause') : tr('继续', 'Resume');
             loop();
           });
           document.getElementById('lifeStep').addEventListener('click', function () {
             playing = false;
-            document.getElementById('lifePlay').textContent = '继续';
+            document.getElementById('lifePlay').textContent = tr('继续', 'Resume');
             clearInterval(timer);
             next();
           });
@@ -787,6 +812,7 @@ vllm serve MODEL --kv-transfer-config '{
 
           render();
           loop();
+          redraw.push(function () { STEPS = buildSteps(); render(); });
         })();
 
         /* ============ 动图 3:拓扑切换 ============ */
