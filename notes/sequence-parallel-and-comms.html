@@ -136,40 +136,32 @@
         </header>
 
         <div class="prose">
-          <p>
-            这篇笔记用图文 + 动图把 <strong>主流序列并行(SP)方案</strong> 串起来:Megatron-SP、DeepSpeed-Ulysses、Ring-Attention / Context Parallel、以及混合的 USP,逐个讲机制、配动图、对比优缺点;最后讲清 <strong>主流大模型(含 DeepSeek MoE)用的通信原语</strong>。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">这篇笔记用图文 + 动图把 <strong>主流序列并行(SP)方案</strong> 串起来:Megatron-SP、DeepSpeed-Ulysses、Ring-Attention / Context Parallel、以及混合的 USP,逐个讲机制、配动图、对比优缺点;最后讲清 <strong>主流大模型(含 DeepSeek MoE)用的通信原语</strong>。</span><span lang="en" class="i18n-en">This note walks through the <strong>mainstream sequence-parallel (SP) schemes</strong> with figures and animations: Megatron-SP, DeepSpeed-Ulysses, Ring-Attention / Context Parallel and the hybrid USP — mechanism by mechanism, each with a figure, then a side-by-side comparison. It closes with the <strong>communication primitives the major LLMs actually use</strong>, DeepSeek MoE included.</span></p>
 
-          <div class="callout key">
-            <strong>一句话总览:</strong> 先分清"SP"的两层意思 —— <strong>① Megatron-SP</strong> 是 TP 的补充,省非 TP 区的激活显存;<strong>② 长上下文 SP</strong>(Ulysses / Ring / USP)才是把<em>序列维</em>切到多卡、训超长序列。底层都靠 <strong>集合通信原语</strong>(NCCL/HCCL):AllReduce、AllGather、ReduceScatter、All-to-All、P2P。
-          </div>
+          <div class="callout key"><span lang="zh-CN" class="i18n-zh"><strong>一句话总览:</strong> 先分清"SP"的两层意思 —— <strong>① Megatron-SP</strong> 是 TP 的补充,省非 TP 区的激活显存;<strong>② 长上下文 SP</strong>(Ulysses / Ring / USP)才是把<em>序列维</em>切到多卡、训超长序列。底层都靠 <strong>集合通信原语</strong>(NCCL/HCCL):AllReduce、AllGather、ReduceScatter、All-to-All、P2P。</span><span lang="en" class="i18n-en"><strong>In one line:</strong> first separate the two meanings of "SP". <strong>① Megatron-SP</strong> supplements TP and saves activation memory outside the TP region; <strong>② long-context SP</strong> (Ulysses / Ring / USP) is what actually shards the <em>sequence</em> dimension across GPUs to train very long sequences. Both rest on the same <strong>collective primitives</strong> (NCCL/HCCL): AllReduce, AllGather, ReduceScatter, All-to-All and P2P.</span></div>
 
-          <h2>0 · 背景:为什么需要 SP</h2>
-          <p>
-            自回归 Transformer 的激活显存随 <code>batch × seq_len × hidden</code> 线性增长,注意力更是接近平方级。序列推到 32K、128K、1M 时,<strong>单卡既放不下激活、也算不动注意力</strong>。SP 的核心思路:<strong>把序列这一维切到多张卡上</strong>,每卡只持有一段,从而摊薄显存与算力 —— 代价是引入跨卡通信。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">0 · 背景:为什么需要 SP</span><span lang="en" class="i18n-en">0 · Background: why SP exists</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">自回归 Transformer 的激活显存随 <code>batch × seq_len × hidden</code> 线性增长,注意力更是接近平方级。序列推到 32K、128K、1M 时,<strong>单卡既放不下激活、也算不动注意力</strong>。SP 的核心思路:<strong>把序列这一维切到多张卡上</strong>,每卡只持有一段,从而摊薄显存与算力 —— 代价是引入跨卡通信。</span><span lang="en" class="i18n-en">Activation memory in an autoregressive Transformer grows linearly with <code>batch × seq_len × hidden</code>, and attention closer to quadratically. Push the sequence to 32K, 128K or 1M and <strong>a single GPU can neither hold the activations nor compute the attention</strong>. SP's core idea: <strong>shard the sequence dimension across GPUs</strong> so each holds one slice, spreading both memory and compute — at the cost of cross-GPU communication.</span></p>
 
-          <h2>1 · 先备齐"通信原语"</h2>
-          <p>
-            所有并行策略最终都落到几种<strong>集合通信原语</strong>上(由 NCCL / 昇腾 HCCL 提供)。先看懂它们,后面的 SP 方案就是"用哪个原语、用几次"的区别。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">1 · 先备齐"通信原语"</span><span lang="en" class="i18n-en">1 · First, the communication primitives</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">所有并行策略最终都落到几种<strong>集合通信原语</strong>上(由 NCCL / 昇腾 HCCL 提供)。先看懂它们,后面的 SP 方案就是"用哪个原语、用几次"的区别。</span><span lang="en" class="i18n-en">Every parallelism strategy ultimately reduces to a handful of <strong>collective primitives</strong> (supplied by NCCL or Ascend HCCL). Understand these and the SP schemes become a question of which primitive, and how many times.</span></p>
 
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>原语</th><th>干什么</th><th>谁在用</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">原语</span><span lang="en" class="i18n-en">Primitive</span></th><th><span lang="zh-CN" class="i18n-zh">干什么</span><span lang="en" class="i18n-en">What it does</span></th><th><span lang="zh-CN" class="i18n-zh">谁在用</span><span lang="en" class="i18n-en">Who uses it</span></th></tr></thead>
               <tbody>
-                <tr><td><b>AllReduce</b></td><td>各卡数据求和,结果广播回所有卡</td><td>DP 同步梯度、TP</td></tr>
-                <tr><td><b>AllGather</b></td><td>各卡的分片拼成全量,人手一份</td><td>ZeRO/FSDP 取参数、TP+SP</td></tr>
-                <tr><td><b>ReduceScatter</b></td><td>求和后再切片,每卡只拿一片</td><td>ZeRO/FSDP 归约梯度、TP+SP</td></tr>
-                <tr><td><b>All-to-All</b></td><td>每卡把数据按目标重排发给所有卡(分布式转置)</td><td><strong>Ulysses SP、MoE 专家并行</strong></td></tr>
-                <tr><td><b>P2P Send/Recv</b></td><td>点对点收发(All-to-All / Ring 的底层积木)</td><td>流水线 PP、Ring SP</td></tr>
+                <tr><td><b>AllReduce</b></td><td><span lang="zh-CN" class="i18n-zh">各卡数据求和,结果广播回所有卡</span><span lang="en" class="i18n-en">Sums data across GPUs and broadcasts the result back to all of them</span></td><td><span lang="zh-CN" class="i18n-zh">DP 同步梯度、TP</span><span lang="en" class="i18n-en">DP gradient sync, TP</span></td></tr>
+                <tr><td><b>AllGather</b></td><td><span lang="zh-CN" class="i18n-zh">各卡的分片拼成全量,人手一份</span><span lang="en" class="i18n-en">Concatenates each GPU's shard into the full tensor, one copy each</span></td><td><span lang="zh-CN" class="i18n-zh">ZeRO/FSDP 取参数、TP+SP</span><span lang="en" class="i18n-en">ZeRO/FSDP parameter fetch, TP+SP</span></td></tr>
+                <tr><td><b>ReduceScatter</b></td><td><span lang="zh-CN" class="i18n-zh">求和后再切片,每卡只拿一片</span><span lang="en" class="i18n-en">Sums, then scatters so each GPU keeps only one slice</span></td><td><span lang="zh-CN" class="i18n-zh">ZeRO/FSDP 归约梯度、TP+SP</span><span lang="en" class="i18n-en">ZeRO/FSDP gradient reduction, TP+SP</span></td></tr>
+                <tr><td><b>All-to-All</b></td><td><span lang="zh-CN" class="i18n-zh">每卡把数据按目标重排发给所有卡(分布式转置)</span><span lang="en" class="i18n-en">Each GPU redistributes its data to every other by destination (a distributed transpose)</span></td><td><span lang="zh-CN" class="i18n-zh"><strong>Ulysses SP、MoE 专家并行</strong></span><span lang="en" class="i18n-en"><strong>Ulysses SP, MoE expert parallelism</strong></span></td></tr>
+                <tr><td><b>P2P Send/Recv</b></td><td><span lang="zh-CN" class="i18n-zh">点对点收发(All-to-All / Ring 的底层积木)</span><span lang="en" class="i18n-en">Point-to-point send/receive (the building block under All-to-All and Ring)</span></td><td><span lang="zh-CN" class="i18n-zh">流水线 PP、Ring SP</span><span lang="en" class="i18n-en">Pipeline PP, Ring SP</span></td></tr>
               </tbody>
             </table>
           </div>
 
           <figure class="fig">
-            <div class="fig-title">动图 · AllReduce:汇总求和 → 广播回所有卡</div>
-            <svg class="sp-svg" viewBox="0 0 320 220" role="img" aria-label="AllReduce 动画">
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · AllReduce:汇总求和 → 广播回所有卡</span><span lang="en" class="i18n-en">Figure · AllReduce: sum at the centre, broadcast back to every GPU</span></div>
+            <svg class="sp-svg" viewBox="0 0 320 220" role="img" aria-label="AllReduce animation">
               <rect class="sp-rect" x="6" y="10" width="58" height="30" rx="7" /><text class="sp-txt" x="35" y="30" text-anchor="middle">G0</text>
               <rect class="sp-rect" x="256" y="10" width="58" height="30" rx="7" /><text class="sp-txt" x="285" y="30" text-anchor="middle">G1</text>
               <rect class="sp-rect" x="6" y="180" width="58" height="30" rx="7" /><text class="sp-txt" x="35" y="200" text-anchor="middle">G2</text>
@@ -181,14 +173,14 @@
               <circle class="sp-pulse" cx="160" cy="110" r="24" />
               <circle class="sp-hub" cx="160" cy="110" r="24" /><text x="160" y="115" text-anchor="middle" fill="#fff" font-family="monospace" font-size="16">Σ</text>
             </svg>
-            <span class="fig-cap">▶ 四张卡的数据流向中心求和(Σ),再以扩散的脉冲广播回所有卡 —— 这就是 AllReduce</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">▶ 四张卡的数据流向中心求和(Σ),再以扩散的脉冲广播回所有卡 —— 这就是 AllReduce</span><span lang="en" class="i18n-en">▶ Four GPUs' data flows to the centre to be summed (Σ), then radiates back out to all of them — that is AllReduce</span></span>
           </figure>
 
           <figure class="fig">
-            <div class="fig-title">动图 · All-to-All:每卡把数据按目标重排发给所有卡(分布式转置)</div>
-            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="All-to-All 动画">
-              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8">发送方</text>
-              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8">接收方</text>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · All-to-All:每卡把数据按目标重排发给所有卡(分布式转置)</span><span lang="en" class="i18n-en">Figure · All-to-All: each GPU redistributes data by destination (a distributed transpose)</span></div>
+            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="All-to-All animation">
+              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8"><span lang="zh-CN" class="i18n-zh">发送方</span><span lang="en" class="i18n-en">Sender</span></text>
+              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8"><span lang="zh-CN" class="i18n-zh">接收方</span><span lang="en" class="i18n-en">Receiver</span></text>
               <rect class="sp-rect" x="8" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="42" text-anchor="middle">G0</text>
               <rect class="sp-rect" x="8" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="88" text-anchor="middle">G1</text>
               <rect class="sp-rect" x="8" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="134" text-anchor="middle">G2</text>
@@ -202,161 +194,151 @@
               <line class="sp-flow" x1="64" y1="129" x2="256" y2="37" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="83" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="129" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="175" stroke="#ec4899" />
               <line class="sp-flow" x1="64" y1="175" x2="256" y2="37" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="83" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="129" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="175" stroke="#f59e0b" />
             </svg>
-            <span class="fig-cap">▶ 每张卡都把自己的数据切成 4 份、分别发给 4 张卡(颜色=来源)。通信量低、与序列长度增长解耦,但<strong>并行度被 head 数限制</strong> —— Ulysses 和 MoE 都靠它</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">▶ 每张卡都把自己的数据切成 4 份、分别发给 4 张卡(颜色=来源)。通信量低、与序列长度增长解耦,但<strong>并行度被 head 数限制</strong> —— Ulysses 和 MoE 都靠它</span><span lang="en" class="i18n-en">▶ Every GPU splits its data into four pieces and sends one to each of the four GPUs (colour = origin). Communication volume is low and decoupled from sequence growth, but <strong>the degree of parallelism is capped by the head count</strong> — both Ulysses and MoE rely on this primitive.</span></span>
           </figure>
 
           <figure class="fig">
-            <div class="fig-title">动图 · AllGather:每卡的分片,拼成人手一份的全量</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · AllGather:每卡的分片,拼成人手一份的全量</span><span lang="en" class="i18n-en">Figure · AllGather: each GPU's shard, assembled into a full copy for everyone</span></div>
             <div class="sp-gather" aria-hidden="true">
               <div class="sp-col"><span class="h">G0</span><span class="sp-cell" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
               <div class="sp-col"><span class="h">G1</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
               <div class="sp-col"><span class="h">G2</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell" style="background:#ec4899"></span><span class="sp-cell g g4" style="background:#f59e0b"></span></div>
               <div class="sp-col"><span class="h">G3</span><span class="sp-cell g" style="background:#06b6d4"></span><span class="sp-cell g g2" style="background:#a855f7"></span><span class="sp-cell g g3" style="background:#ec4899"></span><span class="sp-cell" style="background:#f59e0b"></span></div>
             </div>
-            <span class="fig-cap">▶ 每卡原本只有自己那一片(实色),其余三片陆续"收齐"(渐入)→ 最终每卡都有全 4 片。ReduceScatter 是它的逆操作(先求和再各拿一片)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">▶ 每卡原本只有自己那一片(实色),其余三片陆续"收齐"(渐入)→ 最终每卡都有全 4 片。ReduceScatter 是它的逆操作(先求和再各拿一片)</span><span lang="en" class="i18n-en">▶ Each GPU starts with only its own shard (solid), then the other three arrive one by one (fading in) until every GPU holds all four. ReduceScatter is the inverse — sum first, then each takes one slice.</span></span>
           </figure>
 
-          <h2>2 · Megatron-style SP(TP 耦合)</h2>
-          <p>
-            这是最容易被混淆的"SP"。它<strong>不单独处理注意力的跨卡</strong>,而是作为 <strong>张量并行(TP)的补充</strong>:TP 已经把注意力/MLP 的权重按 head/维度切了,但 <strong>LayerNorm、Dropout、残差</strong> 这些区域 TP 没覆盖,激活仍是全量、冗余存在每张卡上。Megatron-SP 把这些区域的激活也<strong>沿序列维切开</strong>,从而省下这部分激活显存。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">2 · Megatron-style SP(TP 耦合)</span><span lang="en" class="i18n-en">2 · Megatron-style SP (coupled to TP)</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">这是最容易被混淆的"SP"。它<strong>不单独处理注意力的跨卡</strong>,而是作为 <strong>张量并行(TP)的补充</strong>:TP 已经把注意力/MLP 的权重按 head/维度切了,但 <strong>LayerNorm、Dropout、残差</strong> 这些区域 TP 没覆盖,激活仍是全量、冗余存在每张卡上。Megatron-SP 把这些区域的激活也<strong>沿序列维切开</strong>,从而省下这部分激活显存。</span><span lang="en" class="i18n-en">This is the "SP" people most often confuse. It <strong>does not handle attention across GPUs at all</strong>; it acts as a <strong>supplement to tensor parallelism</strong>. TP already shards attention and MLP weights by head or by dimension, but <strong>LayerNorm, Dropout and the residual</strong> are not covered, so their activations stay full-size and redundantly replicated on every GPU. Megatron-SP shards those activations <strong>along the sequence dimension</strong> too, reclaiming that memory.</span></p>
           <figure class="fig">
-            <div class="fig-title">Megatron-SP:在 TP 区与 SP 区之间换原语</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">Megatron-SP:在 TP 区与 SP 区之间换原语</span><span lang="en" class="i18n-en">Megatron-SP: swapping primitives at the TP/SP boundary</span></div>
             <div class="flow">
-              <div class="flow-step"><span class="s-n">SP 区</span><span class="s-h">LayerNorm / Dropout</span><span class="s-d">激活按<strong>序列</strong>切</span></div>
+              <div class="flow-step"><span class="s-n"><span lang="zh-CN" class="i18n-zh">SP 区</span><span lang="en" class="i18n-en">SP region</span></span><span class="s-h">LayerNorm / Dropout</span><span class="s-d"><span lang="zh-CN" class="i18n-zh">激活按<strong>序列</strong>切</span><span lang="en" class="i18n-en">activations sharded by <strong>sequence</strong></span></span></div>
               <div class="flow-arrow">⇄</div>
-              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n">边界</span><span class="s-h">AllGather / ReduceScatter</span><span class="s-d">替代 TP 原来的 AllReduce</span></div>
+              <div class="flow-step" style="border-color:var(--accent-2)"><span class="s-n"><span lang="zh-CN" class="i18n-zh">边界</span><span lang="en" class="i18n-en">Boundary</span></span><span class="s-h">AllGather / ReduceScatter</span><span class="s-d"><span lang="zh-CN" class="i18n-zh">替代 TP 原来的 AllReduce</span><span lang="en" class="i18n-en">replaces TP's original AllReduce</span></span></div>
               <div class="flow-arrow">⇄</div>
-              <div class="flow-step"><span class="s-n">TP 区</span><span class="s-h">Attention / MLP</span><span class="s-d">权重按 <strong>head/维度</strong>切</span></div>
+              <div class="flow-step"><span class="s-n"><span lang="zh-CN" class="i18n-zh">TP 区</span><span lang="en" class="i18n-en">TP region</span></span><span class="s-h">Attention / MLP</span><span class="s-d"><span lang="zh-CN" class="i18n-zh">权重按 <strong>head/维度</strong>切</span><span lang="en" class="i18n-en">weights sharded by <strong>head / dimension</strong></span></span></div>
             </div>
-            <span class="fig-cap">图 1 · Megatron-SP 把 TP 的一次 AllReduce 拆成 AllGather + ReduceScatter,顺手把非 TP 区激活也切了 —— 目标是<strong>省激活显存</strong>,不是训超长序列</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 1 · Megatron-SP 把 TP 的一次 AllReduce 拆成 AllGather + ReduceScatter,顺手把非 TP 区激活也切了 —— 目标是<strong>省激活显存</strong>,不是训超长序列</span><span lang="en" class="i18n-en">Figure 1 · Megatron-SP splits TP's single AllReduce into AllGather + ReduceScatter and shards the non-TP activations along the way. The goal is <strong>saving activation memory</strong>, not training longer sequences.</span></span>
           </figure>
 
           <h2>3 · DeepSpeed-Ulysses(all-to-all)</h2>
-          <p>
-            真正面向长序列的方案之一。平时每卡只持有<strong>一段序列</strong>(按 seq 切);一到注意力计算,用一次 <strong>All-to-All</strong> 把布局<strong>转置</strong>成"按 head 切"——于是每卡拿到<strong>完整序列、但只算自己负责的几个 attention head</strong>;算完再 All-to-All 转回去。
-          </p>
+          <p><span lang="zh-CN" class="i18n-zh">真正面向长序列的方案之一。平时每卡只持有<strong>一段序列</strong>(按 seq 切);一到注意力计算,用一次 <strong>All-to-All</strong> 把布局<strong>转置</strong>成"按 head 切"——于是每卡拿到<strong>完整序列、但只算自己负责的几个 attention head</strong>;算完再 All-to-All 转回去。</span><span lang="en" class="i18n-en">One of the genuinely long-sequence schemes. Normally each GPU holds <strong>one slice of the sequence</strong> (sharded by seq); when attention runs, a single <strong>All-to-All</strong> <strong>transposes</strong> the layout to "sharded by head" — so each GPU now has the <strong>full sequence but only the attention heads it owns</strong>. After the computation another All-to-All transposes it back.</span></p>
           <figure class="fig">
-            <div class="fig-title">动图 · Ulysses:All-to-All 在「按序列切 ⇄ 按 head 切」之间转置</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · Ulysses:All-to-All 在「按序列切 ⇄ 按 head 切」之间转置</span><span lang="en" class="i18n-en">Figure · Ulysses: All-to-All transposes between "sharded by sequence" and "sharded by head"</span></div>
             <div class="sp-uly">
               <div class="panel">
-                <div class="t">注意力之外:按序列切</div>
-                <div style="font-size:.8rem;color:var(--text-muted)">每卡 = 一段序列<br/>(全部 head)</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">注意力之外:按序列切</span><span lang="en" class="i18n-en">Outside attention: sharded by sequence</span></div>
+                <div style="font-size:.8rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">每卡 = 一段序列<br/>(全部 head)</span><span lang="en" class="i18n-en">each GPU = one sequence slice<br/>(all heads)</span></div>
                 <div class="sp-chiprow"><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#a855f7"></span><span class="sp-chip" style="background:#ec4899"></span><span class="sp-chip" style="background:#f59e0b"></span></div>
               </div>
-              <div class="a2a"><div class="ar">⇄</div>All-to-All<br/>转置</div>
+              <div class="a2a"><span lang="zh-CN" class="i18n-zh"><div class="ar">⇄</div>All-to-All<br/>转置</span><span lang="en" class="i18n-en"><div class="ar">⇄</div>All-to-All<br/>transpose</span></div>
               <div class="panel" style="border-color:var(--accent-2)">
-                <div class="t">注意力之内:按 head 切</div>
-                <div style="font-size:.8rem;color:var(--text-muted)">每卡 = 完整序列<br/>(部分 head)</div>
+                <div class="t"><span lang="zh-CN" class="i18n-zh">注意力之内:按 head 切</span><span lang="en" class="i18n-en">Inside attention: sharded by head</span></div>
+                <div style="font-size:.8rem;color:var(--text-muted)"><span lang="zh-CN" class="i18n-zh">每卡 = 完整序列<br/>(部分 head)</span><span lang="en" class="i18n-en">each GPU = the full sequence<br/>(some heads)</span></div>
                 <div class="sp-chiprow"><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span><span class="sp-chip" style="background:#06b6d4"></span></div>
               </div>
             </div>
-            <span class="fig-cap">图 2 · 每层注意力前后各做 All-to-All(共约 4 次)。通信省、实现简单,但<strong>并行度 ≤ head 数</strong>(GQA 下受 KV head 限制更紧)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 2 · 每层注意力前后各做 All-to-All(共约 4 次)。通信省、实现简单,但<strong>并行度 ≤ head 数</strong>(GQA 下受 KV head 限制更紧)</span><span lang="en" class="i18n-en">Figure 2 · One All-to-All before and after attention in every layer, roughly four in total. Communication is cheap and the implementation is simple, but <strong>the degree of parallelism is ≤ the head count</strong> (tighter still under GQA, where KV heads bind).</span></span>
           </figure>
 
-          <h2>4 · Ring-Attention / Context Parallel(P2P 环)</h2>
-          <p>
-            另一条长序列路线,也是<strong>超长上下文</strong>的主力。每卡持有序列的一个块的 Q/K/V;计算注意力时,<strong>把 K/V 块沿着卡组成的环依次传递</strong>,每收到一块就和本地 Q 算一次局部注意力,用 <strong>online-softmax</strong>(FlashAttention 思路)把分块结果累加起来 —— 通信可以和计算 <strong>overlap</strong>。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">4 · Ring-Attention / Context Parallel(P2P 环)</span><span lang="en" class="i18n-en">4 · Ring-Attention / Context Parallel (a P2P ring)</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">另一条长序列路线,也是<strong>超长上下文</strong>的主力。每卡持有序列的一个块的 Q/K/V;计算注意力时,<strong>把 K/V 块沿着卡组成的环依次传递</strong>,每收到一块就和本地 Q 算一次局部注意力,用 <strong>online-softmax</strong>(FlashAttention 思路)把分块结果累加起来 —— 通信可以和计算 <strong>overlap</strong>。</span><span lang="en" class="i18n-en">The other long-sequence route, and the workhorse for <strong>very long context</strong>. Each GPU holds the Q/K/V of one block of the sequence; to compute attention, the <strong>K/V blocks are passed around a ring of GPUs</strong>. Each time a block arrives it is combined with the local Q for a partial attention, and the pieces are accumulated with <strong>online softmax</strong> (the FlashAttention idea) — so communication can <strong>overlap</strong> with computation.</span></p>
           <figure class="fig">
-            <div class="fig-title">动图 · Ring:K/V 块沿环在卡间传递(P2P)</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · Ring:K/V 块沿环在卡间传递(P2P)</span><span lang="en" class="i18n-en">Figure · Ring: K/V blocks passed between GPUs around the ring (P2P)</span></div>
             <div class="sp-ring" aria-hidden="true">
               <div class="rnode"><span class="sp-node">GPU0</span></div>
               <div class="rnode n1"><span class="sp-node">GPU1</span></div>
               <div class="rnode n2"><span class="sp-node">GPU2</span></div>
               <div class="rnode n3"><span class="sp-node">GPU3</span></div>
-              <div class="orbit"><div class="pkt-pos"><span class="pkt">KV 块 →</span></div></div>
-              <div class="rhub">K/V 沿环传递<br/>online-softmax 累加</div>
+              <div class="orbit"><div class="pkt-pos"><span class="pkt"><span lang="zh-CN" class="i18n-zh">KV 块 →</span><span lang="en" class="i18n-en">KV block →</span></span></div></div>
+              <div class="rhub"><span lang="zh-CN" class="i18n-zh">K/V 沿环传递<br/>online-softmax 累加</span><span lang="en" class="i18n-en">K/V passed around the ring<br/>accumulated with online softmax</span></div>
             </div>
-            <span class="fig-cap">图 3 · KV 块绕环流动,每到一卡就算一次局部注意力。<strong>并行度不受 head 限制</strong>、可扩到超长序列;代价是通信量随切分增大,且 causal mask 下负载不均(后面的卡算得多)→ 用 <strong>Striped / ZigZag Attention</strong> 重排均衡</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 3 · KV 块绕环流动,每到一卡就算一次局部注意力。<strong>并行度不受 head 限制</strong>、可扩到超长序列;代价是通信量随切分增大,且 causal mask 下负载不均(后面的卡算得多)→ 用 <strong>Striped / ZigZag Attention</strong> 重排均衡</span><span lang="en" class="i18n-en">Figure 3 · KV blocks circulate; each arrival triggers one local attention. <strong>Parallelism is not capped by head count</strong> and scales to very long sequences. The cost is that communication grows with the degree of sharding, and a causal mask makes the load uneven (later GPUs do more work) → rebalance with <strong>Striped / ZigZag Attention</strong>.</span></span>
           </figure>
 
-          <h2>5 · USP / 混合(Ulysses × Ring,2D)</h2>
-          <p>
-            Ulysses 通信省但受 head 数限制;Ring 不受 head 限制但通信量大。<strong>USP</strong> 把两者放进一个 <strong>2D mesh</strong>:<strong>组内用 Ulysses(All-to-All)</strong> 吃通信效率,<strong>组间用 Ring(P2P)</strong> 突破 head 上限。长上下文 + 大规模训练的常见选择。
-          </p>
+          <h2><span lang="zh-CN" class="i18n-zh">5 · USP / 混合(Ulysses × Ring,2D)</span><span lang="en" class="i18n-en">5 · USP / hybrid (Ulysses × Ring, 2D)</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">Ulysses 通信省但受 head 数限制;Ring 不受 head 限制但通信量大。<strong>USP</strong> 把两者放进一个 <strong>2D mesh</strong>:<strong>组内用 Ulysses(All-to-All)</strong> 吃通信效率,<strong>组间用 Ring(P2P)</strong> 突破 head 上限。长上下文 + 大规模训练的常见选择。</span><span lang="en" class="i18n-en">Ulysses is communication-cheap but capped by head count; Ring is uncapped but communication-heavy. <strong>USP</strong> puts both on a <strong>2D mesh</strong>: <strong>Ulysses (All-to-All) within a group</strong> for communication efficiency, <strong>Ring (P2P) across groups</strong> to break the head-count ceiling. A common choice for long context at scale.</span></p>
           <figure class="fig">
-            <div class="fig-title">USP:两级并行,各取所长</div>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">USP:两级并行,各取所长</span><span lang="en" class="i18n-en">USP: two levels, each playing to its strength</span></div>
             <div class="cols2" style="margin:0">
-              <div class="node accent-2"><div class="node-h"><i class="fas fa-arrows-left-right"></i> 组内 · Ulysses</div><div class="node-sub">All-to-All,通信高效,受 head 数限制</div></div>
-              <div class="node accent-1"><div class="node-h"><i class="fas fa-circle-notch"></i> 组间 · Ring</div><div class="node-sub">P2P 环传递,突破 head 上限、扩超长序列</div></div>
+              <div class="node accent-2"><div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-arrows-left-right"></i> 组内 · Ulysses</span><span lang="en" class="i18n-en"><i class="fas fa-arrows-left-right"></i> Within group · Ulysses</span></div><div class="node-sub"><span lang="zh-CN" class="i18n-zh">All-to-All,通信高效,受 head 数限制</span><span lang="en" class="i18n-en">All-to-All, communication-efficient, capped by head count</span></div></div>
+              <div class="node accent-1"><div class="node-h"><span lang="zh-CN" class="i18n-zh"><i class="fas fa-circle-notch"></i> 组间 · Ring</span><span lang="en" class="i18n-en"><i class="fas fa-circle-notch"></i> Across groups · Ring</span></div><div class="node-sub"><span lang="zh-CN" class="i18n-zh">P2P 环传递,突破 head 上限、扩超长序列</span><span lang="en" class="i18n-en">P2P ring, breaks the head ceiling, scales to very long sequences</span></div></div>
             </div>
-            <span class="fig-cap">图 4 · USP = Ulysses(头维度高效) + Ring(序列维度可扩),代表实现:yunchang(USP)、LoongTrain</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 4 · USP = Ulysses(头维度高效) + Ring(序列维度可扩),代表实现:yunchang(USP)、LoongTrain</span><span lang="en" class="i18n-en">Figure 4 · USP = Ulysses (efficient on the head dimension) + Ring (scalable on the sequence dimension). Reference implementations: yunchang (USP), LoongTrain.</span></span>
           </figure>
 
-          <h2>6 · 四种方案优缺点对比</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">6 · 四种方案优缺点对比</span><span lang="en" class="i18n-en">6 · The four schemes compared</span></h2>
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>方案</th><th>通信原语</th><th>并行度上限</th><th>优点</th><th>缺点</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">方案</span><span lang="en" class="i18n-en">Scheme</span></th><th><span lang="zh-CN" class="i18n-zh">通信原语</span><span lang="en" class="i18n-en">Primitive</span></th><th><span lang="zh-CN" class="i18n-zh">并行度上限</span><span lang="en" class="i18n-en">Parallelism ceiling</span></th><th><span lang="zh-CN" class="i18n-zh">优点</span><span lang="en" class="i18n-en">Strengths</span></th><th><span lang="zh-CN" class="i18n-zh">缺点</span><span lang="en" class="i18n-en">Weaknesses</span></th></tr></thead>
               <tbody>
                 <tr>
                   <td><b>Megatron-SP</b></td>
                   <td>AllGather + ReduceScatter</td>
-                  <td>= TP 度</td>
-                  <td>省非 TP 区激活显存;和 TP 无缝</td>
-                  <td>不解决长序列本身;绑定 TP</td>
+                  <td><span lang="zh-CN" class="i18n-zh">= TP 度</span><span lang="en" class="i18n-en">= TP degree</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">省非 TP 区激活显存;和 TP 无缝</span><span lang="en" class="i18n-en">Saves activation memory outside the TP region; drops straight into TP</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">不解决长序列本身;绑定 TP</span><span lang="en" class="i18n-en">Does nothing for long sequences themselves; bound to TP</span></td>
                 </tr>
                 <tr>
                   <td><b>DeepSpeed-Ulysses</b></td>
                   <td>All-to-All</td>
-                  <td>≤ head 数</td>
-                  <td>通信省、实现简单、与 seq 增长解耦</td>
-                  <td>并行度被 head 卡死;GQA 下更紧</td>
+                  <td><span lang="zh-CN" class="i18n-zh">≤ head 数</span><span lang="en" class="i18n-en">≤ head count</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">通信省、实现简单、与 seq 增长解耦</span><span lang="en" class="i18n-en">Cheap communication, simple to implement, decoupled from sequence growth</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">并行度被 head 卡死;GQA 下更紧</span><span lang="en" class="i18n-en">Parallelism hard-capped by heads; tighter under GQA</span></td>
                 </tr>
                 <tr>
                   <td><b>Ring / CP</b></td>
                   <td>P2P Send/Recv</td>
-                  <td>不受 head 限制</td>
-                  <td>超长序列友好、通信可 overlap</td>
-                  <td>通信量随切分增大;causal 负载不均(需 ZigZag)</td>
+                  <td><span lang="zh-CN" class="i18n-zh">不受 head 限制</span><span lang="en" class="i18n-en">Not capped by head count</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">超长序列友好、通信可 overlap</span><span lang="en" class="i18n-en">Good for very long sequences; communication can overlap</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">通信量随切分增大;causal 负载不均(需 ZigZag)</span><span lang="en" class="i18n-en">Communication grows with sharding; causal load imbalance (needs ZigZag)</span></td>
                 </tr>
                 <tr>
-                  <td><b>USP(混合)</b></td>
+                  <td><span lang="zh-CN" class="i18n-zh"><b>USP(混合)</b></span><span lang="en" class="i18n-en"><b>USP (hybrid)</b></span></td>
                   <td>All-to-All + P2P</td>
-                  <td>突破 head 上限</td>
-                  <td>兼顾通信效率与可扩性</td>
-                  <td>实现/调参更复杂(2D mesh)</td>
+                  <td><span lang="zh-CN" class="i18n-zh">突破 head 上限</span><span lang="en" class="i18n-en">Breaks the head ceiling</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">兼顾通信效率与可扩性</span><span lang="en" class="i18n-en">Balances communication efficiency against scalability</span></td>
+                  <td><span lang="zh-CN" class="i18n-zh">实现/调参更复杂(2D mesh)</span><span lang="en" class="i18n-en">More complex to implement and tune (2D mesh)</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div class="callout tip">
-            <strong>怎么选:</strong>
+            <strong><span lang="zh-CN" class="i18n-zh">怎么选:</span><span lang="en" class="i18n-en">How to choose:</span></strong>
             <ul style="margin:8px 0 0">
-              <li>序列不算特别长、head 够分 → <strong>Ulysses</strong>(简单、通信省)。</li>
-              <li>序列非常长 / head 不够分 → <strong>Ring(CP)</strong>,配 ZigZag 均衡。</li>
-              <li>又长又要大并行 → <strong>USP 混合</strong>。</li>
-              <li>已经在用 TP、只想省激活显存 → 叠 <strong>Megatron-SP</strong>。</li>
-              <li>实战里这些还常和 <strong>DP / TP / PP / ZeRO</strong> 组成多维并行一起上。</li>
+              <li><span lang="zh-CN" class="i18n-zh">序列不算特别长、head 够分 → <strong>Ulysses</strong>(简单、通信省)。</span><span lang="en" class="i18n-en">Sequence not especially long and enough heads to go around → <strong>Ulysses</strong> (simple, cheap).</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">序列非常长 / head 不够分 → <strong>Ring(CP)</strong>,配 ZigZag 均衡。</span><span lang="en" class="i18n-en">Very long sequence, or not enough heads → <strong>Ring (CP)</strong>, with ZigZag for balance.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">又长又要大并行 → <strong>USP 混合</strong>。</span><span lang="en" class="i18n-en">Long <em>and</em> highly parallel → <strong>hybrid USP</strong>.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">已经在用 TP、只想省激活显存 → 叠 <strong>Megatron-SP</strong>。</span><span lang="en" class="i18n-en">Already on TP and only want the activation memory back → add <strong>Megatron-SP</strong>.</span></li>
+              <li><span lang="zh-CN" class="i18n-zh">实战里这些还常和 <strong>DP / TP / PP / ZeRO</strong> 组成多维并行一起上。</span><span lang="en" class="i18n-en">In practice these are usually stacked with <strong>DP / TP / PP / ZeRO</strong> into multi-dimensional parallelism.</span></li>
             </ul>
           </div>
 
-          <h2>7 · 主流大模型用什么通信原语</h2>
-          <p>各并行维度对应的原语其实是固定的,记住这张映射表就能反推任何模型的通信特征:</p>
+          <h2><span lang="zh-CN" class="i18n-zh">7 · 主流大模型用什么通信原语</span><span lang="en" class="i18n-en">7 · Which primitives the major models use</span></h2>
+          <p><span lang="zh-CN" class="i18n-zh">各并行维度对应的原语其实是固定的,记住这张映射表就能反推任何模型的通信特征:</span><span lang="en" class="i18n-en">Each parallel dimension maps to a fixed primitive. Memorise this table and you can infer the communication profile of any model:</span></p>
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>并行维度</th><th>主要通信原语</th></tr></thead>
+              <thead><tr><th><span lang="zh-CN" class="i18n-zh">并行维度</span><span lang="en" class="i18n-en">Parallel dimension</span></th><th><span lang="zh-CN" class="i18n-zh">主要通信原语</span><span lang="en" class="i18n-en">Primary primitive</span></th></tr></thead>
               <tbody>
-                <tr><td>数据并行 DP(朴素)</td><td>AllReduce</td></tr>
-                <tr><td>ZeRO / FSDP</td><td>ReduceScatter(梯度)+ AllGather(参数)</td></tr>
-                <tr><td>张量并行 TP</td><td>AllReduce;开 SP 后 → AllGather + ReduceScatter</td></tr>
-                <tr><td>序列并行 SP</td><td>Ulysses → All-to-All;Ring/CP → P2P</td></tr>
-                <tr><td>流水线并行 PP</td><td>P2P Send/Recv</td></tr>
-                <tr><td><b>专家并行 EP(MoE)</b></td><td><b>All-to-All</b>(token 派发 / 合并)</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">数据并行 DP(朴素)</span><span lang="en" class="i18n-en">Data parallel, DP (naive)</span></td><td>AllReduce</td></tr>
+                <tr><td>ZeRO / FSDP</td><td><span lang="zh-CN" class="i18n-zh">ReduceScatter(梯度)+ AllGather(参数)</span><span lang="en" class="i18n-en">ReduceScatter (gradients) + AllGather (parameters)</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">张量并行 TP</span><span lang="en" class="i18n-en">Tensor parallel, TP</span></td><td><span lang="zh-CN" class="i18n-zh">AllReduce;开 SP 后 → AllGather + ReduceScatter</span><span lang="en" class="i18n-en">AllReduce; with SP enabled → AllGather + ReduceScatter</span></td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">序列并行 SP</span><span lang="en" class="i18n-en">Sequence parallel, SP</span></td><td>Ulysses → All-to-All;Ring/CP → P2P</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh">流水线并行 PP</span><span lang="en" class="i18n-en">Pipeline parallel, PP</span></td><td>P2P Send/Recv</td></tr>
+                <tr><td><span lang="zh-CN" class="i18n-zh"><b>专家并行 EP(MoE)</b></span><span lang="en" class="i18n-en"><b>Expert parallel, EP (MoE)</b></span></td><td><span lang="zh-CN" class="i18n-zh"><b>All-to-All</b>(token 派发 / 合并)</span><span lang="en" class="i18n-en"><b>All-to-All</b> (token dispatch / combine)</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          <h3>以 DeepSeek(MoE + MLA)为例</h3>
-          <p>
-            DeepSeek-V2/V3 是 <strong>MoE</strong> 架构,通信"主角"就是 <strong>All-to-All</strong>:每个 token 要被路由到分布在不同卡上的专家,再把结果收回 —— 这两步(<strong>dispatch / combine</strong>)就是两次 All-to-All,也是 MoE 训练/推理的主要通信瓶颈。
-          </p>
+          <h3><span lang="zh-CN" class="i18n-zh">以 DeepSeek(MoE + MLA)为例</span><span lang="en" class="i18n-en">Case study: DeepSeek (MoE + MLA)</span></h3>
+          <p><span lang="zh-CN" class="i18n-zh">DeepSeek-V2/V3 是 <strong>MoE</strong> 架构,通信"主角"就是 <strong>All-to-All</strong>:每个 token 要被路由到分布在不同卡上的专家,再把结果收回 —— 这两步(<strong>dispatch / combine</strong>)就是两次 All-to-All,也是 MoE 训练/推理的主要通信瓶颈。</span><span lang="en" class="i18n-en">DeepSeek-V2/V3 are <strong>MoE</strong> architectures, so the communication protagonist is <strong>All-to-All</strong>: every token has to be routed to experts spread across GPUs and the results gathered back. Those two steps — <strong>dispatch and combine</strong> — are two All-to-Alls, and the main communication bottleneck in MoE training and inference.</span></p>
           <figure class="fig">
-            <div class="fig-title">动图 · MoE 专家并行:token 经 All-to-All 派发到各卡专家</div>
-            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="MoE All-to-All 动画">
-              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8">token(各卡)</text>
-              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8">专家(各卡)</text>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 · MoE 专家并行:token 经 All-to-All 派发到各卡专家</span><span lang="en" class="i18n-en">Figure · MoE expert parallelism: tokens dispatched to experts via All-to-All</span></div>
+            <svg class="sp-svg" viewBox="0 0 320 210" role="img" aria-label="MoE All-to-All animation">
+              <text class="sp-txt" x="36" y="12" text-anchor="middle" fill="#9aa3b8"><span lang="zh-CN" class="i18n-zh">token(各卡)</span><span lang="en" class="i18n-en">tokens (per GPU)</span></text>
+              <text class="sp-txt" x="284" y="12" text-anchor="middle" fill="#9aa3b8"><span lang="zh-CN" class="i18n-zh">专家(各卡)</span><span lang="en" class="i18n-en">experts (per GPU)</span></text>
               <rect class="sp-rect" x="8" y="24" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="42" text-anchor="middle">G0</text>
               <rect class="sp-rect" x="8" y="70" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="88" text-anchor="middle">G1</text>
               <rect class="sp-rect" x="8" y="116" width="56" height="26" rx="6" /><text class="sp-txt" x="36" y="134" text-anchor="middle">G2</text>
@@ -370,31 +352,25 @@
               <line class="sp-flow" x1="64" y1="129" x2="256" y2="37" stroke="#ec4899" /><line class="sp-flow" x1="64" y1="129" x2="256" y2="83" stroke="#ec4899" />
               <line class="sp-flow" x1="64" y1="175" x2="256" y2="129" stroke="#f59e0b" /><line class="sp-flow" x1="64" y1="175" x2="256" y2="175" stroke="#f59e0b" />
             </svg>
-            <span class="fig-cap">图 5 · 每卡的 token 按路由结果发往对应专家所在的卡(dispatch),算完再 All-to-All 收回(combine)</span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 5 · 每卡的 token 按路由结果发往对应专家所在的卡(dispatch),算完再 All-to-All 收回(combine)</span><span lang="en" class="i18n-en">Figure 5 · Each GPU sends its tokens to whichever GPU holds the routed expert (dispatch); after the computation another All-to-All brings the results back (combine).</span></span>
           </figure>
           <ul>
-            <li><strong>DeepEP:</strong>DeepSeek 自研开源的 EP 通信库,专门优化这两次 All-to-All —— 区分高吞吐 kernel(训练/prefill)与低延迟 kernel(decode),吃 NVLink(机内)+ RDMA/IB(机间),支持 FP8 通信。</li>
-            <li><strong>DualPipe:</strong>它的流水线并行方案(PP 用 P2P),把计算与通信(尤其 EP 的 All-to-All)<strong>充分 overlap</strong>,把通信开销藏到计算后面。</li>
-            <li>其余维度照常:DP/ZeRO 用 <strong>AllGather + ReduceScatter</strong>,(若有)TP 用 <strong>AllReduce</strong>;MLA 主要省 KV cache,不改通信原语。</li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>DeepEP:</strong>DeepSeek 自研开源的 EP 通信库,专门优化这两次 All-to-All —— 区分高吞吐 kernel(训练/prefill)与低延迟 kernel(decode),吃 NVLink(机内)+ RDMA/IB(机间),支持 FP8 通信。</span><span lang="en" class="i18n-en"><strong>DeepEP:</strong> DeepSeek's own open-source EP communication library, built specifically around those two All-to-Alls — separate high-throughput kernels (training/prefill) and low-latency kernels (decode), using NVLink within a node and RDMA/IB across nodes, with FP8 communication support.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>DualPipe:</strong>它的流水线并行方案(PP 用 P2P),把计算与通信(尤其 EP 的 All-to-All)<strong>充分 overlap</strong>,把通信开销藏到计算后面。</span><span lang="en" class="i18n-en"><strong>DualPipe:</strong> their pipeline-parallel scheme (PP over P2P), which <strong>overlaps computation with communication</strong> — the EP All-to-Alls especially — hiding the communication behind compute.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh">其余维度照常:DP/ZeRO 用 <strong>AllGather + ReduceScatter</strong>,(若有)TP 用 <strong>AllReduce</strong>;MLA 主要省 KV cache,不改通信原语。</span><span lang="en" class="i18n-en">The rest is conventional: DP/ZeRO use <strong>AllGather + ReduceScatter</strong>, and TP (where present) uses <strong>AllReduce</strong>. MLA mainly saves KV cache and does not change the primitives.</span></li>
           </ul>
-          <div class="callout info">
-            <strong>注意:</strong>"ds" 若指 <strong>DeepSpeed(框架)</strong> 而非 DeepSeek(模型):ZeRO 用 <strong>ReduceScatter + AllGather</strong>,DeepSpeed-Ulysses 用 <strong>All-to-All</strong>。
-          </div>
+          <div class="callout info"><span lang="zh-CN" class="i18n-zh"><strong>注意:</strong>"ds" 若指 <strong>DeepSpeed(框架)</strong> 而非 DeepSeek(模型):ZeRO 用 <strong>ReduceScatter + AllGather</strong>,DeepSpeed-Ulysses 用 <strong>All-to-All</strong>。</span><span lang="en" class="i18n-en"><strong>A note on naming:</strong> if "ds" means <strong>DeepSpeed (the framework)</strong> rather than DeepSeek (the model), then ZeRO uses <strong>ReduceScatter + AllGather</strong> and DeepSpeed-Ulysses uses <strong>All-to-All</strong>.</span></div>
 
-          <h2>8 · 一句话总结</h2>
+          <h2><span lang="zh-CN" class="i18n-zh">8 · 一句话总结</span><span lang="en" class="i18n-en">8 · In two sentences</span></h2>
           <figure class="fig">
-            <div class="fig-title">两句话拎清</div>
-            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0">
-              ① <strong>SP 方案</strong>:省 TP 激活显存用 <strong>Megatron-SP</strong>(AllGather+ReduceScatter);长序列三选一 —— <strong>Ulysses</strong>(All-to-All,受 head 限)、<strong>Ring/CP</strong>(P2P 环,不受 head 限、超长友好但需 ZigZag 均衡)、<strong>USP</strong>(2D 混合,取长补短)。<br />
-              ② <strong>大模型通信原语</strong>:DP→AllReduce、ZeRO→ReduceScatter+AllGather、TP→AllReduce、PP→P2P、SP→All-to-All/P2P、<strong>MoE→All-to-All</strong>;DeepSeek 这类 MoE 的主角是 All-to-All,用 DeepEP 优化、DualPipe overlap。
-            </p>
-            <span class="fig-cap">图 6 · 记住"哪个并行用哪个原语",就能反推任何大模型的通信特征</span>
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">两句话拎清</span><span lang="en" class="i18n-en">Two sentences to keep</span></div>
+            <p style="font-size:.95rem;line-height:2;color:var(--text);margin:0"><span lang="zh-CN" class="i18n-zh">① <strong>SP 方案</strong>:省 TP 激活显存用 <strong>Megatron-SP</strong>(AllGather+ReduceScatter);长序列三选一 —— <strong>Ulysses</strong>(All-to-All,受 head 限)、<strong>Ring/CP</strong>(P2P 环,不受 head 限、超长友好但需 ZigZag 均衡)、<strong>USP</strong>(2D 混合,取长补短)。<br />
+              ② <strong>大模型通信原语</strong>:DP→AllReduce、ZeRO→ReduceScatter+AllGather、TP→AllReduce、PP→P2P、SP→All-to-All/P2P、<strong>MoE→All-to-All</strong>;DeepSeek 这类 MoE 的主角是 All-to-All,用 DeepEP 优化、DualPipe overlap。</span><span lang="en" class="i18n-en">① <strong>SP schemes</strong>: to save TP activation memory use <strong>Megatron-SP</strong> (AllGather+ReduceScatter); for long sequences pick one of three — <strong>Ulysses</strong> (All-to-All, head-capped), <strong>Ring/CP</strong> (P2P ring, uncapped and good for very long context but needs ZigZag balancing), or <strong>USP</strong> (2D hybrid, each covering the other's weakness).<br />② <strong>Communication primitives</strong>: DP→AllReduce, ZeRO→ReduceScatter+AllGather, TP→AllReduce, PP→P2P, SP→All-to-All/P2P, <strong>MoE→All-to-All</strong>; for MoE models like DeepSeek the All-to-All is the bottleneck worth optimising.</span></p>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">图 6 · 记住"哪个并行用哪个原语",就能反推任何大模型的通信特征</span><span lang="en" class="i18n-en">Figure 6 · Remember which parallelism uses which primitive and you can infer any model's communication profile</span></span>
           </figure>
 
           <hr />
-          <p style="color:var(--text-dim);font-size:.88rem">
-            参考:Megatron-LM(Sequence Parallelism)、DeepSpeed-Ulysses 论文、Ring Attention / Striped Attention、Megatron-Core Context Parallelism、USP(yunchang)/ LoongTrain、DeepSeek-V3 技术报告与 DeepEP / DualPipe 开源仓库、NCCL/HCCL 集合通信文档。细节可能随版本演进。
-          </p>
+          <p style="color:var(--text-dim);font-size:.88rem"><span lang="zh-CN" class="i18n-zh">参考:Megatron-LM(Sequence Parallelism)、DeepSpeed-Ulysses 论文、Ring Attention / Striped Attention、Megatron-Core Context Parallelism、USP(yunchang)/ LoongTrain、DeepSeek-V3 技术报告与 DeepEP / DualPipe 开源仓库、NCCL/HCCL 集合通信文档。细节可能随版本演进。</span><span lang="en" class="i18n-en">References: Megatron-LM (Sequence Parallelism), the DeepSpeed-Ulysses paper, Ring Attention / Striped Attention, Megatron-Core Context Parallelism, USP (yunchang) / LoongTrain, the DeepSeek-V3 technical report and DeepEP.</span></p>
         </div>
       </article>
     </main>

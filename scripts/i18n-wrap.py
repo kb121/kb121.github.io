@@ -21,12 +21,15 @@ TEXTFLOW = {'p', 'li', 'td', 'th', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 
 
 def is_inline(el):
+    """这个后代会不会阻止父元素被整体包裹。"""
+    # 自身不含中文的元素纯属装饰(公式里的高亮 span、图标 div),不该挡路
+    if not CJK.search(el.decode_contents()):
+        return True
     if el.name not in INLINE:
         return False
-    if el.name == 'span' and (el.parent is None or el.parent.name not in TEXTFLOW):
-        # 挂在 div 下的 span:自身带中文才算独立标签,否则只是装饰,
-        # 不该挡住父元素被整体包裹(比如公式块里的高亮 span)。
-        return not CJK.search(el.decode_contents())
+    # 带中文的 span:在文字流里算行内,挂在 div 下则是独立标签
+    if el.name == 'span':
+        return el.parent is not None and el.parent.name in TEXTFLOW
     return True
 
 
