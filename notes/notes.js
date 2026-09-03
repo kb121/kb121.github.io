@@ -264,8 +264,8 @@ window.NOTES = [
   {
     slug: "example-sequence-parallel",
     title: {
-      zh: "读一份 Wan2.1 的序列并行实现,再写一版",
-      en: "Reading a Wan2.1 Sequence-Parallel Implementation, Then Rewriting It",
+      zh: "Wan2.1 长序列并行适配方案",
+      en: "Adapting Wan2.1 for Long-Sequence Parallelism",
     },
     summary: {
       zh: "拆解昇腾 Wan2.1 14B 的 Ulysses 序列并行:只有三个改动点、交叉注意力白花了三分之一通信、梯度缩放只覆盖了主干,外加四个可复现的问题与一版重写方案。",
