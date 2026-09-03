@@ -264,15 +264,15 @@ window.NOTES = [
   {
     slug: "example-sequence-parallel",
     title: {
-      zh: "DeepSpeed-Ulysses 序列并行入门",
-      en: "A Primer on DeepSpeed-Ulysses Sequence Parallelism",
+      zh: "读一份 Wan2.1 的序列并行实现,再写一版",
+      en: "Reading a Wan2.1 Sequence-Parallel Implementation, Then Rewriting It",
     },
     summary: {
-      zh: "为什么长序列训练会爆显存,序列并行如何把 32K 训练从 32 卡降到 8 卡。",
-      en: "Why long-sequence training blows up memory, and how sequence parallelism cut 32K training from 32 GPUs to 8.",
+      zh: "拆解昇腾 Wan2.1 14B 的 Ulysses 序列并行:只有三个改动点、交叉注意力白花了三分之一通信、梯度缩放只覆盖了主干,外加四个可复现的问题与一版重写方案。",
+      en: "Taking apart Ulysses sequence parallelism in Ascend's Wan2.1 14B: only three touch points, a third of the communication wasted on cross-attention, gradient scaling that reaches only the backbone — plus four reproducible problems and a rewrite plan.",
     },
-    date: "2026-05-20",
-    tags: ["LLM", "Distributed", "Training"],
+    date: "2026-09-03",
+    tags: ["Sequence Parallel", "Ulysses", "Ascend NPU", "Training"],
     category: "parallel",
   },
   {
