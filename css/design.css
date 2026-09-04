@@ -1098,6 +1098,24 @@ section {
   border: 1px solid var(--border);
   color: var(--text);
 }
+.project-card .hero-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.project-card .ptitle a { color: inherit; }
+.project-card .ptitle a:hover { color: var(--accent-1); }
+.project-card .plink {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--accent-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transform: translateZ(15px);
+}
+.project-card .plink .arrow { transition: transform var(--t-fast) var(--ease); }
+.project-card:hover .plink .arrow { transform: translateX(4px); }
 
 /* ---------- 16. Contact ---------- */
 

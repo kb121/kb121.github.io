@@ -74,7 +74,7 @@
     </noscript>
 
     <link href="css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
-    <link href="css/design.css?ver=2.5.0" rel="stylesheet" />
+    <link href="css/design.css?ver=2.5.1" rel="stylesheet" />
   </head>
   <body id="top">
     <a href="#about" class="skip"><span lang="zh-CN" class="i18n-zh">跳到正文</span><span lang="en" class="i18n-en">Skip to content</span></a>
@@ -544,9 +544,11 @@
 
         <div class="project-row reveal-stagger">
           <article class="project-card" data-tilt>
-            <div class="hero-vis v-blue"><i class="fas fa-network-wired" aria-hidden="true"></i></div>
+            <a class="hero-link" href="notes/sequence-parallel-and-comms.html" aria-label="Open the sequence-parallelism note / 打开序列并行笔记">
+              <div class="hero-vis v-blue"><i class="fas fa-network-wired" aria-hidden="true"></i></div>
+            </a>
             <div class="ptag"><span lang="zh-CN" class="i18n-zh">分布式 · 多模态 · 文生视频</span><span lang="en" class="i18n-en">Distributed &middot; Multimodal &middot; Text-to-Video</span></div>
-            <h3 class="ptitle"><span lang="zh-CN" class="i18n-zh">Wan2.1 14B 长序列并行训练</span><span lang="en" class="i18n-en">Wan2.1 14B Long-Sequence Parallel</span></h3>
+            <h3 class="ptitle"><a href="notes/sequence-parallel-and-comms.html"><span lang="zh-CN" class="i18n-zh">Wan2.1 14B 长序列并行训练</span><span lang="en" class="i18n-en">Wan2.1 14B Long-Sequence Parallel</span></a></h3>
             <p class="pdesc">
               <span lang="zh-CN" class="i18n-zh">京东联合创新项目。基于 ModelScope DiffSynth-Studio,在昇腾集群上完成 Wan2.1 14B 文生视频模型的适配与显存 profiling,实现 DeepSpeed-Ulysses 序列并行策略 &mdash; 32K 序列训练从 32 卡降到 8 卡,节点数 &minus; <strong>75%</strong>、显存 &minus; <strong>50%</strong>。</span>
               <span lang="en" class="i18n-en">Joint innovation with JD. Memory-profiled the Wan2.1 14B text-to-video model on Ascend clusters and implemented a DeepSpeed-Ulysses sequence-parallel strategy &mdash; 32K-sequence training on 8 NPUs instead of 32, cutting nodes by <strong>75%</strong> and memory by <strong>50%</strong>.</span>
@@ -554,6 +556,9 @@
             <ul class="pmeta">
               <li>DeepSpeed-Ulysses</li><li>Ascend NPU</li><li>DiffSynth-Studio</li>
             </ul>
+            <a class="plink" href="notes/sequence-parallel-and-comms.html"
+              ><span lang="zh-CN" class="i18n-zh">阅读笔记</span><span lang="en" class="i18n-en">Read the note</span> <span class="arrow">→</span></a
+            >
           </article>
 
           <article class="project-card" data-tilt>
