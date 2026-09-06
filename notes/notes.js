@@ -142,10 +142,10 @@ window.NOTES = [
       en: "KV Pooling & the KVConnector API: Turning KV Cache into a Shared Resource",
     },
     summary: {
-      zh: "图文 + 4 张动图拆解 KV 池化:为什么问题不是「KV 太大」而是「同一份 KV 被反复算了又丢」;vLLM v1 的 KVConnectorBase_V1 如何按进程切成 Scheduler(决策)与 Worker(搬运)两侧;一次请求经过的 8 个回调及其逐层流水;分层卸载 / PD 分离 / 全局共享池三种形态的取舍;以及「全层连续布局把卸载吞吐拉高一个数量级」这类决定成败的工程细节。",
-      en: "Four animated figures unpack KV pooling: the real problem is not that KV cache is large but that the same KV gets recomputed and thrown away repeatedly. Covers how vLLM v1's KVConnectorBase_V1 splits along process boundaries into a scheduler side (decisions) and a worker side (transfers), the eight callbacks a request passes through and their per-layer pipelining, the trade-offs between tiered offloading / PD disaggregation / a global shared pool, and why an all-layer contiguous KV layout raises offloading throughput by an order of magnitude.",
+      zh: "图文 + 5 张动图,逐段对着 vLLM 主干源码拆解 KV 池化:为什么问题不是「KV 太大」而是「同一份 KV 被反复算了又丢」;KVConnectorBase_V1 的 40 个成员里只有 7 个必须实现,以及同一个类如何按 role 在调度器和 worker 里各实例化一次;8 个回调分别从调度主循环、worker 前后向钩子、注意力层装饰器这三处被调用;分层卸载 / PD 分离 / 全局共享池的取舍;以及三个决定成败的细节 —— 异步搬运、LBHNC 布局与拷贝合并、还有最容易被忽略的一条:逐层回调会把 CUDA Graph 从 FULL 静默降级到 PIECEWISE。",
+      en: "Five animated figures walk through KV pooling against the vLLM main source, section by section: the real problem is not that KV cache is large but that the same KV gets recomputed and thrown away. Covers why only 7 of KVConnectorBase_V1's 40 members are mandatory and how one class is instantiated once per role in the scheduler and in each worker; where the eight callbacks actually fire — the scheduling loop, the worker's pre/post-forward hooks, and a decorator inside the attention layer; the trade-offs between tiered offloading / PD disaggregation / a global shared pool; and three details that decide whether it works — async transfers, the LBHNC layout with copy coalescing, and the one most people miss: per-layer callbacks silently demote CUDA graphs from FULL to PIECEWISE.",
     },
-    date: "2026-08-11",
+    date: "2026-09-06",
     tags: ["KV Cache", "vLLM", "Inference", "Distributed", "PD Disaggregation"],
     category: "inference",
   },

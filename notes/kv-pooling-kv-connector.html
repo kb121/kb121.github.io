@@ -3,7 +3,8 @@
   =========================================================================
   KV 池化与 KVConnector —— vLLM 里 KV cache 如何从「私有」变成「共享资源」
   -------------------------------------------------------------------------
-  API 方法名与语义以 vLLM v1 的 KVConnectorBase_V1 源码为准(见正文链接)。
+  正文代码摘自 vLLM 主干 52358e6(2026-09-06),为便于阅读删去了与主线
+  无关的分支和日志;方法名与语义以 KVConnectorBase_V1 源码为准。
   分层卸载部分对应 RFC #38260,其中 TieringManager / SecondaryTierManager
   为设计阶段接口,落地范围以上游合入为准,正文已标注。
   =========================================================================
@@ -32,7 +33,7 @@
     <title data-zh="KV 池化与 KVConnector — 庄宏" data-en="KV Pooling & the KVConnector API — Hong Zhuang">KV 池化与 KVConnector — 庄宏</title>
     <meta
       name="description"
-      content="图文 + 动图拆解 KV cache 池化:为什么要把 KV 从实例私有变成共享资源,vLLM v1 的 KVConnector 接口如何切分调度器与 Worker 的职责,一次请求经过连接器的完整生命周期,以及分层卸载 / PD 分离 / 全局共享池三种形态的取舍。"
+      content="对着 vLLM 主干源码拆解 KV cache 池化:KVConnectorBase_V1 的 40 个成员里只有 7 个必须实现,8 个回调分别从调度主循环、worker 前后向钩子、注意力层装饰器三处被调用,分层卸载 / PD 分离 / 全局共享池的取舍,以及逐层回调把 CUDA Graph 从 FULL 降级到 PIECEWISE 这笔容易被忽略的账。含 5 张可交互动图。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -225,6 +226,67 @@
       .kv-take h5 { margin: 0 0 8px; font-size: .92rem; }
       .kv-take p { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
 
+      /* ---------- 带源码出处的代码块 ---------- */
+      .kvpool-note .kv-note-src { margin: -.5rem 0 1.6rem; font-size: .78rem; line-height: 1.7; color: var(--text-dim); }
+      .kv-code { margin: 1.3rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+      .kv-code .kv-src {
+        display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline;
+        padding: 8px 14px; border-bottom: 1px solid var(--border);
+        background: var(--inset); font-family: var(--font-mono); font-size: .66rem; line-height: 1.5;
+      }
+      .kv-code .kv-src b { color: var(--accent-1); font-weight: 600; word-break: break-all; }
+      .kv-code .kv-src span { color: var(--text-dim); }
+      .kvpool-note .kv-code pre { margin: 0; border: 0; border-radius: 0; font-size: .78rem; }
+      @media (max-width: 620px) { .kvpool-note .kv-code pre { font-size: .7rem; } }
+
+      /* ---------- 动图 5:源码调用点地图 ---------- */
+      .kv-map { display: grid; grid-template-columns: 260px 1fr; gap: 14px; }
+      @media (max-width: 820px) { .kv-map { grid-template-columns: 1fr; } }
+      .kv-map-list { display: flex; flex-direction: column; gap: 10px; }
+      .kv-map-grp > h6 {
+        margin: 0 0 6px; padding-left: 2px;
+        font-family: var(--font-mono); font-size: .62rem; letter-spacing: .05em; text-transform: uppercase;
+      }
+      .kv-map-grp.sch > h6 { color: var(--cpu); }
+      .kv-map-grp.wrk > h6 { color: var(--gpu); }
+      .kv-map-btns { display: flex; flex-direction: column; gap: 3px; }
+      .kv-map-btn {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 3px 7px;
+        padding: 6px 9px; border: 1px solid transparent; border-radius: 8px;
+        background: none; color: var(--text-muted); cursor: pointer;
+        font-family: var(--font-mono); font-size: .66rem; text-align: left; line-height: 1.35;
+        transition: background .16s ease, color .16s ease, border-color .16s ease;
+      }
+      .kv-map-btn:hover { background: var(--inset); color: var(--text); }
+      .kv-map-btn.on { border-color: var(--c); background: color-mix(in srgb, var(--c), transparent 88%); color: var(--text); }
+      .kv-map-btn .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c); opacity: .5; }
+      .kv-map-btn.on .dot { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c), transparent 78%); }
+      .kv-map-btn .req { flex: none; margin-left: auto; font-size: .56rem; letter-spacing: .04em; color: var(--warn); }
+      .kv-map-btn.on .req { color: var(--warn); }
+
+      .kv-map-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+      .kv-map-head { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+      .kv-map-head .sig { font-family: var(--font-mono); font-size: .74rem; color: var(--text); overflow-wrap: break-word; min-width: 0; }
+      .kv-map-head .pill {
+        padding: 2px 8px; border-radius: 999px; font-family: var(--font-mono); font-size: .58rem;
+        letter-spacing: .04em; background: color-mix(in srgb, var(--c), transparent 84%); color: var(--c);
+        border: 1px solid color-mix(in srgb, var(--c), transparent 62%);
+      }
+      .kv-map-why { margin: 0; font-size: .82rem; line-height: 1.7; color: var(--text-muted); }
+      .kv-map-why em { color: var(--accent-1); font-style: normal; }
+      .kv-map-site {
+        padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: var(--inset);
+        font-family: var(--font-mono); font-size: .66rem; line-height: 1.7; color: var(--text-dim);
+      }
+      .kv-map-site b { display: block; color: var(--accent-1); font-weight: 600; word-break: break-all; }
+      /* 高于 [data-theme] .prose pre 的深色底,让片段融进虚线框 */
+      .kvpool-note .kv-map-site pre,
+      [data-theme="light"] .kvpool-note .kv-map-site pre {
+        /* 左右各留 2px:滚动容器会把 x=0 处字形的左边距切掉 */
+        margin: 7px 0 0; padding: 0 2px; border: 0; background: none; overflow-x: auto;
+        font-size: .68rem; line-height: 1.65; color: var(--text-muted); white-space: pre;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .kvpool-note *, .kvpool-note *::before, .kvpool-note *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
       }
@@ -268,7 +330,7 @@
 
         <header class="note-head">
           <div class="note-meta">
-            <span>2026-08-11</span>
+            <span>2026-09-06</span>
             <span class="tags"><span>KV Cache</span><span>vLLM</span><span>Inference</span><span>Distributed</span><span>PD Disaggregation</span></span>
           </div>
           <h1><span lang="zh-CN" class="i18n-zh">KV 池化与 KVConnector</span><span lang="en" class="i18n-en">KV Pooling &amp; the KVConnector API</span></h1>
@@ -288,8 +350,14 @@
             <div class="kv-kpi"><b>8</b><span><span lang="zh-CN" class="i18n-zh">一次请求经过的关键回调</span><span lang="en" class="i18n-en">Key callbacks one request passes through</span></span></div>
             <div class="kv-kpi"><b>3</b><span><span lang="zh-CN" class="i18n-zh">池化形态:分层 / PD / 共享池</span><span lang="en" class="i18n-en">Pooling shapes: tiering / PD / shared pool</span></span></div>
             <div class="kv-kpi"><b>2·L</b><span><span lang="zh-CN" class="i18n-zh">连续布局带来的块放大倍数</span><span lang="en" class="i18n-en">Block amplification from contiguous layout</span></span></div>
-            <div class="kv-kpi"><b>0.9.0</b><span><span lang="zh-CN" class="i18n-zh">连接器转为异步的版本</span><span lang="en" class="i18n-en">Release that made the connector asynchronous</span></span></div>
+            <div class="kv-kpi"><b>7 / 40</b><span><span lang="zh-CN" class="i18n-zh">基类里必须实现 / 全部成员</span><span lang="en" class="i18n-en">Base-class members you must implement / in total</span></span></div>
           </div>
+
+          <p class="kv-note-src"><span lang="zh-CN" class="i18n-zh">下文所有代码均摘自 vLLM 主干
+            <a href="https://github.com/vllm-project/vllm/tree/52358e6" target="_blank" rel="noopener"><code>52358e6</code></a>(2026-09-06,v0.28.0 之后),
+            为便于阅读删去了与主线无关的分支和日志,行号会随上游漂移。</span><span lang="en" class="i18n-en">Every code excerpt below comes from vLLM main at
+            <a href="https://github.com/vllm-project/vllm/tree/52358e6" target="_blank" rel="noopener"><code>52358e6</code></a> (2026-09-06, after v0.28.0).
+            Branches and logging irrelevant to the main path are trimmed for readability, and line numbers drift as upstream moves.</span></p>
 
           <h2><span lang="zh-CN" class="i18n-zh">一、为什么 KV 需要池化</span><span lang="en" class="i18n-en">1 · Why KV needs pooling</span></h2>
 
@@ -377,6 +445,167 @@
             That is why <code>get_num_new_matched_tokens</code> is required to be <strong>side-effect free</strong> — it may be called repeatedly for the same request —
             and why it may return <code>None</code> to mean "the lookup has not finished; ask me again next scheduling cycle".</span></p>
 
+          <h3><span lang="zh-CN" class="i18n-zh">最小契约:40 个成员里只有 7 个必须实现</span><span lang="en" class="i18n-en">The minimal contract: only 7 of 40 members are mandatory</span></h3>
+
+          <p><span lang="zh-CN" class="i18n-zh">把基类的方法按装饰器数一遍,<code>KVConnectorBase_V1</code> 一共 40 个成员,其中带 <code>@abstractmethod</code> 的只有 7 个 ——
+            <strong>Worker 侧 4 个、Scheduler 侧 3 个</strong>,其余 33 个都给了默认实现。这 7 个就是接口的全部硬性要求:</span><span lang="en" class="i18n-en">Counting the base class's methods by decorator, <code>KVConnectorBase_V1</code> has 40 members, of which only 7 carry <code>@abstractmethod</code> —
+            <strong>4 on the worker side and 3 on the scheduler side</strong>. The other 33 ship with defaults. Those 7 are the entire hard requirement:</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/distributed/kv_transfer/kv_connector/v1/base.py</b><span><span lang="zh-CN" class="i18n-zh">7 个抽象方法的真实签名</span><span lang="en" class="i18n-en">the real signatures of the 7 abstract methods</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">class KVConnectorBase_V1(ABC):
+    # ========== Worker 侧:4 个 ==========
+    @abstractmethod
+    def start_load_kv(self, forward_context, **kwargs) -> None: ...
+
+    @abstractmethod
+    def wait_for_layer_load(self, layer_name: str) -> None: ...
+
+    @abstractmethod
+    def save_kv_layer(
+        self, layer_name, kv_layer, attn_metadata, **kwargs,
+    ) -> None: ...
+
+    @abstractmethod
+    def wait_for_save(self): ...
+
+    # ========== Scheduler 侧:3 个 ==========
+    @abstractmethod
+    def get_num_new_matched_tokens(
+        self, request: "Request", num_computed_tokens: int,
+    ) -> tuple[int | None, bool]:
+        """外部还能再给多少 token。None = 没查完,下轮再问;
+        第二个返回值 = 是否异步加载(首个元素为 0 时必须是 False)。"""
+
+    @abstractmethod
+    def update_state_after_alloc(
+        self, request: "Request", blocks: "KVCacheBlocks",
+        num_external_tokens: int,
+    ):
+        """块分配完成后的回调。注意:要按 num_external_tokens 判断是否加载,
+        而不是按 blocks 是否为空 —— MultiConnector 里没被选中的子连接器
+        同样会收到真实的 blocks。"""
+
+    @abstractmethod
+    def build_connector_meta(self, scheduler_output) -> KVConnectorMetadata:
+        """打包这一步要发给 Worker 的元数据。不得修改 scheduler_output,
+        且调用本身会重置连接器状态。"""</span><span lang="en" class="i18n-en">class KVConnectorBase_V1(ABC):
+    # ========== Worker side: 4 ==========
+    @abstractmethod
+    def start_load_kv(self, forward_context, **kwargs) -> None: ...
+
+    @abstractmethod
+    def wait_for_layer_load(self, layer_name: str) -> None: ...
+
+    @abstractmethod
+    def save_kv_layer(
+        self, layer_name, kv_layer, attn_metadata, **kwargs,
+    ) -> None: ...
+
+    @abstractmethod
+    def wait_for_save(self): ...
+
+    # ========== Scheduler side: 3 ==========
+    @abstractmethod
+    def get_num_new_matched_tokens(
+        self, request: "Request", num_computed_tokens: int,
+    ) -> tuple[int | None, bool]:
+        """How many more tokens the outside can supply. None = lookup
+        unfinished, ask again next round; the second value = whether the
+        load is async (must be False when the first element is 0)."""
+
+    @abstractmethod
+    def update_state_after_alloc(
+        self, request: "Request", blocks: "KVCacheBlocks",
+        num_external_tokens: int,
+    ):
+        """Called once blocks are allocated. Decide whether to load from
+        num_external_tokens, not from whether blocks is empty — a non-chosen
+        sub-connector of MultiConnector still gets the request's real blocks."""
+
+    @abstractmethod
+    def build_connector_meta(self, scheduler_output) -> KVConnectorMetadata:
+        """Pack the metadata to ship to the workers this step. Must not modify
+        scheduler_output, and calling it resets the connector's state."""</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh">对照上面那张表会发现一个出入:<code>request_finished</code> 在表里被列为 Scheduler 侧的代表方法,但它<strong>不是抽象方法</strong> ——
+            基类给了默认实现 <code>return False, None</code>,意思是「块可以立刻回收,没有额外传输参数」。
+            纯读取型的连接器不用管它;只要你的连接器在请求结束后还要往外推数据,就必须覆盖它,否则块会被提前回收。</span><span lang="en" class="i18n-en">One discrepancy with the table above: <code>request_finished</code> is listed there as a representative scheduler-side method, but it is <strong>not abstract</strong> —
+            the base class supplies <code>return False, None</code>, meaning "the blocks can be reclaimed right away, no extra transfer params".
+            A read-only connector can ignore it; any connector that still pushes data out after a request ends must override it, or its blocks get reclaimed too early.</span></p>
+
+          <h3><span lang="zh-CN" class="i18n-zh">同一个类,实例化两次</span><span lang="en" class="i18n-en">One class, instantiated twice</span></h3>
+
+          <p><span lang="zh-CN" class="i18n-zh">「按进程切两侧」在代码里不是两个基类,而是<strong>同一个类构造两次、靠 <code>role</code> 参数区分</strong>。
+            <code>OffloadingConnector</code> 的写法是这个模式最干净的样本:构造函数按 <code>role</code> 只建其中一半,
+            每个方法进来先 <code>assert</code> 自己确实在对应的那一侧。这个 assert 不是防御性代码,它就是接口契约本身 ——
+            在 Worker 进程里调 <code>get_num_new_matched_tokens</code> 会直接炸,而不是悄悄返回一个错的数字。</span><span lang="en" class="i18n-en">"Split along process boundaries" is not two base classes in the code; it is <strong>one class constructed twice, distinguished by the <code>role</code> argument</strong>.
+            <code>OffloadingConnector</code> is the cleanest sample of the pattern: the constructor builds only one half depending on <code>role</code>,
+            and every method opens by asserting it really is on the matching side. That assert is not defensive padding, it is the contract itself —
+            calling <code>get_num_new_matched_tokens</code> inside a worker process blows up rather than quietly returning a wrong number.</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/distributed/kv_transfer/kv_connector/v1/offloading_connector.py</b><span><span lang="zh-CN" class="i18n-zh">双角色的门面模式</span><span lang="en" class="i18n-en">the two-role facade pattern</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">class KVConnectorRole(enum.Enum):
+    SCHEDULER = 0   # 跑在调度器进程
+    WORKER    = 1   # 跑在每个 worker 进程
+
+class OffloadingConnector(KVConnectorBase_V1):
+    def __init__(self, vllm_config, role: KVConnectorRole, kv_cache_config):
+        super().__init__(vllm_config, role, kv_cache_config)
+        spec = OffloadingSpecFactory.create_spec(
+            build_offloading_config(vllm_config, kv_cache_config))
+
+        # 两侧的实现是两个独立对象,按 role 只建一个
+        self.connector_scheduler: OffloadingConnectorScheduler | None = None
+        self.connector_worker: OffloadingConnectorWorker | None = None
+        if role == KVConnectorRole.SCHEDULER:
+            self.connector_scheduler = OffloadingConnectorScheduler(...)
+        elif role == KVConnectorRole.WORKER:
+            self.connector_worker = OffloadingConnectorWorker(...)
+
+    # Scheduler 侧方法:断言自己在调度器进程里
+    def get_num_new_matched_tokens(self, request, num_computed_tokens):
+        assert self.connector_scheduler is not None
+        return self.connector_scheduler.get_num_new_matched_tokens(
+            request, num_computed_tokens)
+
+    # Worker 侧方法:断言自己在 worker 进程里
+    def start_load_kv(self, forward_context, **kwargs) -> None:
+        assert self.connector_worker is not None
+        assert isinstance(self._connector_metadata, OffloadingConnectorMetadata)
+        self.connector_worker.start_kv_transfers(self._connector_metadata)</span><span lang="en" class="i18n-en">class KVConnectorRole(enum.Enum):
+    SCHEDULER = 0   # runs in the scheduler process
+    WORKER    = 1   # runs in every worker process
+
+class OffloadingConnector(KVConnectorBase_V1):
+    def __init__(self, vllm_config, role: KVConnectorRole, kv_cache_config):
+        super().__init__(vllm_config, role, kv_cache_config)
+        spec = OffloadingSpecFactory.create_spec(
+            build_offloading_config(vllm_config, kv_cache_config))
+
+        # The two sides are separate objects; only one is built, per role
+        self.connector_scheduler: OffloadingConnectorScheduler | None = None
+        self.connector_worker: OffloadingConnectorWorker | None = None
+        if role == KVConnectorRole.SCHEDULER:
+            self.connector_scheduler = OffloadingConnectorScheduler(...)
+        elif role == KVConnectorRole.WORKER:
+            self.connector_worker = OffloadingConnectorWorker(...)
+
+    # Scheduler-side method: assert we really are in the scheduler process
+    def get_num_new_matched_tokens(self, request, num_computed_tokens):
+        assert self.connector_scheduler is not None
+        return self.connector_scheduler.get_num_new_matched_tokens(
+            request, num_computed_tokens)
+
+    # Worker-side method: assert we really are in a worker process
+    def start_load_kv(self, forward_context, **kwargs) -> None:
+        assert self.connector_worker is not None
+        assert isinstance(self._connector_metadata, OffloadingConnectorMetadata)
+        self.connector_worker.start_kv_transfers(self._connector_metadata)</span></code></pre>
+          </div>
+
           <h2><span lang="zh-CN" class="i18n-zh">三、一次请求的完整生命周期</span><span lang="en" class="i18n-en">3 · The full lifecycle of one request</span></h2>
 
           <p><span lang="zh-CN" class="i18n-zh">下面这张时序图把两侧的回调按真实顺序串起来。点「单步」逐个看,注意
@@ -424,6 +653,282 @@
             <span class="fig-cap"><span lang="zh-CN" class="i18n-zh"><code>request_finished()</code> 的返回值常被忽略,但它决定了<strong>块由谁释放</strong>:
               若连接器接管异步发送(比如 PD 里 prefill 端还在往外推数据),调度器就不能立刻回收这些块,否则会把正在传输的数据覆盖掉。</span><span lang="en" class="i18n-en"><code>request_finished()</code>'s return value is often overlooked, yet it determines <strong>who frees the blocks</strong>:
               if the connector takes over an asynchronous send (say the prefill side of a PD setup is still pushing data out), the scheduler must not reclaim those blocks immediately or it will overwrite data still in flight.</span></span>
+          </div>
+
+          <h3><span lang="zh-CN" class="i18n-zh">回调到底是从哪儿被调用的</span><span lang="en" class="i18n-en">Where the callbacks actually get called from</span></h3>
+
+          <p><span lang="zh-CN" class="i18n-zh">时序图讲的是「什么时候」,源码讲的是「在哪一层」。上面那 8 个回调,加上两个只有读源码才会注意到的
+            (<code>handle_preemptions</code> 和 <code>get_finished</code>),分散在 vLLM 三个完全不同的位置。
+            知道是哪三个,调试起来就不用瞎猜:</span><span lang="en" class="i18n-en">The sequence figure says <em>when</em>; the source says <em>at which layer</em>. Those 8 callbacks, plus two you only notice by reading the source
+            (<code>handle_preemptions</code> and <code>get_finished</code>), live in three entirely different places in vLLM.
+            Knowing which three saves a lot of guesswork when debugging:</span></p>
+
+          <div class="kv-fig">
+            <div class="fig-title"><span lang="zh-CN" class="i18n-zh">动图 5:源码调用点地图(点方法名查看)</span><span lang="en" class="i18n-en">Figure 5: call-site map (click a method to inspect)</span></div>
+            <div class="kv-map">
+              <div class="kv-map-list" id="mapList"></div>
+              <div class="kv-map-body">
+                <div class="kv-map-head">
+                  <span class="sig" id="mapSig"></span>
+                  <span class="pill" id="mapPill"></span>
+                </div>
+                <p class="kv-map-why" id="mapWhy"></p>
+                <div class="kv-map-site">
+                  <b id="mapFile"></b>
+                  <pre id="mapCode"></pre>
+                </div>
+              </div>
+            </div>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">红色 <code>abstract</code> 标记的是必须实现的 7 个。注意三个调用点分属三个进程/层级:
+              调度器循环、worker 的前后向钩子、以及注意力层内部的装饰器 —— 最后一个是逐层流水能成立的原因。</span><span lang="en" class="i18n-en">The red <code>abstract</code> marks are the 7 you must implement. Note that the three call sites sit at three different process/layer levels:
+              the scheduler loop, the worker's pre/post-forward hooks, and a decorator inside the attention layer — the last of which is what makes per-layer pipelining possible.</span></span>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>调用点一:调度器循环。</strong> 查询发生在给请求分配块之前,而且传进去的<strong>不是</strong>本地已命中的 token 数,
+            是<strong>向下对齐到块边界</strong>之后的数字。原因是远端 KV 以块为单位存取,如果拿一个带半块尾巴的数字去问,
+            远端返回的区间会和本地那半块重叠,触发写时复制竞争。返回 <code>None</code> 时请求被放回队列,这一轮什么也不做:</span><span lang="en" class="i18n-en"><strong>Call site 1: the scheduler loop.</strong> The lookup happens before blocks are allocated for the request, and what gets passed in is <strong>not</strong> the locally matched token count
+            but that count <strong>rounded down to a block boundary</strong>. Remote KV is stored and fetched in whole blocks, so asking with a number that carries a half-block tail would make the remote range overlap that local partial block and race its copy-on-write. When <code>None</code> comes back the request goes back on the queue and nothing happens this round:</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/v1/core/sched/scheduler.py:881</b><span><span lang="zh-CN" class="i18n-zh">调度主循环内,分配块之前</span><span lang="en" class="i18n-en">inside the main scheduling loop, before allocation</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh"># 用 KVConnector 时,取外部已缓存的 token
+if self.connector is not None:
+    # 向连接器出示一个块对齐的本地命中数,这样严格更长的
+    # 远端命中可以直接盖掉本地那个不满一块的尾巴,而不用和
+    # 它的写时复制赛跑。
+    partial_tail = num_new_local_computed_tokens % self.block_size
+    block_aligned_local = num_new_local_computed_tokens - partial_tail
+
+    ext_tokens, load_kv_async = self.connector.get_num_new_matched_tokens(
+        request, block_aligned_local)
+
+    if ext_tokens is None:
+        # 连接器还没查出命中多少 —— 这一轮不调度该请求,
+        # 放回队列,下一个调度周期再问一次。
+        request_queue.pop_request()
+        step_skipped_waiting.prepend_request(request)
+        continue
+
+    if partial_tail and ext_tokens > partial_tail:
+        # 远端严格超过完整的本地命中:丢掉那半块尾巴,由加载覆盖
+        new_computed_blocks = self.kv_cache_manager.truncate_computed_blocks(
+            new_computed_blocks, block_aligned_local)
+        num_new_local_computed_tokens = block_aligned_local
+        num_external_computed_tokens = ext_tokens
+    elif partial_tail:
+        # 远端没超过本地:保留本地尾巴,外部一个 token 也不加载
+        num_external_computed_tokens = 0
+        load_kv_async = False
+    else:
+        num_external_computed_tokens = ext_tokens</span><span lang="en" class="i18n-en"># Get externally-cached tokens if using a KVConnector.
+if self.connector is not None:
+    # Present a block-aligned local hit to the connector so a strictly
+    # longer remote hit can supersede a local sub-block tail without
+    # racing its copy-on-write.
+    partial_tail = num_new_local_computed_tokens % self.block_size
+    block_aligned_local = num_new_local_computed_tokens - partial_tail
+
+    ext_tokens, load_kv_async = self.connector.get_num_new_matched_tokens(
+        request, block_aligned_local)
+
+    if ext_tokens is None:
+        # The connector cannot yet say how much it matched — do not
+        # schedule this request now; put it back and ask again next cycle.
+        request_queue.pop_request()
+        step_skipped_waiting.prepend_request(request)
+        continue
+
+    if partial_tail and ext_tokens > partial_tail:
+        # Remote strictly exceeds the full local hit: drop the sub-block
+        # tail so no CoW is needed, and let the load cover it.
+        new_computed_blocks = self.kv_cache_manager.truncate_computed_blocks(
+            new_computed_blocks, block_aligned_local)
+        num_new_local_computed_tokens = block_aligned_local
+        num_external_computed_tokens = ext_tokens
+    elif partial_tail:
+        # Remote does not exceed the local hit: keep the local tail,
+        # load nothing external.
+        num_external_computed_tokens = 0
+        load_kv_async = False
+    else:
+        num_external_computed_tokens = ext_tokens</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh">紧接着还有一段容易被漏掉的逻辑:如果连接器说「我要异步加载」,调度器<strong>分配显存但不排任何计算</strong>,
+            请求被挂进一个专门的状态 <code>WAITING_FOR_REMOTE_KVS</code>。
+            也就是说异步加载期间,这个请求<strong>占着块但不产出 token</strong> —— 池化的显存账不能只算命中率,还得算这段占用:</span><span lang="en" class="i18n-en">Right after it comes a piece of logic that is easy to miss: if the connector says it wants an async load, the scheduler <strong>allocates memory but schedules no compute at all</strong>,
+            and the request is parked in a dedicated state, <code>WAITING_FOR_REMOTE_KVS</code>.
+            So during an async load the request <strong>holds blocks while producing no tokens</strong> — the memory ledger for pooling is not just hit rate, it has to include this occupancy too:</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/v1/core/sched/scheduler.py:979, 1162</b><span><span lang="zh-CN" class="i18n-zh">异步加载:占块不占算力</span><span lang="en" class="i18n-en">async load: holds blocks, consumes no compute</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">if load_kv_async:
+    # KVTransfer:正在拉远端 KV,不为新计算分配 token 预算
+    assert num_external_computed_tokens &gt; 0
+    num_new_tokens = 0
+...
+request = request_queue.pop_request()
+if load_kv_async:
+    # 异步加载:分配显存,请求进入 WAITING_FOR_REMOTE_KVS 状态
+    request.status = RequestStatus.WAITING_FOR_REMOTE_KVS
+    step_skipped_waiting.prepend_request(request)
+    # 此时就设置 num_computed_tokens,尽管 KV 还没到位 ——
+    # 在传输结束前这个字段不会被任何地方使用。</span><span lang="en" class="i18n-en">if load_kv_async:
+    # KVTransfer: loading remote KV, do not allocate for new work.
+    assert num_external_computed_tokens &gt; 0
+    num_new_tokens = 0
+...
+request = request_queue.pop_request()
+if load_kv_async:
+    # If loading async, allocate memory and put request
+    # into the WAITING_FOR_REMOTE_KV state.
+    request.status = RequestStatus.WAITING_FOR_REMOTE_KVS
+    step_skipped_waiting.prepend_request(request)
+    # Set num_computed_tokens even though KVs are not yet loaded;
+    # it is not used anywhere until the transfer finishes.</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>调用点二:注意力层内的装饰器。</strong> 前面说「逐层流水」听起来像个调度策略,但它其实是<strong>一个包在注意力算子外面的装饰器</strong>,
+            总共十来行。进入这一层时等这层的 KV 到位,算完立刻把这层的 KV 推出去。
+            没有任何全局协调,「第 <em>i</em> 层在传、第 <em>i-1</em> 层在算」是这个装饰器自然产生的结果:</span><span lang="en" class="i18n-en"><strong>Call site 2: a decorator inside the attention layer.</strong> "Per-layer pipelining" sounds like a scheduling policy, but it is really <strong>a decorator wrapped around the attention op</strong>, about a dozen lines long.
+            On entry it waits for this layer's KV; once the layer is computed it immediately pushes that layer's KV out.
+            There is no global coordination at all — "layer <em>i</em> in flight while layer <em>i-1</em> computes" simply falls out of this decorator:</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/model_executor/layers/attention/kv_transfer_utils.py:15</b><span><span lang="zh-CN" class="i18n-zh">逐层流水的全部实现</span><span lang="en" class="i18n-en">the entire implementation of per-layer pipelining</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">def maybe_transfer_kv_layer(func: Callable) -> Callable:
+    """装饰注意力层:执行前后各插一次 KV 传输,未启用时是空操作。
+    进入时:向连接器等这一层的 KV。
+    退出时:把这一层的 KV 存回连接器。"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # 没配连接器就完全不绕路
+        if not has_kv_transfer_group() or not is_v1_kv_transfer_group():
+            return func(*args, **kwargs)
+
+        layer_name = _resolve_layer_name(args[layer_name_index])
+        attn_metadata, _, kv_cache, _ = get_attention_context(layer_name)
+        connector = get_kv_transfer_group()
+        if attn_metadata is None or not connector.has_connector_metadata():
+            return func(*args, **kwargs)
+
+        # ← 入口:等这一层
+        connector.wait_for_layer_load(layer_name)
+        # ← 真正的注意力计算
+        result = func(*args, **kwargs)
+        # ← 出口:这一层刚算完就推出去
+        connector.save_kv_layer(layer_name, kv_cache, attn_metadata)
+        return result
+
+    return wrapper</span><span lang="en" class="i18n-en">def maybe_transfer_kv_layer(func: Callable) -> Callable:
+    """Decorator that handles KV layer transfer prior and after execution of
+    an attention layer, if enabled. Otherwise, the wrapper is a no-op.
+
+    On entry: waits for the KV layer from the connector.
+    On exit: saves the KV layer to the connector."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # No connector configured: no detour at all
+        if not has_kv_transfer_group() or not is_v1_kv_transfer_group():
+            return func(*args, **kwargs)
+
+        layer_name = _resolve_layer_name(args[layer_name_index])
+        attn_metadata, _, kv_cache, _ = get_attention_context(layer_name)
+        connector = get_kv_transfer_group()
+        if attn_metadata is None or not connector.has_connector_metadata():
+            return func(*args, **kwargs)
+
+        # ← entry: wait for this layer
+        connector.wait_for_layer_load(layer_name)
+        # ← the actual attention compute
+        result = func(*args, **kwargs)
+        # ← exit: push this layer the moment it is computed
+        connector.save_kv_layer(layer_name, kv_cache, attn_metadata)
+        return result
+
+    return wrapper</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>调用点三:worker 的前后向钩子。</strong> 这里藏着一个和上面时序图不一致的细节 ——
+            <code>start_load_kv</code> <strong>并不总是在前向之前调用</strong>。只有同步加载才必须提前发起;
+            异步加载会被<strong>推迟到前向之后</strong>,因为提交这些拷贝本身要花主机侧时间,放在前向之前就直接压在关键路径上了。
+            另外还有一条 <code>no_forward</code> 路径:某一步如果没有任何 token 要算(比如 decode 实例整步都在等 KV 到货),
+            引擎照样会走一遍钩子,让传输继续推进 —— 否则异步加载永远等不到完成:</span><span lang="en" class="i18n-en"><strong>Call site 3: the worker's pre/post-forward hooks.</strong> Here is a detail that contradicts the sequence figure above —
+            <code>start_load_kv</code> is <strong>not always called before the forward</strong>. Only synchronous loads must be issued up front;
+            asynchronous ones are <strong>deferred until after the forward</strong>, because submitting those copies costs host-side time, and doing it before the forward puts that cost straight on the critical path.
+            There is also a <code>no_forward</code> path: on a step with no tokens to compute at all (a decode instance spending the whole step waiting for KV to arrive, say),
+            the engine still runs the hooks so transfers keep making progress — otherwise an async load would never complete:</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/v1/worker/gpu/kv_connector.py:60</b><span><span lang="zh-CN" class="i18n-zh">ActiveKVConnector:worker 侧编排</span><span lang="en" class="i18n-en">ActiveKVConnector: worker-side orchestration</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">def pre_forward(self, scheduler_output) -> None:
+    kv_connector_metadata = scheduler_output.kv_connector_metadata
+    # 被抢占请求的块马上要被覆写,先让连接器抢救
+    self.kv_connector.handle_preemptions(kv_connector_metadata)
+    self.kv_connector.bind_connector_metadata(kv_connector_metadata)
+
+    if scheduler_output.has_sync_kv_loads:
+        self._start_load_kv()        # 同步加载:必须在本步前向之前跑完
+    else:
+        # 异步加载改到 post_forward 里发起,把主机侧的提交开销
+        # 挪出关键路径。
+        self._pending_load_start = True
+
+def post_forward(self, finished_req_ids, wait_for_save=True):
+    if self._pending_load_start:
+        self._start_load_kv()        # ← 异步加载在这里才真正提交
+
+    output = KVConnectorOutput()
+    if wait_for_save:
+        self.kv_connector.wait_for_save()
+    output.finished_sending, output.finished_recving = (
+        self.kv_connector.get_finished(finished_req_ids))
+    output.invalid_block_ids = self.kv_connector.get_block_ids_with_load_errors()
+    output.kv_connector_stats = self.kv_connector.get_kv_connector_stats()
+    self.kv_connector.clear_connector_metadata()
+    return output
+
+def no_forward(self, scheduler_output):
+    # 这一步没有任何 token 要算,但连接器仍需推进传输
+    self.pre_forward(scheduler_output)
+    kv_connector_output = self.post_forward(
+        scheduler_output.finished_req_ids, wait_for_save=False)
+    return ModelRunnerOutput.with_kv_conn_output_only(kv_connector_output)</span><span lang="en" class="i18n-en">def pre_forward(self, scheduler_output) -> None:
+    kv_connector_metadata = scheduler_output.kv_connector_metadata
+    # Preempted requests' blocks are about to be overwritten: rescue first
+    self.kv_connector.handle_preemptions(kv_connector_metadata)
+    self.kv_connector.bind_connector_metadata(kv_connector_metadata)
+
+    if scheduler_output.has_sync_kv_loads:
+        # Sync loads need to run before this step's forward.
+        self._start_load_kv()
+    else:
+        # Start any async loads in post-forward instead, keeping
+        # their host-side submission cost off the critical path.
+        self._pending_load_start = True
+
+def post_forward(self, finished_req_ids, wait_for_save=True):
+    if self._pending_load_start:
+        self._start_load_kv()        # ← async loads are only submitted here
+
+    output = KVConnectorOutput()
+    if wait_for_save:
+        self.kv_connector.wait_for_save()
+    output.finished_sending, output.finished_recving = (
+        self.kv_connector.get_finished(finished_req_ids))
+    output.invalid_block_ids = self.kv_connector.get_block_ids_with_load_errors()
+    output.kv_connector_stats = self.kv_connector.get_kv_connector_stats()
+    self.kv_connector.clear_connector_metadata()
+    return output
+
+def no_forward(self, scheduler_output):
+    # Nothing to compute this step, but the connector still needs to progress
+    self.pre_forward(scheduler_output)
+    kv_connector_output = self.post_forward(
+        scheduler_output.finished_req_ids, wait_for_save=False)
+    return ModelRunnerOutput.with_kv_conn_output_only(kv_connector_output)</span></code></pre>
           </div>
 
           <h2><span lang="zh-CN" class="i18n-zh">四、池化的三种形态</span><span lang="en" class="i18n-en">4 · Three shapes of pooling</span></h2>
@@ -535,9 +1040,9 @@
             </div>
           </div>
 
-          <h2><span lang="zh-CN" class="i18n-zh">五、两处决定成败的工程细节</span><span lang="en" class="i18n-en">5 · Two engineering details that decide whether it works</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、三处决定成败的工程细节</span><span lang="en" class="i18n-en">5 · Three engineering details that decide whether it works</span></h2>
 
-          <p><span lang="zh-CN" class="i18n-zh">池化听起来只是「把数据搬走再搬回来」,但它能不能用,取决于两件很具体的事。</span><span lang="en" class="i18n-en">Pooling sounds like just moving data out and back, but whether it is usable comes down to two very concrete things.</span></p>
+          <p><span lang="zh-CN" class="i18n-zh">池化听起来只是「把数据搬走再搬回来」,但它能不能用,取决于三件很具体的事。前两件是它自己的性能问题,第三件是它<strong>向整个引擎收的税</strong>。</span><span lang="en" class="i18n-en">Pooling sounds like just moving data out and back, but whether it is usable comes down to three very concrete things. The first two are its own performance problems; the third is a <strong>tax it levies on the rest of the engine</strong>.</span></p>
 
           <p><span lang="zh-CN" class="i18n-zh"><strong>其一,搬运必须是异步的。</strong> 连接器 API 最早是同步的:vLLM 在读写外部 KV 时整个引擎是阻塞的,
             省下的 prefill 时间还不够赔上等待时间。0.9.0 起 API 扩展为支持异步加载与保存,搬运才真正能和前向计算重叠 —— 
@@ -576,6 +1081,204 @@
               <a href="https://blog.vllm.ai/2026/01/08/kv-offloading-connector.html" target="_blank" rel="noopener">Inside vLLM's New KV Offloading Connector</a>.</span></span>
           </div>
 
+          <p><span lang="zh-CN" class="i18n-zh">这件事在源码里有一个很直白的落点:<strong>连接器可以反过来规定整个引擎的 KV 布局</strong>。
+            基类留了一个 <code>get_required_kvcache_layout()</code>,卸载连接器在这里硬性返回 <code>"LBHNC"</code>。
+            vLLM 的布局名是一串轴序:<code>L</code>=层、<code>B</code>=块、<code>H</code>=KV 头、<code>N</code>=块内 token、<code>C</code>=head dim,
+            字母顺序就是物理内存顺序。<code>LBHNC</code> 把 <code>L</code> 放在最外层,于是同一层的所有块紧挨着,
+            块内的 <code>[H, N, C]</code> 也是一整段连续字节 —— 枚举里管这个叫 <code>is_block_compact</code>。
+            这正是卸载想要的:一个块就是一段可以整体 DMA 的字节。</span><span lang="en" class="i18n-en">This has a very direct landing point in the source: <strong>a connector can dictate the KV layout for the entire engine</strong>.
+            The base class leaves a <code>get_required_kvcache_layout()</code> hook, and the offloading connector returns a hard <code>"LBHNC"</code> from it.
+            vLLM's layout names are an axis order: <code>L</code>=layer, <code>B</code>=block, <code>H</code>=KV head, <code>N</code>=token within a block, <code>C</code>=head dim,
+            and the letter order is the physical memory order. <code>LBHNC</code> puts <code>L</code> outermost, so all blocks of one layer sit together
+            and a block's <code>[H, N, C]</code> is one unbroken run of bytes — the enum calls that <code>is_block_compact</code>.
+            Which is exactly what offloading wants: one block is one span you can DMA whole.</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/v1/kv_cache_layout.py · offloading_connector.py:186</b><span><span lang="zh-CN" class="i18n-zh">连接器指定全局 KV 布局</span><span lang="en" class="i18n-en">a connector pins the engine-wide KV layout</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">class KVCacheLayout(Enum):
+    """逻辑形状恒为 [L, B, H, N, &lt;content&gt;](RFC #42082)。
+    每个成员的值是一个 stride 排列,把逻辑轴映射到物理内存顺序。"""
+    LBHNC = (0, 1, 2, 3, 4)  # [L, B, H, N, C](恒等)
+    LBNHC = (0, 1, 3, 2, 4)  # [L, B, N, H, C]
+    BLHNC = (1, 0, 2, 3, 4)  # [B, L, H, N, C]
+    ...
+
+    @property
+    def is_block_compact(self) -> bool:
+        """每一页的 [H, N, C] 字节构成一整段连续区间时为真;
+        即 L 和 B 都在最外层。"""
+        return set(self.value[:2]) == {_DIM_L, _DIM_B}
+
+# —— 卸载连接器直接把这个布局钉死 ——
+class OffloadingConnector(KVConnectorBase_V1):
+    @classmethod
+    def get_required_kvcache_layout(cls, vllm_config) -> str | None:
+        return "LBHNC"</span><span lang="en" class="i18n-en">class KVCacheLayout(Enum):
+    """The logical shape is always [L, B, H, N, &lt;content&gt;] (RFC #42082).
+    Each member's value is a stride permutation that maps logical axes
+    to physical (memory) order."""
+    LBHNC = (0, 1, 2, 3, 4)  # [L, B, H, N, C] (identity)
+    LBNHC = (0, 1, 3, 2, 4)  # [L, B, N, H, C]
+    BLHNC = (1, 0, 2, 3, 4)  # [B, L, H, N, C]
+    ...
+
+    @property
+    def is_block_compact(self) -> bool:
+        """True when each page's [H, N, C] bytes form one contiguous run;
+        i.e. the L and B dimensions are outermost."""
+        return set(self.value[:2]) == {_DIM_L, _DIM_B}
+
+# —— the offloading connector pins this layout outright ——
+class OffloadingConnector(KVConnectorBase_V1):
+    @classmethod
+    def get_required_kvcache_layout(cls, vllm_config) -> str | None:
+        return "LBHNC"</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh">布局定下来之后,还有一层收尾:一次搬运会被拆成若干 <code>CopyRun</code>,
+            <code>_coalesce_runs()</code> 再把物理上首尾相接的片段合并掉 —— 注释写得很直白,
+            「单 rank 的映射会塌缩成一整页一次拷贝」。TP/CP 切分会把连续性打碎,这个合并就是把它尽量拼回来。</span><span lang="en" class="i18n-en">Once the layout is fixed there is one more pass: a transfer is broken into a set of <code>CopyRun</code>s, and
+            <code>_coalesce_runs()</code> merges the ones that are physically adjacent — the comment says it plainly,
+            "a single-rank mapping becomes one whole-page run". TP/CP sharding fragments contiguity, and this merge stitches back as much of it as it can.</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/distributed/kv_transfer/kv_connector/v1/offloading/canonical_mapping.py:82</b><span><span lang="zh-CN" class="i18n-zh">把碎片合并成尽可能少的拷贝</span><span lang="en" class="i18n-en">merging fragments into as few copies as possible</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh">def _coalesce_runs(runs: list[CopyRun]) -> tuple[CopyRun, ...]:
+    """把 run 内部以及相邻 run 之间物理连续的片段塌缩掉,
+    以最小化拷贝操作数(例如单 rank 映射会变成一整页一次拷贝)。"""
+    out: list[CopyRun] = []
+    for run in runs:
+        # ① run 内部:步长恰好等于片段大小 ⇒ 整个 run 是一段连续字节
+        if (run.num_fragments &gt; 1
+                and run.local_stride == run.fragment_size
+                and run.canonical_stride == run.fragment_size):
+            size = run.fragment_size * run.num_fragments
+            run = CopyRun(run.local_offset, run.canonical_offset,
+                          size, 1, size, size)
+
+        # ② run 之间:上一段的尾巴正好接着这一段的头 ⇒ 并成一段
+        prev = out[-1] if out else None
+        if (prev is not None and prev.num_fragments == 1 and run.num_fragments == 1
+                and prev.local_offset + prev.fragment_size == run.local_offset
+                and prev.canonical_offset + prev.fragment_size
+                    == run.canonical_offset):
+            size = prev.fragment_size + run.fragment_size
+            out[-1] = CopyRun(prev.local_offset, prev.canonical_offset,
+                              size, 1, size, size)
+        else:
+            out.append(run)
+    return tuple(out)</span><span lang="en" class="i18n-en">def _coalesce_runs(runs: list[CopyRun]) -> tuple[CopyRun, ...]:
+    """Collapse contiguous fragments within and across runs to minimize the
+    number of copy ops (e.g. a single-rank mapping becomes one whole-page run)."""
+    out: list[CopyRun] = []
+    for run in runs:
+        # (1) within a run: stride == fragment size ⇒ the whole run is one span
+        if (run.num_fragments &gt; 1
+                and run.local_stride == run.fragment_size
+                and run.canonical_stride == run.fragment_size):
+            size = run.fragment_size * run.num_fragments
+            run = CopyRun(run.local_offset, run.canonical_offset,
+                          size, 1, size, size)
+
+        # (2) across runs: previous tail meets this head ⇒ fuse into one
+        prev = out[-1] if out else None
+        if (prev is not None and prev.num_fragments == 1 and run.num_fragments == 1
+                and prev.local_offset + prev.fragment_size == run.local_offset
+                and prev.canonical_offset + prev.fragment_size
+                    == run.canonical_offset):
+            size = prev.fragment_size + run.fragment_size
+            out[-1] = CopyRun(prev.local_offset, prev.canonical_offset,
+                              size, 1, size, size)
+        else:
+            out.append(run)
+    return tuple(out)</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh"><strong>其三,逐层回调会把你的 CUDA Graph 降级。</strong> 这一条在文档里几乎看不到,却是开池化之前最该先算的账。
+            <code>wait_for_layer_load</code> 和 <code>save_kv_layer</code> 是 Python 代码,而 CUDA Graph 捕获的是纯 GPU 算子序列 ——
+            这些回调在 replay 时<strong>根本不会执行</strong>,于是就成了数据竞争:图重放读的是还没搬到位的 KV。
+            vLLM 的处理方式不是报错,而是<strong>悄悄把 <code>cudagraph_mode</code> 从 FULL 降到 PIECEWISE</strong>,
+            让 Python 代码能在图的分段之间插进去跑。代价是每层之间多一次 CPU 侧启动开销,decode 的每步延迟会涨。</span><span lang="en" class="i18n-en"><strong>Third, per-layer callbacks downgrade your CUDA graphs.</strong> This one is barely documented, yet it is the first thing you should price in before turning pooling on.
+            <code>wait_for_layer_load</code> and <code>save_kv_layer</code> are Python code, while a CUDA graph captures a pure sequence of GPU ops — so those callbacks
+            <strong>simply do not execute</strong> on replay, which turns them into a data race: the replayed graph reads KV that has not arrived yet.
+            vLLM does not raise on this; it <strong>quietly demotes <code>cudagraph_mode</code> from FULL to PIECEWISE</strong>
+            so Python can run between graph pieces. The price is one extra CPU-side launch between layers, which raises per-step decode latency.</span></p>
+
+          <div class="kv-code">
+            <div class="kv-src"><b>vllm/config/vllm.py:1564 · base.py:617 · lmcache_connector.py:73</b><span><span lang="zh-CN" class="i18n-zh">启用逐层连接器 → 强制 PIECEWISE</span><span lang="en" class="i18n-en">enabling a layerwise connector forces PIECEWISE</span></span></div>
+            <pre><code><span lang="zh-CN" class="i18n-zh"># ① 基类留的开关
+@classmethod
+def requires_piecewise_for_cudagraph(cls, extra_config) -> bool:
+    """使用异步逐层操作(wait_for_layer_load / save_kv_layer)的连接器
+    应当覆盖此方法返回 True。这些操作无法被 CUDA Graph 捕获,
+    replay 时会被跳过,从而造成数据竞争。PIECEWISE 模式允许 Python
+    代码在图的分段之间执行,确保同步正确。"""
+    return False
+
+# ② LMCache:只有真的开了 layerwise 才要求降级
+class LMCacheConnectorV1(KVConnectorBase_V1):
+    @classmethod
+    def requires_piecewise_for_cudagraph(cls, extra_config) -> bool:
+        return extra_config.get("use_layerwise", False)
+
+# ③ 引擎配置阶段:静默覆盖用户设置,只打一行 warning
+if (self.kv_transfer_config is not None
+        and self.kv_transfer_config.is_kv_transfer_instance
+        and self.compilation_config.cudagraph_mode.has_full_cudagraphs()):
+    connector_cls = KVConnectorFactory.get_connector_class(self.kv_transfer_config)
+    if connector_cls.requires_piecewise_for_cudagraph(
+            self.kv_transfer_config.kv_connector_extra_config):
+        logger.warning_once(
+            "KV connector %s requires PIECEWISE CUDA graph mode "
+            "due to layerwise async operations that cannot be "
+            "captured in CUDA graphs. Overriding cudagraph_mode from %s "
+            "to PIECEWISE.", connector_cls.__name__,
+            self.compilation_config.cudagraph_mode.name)
+        self.compilation_config.cudagraph_mode = CUDAGraphMode.PIECEWISE</span><span lang="en" class="i18n-en"># (1) the hook the base class leaves
+@classmethod
+def requires_piecewise_for_cudagraph(cls, extra_config) -> bool:
+    """Connectors that use asynchronous layer-by-layer operations
+    (wait_for_layer_load/save_kv_layer) should override this method
+    to return True when those operations are enabled. These operations
+    cannot be captured in CUDA graphs and will be skipped during replay,
+    causing data races. PIECEWISE mode allows Python code to execute
+    between graph pieces, ensuring proper synchronization."""
+    return False
+
+# (2) LMCache: only demand the demotion when layerwise is actually on
+class LMCacheConnectorV1(KVConnectorBase_V1):
+    @classmethod
+    def requires_piecewise_for_cudagraph(cls, extra_config) -> bool:
+        return extra_config.get("use_layerwise", False)
+
+# (3) engine config time: silently override the user's setting, one warning
+if (self.kv_transfer_config is not None
+        and self.kv_transfer_config.is_kv_transfer_instance
+        and self.compilation_config.cudagraph_mode.has_full_cudagraphs()):
+    connector_cls = KVConnectorFactory.get_connector_class(self.kv_transfer_config)
+    if connector_cls.requires_piecewise_for_cudagraph(
+            self.kv_transfer_config.kv_connector_extra_config):
+        logger.warning_once(
+            "KV connector %s requires PIECEWISE CUDA graph mode "
+            "due to layerwise async operations that cannot be "
+            "captured in CUDA graphs. Overriding cudagraph_mode from %s "
+            "to PIECEWISE.", connector_cls.__name__,
+            self.compilation_config.cudagraph_mode.name)
+        self.compilation_config.cudagraph_mode = CUDAGraphMode.PIECEWISE</span></code></pre>
+          </div>
+
+          <p><span lang="zh-CN" class="i18n-zh">所以「开个连接器试试」不是零成本的实验:如果你原本跑的是 full CUDA Graph,启用 layerwise 卸载之后
+            省下的 prefill 时间要先赔掉 decode 每步多出来的启动开销,净收益才是真收益。
+            反过来,像 <code>OffloadingConnector</code> 这样把 <code>wait_for_layer_load</code> / <code>save_kv_layer</code> 实现成
+            <code>pass</code>、全部搬运挤在 <code>start_load_kv</code> 一处发起的连接器,就不触发降级 —— 这是一个真实存在的设计取舍,
+            而不只是实现风格的差别。piecewise 与 full 两种模式的区别见
+            <a href="cuda-graph-vllm.html">CUDA Graph 详解 &amp; vLLM 里的 CUDA Graph 与精度</a>。</span><span lang="en" class="i18n-en">So "let's just try a connector" is not a free experiment: if you were running full CUDA graphs, the prefill time that layerwise offloading saves
+            first has to pay back the extra per-step launch overhead in decode before any of it is net gain.
+            Conversely, a connector like <code>OffloadingConnector</code> — which implements <code>wait_for_layer_load</code> / <code>save_kv_layer</code> as
+            <code>pass</code> and issues every transfer from the single <code>start_load_kv</code> call — never triggers the demotion. That is a real design trade-off,
+            not just a difference in implementation style. For the difference between piecewise and full mode, see
+            <a href="cuda-graph-vllm.html">CUDA Graph explained &amp; CUDA graphs in vLLM</a>.</span></p>
+
           <h2><span lang="zh-CN" class="i18n-zh">六、配置速查与选型</span><span lang="en" class="i18n-en">6 · Configuration reference and choosing between them</span></h2>
 
           <p><span lang="zh-CN" class="i18n-zh">三种形态都通过同一个启动参数 <code>--kv-transfer-config</code> 打开,区别只在 <code>kv_connector</code> 和 <code>kv_role</code>:</span><span lang="en" class="i18n-en">All three shapes are enabled through the same launch flag, <code>--kv-transfer-config</code>; only <code>kv_connector</code> and <code>kv_role</code> differ:</span></p>
@@ -612,9 +1315,10 @@ vllm serve MODEL --kv-transfer-config '{
 }'
 # Same for the decode instance, with kv_role changed to "kv_consumer"
 
-# ③ Combined: NIXL for PD transfer, each side also offloading to a shared pool
-#    set kv_connector to "MultiConnector",
-#    and list the sub-connectors in kv_connector_extra_config.connectors</span></code></pre>
+# ③ Combined: NIXL for PD transfer, each side also
+#    offloading to a shared pool. Set kv_connector to
+#    "MultiConnector" and list the sub-connectors in
+#    kv_connector_extra_config.connectors</span></code></pre>
 
           <p><span lang="zh-CN" class="i18n-zh">两个容易踩的参数:<code>kv_role</code> 有 <code>kv_producer</code> / <code>kv_consumer</code> / <code>kv_both</code> 三种,
             分层卸载要用 <code>kv_both</code>(既存又取),PD 才是一产一消。
@@ -637,7 +1341,7 @@ vllm serve MODEL --kv-transfer-config '{
             </table>
           </div>
 
-          <h2><span lang="zh-CN" class="i18n-zh">七、六个要点</span><span lang="en" class="i18n-en">7 · Six takeaways</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、八个要点</span><span lang="en" class="i18n-en">7 · Eight takeaways</span></h2>
 
           <div class="kv-takes">
             <div class="kv-take"><div class="n">01</div><h5><span lang="zh-CN" class="i18n-zh">池化治的是重复,不是容量</span><span lang="en" class="i18n-en">Pooling treats duplication, not capacity</span></h5>
@@ -652,11 +1356,19 @@ vllm serve MODEL --kv-transfer-config '{
               <p><span lang="zh-CN" class="i18n-zh">把 KV 改成「全层一个连续块」,有效块放大 <code>2 × num_layers</code> 倍,卸载吞吐提升一个数量级。对计算无感的排布方式,对 DMA 是生死线。</span><span lang="en" class="i18n-en">Rearranging KV into one contiguous block per all layers grows the effective block <code>2 × num_layers</code>× and lifts offload throughput by an order of magnitude. An arrangement the computation cannot feel is a life-or-death matter for DMA.</span></p></div>
             <div class="kv-take"><div class="n">06</div><h5><span lang="zh-CN" class="i18n-zh">谁释放块,是正确性问题</span><span lang="en" class="i18n-en">Who frees the blocks is a correctness question</span></h5>
               <p><span lang="zh-CN" class="i18n-zh"><code>request_finished()</code> 要回答「现在能不能回收这些块」。连接器若还在异步外推,块就得由它接管释放,否则正在传输的数据会被下一个请求覆盖。</span><span lang="en" class="i18n-en"><code>request_finished()</code> has to answer "can these blocks be reclaimed now". If the connector is still pushing asynchronously, it must take over freeing them, or the next request will overwrite data still in flight.</span></p></div>
+            <div class="kv-take"><div class="n">07</div><h5><span lang="zh-CN" class="i18n-zh">逐层回调要向 CUDA Graph 交税</span><span lang="en" class="i18n-en">Per-layer callbacks pay a CUDA-graph tax</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh"><code>wait_for_layer_load</code> / <code>save_kv_layer</code> 是 Python 代码,捕不进图。vLLM 的做法是把 <code>cudagraph_mode</code> 从 FULL <strong>静默降到 PIECEWISE</strong>,只留一行 warning。省下的 prefill 要先赔掉 decode 每步多出的启动开销。</span><span lang="en" class="i18n-en"><code>wait_for_layer_load</code> / <code>save_kv_layer</code> are Python and cannot be captured. vLLM's answer is to <strong>silently demote <code>cudagraph_mode</code> from FULL to PIECEWISE</strong>, leaving only a warning line. The prefill you save first has to pay back the extra per-step launch cost in decode.</span></p></div>
+            <div class="kv-take"><div class="n">08</div><h5><span lang="zh-CN" class="i18n-zh">异步加载期间,请求占块不产出</span><span lang="en" class="i18n-en">During an async load a request holds blocks and produces nothing</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">连接器说要异步加载,调度器就把 <code>num_new_tokens</code> 设为 0、请求挂进 <code>WAITING_FOR_REMOTE_KVS</code>。显存已经分出去了,token 一个没产。池化的账不能只看命中率,还得算上这段空转占用。</span><span lang="en" class="i18n-en">When the connector asks for an async load, the scheduler sets <code>num_new_tokens</code> to 0 and parks the request in <code>WAITING_FOR_REMOTE_KVS</code>. The memory is already committed and not one token comes out. The ledger for pooling is not just hit rate; it has to include this idle occupancy.</span></p></div>
           </div>
 
-          <blockquote><span lang="zh-CN" class="i18n-zh">API 方法名与语义以 vLLM v1 <code>KVConnectorBase_V1</code> 源码为准;分层卸载的 TieringManager / SecondaryTierManager 属设计阶段接口,
-            落地范围以上游合入为准。容量与带宽为量级示意,非实测。</span><span lang="en" class="i18n-en">Method names and semantics follow the vLLM v1 <code>KVConnectorBase_V1</code> source; the tiered-offload TieringManager / SecondaryTierManager are design-stage interfaces,
-            and what actually lands depends on upstream. Capacity and bandwidth figures indicate orders of magnitude and are not measurements.</span></blockquote>
+          <blockquote><span lang="zh-CN" class="i18n-zh">文中代码摘自 vLLM 主干 <a href="https://github.com/vllm-project/vllm/tree/52358e6" target="_blank" rel="noopener"><code>52358e6</code></a>(2026-09-06),
+            为便于阅读删去了与主线无关的分支和日志;文件路径与行号会随上游漂移,方法名与语义以
+            <a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/base.py" target="_blank" rel="noopener"><code>KVConnectorBase_V1</code></a> 源码为准。
+            分层卸载的 TieringManager / SecondaryTierManager 属设计阶段接口,落地范围以上游合入为准。容量与带宽为量级示意,非实测。</span><span lang="en" class="i18n-en">The code here is taken from vLLM main at <a href="https://github.com/vllm-project/vllm/tree/52358e6" target="_blank" rel="noopener"><code>52358e6</code></a> (2026-09-06),
+            with branches and logging irrelevant to the main path trimmed for readability; paths and line numbers drift as upstream moves, and method names and semantics follow the
+            <a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/base.py" target="_blank" rel="noopener"><code>KVConnectorBase_V1</code></a> source.
+            The tiered-offload TieringManager / SecondaryTierManager are design-stage interfaces, and what actually lands depends on upstream. Capacity and bandwidth figures indicate orders of magnitude and are not measurements.</span></blockquote>
         </div>
       </article>
     </main>
@@ -841,6 +1553,160 @@ vllm serve MODEL --kv-transfer-config '{
             c.style.setProperty('--d', (i % 12) * 0.09 + 's');
             box.appendChild(c);
           }
+        })();
+
+        /* ============ 动图 5:源码调用点地图 ============ */
+        (function () {
+          var list = document.getElementById('mapList');
+          if (!list) return;
+          var sigEl = document.getElementById('mapSig');
+          var pillEl = document.getElementById('mapPill');
+          var whyEl = document.getElementById('mapWhy');
+          var fileEl = document.getElementById('mapFile');
+          var codeEl = document.getElementById('mapCode');
+
+          // 行号取自 vLLM 主干 52358e6,会随上游漂移。
+          function buildEntries() { return [
+            {
+              side: 'sch', abs: true, name: 'get_num_new_matched_tokens',
+              sig: 'get_num_new_matched_tokens(request, num_computed_tokens) -> (int | None, bool)',
+              file: 'vllm/v1/core/sched/scheduler.py:891',
+              why: tr('调度主循环里、分配块<em>之前</em>调用。返回 None 会让请求原样退回队列,这一轮不占任何资源。',
+                      'Called in the main scheduling loop, <em>before</em> blocks are allocated. Returning None puts the request straight back on the queue, consuming nothing this round.'),
+              code: 'ext_tokens, load_kv_async = (\n    self.connector.get_num_new_matched_tokens(\n        request, block_aligned_local))'
+            },
+            {
+              side: 'sch', abs: true, name: 'update_state_after_alloc',
+              sig: 'update_state_after_alloc(request, blocks, num_external_tokens)',
+              file: 'vllm/v1/core/sched/scheduler.py:1140',
+              why: tr('块分配成功之后。判断依据必须是 <em>num_external_tokens</em> —— MultiConnector 里没被选中的子连接器也会收到非空的 blocks。',
+                      'Right after allocation succeeds. Decide from <em>num_external_tokens</em> — a non-chosen sub-connector of MultiConnector also receives non-empty blocks.'),
+              code: 'self.connector.update_state_after_alloc(\n    request,\n    self.kv_cache_manager.get_blocks(request_id),\n    num_external_computed_tokens)'
+            },
+            {
+              side: 'sch', abs: true, name: 'build_connector_meta',
+              sig: 'build_connector_meta(scheduler_output) -> KVConnectorMetadata',
+              file: 'vllm/v1/core/sched/scheduler.py:1424',
+              why: tr('每个引擎步一次,把这一步的搬运计划打包塞进 SchedulerOutput,随之发给所有 worker。',
+                      'Once per engine step: packs this step\u2019s transfer plan into SchedulerOutput, which then ships to every worker.'),
+              code: 'return connector.build_connector_meta(\n    scheduler_output)'
+            },
+            {
+              side: 'sch', abs: false, name: 'request_finished',
+              sig: 'request_finished(request, block_ids) -> (bool, dict | None)',
+              file: 'vllm/v1/core/sched/scheduler.py:2840',
+              why: tr('请求结束、块被释放<em>之前</em>,恰好一次。返回 True 表示「块先别回收,我还在往外推」。',
+                      'Exactly once when a request finishes, <em>before</em> its blocks are freed. Returning True means "hold the blocks, I am still pushing them out".'),
+              code: 'delay_free, kv_xfer_params = (\n    self.connector.request_finished(\n        request, block_ids[0]))'
+            },
+            {
+              side: 'wrk', abs: false, name: 'handle_preemptions',
+              sig: 'handle_preemptions(kv_connector_metadata)',
+              file: 'vllm/v1/worker/gpu/kv_connector.py:66',
+              why: tr('前向之前的第一件事:被抢占请求的块马上要被覆写,异步保存型连接器得在这一刻抢救走。',
+                      'The first thing before the forward: blocks of preempted requests are about to be overwritten, so async-saving connectors must rescue them right here.'),
+              code: 'self.kv_connector.handle_preemptions(\n    kv_connector_metadata)\nself.kv_connector.bind_connector_metadata(\n    kv_connector_metadata)'
+            },
+            {
+              side: 'wrk', abs: true, name: 'start_load_kv',
+              sig: 'start_load_kv(forward_context, **kwargs)',
+              file: 'vllm/v1/worker/gpu/kv_connector.py:81',
+              why: tr('同步加载在前向<em>之前</em>发起;异步加载被推迟到 post_forward,把主机侧提交开销挪出关键路径。',
+                      'Sync loads are issued <em>before</em> the forward; async loads are deferred to post_forward to keep host-side submission cost off the critical path.'),
+              code: 'if scheduler_output.has_sync_kv_loads:\n    self._start_load_kv()\nelse:\n    self._pending_load_start = True'
+            },
+            {
+              side: 'wrk', abs: true, name: 'wait_for_layer_load',
+              sig: 'wait_for_layer_load(layer_name)',
+              file: 'vllm/model_executor/layers/attention/kv_transfer_utils.py:51',
+              why: tr('在注意力算子<em>内部</em>,由装饰器在进入这一层时调用。只挡住这一层,后面的层继续在传。',
+                      'Called <em>inside</em> the attention op by a decorator, on entry to that layer. It blocks only this layer; later layers keep transferring.'),
+              code: tr('# @maybe_transfer_kv_layer 包在注意力算子外面',
+                       '# @maybe_transfer_kv_layer wraps the attention op') +
+                    '\nconnector.wait_for_layer_load(layer_name)\nresult = func(*args, **kwargs)'
+            },
+            {
+              side: 'wrk', abs: true, name: 'save_kv_layer',
+              sig: 'save_kv_layer(layer_name, kv_layer, attn_metadata, **kwargs)',
+              file: 'vllm/model_executor/layers/attention/kv_transfer_utils.py:57',
+              why: tr('同一个装饰器的出口。这一层刚算完就推出去,不等整个前向结束。',
+                      'The exit half of the same decorator. This layer is pushed out the moment it is computed, without waiting for the whole forward.'),
+              code: 'result = func(*args, **kwargs)\nconnector.save_kv_layer(\n    layer_name, kv_cache, attn_metadata)'
+            },
+            {
+              side: 'wrk', abs: true, name: 'wait_for_save',
+              sig: 'wait_for_save()',
+              file: 'vllm/v1/worker/gpu/kv_connector.py:97',
+              why: tr('前向退出时的栅栏,防止 paged buffer 在保存完成前被下一步覆写。no_forward 路径会跳过它。',
+                      'A barrier as the forward exits, stopping the paged buffer from being overwritten before saves complete. The no_forward path skips it.'),
+              code: 'if wait_for_save:\n    self.kv_connector.wait_for_save()'
+            },
+            {
+              side: 'wrk', abs: false, name: 'get_finished',
+              sig: 'get_finished(finished_req_ids) -> (set | None, set | None)',
+              file: 'vllm/v1/worker/gpu/kv_connector.py:99',
+              why: tr('每步回报哪些请求的异步收发真的完成了。<em>request_finished</em> 返回 True 的请求,块要等到这里点名才会被释放。',
+                      'Reports each step which requests\u2019 async sends/recvs actually finished. Blocks of requests that returned True from <em>request_finished</em> are freed only once named here.'),
+              code: '(output.finished_sending,\n output.finished_recving) = (\n    self.kv_connector.get_finished(\n        finished_req_ids))'
+            }
+          ]; }
+
+          var entries = buildEntries();
+          var cur = 0;
+
+          function renderList() {
+            list.textContent = '';
+            [
+              { key: 'sch', label: tr('SCHEDULER 侧 · 调度器进程', 'SCHEDULER side · scheduler process'), c: 'var(--cpu)' },
+              { key: 'wrk', label: tr('WORKER 侧 · 每个 worker', 'WORKER side · every worker'), c: 'var(--gpu)' }
+            ].forEach(function (grp) {
+              var wrap = document.createElement('div');
+              wrap.className = 'kv-map-grp ' + grp.key;
+              var h = document.createElement('h6');
+              h.textContent = grp.label;
+              wrap.appendChild(h);
+              var btns = document.createElement('div');
+              btns.className = 'kv-map-btns';
+              entries.forEach(function (e, i) {
+                if (e.side !== grp.key) return;
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'kv-map-btn' + (i === cur ? ' on' : '');
+                b.style.setProperty('--c', grp.c);
+                var dot = document.createElement('span');
+                dot.className = 'dot';
+                b.appendChild(dot);
+                b.appendChild(document.createTextNode(e.name));
+                if (e.abs) {
+                  var r = document.createElement('span');
+                  r.className = 'req';
+                  r.textContent = 'abstract';
+                  b.appendChild(r);
+                }
+                b.addEventListener('click', function () { cur = i; render(); });
+                btns.appendChild(b);
+              });
+              wrap.appendChild(btns);
+              list.appendChild(wrap);
+            });
+          }
+
+          function render() {
+            var e = entries[cur];
+            var c = e.side === 'sch' ? 'var(--cpu)' : 'var(--gpu)';
+            renderList();
+            sigEl.textContent = e.sig;
+            pillEl.style.setProperty('--c', c);
+            pillEl.textContent = e.abs
+              ? tr('必须实现', 'must implement')
+              : tr('有默认实现', 'has a default');
+            whyEl.innerHTML = e.why;
+            fileEl.textContent = e.file;
+            codeEl.textContent = e.code;
+          }
+
+          render();
+          redraw.push(function () { entries = buildEntries(); render(); });
         })();
       })();
     </script>
