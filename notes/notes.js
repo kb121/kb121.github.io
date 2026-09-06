@@ -268,8 +268,8 @@ window.NOTES = [
       en: "Adapting Wan2.1 for Long-Sequence Parallelism",
     },
     summary: {
-      zh: "拆解昇腾 Wan2.1 14B 的 Ulysses 序列并行:只有三个改动点、交叉注意力白花了三分之一通信、梯度缩放只覆盖了主干,外加四个可复现的问题与一版重写方案。",
-      en: "Taking apart Ulysses sequence parallelism in Ascend's Wan2.1 14B: only three touch points, a third of the communication wasted on cross-attention, gradient scaling that reaches only the backbone — plus four reproducible problems and a rewrite plan.",
+      zh: "把 Wan2.1 14B 从两机 32 卡压到单机 8 卡的一份 DeepSpeed-Ulysses 适配方案:为什么选 Ulysses 而不是 Ring / Megatron-SP、落到代码只有哪三个改动点、每层 8 次 all-to-all 的通信量怎么算、梯度缩放该放在哪,以及建通信组与 Sampler 这四处坑和一份验证清单。",
+      en: "A DeepSpeed-Ulysses adaptation that takes Wan2.1 14B from 32 cards on two nodes to 8 on one: why Ulysses over Ring or Megatron-SP, the only three places the code changes, how to price the 8 all-to-alls per layer, where gradient scaling belongs, plus four pitfalls around group creation and the sampler — and a verification checklist.",
     },
     date: "2026-09-03",
     tags: ["Sequence Parallel", "Ulysses", "Ascend NPU", "Training"],

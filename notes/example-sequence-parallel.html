@@ -21,7 +21,7 @@
     </script>
 
     <title data-zh="Wan2.1 长序列并行适配方案 — 庄宏" data-en="Adapting Wan2.1 for Long-Sequence Parallelism — Hong Zhuang">Wan2.1 长序列并行适配方案 — 庄宏</title>
-    <meta name="description" content="拆解昇腾 Wan2.1 14B 的 DeepSpeed-Ulysses 序列并行:三个改动点、通信量账本、梯度缩放的不对称,以及四个可复现的问题与一版重写方案。" />
+    <meta name="description" content="Wan2.1 14B 图生视频模型的长序列并行适配方案:从 DeepSpeed-Ulysses 的原理讲起,给出三个改动点的落地代码、每层 8 次 all-to-all 的通信量账本、梯度缩放的放置位置,以及建通信组、Sampler、初始化时机这四处工程细节的处理办法和验证清单。" />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
 
@@ -45,6 +45,12 @@
         font-size: 0.78rem; color: var(--text-muted); background: var(--surface);
       }
       .wsp-chips .chip b { color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+
+      /* 表格里的文件路径在窄屏下要能断行,否则整张表撑出视口 */
+      .prose table td code { overflow-wrap: anywhere; }
+      /* 四列对比表在手机上放不下,让它自己横向滚动而不是顶宽页面 */
+      .wsp-tblwrap { overflow-x: auto; }
+      .wsp-tblwrap table { min-width: 480px; }
 
       /* 布局动画 */
       .wsp-stage { display: grid; gap: 10px; margin: 6px 0 2px; }
@@ -196,18 +202,64 @@
 
         <div class="prose">
           <p class="wsp-lede">
-            <span lang="zh-CN" class="i18n-zh">分析对象是昇腾生态贡献仓 <a href="https://gitee.com/ascend/msit/tree/eco_contri/models/wan2_1" target="_blank" rel="noopener">msit / eco-contrib</a> 里 Wan2.1 的 NPU 适配版,入口脚本 <code>scripts/train_i2v_full_14B_sp2_8p.sh</code> —— 14B 图生视频模型,单机 8 卡,<code>SP=2</code>。它给了同一个模型的两条路:不开 SP 要 <strong>两机 32 卡</strong>,开 SP 后 <strong>单机 8 卡</strong>。这篇先把这条路怎么走通的读明白,再把我读出来的四个问题和一版重写方案写下来。</span><span lang="en" class="i18n-en">The subject is the NPU port of Wan2.1 in Ascend's <a href="https://gitee.com/ascend/msit/tree/eco_contri/models/wan2_1" target="_blank" rel="noopener">msit / eco-contrib</a> repository, entry script <code>scripts/train_i2v_full_14B_sp2_8p.sh</code> — a 14B image-to-video model on one node of 8 cards with <code>SP=2</code>. The repo ships two paths for the same model: <strong>32 cards across two nodes</strong> without SP, <strong>8 cards on one node</strong> with it. This note works out how that path is made to work, then writes down four problems I found in it and a plan for rewriting it.</span>
+            <span lang="zh-CN" class="i18n-zh">这是我给 Wan2.1 14B 图生视频模型做长序列并行适配的一份方案记录,代码在昇腾生态贡献仓 <a href="https://gitee.com/ascend/msit/tree/eco_contri/models/wan2_1" target="_blank" rel="noopener">msit / eco-contrib</a>,入口脚本是 <code>scripts/train_i2v_full_14B_sp2_8p.sh</code>。要解决的问题很具体:同一个模型,不开序列并行要 <strong>两机 32 卡</strong>,开了之后 <strong>单机 8 卡</strong> 就能训。<br /><br />这篇按开发顺序写:先讲清楚序列并行要解决什么、为什么选 DeepSpeed-Ulysses,再落到三个改动点的具体代码,然后算清通信量、把梯度对齐这件事讲透,最后是四处容易踩坑的工程细节和一份验证清单。想直接看能跑的代码,可以跳到<a href="#impl">第八节</a>。</span><span lang="en" class="i18n-en">This is my write-up of adapting Wan2.1's 14B image-to-video model for long-sequence parallelism. The code lives in Ascend's <a href="https://gitee.com/ascend/msit/tree/eco_contri/models/wan2_1" target="_blank" rel="noopener">msit / eco-contrib</a> repository, with <code>scripts/train_i2v_full_14B_sp2_8p.sh</code> as the entry point. The problem is concrete: the same model needs <strong>32 cards across two nodes</strong> without sequence parallelism and trains on <strong>8 cards in one node</strong> with it.<br /><br />The note follows the order the work happened in: what sequence parallelism is for and why DeepSpeed-Ulysses is the right fit here, then the three places the code actually changes, then the communication ledger and how to get gradients right, and finally four engineering details that are easy to get wrong plus a verification checklist. If you just want working code, skip to <a href="#impl">section 8</a>.</span>
           </p>
 
           <div class="wsp-chips">
             <span class="chip"><span lang="zh-CN" class="i18n-zh">序列长度</span><span lang="en" class="i18n-en">Sequence</span> <b>32,760</b></span>
             <span class="chip"><span lang="zh-CN" class="i18n-zh">改动点</span><span lang="en" class="i18n-en">Touch points</span> <b>3</b></span>
             <span class="chip"><span lang="zh-CN" class="i18n-zh">每层 all-to-all</span><span lang="en" class="i18n-en">all-to-all per layer</span> <b>8</b></span>
-            <span class="chip"><span lang="zh-CN" class="i18n-zh">其中白做的</span><span lang="en" class="i18n-en">of which wasted</span> <b>34%</b></span>
-            <span class="chip"><span lang="zh-CN" class="i18n-zh">读出的问题</span><span lang="en" class="i18n-en">Problems found</span> <b>4</b></span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">可省的通信</span><span lang="en" class="i18n-en">Communication saved</span> <b>34%</b></span>
+            <span class="chip"><span lang="zh-CN" class="i18n-zh">工程要点</span><span lang="en" class="i18n-en">Key details</span> <b>4</b></span>
           </div>
 
-          <h2><span lang="zh-CN" class="i18n-zh">一、只有三个改动点</span><span lang="en" class="i18n-en">1 · Only three touch points</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">一、方案选型:为什么是 Ulysses</span><span lang="en" class="i18n-en">1 · Choosing a scheme: why Ulysses</span></h2>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">序列并行(SP,也叫上下文并行 CP)要解决的是一件别的并行方式解决不了的事:<strong>单个样本的激活放不下</strong>。张量并行切权重矩阵,流水并行切层,数据并行切 batch —— 当 batch 已经是 1、一个样本的激活仍然爆显存时,能切的就只剩序列这一个维度了。</span><span lang="en" class="i18n-en">Sequence parallelism (SP, also called context parallelism) exists for a situation the other forms cannot address: <strong>a single sample's activations do not fit</strong>. Tensor parallelism shards weight matrices, pipeline parallelism shards layers, data parallelism shards the batch — when the batch is already 1 and one sample's activations still overflow memory, the sequence is the only dimension left to cut.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">而切序列的难点自始至终只有一个:<strong>注意力需要看到全部 token</strong>。主流的三条路,区别就在于用什么办法绕开它:</span><span lang="en" class="i18n-en">And sharding the sequence has exactly one difficulty: <strong>attention needs to see every token</strong>. The three mainstream schemes differ only in how they get around it:</span>
+          </p>
+          <div class="wsp-tblwrap">
+          <table>
+            <thead>
+              <tr>
+                <th><span lang="zh-CN" class="i18n-zh">方案</span><span lang="en" class="i18n-en">Scheme</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">怎么让注意力看到完整序列</span><span lang="en" class="i18n-en">How attention sees the full sequence</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">通信形态</span><span lang="en" class="i18n-en">Communication</span></th>
+                <th><span lang="zh-CN" class="i18n-zh">代价</span><span lang="en" class="i18n-en">Price</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span lang="zh-CN" class="i18n-zh">Ring Attention</span><span lang="en" class="i18n-en">Ring Attention</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">分片在环上轮转,每卡依次与所有分片算局部注意力</span><span lang="en" class="i18n-en">Shards rotate around a ring; each card attends to every shard in turn</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">P2P,能与计算重叠</span><span lang="en" class="i18n-en">P2P, overlappable with compute</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">要自己实现分块 softmax 的在线累加</span><span lang="en" class="i18n-en">You implement the online-softmax accumulation yourself</span></td>
+              </tr>
+              <tr>
+                <td><span lang="zh-CN" class="i18n-zh">Megatron-SP</span><span lang="en" class="i18n-en">Megatron-SP</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">只在 LayerNorm / Dropout 处切,进注意力前 all-gather 回完整序列</span><span lang="en" class="i18n-en">Shards only at LayerNorm/Dropout; all-gathers the full sequence back before attention</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">all-gather + reduce-scatter,与 TP 同域</span><span lang="en" class="i18n-en">all-gather + reduce-scatter, sharing TP's domain</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">注意力本身不省激活,必须配合 TP</span><span lang="en" class="i18n-en">Saves nothing inside attention; requires TP alongside</span></td>
+              </tr>
+              <tr>
+                <td><span lang="zh-CN" class="i18n-zh"><strong>Ulysses</strong></span><span lang="en" class="i18n-en"><strong>Ulysses</strong></span></td>
+                <td><span lang="zh-CN" class="i18n-zh">进注意力前用 all-to-all 把布局从「切序列」换成「切 head」</span><span lang="en" class="i18n-en">An all-to-all flips the layout from seq-sharded to head-sharded right before attention</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">all-to-all,挡在计算路径上</span><span lang="en" class="i18n-en">all-to-all, sitting on the critical path</span></td>
+                <td><span lang="zh-CN" class="i18n-zh">SP 度受 head 数封顶</span><span lang="en" class="i18n-en">The SP degree is capped by the head count</span></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">这个模型选 Ulysses,理由有三条。<strong>第一,注意力实现一行都不用改</strong> —— 转置之后每卡手里是完整序列,注意力退化成一次普通 SDPA;Ring Attention 则要重写在线 softmax,在 NPU 上还得重新对齐算子,工作量完全不是一个量级。<strong>第二,通信量随 SP 度递减</strong>:all-to-all 每卡收发本地分片的 <code>(sp−1)/sp</code>,而本地分片本身又是全量的 <code>1/sp</code>,两者相乘之后总量随 SP 增大而下降;Megatron-SP 的 all-gather 是全量的,不随 SP 降。<strong>第三,head 数够用</strong>:这个模型 40 个 head,SP=2 只用掉 2,离上限还很远。</span><span lang="en" class="i18n-en">Three reasons Ulysses fits this model. <strong>First, the attention implementation needs no changes at all</strong> — after the transpose each card holds a complete sequence, so attention degenerates into an ordinary SDPA. Ring Attention would mean rewriting the online softmax and re-tuning kernels on NPU, an entirely different order of effort. <strong>Second, communication falls as the SP degree rises</strong>: an all-to-all moves <code>(sp−1)/sp</code> of the local shard, and the local shard is itself <code>1/sp</code> of the whole, so the product shrinks with SP. Megatron-SP's all-gather moves the full tensor regardless. <strong>Third, there are enough heads</strong>: this model has 40, and SP=2 spends only 2 of them — far from the ceiling.</span>
+          </p>
+          <div class="callout info">
+            <span lang="zh-CN" class="i18n-zh"><strong>选型时最该先问的一个问题:SP 组会不会跨节点?</strong> all-to-all 是全连接通信、每层要做 8 次、而且完全挡在计算路径上。这类通信必须待在节点内的高带宽域里 —— 一旦 SP 组跨机走 IB,性能会直接塌方。单机 8 卡、SP=2 意味着一个 SP 组只占 2 张卡,天然在机内,这是这套方案成立的隐含前提。几种并行方式的通信量与重叠性对比,可以看<a href="parallelism-comm-cost.html">通信量账本</a>和<a href="sequence-parallel-and-comms.html">序列并行与通信</a>两篇。</span><span lang="en" class="i18n-en"><strong>The first question to ask when choosing: will an SP group ever straddle nodes?</strong> An all-to-all is fully connected, runs 8 times per layer, and sits squarely on the critical path. That class of communication has to stay inside the node's high-bandwidth domain — the moment an SP group spans machines over IB, throughput collapses. Eight cards in one node at SP=2 puts two cards in each group, comfortably intra-node, and that is the unstated premise the whole scheme rests on. For how the parallel strategies compare on volume and overlappability, see <a href="parallelism-comm-cost.html">the communication ledger</a> and <a href="sequence-parallel-and-comms.html">sequence parallelism and communication</a>.</span>
+          </div>
+
+          <h3><span lang="zh-CN" class="i18n-zh">落到代码上,只有三个改动点</span><span lang="en" class="i18n-en">In code, it comes down to three touch points</span></h3>
           <p>
             <span lang="zh-CN" class="i18n-zh">序列并行听起来要动整个模型,实际落到代码里只有三处。把这三处认出来,剩下的都是细节:</span><span lang="en" class="i18n-en">Sequence parallelism sounds like it touches the whole model; in the code it is three places. Recognise those three and the rest is detail:</span>
           </p>
@@ -264,36 +316,40 @@
             <span lang="zh-CN" class="i18n-zh">主干 forward 里就两行,但它们是一对互逆的 <code>autograd.Function</code>,前向做通信、反向做反向通信:</span><span lang="en" class="i18n-en">Two lines in the backbone forward, but they are a mutually inverse pair of <code>autograd.Function</code>s: communication forward, the mirror image backward:</span>
           </p>
           <pre><code><span lang="zh-CN" class="i18n-zh"># wan_video_dit.py — 主干 forward
-x, (f, h, w) = self.patchify(x)          # [1, 32760, 5120]
-freqs = ...                              # [32760, 1, 64]
+x, (f, h, w) = self.patchify(x)      # [1, 32760, 5120]
+freqs = ...                          # [32760, 1, 64]
 
 if get_sequence_parallel_state():
     sp_size = get_sequence_parallel_size()
-    x     = prepare_parallel_data_for_sp(x,     dim=1, sp_size=sp_size)   # -> [1, 16380, 5120]
-    freqs = prepare_parallel_data_for_sp(freqs, dim=0, sp_size=sp_size)   # -> [16380, 1, 64]
+    # 沿 seq 维切开:x -> [1, 16380, 5120],freqs -> [16380, 1, 64]
+    x     = prepare_parallel_data_for_sp(x,     dim=1, sp_size=sp_size)
+    freqs = prepare_parallel_data_for_sp(freqs, dim=0, sp_size=sp_size)
 
-for block in self.blocks:                # 40 层,全程在半段序列上算
+for block in self.blocks:            # 40 层,全程在半段序列上算
     x = checkpoint(block, x, context, t_mod, freqs, use_reentrant=True)
 
 if get_sequence_parallel_state():
-    x = recover_parallel_data_for_sp(x, dim=1, sp_size=sp_size)           # -> [1, 32760, 5120]
+    # all-gather 拼回完整序列 -> [1, 32760, 5120]
+    x = recover_parallel_data_for_sp(x, dim=1, sp_size=sp_size)
 x = self.head(x, t)</span><span lang="en" class="i18n-en"># wan_video_dit.py — backbone forward
-x, (f, h, w) = self.patchify(x)          # [1, 32760, 5120]
-freqs = ...                              # [32760, 1, 64]
+x, (f, h, w) = self.patchify(x)      # [1, 32760, 5120]
+freqs = ...                          # [32760, 1, 64]
 
 if get_sequence_parallel_state():
     sp_size = get_sequence_parallel_size()
-    x     = prepare_parallel_data_for_sp(x,     dim=1, sp_size=sp_size)   # -&gt; [1, 16380, 5120]
-    freqs = prepare_parallel_data_for_sp(freqs, dim=0, sp_size=sp_size)   # -&gt; [16380, 1, 64]
+    # shard along seq: x -&gt; [1, 16380, 5120], freqs -&gt; [16380, 1, 64]
+    x     = prepare_parallel_data_for_sp(x,     dim=1, sp_size=sp_size)
+    freqs = prepare_parallel_data_for_sp(freqs, dim=0, sp_size=sp_size)
 
-for block in self.blocks:                # 40 layers, all on half the sequence
+for block in self.blocks:            # 40 layers, on half the seq
     x = checkpoint(block, x, context, t_mod, freqs, use_reentrant=True)
 
 if get_sequence_parallel_state():
-    x = recover_parallel_data_for_sp(x, dim=1, sp_size=sp_size)           # -&gt; [1, 32760, 5120]
+    # all-gather the full sequence back -&gt; [1, 32760, 5120]
+    x = recover_parallel_data_for_sp(x, dim=1, sp_size=sp_size)
 x = self.head(x, t)</span></code></pre>
           <p>
-            <span lang="zh-CN" class="i18n-zh">两个细节值得指出。第一,<strong><code>freqs</code> 跟着一起切</strong> —— RoPE 是位置相关的,每张卡必须拿到自己那段 token 对应的频率,否则位置编码会错位。第二,<strong>rope 在 all-to-all 之前施加</strong>,也就是在「按序列切」的布局下做,这是对的:每张卡知道自己持有哪些位置。</span><span lang="en" class="i18n-en">Two details worth pointing out. First, <strong><code>freqs</code> is sharded along with it</strong> — RoPE is positional, so each card must get the frequencies for its own token range or the positional encoding will be misaligned. Second, <strong>RoPE is applied before the all-to-all</strong>, that is, in the sequence-sharded layout — which is correct, since each card knows which positions it holds.</span>
+            <span lang="zh-CN" class="i18n-zh">这里有两个细节必须做对。第一,<strong><code>freqs</code> 要跟着 <code>x</code> 一起切</strong>,而且要用同一个函数、同一个 rank 顺序 —— RoPE 是位置相关的,每张卡必须拿到自己那段 token 对应的频率,漏切或者错序,位置编码就整体错位了。第二,<strong>RoPE 必须在 all-to-all 之前施加</strong>,也就是趁着还是「按序列切」的布局:此时每张卡清楚自己持有哪些绝对位置,一旦转成「按 head 切」,这个信息就没了。</span><span lang="en" class="i18n-en">Two details have to be right here. First, <strong><code>freqs</code> must be sharded together with <code>x</code></strong>, through the same function and the same rank ordering — RoPE is positional, so each card needs the frequencies for its own token range; forget to shard it, or shard it in a different order, and the positional encoding is uniformly misaligned. Second, <strong>RoPE must be applied before the all-to-all</strong>, while the layout is still sequence-sharded: at that moment each card knows which absolute positions it holds, and once the layout flips to head-sharded that information is gone.</span>
           </p>
 
           <h2><span lang="zh-CN" class="i18n-zh">四、Ulysses:靠两次转置把注意力变回本地计算</span><span lang="en" class="i18n-en">4 · Ulysses: two transposes turn attention back into a local computation</span></h2>
@@ -326,16 +382,21 @@ x = self.head(x, t)</span></code></pre>
           <p>
             <span lang="zh-CN" class="i18n-zh">代码里这件事是交给 DeepSpeed 现成的封装做的,自己只提供一个「本地注意力」函数:</span><span lang="en" class="i18n-en">In the code this is delegated to DeepSpeed's existing wrapper, with only a "local attention" function supplied:</span>
           </p>
-          <pre><code><span lang="zh-CN" class="i18n-zh">def flash_attention_sequence_parallelism(q, k, v, compatibility_mode=False):
-    return F.scaled_dot_product_attention(q, k, v)   # 转置之后就是普通 SDPA
+          <pre><code><span lang="zh-CN" class="i18n-zh">def flash_attention_sequence_parallelism(
+        q, k, v, compatibility_mode=False):
+    # 转置之后每卡都持有完整序列,这里就是一次普通 SDPA
+    return F.scaled_dot_product_attention(q, k, v)
 
 self.dist_attn = DistributedAttention(
     local_attention=flash_attention_sequence_parallelism,
     sequence_process_group=get_sequence_parallel_group(),
     scatter_idx=1,   # 沿 num_heads 维散开
     gather_idx=2,    # 沿 seq 维聚齐
-)</span><span lang="en" class="i18n-en">def flash_attention_sequence_parallelism(q, k, v, compatibility_mode=False):
-    return F.scaled_dot_product_attention(q, k, v)   # after the transpose it is a plain SDPA
+)</span><span lang="en" class="i18n-en">def flash_attention_sequence_parallelism(
+        q, k, v, compatibility_mode=False):
+    # after the transpose each card holds the full sequence,
+    # so this is just a plain SDPA
+    return F.scaled_dot_product_attention(q, k, v)
 
 self.dist_attn = DistributedAttention(
     local_attention=flash_attention_sequence_parallelism,
@@ -347,9 +408,9 @@ self.dist_attn = DistributedAttention(
             <span lang="zh-CN" class="i18n-zh"><code>scatter_idx=1 / gather_idx=2</code> 对应张量布局 <code>[b, n, s, d]</code>:把 head 维散出去、把 seq 维收回来。<code>DistributedAttention</code> 内部对 q、k、v 各做一次 all-to-all,算完再对输出做一次 —— <strong>每次注意力 4 次 all-to-all</strong>。自注意力和交叉注意力各一份,所以每层 8 次。</span><span lang="en" class="i18n-en"><code>scatter_idx=1 / gather_idx=2</code> refers to the layout <code>[b, n, s, d]</code>: scatter the head dimension, gather the sequence dimension. <code>DistributedAttention</code> runs one all-to-all each for q, k and v, plus one on the output — <strong>4 all-to-alls per attention</strong>. Self-attention and cross-attention each get a set, so 8 per layer.</span>
           </p>
 
-          <h2><span lang="zh-CN" class="i18n-zh">五、通信量账本:交叉注意力占了三分之一,而且是白做的</span><span lang="en" class="i18n-en">5 · The communication bill: cross-attention is a third of it, and it is wasted</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">五、通信量账本:每层 8 次 all-to-all 花在哪</span><span lang="en" class="i18n-en">5 · The communication ledger: where the 8 all-to-alls per layer go</span></h2>
           <p>
-            <span lang="zh-CN" class="i18n-zh">一次 all-to-all 每张卡收发本地张量的 <code>(sp−1)/sp</code>。把上面的 320 MiB 锚代进去就能把这一层的账算完:</span><span lang="en" class="i18n-en">One all-to-all moves <code>(sp−1)/sp</code> of the local tensor per card. Substituting the 320 MiB anchor closes the books on one layer:</span>
+            <span lang="zh-CN" class="i18n-zh">接上通信,第一件事就是把账算清楚 —— 不然优化只能靠猜。一次 all-to-all 每张卡收发本地张量的 <code>(sp−1)/sp</code>,把上面的 320 MiB 锚代进去,一层的账就完整了:</span><span lang="en" class="i18n-en">Once communication is in the picture, the first job is to price it — otherwise optimisation is guesswork. One all-to-all moves <code>(sp−1)/sp</code> of the local tensor per card; substituting the 320 MiB anchor from above closes the books on a layer:</span>
           </p>
 
           <figure class="fig">
@@ -367,21 +428,24 @@ self.dist_attn = DistributedAttention(
           </figure>
 
           <p>
-            <span lang="zh-CN" class="i18n-zh">交叉注意力那一条格外刺眼,因为<strong>它一个字节都不需要传</strong>。交叉注意力的 q 来自被切开的视频 latent,k / v 来自文本上下文 —— 而文本上下文在每张卡上都是<strong>完整的一份 512 token</strong>,从来没被切过。既然 k / v 已经齐全,每张卡拿自己那段 q 直接做本地注意力就是正确答案,不需要任何通信。</span><span lang="en" class="i18n-en">The cross-attention row stands out because <strong>it does not need to move a single byte</strong>. Cross-attention's q comes from the sharded video latents, while k and v come from the text context — and the text context is a <strong>complete 512-token copy on every card</strong>, never sharded. Since k and v are already whole, each card computing local attention between its own q slice and the full k/v <em>is</em> the right answer, with no communication at all.</span>
+            <span lang="zh-CN" class="i18n-zh">这张账单里藏着一个能省下三分之一通信的机会,值得单独讲:<strong>交叉注意力其实一个字节都不用传</strong>。</span><span lang="en" class="i18n-en">Buried in that bill is an opportunity to cut a third of the traffic, and it deserves its own explanation: <strong>cross-attention need not move a single byte</strong>.</span>
           </p>
           <p>
-            <span lang="zh-CN" class="i18n-zh">现在的写法把 k / v 也送进了 all-to-all,于是 512 长度的上下文被<strong>沿 seq 维拼接成 512&times;sp</strong>,也就是同一份文本被复制了 sp 遍。有意思的是这<strong>不影响正确性</strong>:softmax 对重复的 key 会把权重均分,加权和与不复制时逐位相等 —— 我拿一组随机数验过,差值是 0。所以这是纯粹的浪费,不是 bug。</span><span lang="en" class="i18n-en">The current code sends k and v through the all-to-all too, so the 512-token context gets <strong>concatenated along seq into 512&times;sp</strong> — the same text duplicated sp times. The interesting part is that this <strong>does not affect correctness</strong>: softmax splits the weight evenly across duplicated keys, and the weighted sum comes out bit-identical to the undulplicated case. I checked it on random values and the difference was exactly 0. So it is pure waste, not a bug.</span>
+            <span lang="zh-CN" class="i18n-zh">Ulysses 之所以要 all-to-all,是因为 <strong>k / v 被切开了</strong>,每张卡看不到完整序列。但交叉注意力的情况不一样:它的 q 来自被切开的视频 latent,k / v 却来自文本上下文 —— 而文本上下文在每张卡上都是<strong>完整的一份 512 token</strong>,从头到尾没被切过。前提不成立,手段自然就不必要:每张卡拿自己那段 q 和完整的 k / v 直接做本地注意力,结果就是正确的。</span><span lang="en" class="i18n-en">Ulysses needs the all-to-all because <strong>k and v are sharded</strong> and no card sees the whole sequence. Cross-attention is different: its q comes from the sharded video latents, but k and v come from the text context — and the text context is a <strong>complete 512-token copy on every card</strong>, never sharded at any point. The premise does not hold, so the machinery is not needed: each card can attend its own q slice against the full k/v locally and get the right answer.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">如果图省事,把 q / k / v 一股脑交给 <code>DistributedAttention</code>,k / v 也会跟着走一遍 all-to-all,512 长度的上下文被<strong>沿 seq 维拼接成 512&times;sp</strong>,同一份文本复制了 sp 遍。值得注意的是这<strong>不会算错</strong>:softmax 对重复的 key 会把权重均分,加权和与不复制时逐位相等 —— 我拿一组随机数对拍过,差值是 0。正因为不报错也不失真,这类开销特别容易一直留在代码里,只能靠算账发现。</span><span lang="en" class="i18n-en">Take the shortcut of handing q, k and v all to <code>DistributedAttention</code> and k/v go through the all-to-all as well: the 512-token context gets <strong>concatenated along seq into 512&times;sp</strong>, the same text duplicated sp times. Worth noting that this <strong>does not compute a wrong answer</strong>: softmax spreads the weight evenly over duplicated keys, and the weighted sum is bit-identical to the undulplicated case — I checked it against random values and the difference was exactly 0. Precisely because nothing errors and nothing drifts, overheads of this shape tend to survive in a codebase indefinitely; only the ledger finds them.</span>
           </p>
           <div class="callout tip">
-            <span lang="zh-CN" class="i18n-zh"><strong>同一个文件里已经有正确写法。</strong> I2V 分支处理图像条件 <code>k_img / v_img</code> 时,用的就是不带任何通信的本地 <code>flash_attention</code>,拿的正是切开后的 q。文本那一路照抄这个写法即可。</span><span lang="en" class="i18n-en"><strong>The correct pattern already exists in the same file.</strong> In the I2V branch, the image-condition path <code>k_img / v_img</code> uses a plain local <code>flash_attention</code> with no communication at all, on exactly the sharded q. The text path can simply copy it.</span>
+            <span lang="zh-CN" class="i18n-zh"><strong>同一个文件里就有可以照搬的写法。</strong> I2V 分支处理图像条件 <code>k_img / v_img</code> 时,用的就是不带任何通信的本地 <code>flash_attention</code>,吃的正是切开后的 q。文本这一路按同样的形状写即可,具体代码在<a href="#impl">第八节第 2 步</a>。判断标准可以记成一句话:<strong>一个张量有没有被切过,决定了它要不要进 all-to-all</strong>。</span><span lang="en" class="i18n-en"><strong>A pattern to copy sits in the same file.</strong> In the I2V branch, the image-condition path <code>k_img / v_img</code> already uses a plain local <code>flash_attention</code> with no communication, fed by exactly the sharded q. The text path takes the same shape — the code is in <a href="#impl">step 2 of section 8</a>. The rule of thumb is one sentence: <strong>whether a tensor was ever sharded decides whether it belongs in the all-to-all</strong>.</span>
           </div>
 
-          <h2><span lang="zh-CN" class="i18n-zh">六、梯度怎么对齐:grad_scale 的不对称</span><span lang="en" class="i18n-en">6 · Aligning gradients: the asymmetry in grad_scale</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">六、梯度怎么对齐:grad_scale 该放在哪</span><span lang="en" class="i18n-en">6 · Aligning gradients: where grad_scale belongs</span></h2>
           <p>
-            <span lang="zh-CN" class="i18n-zh">这是这份实现里最微妙的部分。一个 SP 组里的 2 张卡跑的是<strong>同一个样本的不同片段</strong>,它们的参数梯度应该<strong>相加</strong>;而 DeepSpeed 不知道这件事,它把全部 8 张卡的梯度<strong>取平均</strong>。8 张卡实际只对应 4 个独立样本,于是梯度整体小了 2 倍。</span><span lang="en" class="i18n-en">This is the subtlest part of the implementation. The two cards in an SP group process <strong>different slices of the same sample</strong>, so their parameter gradients should be <strong>summed</strong>. DeepSpeed does not know this and <strong>averages</strong> across all 8 cards. Those 8 cards correspond to only 4 distinct samples, so the gradient comes out 2× too small.</span>
+            <span lang="zh-CN" class="i18n-zh">这是整套适配里最微妙、也最容易被跳过的一步。开了 SP 之后,一个 SP 组里的 2 张卡跑的是<strong>同一个样本的不同片段</strong>,它们算出的参数梯度是同一个样本梯度的两个部分,应该<strong>相加</strong>。但外层的数据并行不知道这件事 —— DeepSpeed 看到的是 8 张卡,它把 8 份梯度<strong>取平均</strong>。而这 8 张卡实际只对应 4 个独立样本,于是每个样本的梯度被多除了一次 <code>sp</code>,整体小了 2 倍。</span><span lang="en" class="i18n-en">This is the subtlest step in the whole adaptation, and the easiest to skip. With SP on, the two cards in a group process <strong>different slices of the same sample</strong>, so the parameter gradients they produce are two parts of one sample's gradient and should be <strong>summed</strong>. The outer data-parallel layer knows nothing about this — DeepSpeed sees 8 cards and <strong>averages</strong> 8 gradients. Those 8 cards represent only 4 distinct samples, so each sample's gradient is divided by <code>sp</code> one extra time and comes out 2× too small.</span>
           </p>
           <p>
-            <span lang="zh-CN" class="i18n-zh">代码用两个 <code>grad_scale</code> 去补:恢复那一侧反向时 <code>mul_(sp)</code>,切分那一侧反向时 <code>div_(sp)</code>。问题在于这两者的作用范围不一样:</span><span lang="en" class="i18n-en">The code compensates with two <code>grad_scale</code> settings: the gather side does <code>mul_(sp)</code> on its backward, the split side does <code>div_(sp)</code>. The trouble is that the two have different reach:</span>
+            <span lang="zh-CN" class="i18n-zh">补偿的位置有得选,最顺手的一处是那两个 autograd 边界:恢复那一侧反向时 <code>mul_(sp)</code>,切分那一侧反向时 <code>div_(sp)</code>。写起来很自然,但落地前要先看清一件事 —— <strong>这两个缩放的作用范围并不重合</strong>:</span><span lang="en" class="i18n-en">There is a choice of where to compensate, and the handiest spot is the two autograd boundaries: <code>mul_(sp)</code> on the gather side's backward, <code>div_(sp)</code> on the split side's. It reads naturally, but before committing to it there is one thing to check — <strong>the two scalings do not cover the same ground</strong>:</span>
           </p>
           <div class="eq">
             <span lang="zh-CN" class="i18n-zh">loss &rarr; head &rarr; <span class="hl">recover(&times;sp)</span> &rarr; 40 个 DiT block &rarr; <span class="hl">prepare(&divide;sp)</span> &rarr; patchify<br />
@@ -393,17 +457,20 @@ self.dist_attn = DistributedAttention(
             <u>Outside</u> it (head, patch_embedding):&nbsp;&times;sp then &divide;sp = <span class="hl-r">&times;1</span></span>
           </div>
           <p>
-            <span lang="zh-CN" class="i18n-zh">也就是说,<strong>DiT 主干拿到了补偿,而输入投影和输出头没有</strong>,两者之间差了一个 <code>sp</code> 倍的有效学习率。对 SP=2 就是 2 倍。这不会让训练崩掉 —— 参数量上主干占绝对多数,而且 <code>patch_embedding</code> 和 <code>head</code> 本身也在学 —— 但它是一个隐式的、随 SP 度变化的超参偏移:<strong>换个 SP 度,这两部分的相对学习率就变了</strong>,复现实验时很难查。</span><span lang="en" class="i18n-en">In other words, <strong>the DiT backbone gets the compensation and the input projection and output head do not</strong>, leaving an effective learning-rate gap of <code>sp</code> between them — a factor of 2 at SP=2. This will not blow training up: the backbone dominates the parameter count, and <code>patch_embedding</code> and <code>head</code> still learn. But it is an implicit hyperparameter shift that moves with the SP degree — <strong>change SP and the relative learning rate of those two parts changes with it</strong>, which is painful to track down when reproducing a run.</span>
+            <span lang="zh-CN" class="i18n-zh">一乘一除只覆盖夹在中间的那一段。结果是 <strong>DiT 主干拿到了补偿,而夹在 SP 区外面的输入投影和输出头没有</strong>,两者之间差了 <code>sp</code> 倍的有效学习率,SP=2 就是 2 倍。这不会让训练崩掉 —— 参数量上主干占绝对多数,<code>patch_embedding</code> 和 <code>head</code> 也照样在学 —— 但它是一个隐式的、<strong>随 SP 度漂移的超参</strong>:换个 SP 度,这两部分的相对学习率就跟着变,做消融或者复现实验时极难定位。</span><span lang="en" class="i18n-en">One multiply and one divide only cover what lies between them. The result is that <strong>the DiT backbone gets compensated while the input projection and output head, which sit outside the SP region, do not</strong>, leaving an effective learning-rate gap of <code>sp</code> between them — a factor of 2 at SP=2. It will not blow training up: the backbone dominates the parameter count, and <code>patch_embedding</code> and <code>head</code> still learn. But it is an implicit hyperparameter that <strong>drifts with the SP degree</strong> — change SP and the relative learning rate of those two parts changes with it, which is brutal to locate during an ablation or a reproduction.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">所以这一步的结论是选位置,而不是选倍数:<strong>缩放要放在能覆盖全部参数的地方</strong>。把两侧的 <code>grad_scale</code> 都关掉,让切分与恢复退回成纯粹的数据搬运,然后在 loss 上乘一次 <code>sp</code> —— 主干和 head 就拿到同一个尺度,SP 度对学习率也就中性了。代码在<a href="#impl">第八节第 3 步</a>。</span><span lang="en" class="i18n-en">So the decision here is about placement, not about the factor: <strong>put the scaling somewhere that covers every parameter</strong>. Turn off <code>grad_scale</code> on both sides so that split and gather go back to being pure data movement, then multiply the loss by <code>sp</code> once — backbone and head then share one scale, and the SP degree becomes neutral with respect to learning rate. The code is in <a href="#impl">step 3 of section 8</a>.</span>
           </p>
 
-          <h2><span lang="zh-CN" class="i18n-zh">七、读出来的四个问题</span><span lang="en" class="i18n-en">7 · Four problems found</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">七、四处最容易踩的工程细节</span><span lang="en" class="i18n-en">7 · Four engineering details that bite</span></h2>
           <p>
-            <span lang="zh-CN" class="i18n-zh">下面四条我都用最小复现脚本核对过。前两条是正确性问题,后两条是工程问题。</span><span lang="en" class="i18n-en">All four below were checked against a minimal reproduction. The first two are correctness problems; the last two are engineering ones.</span>
+            <span lang="zh-CN" class="i18n-zh">前面几节讲的是「怎么算对」,这一节讲的是「怎么跑起来不出事」。下面四条是这类适配里翻车率最高的地方,每一条我都写了最小复现脚本验过。前两条关系到正确性,后两条关系到可维护性 —— 共同点是<strong>都不会在单机 8 卡的冒烟测试里暴露</strong>。</span><span lang="en" class="i18n-en">The previous sections were about computing the right thing; this one is about not getting burned in production. These four are where adaptations like this most often go wrong, and I wrote a minimal reproduction for each. The first two affect correctness and the last two maintainability — what they share is that <strong>none of them shows up in a single-node 8-card smoke test</strong>.</span>
           </p>
 
-          <h3><span lang="zh-CN" class="i18n-zh">① <code>new_group</code> 的调用次数在各 rank 之间不一致</span><span lang="en" class="i18n-en">① <code>new_group</code> is called a different number of times on different ranks</span></h3>
+          <h3><span lang="zh-CN" class="i18n-zh">① <code>new_group</code> 要求所有 rank 都参与,不能提前 break</span><span lang="en" class="i18n-en">① Every rank must enter <code>new_group</code> — no early break</span></h3>
           <p>
-            <span lang="zh-CN" class="i18n-zh">建组的循环里有一句 <code>break</code>:找到自己所属的组就退出。但 <code>dist.new_group</code> 的契约是<strong>全部进程都必须进入,哪怕自己不属于这个组</strong>——PyTorch 在函数末尾会做一次基于 store 的全局屏障。提前 break 意味着靠前的 rank 少调了几次:</span><span lang="en" class="i18n-en">The group-creation loop contains a <code>break</code>: stop once you find the group you belong to. But <code>dist.new_group</code>'s contract is that <strong>every process must enter it, even ones that will not be members</strong> — PyTorch ends the call with a store-based barrier over the global world. Breaking early means the lower ranks call it fewer times:</span>
+            <span lang="zh-CN" class="i18n-zh">建组的循环里写一句 <code>break</code>(找到自己所属的组就退出)看着很自然,也确实省了几次无谓的调用 —— 但这违反了 <code>dist.new_group</code> 的契约:<strong>全局所有进程都必须进入,哪怕自己不是这个组的成员</strong>。原因是 PyTorch 在函数末尾会做一次基于 store 的全局屏障,少一个进程就凑不齐。提前 break 意味着靠前的 rank 比靠后的少调了几次:</span><span lang="en" class="i18n-en">Writing a <code>break</code> into the group-creation loop — stop once you find the group you belong to — looks natural and does skip a few pointless calls. But it violates <code>dist.new_group</code>'s contract: <strong>every process in the global world must enter it, member or not</strong>. PyTorch ends the call with a store-based barrier, and one absentee is enough to stall it. An early break means the lower ranks call it fewer times than the higher ones:</span>
           </p>
 
           <figure class="fig">
@@ -427,30 +494,30 @@ self.dist_attn = DistributedAttention(
                 <button data-sp="4">4</button>
               </span>
             </div>
-            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">斜纹格就是缺席的进程。第一轮建 <code>[0,1]</code> 时 8 张卡都在,屏障能过;第二轮建 <code>[2,3]</code> 时 rank 0/1 已经退出了,屏障凑不齐 —— 按契约这里会一直等到超时。脚本里那句 <code>HCCL_CONNECT_TIMEOUT=1200</code> 恰好把超时放到了 20 分钟。</span><span lang="en" class="i18n-en">The hatched cells are the absent processes. On the first round, creating <code>[0,1]</code>, all 8 cards are present and the barrier clears; on the second, creating <code>[2,3]</code>, ranks 0 and 1 have already left and the barrier cannot be completed — by the contract it waits until timeout. The script's <code>HCCL_CONNECT_TIMEOUT=1200</code> happens to set that timeout to 20 minutes.</span></span>
+            <span class="fig-cap"><span lang="zh-CN" class="i18n-zh">斜纹格就是缺席的进程。第一轮建 <code>[0,1]</code> 时 8 张卡都在,屏障能过;第二轮建 <code>[2,3]</code> 时 rank 0/1 已经退出了,屏障凑不齐 —— 按契约这里会一直等到超时,而不是报错退出。启动脚本里的 <code>HCCL_CONNECT_TIMEOUT</code> 决定了要卡多久才有反应,设成 1200 就是干等 20 分钟。<strong>正确写法是让循环走完全程,只用 <code>if rank in ranks</code> 记下自己那个组。</strong></span><span lang="en" class="i18n-en">Hatched cells are the absent processes. On round one, creating <code>[0,1]</code>, all 8 cards are present and the barrier clears; on round two, creating <code>[2,3]</code>, ranks 0 and 1 have already left and the barrier can never complete — by the contract it waits for the timeout rather than raising. The launcher's <code>HCCL_CONNECT_TIMEOUT</code> decides how long the silence lasts; at 1200 that is 20 minutes of nothing. <strong>The right shape is to run the loop to completion and merely record your own group with <code>if rank in ranks</code>.</strong></span></span>
           </figure>
 
-          <h3><span lang="zh-CN" class="i18n-zh">② 建组用的是 <code>LOCAL_RANK</code></span><span lang="en" class="i18n-en">② The group is built from <code>LOCAL_RANK</code></span></h3>
+          <h3><span lang="zh-CN" class="i18n-zh">② 建组要用全局 rank,不能用 <code>LOCAL_RANK</code></span><span lang="en" class="i18n-en">② Build groups from the global rank, not <code>LOCAL_RANK</code></span></h3>
           <p>
-            <span lang="zh-CN" class="i18n-zh"><code>rank = int(os.environ.get('LOCAL_RANK', 0))</code> —— 单机上 <code>LOCAL_RANK</code> 恰好等于全局 rank,所以这个脚本能跑。但一旦上到两机 16 卡,两台机器的 <code>LOCAL_RANK</code> 都是 0–7,两边会各自认为自己属于同一批组,SP 组的划分直接错位。<strong>这一条是单机脚本能跑、多机静默出错的典型形态。</strong></span><span lang="en" class="i18n-en"><code>rank = int(os.environ.get('LOCAL_RANK', 0))</code> — on a single node <code>LOCAL_RANK</code> happens to equal the global rank, which is why this script runs. Move to two nodes and 16 cards, though, and both machines have <code>LOCAL_RANK</code> 0–7, so each believes it belongs to the same set of groups and the SP partitioning is misaligned. <strong>This is the classic shape of a bug that works on one node and fails silently on many.</strong></span>
+            <span lang="zh-CN" class="i18n-zh">分组时取 rank 有两个来源,<code>os.environ['LOCAL_RANK']</code> 和 <code>dist.get_rank()</code>,单机下它们的值恰好相同,所以随手拿哪个都能跑通。但通信域是全局概念,必须用后者:上到两机 16 卡时,两台机器的 <code>LOCAL_RANK</code> 都是 0–7,于是两边会各自认为自己属于同一批组,SP 组的划分直接错位,而 <code>new_group</code> 传的 ranks 列表又是全局编号 —— 两套编号一混,通信对不上。<strong>凡是 rank 参与通信域映射的地方,一律用 <code>dist.get_rank()</code>;<code>LOCAL_RANK</code> 只该用来 <code>set_device</code>。</strong></span><span lang="en" class="i18n-en">There are two places to get a rank when partitioning, <code>os.environ['LOCAL_RANK']</code> and <code>dist.get_rank()</code>, and on a single node they happen to be equal, so either one runs. But a communication domain is a global notion and needs the latter: move to two nodes and 16 cards and both machines see <code>LOCAL_RANK</code> 0–7, so each believes it belongs to the same set of groups while the ranks list handed to <code>new_group</code> is in global numbering. Mix the two numbering schemes and the communication does not line up. <strong>Anywhere a rank maps to a communication domain, use <code>dist.get_rank()</code>; reserve <code>LOCAL_RANK</code> for <code>set_device</code>.</strong></span>
           </p>
 
-          <h3><span lang="zh-CN" class="i18n-zh">③ Sampler 的 <code>__len__</code> 把组数写死成 2</span><span lang="en" class="i18n-en">③ The sampler's <code>__len__</code> hard-codes the group count to 2</span></h3>
+          <h3><span lang="zh-CN" class="i18n-zh">③ Sampler 的 <code>__len__</code> 要按 SP 组数算</span><span lang="en" class="i18n-en">③ The sampler's <code>__len__</code> counts SP groups, not cards</span></h3>
           <p>
-            <span lang="zh-CN" class="i18n-zh"><code>DistributedSequenceParallelismSampler</code> 的 <code>__iter__</code> 是对的:同一 SP 组里的卡拿到同一个样本序号。但 <code>__len__</code> 返回的是 <code>(total + 1) // 2</code>,那个 2 是写死的,应该是 SP 组的数量。8 卡 SP=2 有 4 个组,数据集 1233 条时 <code>__iter__</code> 实际产出 309 条,<code>__len__</code> 却说 617 —— 差一倍。这会直接错报 epoch 长度和进度条,也会和脚本里 <code>--steps_per_epoch 1233</code> 对不上。</span><span lang="en" class="i18n-en"><code>DistributedSequenceParallelismSampler.__iter__</code> is correct: cards in the same SP group receive the same sample index. But <code>__len__</code> returns <code>(total + 1) // 2</code>, where the 2 is hard-coded and should be the number of SP groups. With 8 cards at SP=2 there are 4 groups, so on a 1233-sample dataset <code>__iter__</code> actually yields 309 while <code>__len__</code> claims 617 — off by a factor of two. That misreports epoch length and the progress bar, and does not line up with the script's <code>--steps_per_epoch 1233</code>.</span>
+            <span lang="zh-CN" class="i18n-zh">开了 SP 之后,数据要按<strong>组</strong>而不是按卡分发:同一个 SP 组里的卡必须拿到同一个样本序号,否则它们切的根本不是同一条序列。<code>__iter__</code> 这样写通常不会错,容易漏的是 <code>__len__</code> —— 它的除数应该是 <strong>SP 组的数量</strong> <code>world_size // sp_size</code>,而不是卡数,也不能写死。举个具体的数:8 卡 SP=2 有 4 个组,数据集 1233 条时每张卡实际产出 <code>ceil(1233/4) = 309</code> 条;要是除数写成了 2,<code>__len__</code> 就会报 617,差一倍。这个值会一路影响 epoch 长度、进度条和学习率调度器的总步数,而且因为 <code>__iter__</code> 是对的,训练照跑不误,只是所有和「步数」相关的东西都错了。</span><span lang="en" class="i18n-en">With SP on, data is distributed <strong>per group</strong> rather than per card: cards in one SP group must receive the same sample index, or they are not slicing the same sequence at all. Writing <code>__iter__</code> that way is usually straightforward; <code>__len__</code> is the one people miss — its divisor should be the <strong>number of SP groups</strong>, <code>world_size // sp_size</code>, not the card count, and certainly not a constant. Concretely: 8 cards at SP=2 gives 4 groups, so on a 1233-sample dataset each card really yields <code>ceil(1233/4) = 309</code>; a divisor of 2 would report 617, off by a factor of two. That number propagates into epoch length, the progress bar and the LR scheduler's total step count — and because <code>__iter__</code> is fine, training runs happily while everything step-related is wrong.</span>
           </p>
 
-          <h3><span lang="zh-CN" class="i18n-zh">④ SP 在第一个 training_step 里才初始化</span><span lang="en" class="i18n-en">④ SP is initialised inside the first training_step</span></h3>
+          <h3><span lang="zh-CN" class="i18n-zh">④ 通信组在 setup 阶段建好,不要拖到 <code>training_step</code></span><span lang="en" class="i18n-en">④ Build the group at setup, not inside <code>training_step</code></span></h3>
           <p>
-            <span lang="zh-CN" class="i18n-zh">建通信组这件事发生在 <code>training_step</code> 里,而不是 setup 阶段。后果是 <code>SelfAttention.__init__</code> 拿到的 <code>sequence_process_group</code> 是 <code>None</code>,于是每次 forward 都要补一句 <code>self.dist_attn.spg = get_sequence_parallel_group()</code> 去打补丁。这不是性能问题,是<strong>状态机被摊开在了两个地方</strong> —— 加上 <code>_SEQUENCE_PARALLEL_STATE</code> 这类模块级全局变量,想单测某一层就得先手工把全局状态摆对。</span><span lang="en" class="i18n-en">Creating the communication group happens in <code>training_step</code> rather than at setup. The consequence is that <code>SelfAttention.__init__</code> receives <code>None</code> for <code>sequence_process_group</code>, so every forward has to patch it up with <code>self.dist_attn.spg = get_sequence_parallel_group()</code>. This is not a performance issue but a <strong>state machine spread across two places</strong> — and combined with module-level globals like <code>_SEQUENCE_PARALLEL_STATE</code>, unit-testing a single layer means hand-arranging global state first.</span>
+            <span lang="zh-CN" class="i18n-zh">建通信组放在第一个 <code>training_step</code> 里是能工作的,但会带来一个连锁反应:<code>SelfAttention.__init__</code> 执行时通信组还不存在,拿到的 <code>sequence_process_group</code> 只能是 <code>None</code>,于是每次 forward 都得补一句 <code>self.dist_attn.spg = get_sequence_parallel_group()</code> 去打补丁。这不是性能问题,是<strong>状态被摊在了两个地方</strong> —— 再叠加 <code>_SEQUENCE_PARALLEL_STATE</code> 这类模块级全局变量,想单测某一层就得先手工把一堆全局状态摆对。<strong>把「什么时候建组」和「谁持有这个组」收敛到一个对象里,是后面所有改动的地基</strong>,所以参考实现的第 1 步就是它。</span><span lang="en" class="i18n-en">Creating the group inside the first <code>training_step</code> works, but it sets off a chain reaction: when <code>SelfAttention.__init__</code> runs the group does not exist yet, so <code>sequence_process_group</code> can only be <code>None</code>, and every forward then has to patch it up with <code>self.dist_attn.spg = get_sequence_parallel_group()</code>. This is not a performance issue but <strong>state spread across two places</strong> — layer that on top of module-level globals like <code>_SEQUENCE_PARALLEL_STATE</code> and unit-testing a single layer means hand-arranging a pile of global state first. <strong>Collapsing "when is the group built" and "who owns it" into one object is the foundation everything else rests on</strong>, which is why it is step 1 of the reference implementation.</span>
           </p>
           <div class="callout warn">
-            <span lang="zh-CN" class="i18n-zh"><strong>另外两处提交卫生问题:</strong>脚本里 <code>source /home/luguansong/CANN/ascend-toolkit/set_env.sh</code> 是个人绝对路径,把仓库里原本正确的那行注释掉了;<code>--output_path</code> 相比 32 卡脚本漏了,权重会落到默认目录。</span><span lang="en" class="i18n-en"><strong>Two hygiene issues as well:</strong> the script's <code>source /home/luguansong/CANN/ascend-toolkit/set_env.sh</code> is a personal absolute path that comments out the correct line already in the repo; and <code>--output_path</code> is missing relative to the 32-card script, so checkpoints land in the default directory.</span>
+            <span lang="zh-CN" class="i18n-zh"><strong>启动脚本本身也有两处值得进 checklist。</strong>一是 <code>source .../set_env.sh</code> 这类环境初始化路径,调试时很容易临时改成本机绝对路径,提交前要换回仓库里的相对路径,否则别人一跑就找不到 CANN。二是 <code>--output_path</code>:多卡脚本之间容易复制漏掉,漏了权重就静悄悄落到默认目录里,训到一半才发现。</span><span lang="en" class="i18n-en"><strong>The launcher script deserves two checklist entries of its own.</strong> One is the <code>source .../set_env.sh</code> environment path: during debugging it is easy to point it at a local absolute path, and it needs to go back to the repo-relative one before committing, or nobody else can find CANN. The other is <code>--output_path</code>: it is easy to drop when copying between multi-card scripts, and without it checkpoints land quietly in the default directory — usually noticed halfway through a run.</span>
           </div>
 
-          <h2><span lang="zh-CN" class="i18n-zh">八、实现方案:如果重写一版</span><span lang="en" class="i18n-en">8 · Implementation plan: if I were rewriting it</span></h2>
+          <h2 id="impl"><span lang="zh-CN" class="i18n-zh">八、参考实现:五个步骤</span><span lang="en" class="i18n-en">8 · Reference implementation: five steps</span></h2>
           <p>
-            <span lang="zh-CN" class="i18n-zh">思路不变 —— Ulysses 对这个模型是对的选择:序列 32K 但 head 有 40 个,通信量随 SP 递减,而且注意力实现完全不用改。要改的是<strong>把隐式状态收敛成显式对象,把白做的通信去掉,把梯度缩放摆到明处</strong>。</span><span lang="en" class="i18n-en">The approach stays — Ulysses is the right choice for this model: a 32K sequence with 40 heads to go around, communication that falls as SP grows, and no change needed to the attention kernel itself. What changes is <strong>collapsing implicit state into an explicit object, removing the wasted communication, and putting the gradient scaling out in the open</strong>.</span>
+            <span lang="zh-CN" class="i18n-zh">把前面几节的结论拼起来,就是下面这五步。它们彼此独立,可以按顺序落地,每一步做完都能单独验证。整体思路仍然是 Ulysses —— <strong>把隐式状态收敛成一个显式对象,把不必要的通信摘掉,把梯度缩放放到覆盖全部参数的位置,再把约束写成启动时就报错的断言</strong>。</span><span lang="en" class="i18n-en">Putting the previous sections together yields these five steps. They are independent, can be landed in order, and each is verifiable on its own. The approach is still Ulysses — <strong>collapse the implicit state into one explicit object, drop the communication that is not needed, move the gradient scaling somewhere that covers every parameter, and turn the constraints into assertions that fire at startup</strong>.</span>
           </p>
 
           <h3><span lang="zh-CN" class="i18n-zh">第 1 步:把通信域做成一个对象,在 setup 阶段建好</span><span lang="en" class="i18n-en">Step 1: make the comm domain an object, built at setup</span></h3>
@@ -458,10 +525,11 @@ self.dist_attn = DistributedAttention(
     """一次建好,之后只读。替代散落的模块级全局变量。"""
 
     def __init__(self, sp_size: int):
-        assert dist.is_initialized(), "先 init_process_group 再建 SPContext"
+        assert dist.is_initialized(), "要先 init_process_group"
         world = dist.get_world_size()
-        rank = dist.get_rank()                      # 全局 rank,不是 LOCAL_RANK
-        assert world % sp_size == 0, f"world({world}) 必须被 sp_size({sp_size}) 整除"
+        rank = dist.get_rank()      # 全局 rank,不是 LOCAL_RANK
+        assert world % sp_size == 0, \
+            f"world({world}) 必须能被 sp_size({sp_size}) 整除"
 
         self.sp_size = sp_size
         self.dp_size = world // sp_size
@@ -471,7 +539,7 @@ self.dist_attn = DistributedAttention(
         # new_group 末尾有一次全局屏障,少一个进程就凑不齐。
         for i in range(self.dp_size):
             ranks = list(range(i * sp_size, (i + 1) * sp_size))
-            g = dist.new_group(ranks)               # 每个 rank 都调 dp_size 次
+            g = dist.new_group(ranks)   # 每个 rank 都调 dp_size 次
             if rank in ranks:
                 self.group = g
                 self.sp_rank = rank - i * sp_size
@@ -481,23 +549,24 @@ self.dist_attn = DistributedAttention(
     @property
     def enabled(self) -> bool:
         return self.sp_size &gt; 1</span><span lang="en" class="i18n-en">class SPContext:
-    """Built once, read-only thereafter. Replaces the scattered module-level globals."""
+    """Built once, read-only after. Replaces module-level globals."""
 
     def __init__(self, sp_size: int):
-        assert dist.is_initialized(), "init_process_group before constructing SPContext"
+        assert dist.is_initialized(), "call init_process_group first"
         world = dist.get_world_size()
-        rank = dist.get_rank()                      # the global rank, not LOCAL_RANK
-        assert world % sp_size == 0, f"world({world}) must be divisible by sp_size({sp_size})"
+        rank = dist.get_rank()      # global rank, not LOCAL_RANK
+        assert world % sp_size == 0, \
+            f"world({world}) must be divisible by sp_size({sp_size})"
 
         self.sp_size = sp_size
         self.dp_size = world // sp_size
         self.group = None
 
-        # The point: every rank must walk the whole loop; no early break.
-        # new_group ends in a global barrier, and one absent process stalls it.
+        # Key: every rank walks the whole loop; no early break.
+        # new_group ends in a global barrier; one absentee stalls it.
         for i in range(self.dp_size):
             ranks = list(range(i * sp_size, (i + 1) * sp_size))
-            g = dist.new_group(ranks)               # every rank calls it dp_size times
+            g = dist.new_group(ranks)   # every rank: dp_size calls
             if rank in ranks:
                 self.group = g
                 self.sp_rank = rank - i * sp_size
@@ -513,26 +582,31 @@ self.dist_attn = DistributedAttention(
 
           <h3><span lang="zh-CN" class="i18n-zh">第 2 步:交叉注意力走本地,不进 all-to-all</span><span lang="en" class="i18n-en">Step 2: keep cross-attention local, out of the all-to-all</span></h3>
           <pre><code><span lang="zh-CN" class="i18n-zh">def forward(self, x, y):
-    ctx_kv = y[:, 257:] if self.has_image_input else y   # 文本上下文,每卡都是完整的
-    q = self.norm_q(self.q(x))                           # q 沿 seq 切过 -> [b, s/sp, dim]
-    k = self.norm_k(self.k(ctx_kv))                      # k/v 没被切过 -> [b, 512, dim]
+    # 文本上下文:每张卡都持有完整的一份,从未被切过
+    ctx_kv = y[:, 257:] if self.has_image_input else y
+    q = self.norm_q(self.q(x))       # 切过  -> [b, s/sp, dim]
+    k = self.norm_k(self.k(ctx_kv))  # 没切过 -> [b, 512, dim]
     v = self.v(ctx_kv)
 
-    # k/v 已经完整,q 只是少了几段 token —— 本地算就是正确答案,不需要任何通信。
-    # 原实现把 k/v 也送进 all-to-all,把 512 拼成 512*sp(同一份文本复制 sp 遍)。
-    # 数值上等价(softmax 对重复 key 均分权重),但白花了两次通信。
+    # k/v 已经完整,q 只是少了几段 token ——
+    # 本地算就是正确答案,不需要任何通信。
+    # 若改用 DistributedAttention,k/v 也会走 all-to-all,
+    # 512 被拼成 512*sp(同一份文本复制 sp 遍)。数值等价
+    # (softmax 对重复 key 均分权重),但多花两次通信。
     x = flash_attention(q, k, v, num_heads=self.num_heads)</span><span lang="en" class="i18n-en">def forward(self, x, y):
-    ctx_kv = y[:, 257:] if self.has_image_input else y   # text context, complete on every card
-    q = self.norm_q(self.q(x))                           # q was sharded along seq -&gt; [b, s/sp, dim]
-    k = self.norm_k(self.k(ctx_kv))                      # k/v were never sharded -&gt; [b, 512, dim]
+    # text context: a complete copy on every card, never sharded
+    ctx_kv = y[:, 257:] if self.has_image_input else y
+    q = self.norm_q(self.q(x))       # sharded   -&gt; [b, s/sp, dim]
+    k = self.norm_k(self.k(ctx_kv))  # unsharded -&gt; [b, 512, dim]
     v = self.v(ctx_kv)
 
-    # k/v are already whole and q is merely missing some tokens — computing
-    # locally IS the right answer, with no communication at all.
-    # The original sends k/v through the all-to-all too, concatenating 512 into
-    # 512*sp (the same text duplicated sp times). Numerically equivalent —
-    # softmax splits the weight evenly across duplicated keys — but two
-    # round trips wasted.
+    # k/v are already whole and q is merely missing some tokens
+    # — computing locally IS the right answer, no communication.
+    # Route these through DistributedAttention instead and k/v
+    # join the all-to-all, concatenating 512 into 512*sp (the same
+    # text duplicated sp times). Numerically equivalent — softmax
+    # splits the weight evenly across duplicated keys — but it
+    # costs two extra round trips.
     x = flash_attention(q, k, v, num_heads=self.num_heads)</span></code></pre>
           <p>
             <span lang="zh-CN" class="i18n-zh">按动图 2 的账,这一步在 SP=2 下砍掉约 <strong>34%</strong> 的 SP 通信量,而且 SP 越大占比越高。改动只有几行,风险极低 —— 因为同文件的图像条件分支已经是这个写法。</span><span lang="en" class="i18n-en">By Figure 2's arithmetic this removes about <strong>34%</strong> of SP communication at SP=2, and a larger share as SP grows. It is a few lines and very low risk, since the image-condition branch in the same file already works this way.</span>
@@ -547,8 +621,9 @@ x = split_along_seq(x, sp)      # backward: all_gather,不缩放
 x = gather_along_seq(x, sp)     # backward: split,不缩放
 
 # 补偿只在这里做一次:
-#   DeepSpeed 会对全部 world_size 张卡取平均,但独立样本只有 world_size/sp 个,
-#   所以整体小了 sp 倍 —— 在 loss 上乘回来,主干和 head/patchify 拿到同一个尺度。
+#   DeepSpeed 对全部 world_size 张卡取平均,但独立样本
+#   只有 world_size/sp 个,所以整体小了 sp 倍。在 loss 上
+#   乘回来,主干和 head/patchify 就拿到同一个尺度。
 loss = mse_loss(pred, target) * self.scheduler.training_weight(t)
 if sp_ctx.enabled:
     loss = loss * sp_ctx.sp_size</span><span lang="en" class="i18n-en"># Both sides use grad_scale=None, making them pure data movement
@@ -556,10 +631,10 @@ x = split_along_seq(x, sp)      # backward: all_gather, unscaled
 x = gather_along_seq(x, sp)     # backward: split, unscaled
 
 # Compensate exactly once, here:
-#   DeepSpeed averages over all world_size cards, but there are only
-#   world_size/sp distinct samples, so the gradient is sp times too small.
-#   Multiply it back on the loss and the backbone, head and patchify all
-#   share one scale.
+#   DeepSpeed averages over all world_size cards, but there are
+#   only world_size/sp distinct samples, so the gradient comes out
+#   sp times too small. Multiply it back on the loss and backbone,
+#   head and patchify all share one scale.
 loss = mse_loss(pred, target) * self.scheduler.training_weight(t)
 if sp_ctx.enabled:
     loss = loss * sp_ctx.sp_size</span></code></pre>
@@ -578,14 +653,17 @@ if sp_ctx.enabled:
     def __iter__(self):
         idx = list(range(self.n))
         if self.shuffle:
-            # 用同一个 seed:SP 组内各 rank 打乱结果一致,组间才会拿到不同样本。
-            # 原实现禁掉 shuffle,其实只要种子一致就没有问题。
-            g = torch.Generator(); g.manual_seed(self.seed + self.epoch)
-            idx = [idx[i] for i in torch.randperm(self.n, generator=g).tolist()]
+            # 同一个 seed:SP 组内各 rank 打乱结果一致,
+            # 组间才会拿到不同样本。有了这条保证,就不必
+            # 为了安全而整个禁掉 shuffle。
+            g = torch.Generator()
+            g.manual_seed(self.seed + self.epoch)
+            perm = torch.randperm(self.n, generator=g).tolist()
+            idx = [idx[i] for i in perm]
         return iter(idx[self.sp.dp_rank :: self.sp.dp_size])
 
     def __len__(self):
-        # 原实现写死 //2;正确的分母是 SP 组的数量
+        # 分母是 SP 组的数量(world/sp),不是卡数,更不能写死
         return math.ceil(self.n / self.sp.dp_size)</span><span lang="en" class="i18n-en">class SPSampler(Sampler):
     """Every rank in one SP group must receive the same sample index."""
 
@@ -596,20 +674,24 @@ if sp_ctx.enabled:
     def __iter__(self):
         idx = list(range(self.n))
         if self.shuffle:
-            # One shared seed: ranks inside an SP group shuffle identically, so
-            # only different groups see different samples. The original disables
-            # shuffle entirely, which a consistent seed makes unnecessary.
-            g = torch.Generator(); g.manual_seed(self.seed + self.epoch)
-            idx = [idx[i] for i in torch.randperm(self.n, generator=g).tolist()]
+            # One shared seed: ranks inside an SP group shuffle
+            # identically, so only different groups see different
+            # samples. With that guarantee there is no need to
+            # disable shuffling altogether just to stay safe.
+            g = torch.Generator()
+            g.manual_seed(self.seed + self.epoch)
+            perm = torch.randperm(self.n, generator=g).tolist()
+            idx = [idx[i] for i in perm]
         return iter(idx[self.sp.dp_rank :: self.sp.dp_size])
 
     def __len__(self):
-        # The original hard-codes //2; the correct divisor is the SP group count
+        # Divisor = the SP group count (world/sp), not the card
+        # count, and never a constant
         return math.ceil(self.n / self.sp.dp_size)</span></code></pre>
 
           <h3><span lang="zh-CN" class="i18n-zh">第 5 步:把约束写成启动时的断言</span><span lang="en" class="i18n-en">Step 5: turn the constraints into startup assertions</span></h3>
           <p>
-            <span lang="zh-CN" class="i18n-zh">Ulysses 有几条硬约束,现在散落在注释里。它们应该在建 <code>SPContext</code> 时就报错,而不是等到第一个 step 挂掉:</span><span lang="en" class="i18n-en">Ulysses has a few hard constraints, currently scattered through comments. They should fail at <code>SPContext</code> construction rather than at the first step:</span>
+            <span lang="zh-CN" class="i18n-zh">Ulysses 有几条硬约束,写在注释里是不够的 —— 它们应该在建 <code>SPContext</code> 的那一刻就报错,而不是等第一个 step 挂掉、甚至训完才发现:</span><span lang="en" class="i18n-en">Ulysses has a few hard constraints, and putting them in comments is not enough — they should fail the moment <code>SPContext</code> is constructed, not at the first step, and certainly not after a full run:</span>
           </p>
           <table>
             <thead>
@@ -643,18 +725,18 @@ if sp_ctx.enabled:
             </tbody>
           </table>
           <p>
-            <span lang="zh-CN" class="i18n-zh">最后一条最容易被忽略,也最贵。all-to-all 是全连接、挡在计算路径上、每层 8 次 —— 这类通信必须待在节点内的高带宽域里。<a href="parallelism-comm-cost.html">通信量账本</a>那篇按量级排过序,<a href="parallelism-interaction.html">交互形态</a>那篇讲的就是为什么「能不能重叠」比「传多少」更决定扩展性。</span><span lang="en" class="i18n-en">The last one is the easiest to overlook and the most expensive. An all-to-all is fully connected, sits on the critical path, and happens 8 times per layer — that class of communication has to stay inside the node's high-bandwidth domain. <a href="parallelism-comm-cost.html">The communication ledger</a> ranks these by magnitude, and <a href="parallelism-interaction.html">the interaction note</a> is about why "can it overlap" predicts scalability better than "how much it sends".</span>
+            <span lang="zh-CN" class="i18n-zh">最后一条就是第一节里那个选型前提,值得在代码里再钉一次 —— 因为它是唯一一条<strong>断言不了、只能靠拓扑保证</strong>的约束:前三条违反了会直接报错,而 SP 组跨节点只会让训练变慢,不会告诉你原因。真要防,就在建组时把每个 rank 的节点号打出来对一眼。<a href="parallelism-interaction.html">交互形态</a>那篇讲的正是为什么「能不能重叠」比「传多少」更决定扩展性。</span><span lang="en" class="i18n-en">The last row is the selection premise from section 1, worth nailing down again in code — because it is the one constraint that <strong>cannot be asserted and must be guaranteed by topology</strong>: violate the first three and you get an error, whereas an SP group spanning nodes merely makes training slower without telling you why. If you want a guard, print each rank's node id at group-creation time and eyeball it. <a href="parallelism-interaction.html">The interaction note</a> is about exactly why "can it overlap" predicts scalability better than "how much it sends".</span>
           </p>
 
-          <h2><span lang="zh-CN" class="i18n-zh">九、怎么验证改对了</span><span lang="en" class="i18n-en">9 · How to verify the rewrite</span></h2>
+          <h2><span lang="zh-CN" class="i18n-zh">九、验证清单</span><span lang="en" class="i18n-en">9 · Verification checklist</span></h2>
           <p>
-            <span lang="zh-CN" class="i18n-zh">序列并行最难受的地方是<strong>错了也能跑</strong>:loss 会下降,只是下降得不太对。所以验证必须做等价性对拍,而不是看曲线像不像:</span><span lang="en" class="i18n-en">The nasty thing about sequence parallelism is that <strong>a wrong implementation still runs</strong>: the loss goes down, just not quite correctly. So verification has to be an equivalence check, not a glance at whether the curve looks plausible:</span>
+            <span lang="zh-CN" class="i18n-zh">序列并行最难受的地方是<strong>错了也能跑</strong>:loss 照样下降,只是下降得不太对。所以验证必须做等价性对拍,而不是看曲线像不像。下面四项按成本从低到高排,前两项跑一次就能覆盖绝大多数切分类错误:</span><span lang="en" class="i18n-en">The nasty thing about sequence parallelism is that <strong>a wrong implementation still runs</strong>: the loss keeps going down, just not quite correctly. Verification therefore has to be an equivalence check, not a glance at whether the curve looks plausible. The four items below are ordered by cost, and the first two catch the large majority of sharding mistakes in a single run:</span>
           </p>
           <ul>
             <li><span lang="zh-CN" class="i18n-zh"><strong>前向对拍。</strong> 固定权重、固定一个 batch、固定 timestep 与 noise 的随机种子,分别用 <code>sp=1</code> 和 <code>sp=2</code> 跑一次前向,比较 <code>noise_pred</code>。bf16 下应该在 <code>1e-2</code> 量级内,fp32 下应该到 <code>1e-5</code>。差得更多就说明切分或 RoPE 对错了位。</span><span lang="en" class="i18n-en"><strong>Forward equivalence.</strong> With fixed weights, a fixed batch, and fixed seeds for timestep and noise, run one forward at <code>sp=1</code> and one at <code>sp=2</code> and compare <code>noise_pred</code>. In bf16 expect agreement around <code>1e-2</code>, in fp32 around <code>1e-5</code>. Anything looser means the sharding or the RoPE offsets are wrong.</span></li>
-            <li><span lang="zh-CN" class="i18n-zh"><strong>梯度对拍。</strong> 同样条件下比较各参数的梯度范数,<strong>分组看</strong>:<code>blocks.*</code>、<code>head.*</code>、<code>patch_embedding.*</code> 分开统计。第六节那个不对称就是靠这一步暴露出来的 —— 只看全局范数会被主干的占比盖过去。</span><span lang="en" class="i18n-en"><strong>Gradient equivalence.</strong> Under the same conditions compare per-parameter gradient norms, <strong>grouped</strong>: <code>blocks.*</code>, <code>head.*</code> and <code>patch_embedding.*</code> counted separately. That is exactly how the asymmetry in section 6 surfaces — a single global norm hides it behind the backbone's share.</span></li>
-            <li><span lang="zh-CN" class="i18n-zh"><strong>建组的连通性。</strong> 建完 <code>SPContext</code> 立刻在组内跑一次 <code>all_reduce</code> 小张量,值应该等于 <code>sp_size</code>。这一步能在 30 秒内暴露上面第 ①、② 条,不用等训练跑起来。</span><span lang="en" class="i18n-en"><strong>Group connectivity.</strong> Right after building <code>SPContext</code>, all-reduce a small tensor within the group; the result should equal <code>sp_size</code>. This surfaces problems ① and ② above within 30 seconds, long before training starts.</span></li>
-            <li><span lang="zh-CN" class="i18n-zh"><strong>多机一定要单独测。</strong> 第 ② 条在单机上完全不显形。最小复现是 2 机 &times; 2 卡、<code>sp=2</code>,打印每个 rank 的 <code>(global_rank, dp_rank, sp_rank)</code>,肉眼就能看出分组对不对。</span><span lang="en" class="i18n-en"><strong>Test multi-node separately.</strong> Problem ② is completely invisible on one node. The minimal reproduction is 2 nodes × 2 cards at <code>sp=2</code>: print each rank's <code>(global_rank, dp_rank, sp_rank)</code> and the partitioning is wrong or right at a glance.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>梯度对拍。</strong> 同样条件下比较各参数的梯度范数,<strong>分组看</strong>:<code>blocks.*</code>、<code>head.*</code>、<code>patch_embedding.*</code> 分开统计。第六节讲的缩放覆盖范围就是靠这一步看出来的 —— 只看全局范数,会被主干的占比整个盖过去。</span><span lang="en" class="i18n-en"><strong>Gradient equivalence.</strong> Under the same conditions compare per-parameter gradient norms, <strong>grouped</strong>: <code>blocks.*</code>, <code>head.*</code> and <code>patch_embedding.*</code> counted separately. This is what makes section 6's question of scaling coverage visible — a single global norm buries it under the backbone's share.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>建组的连通性。</strong> 建完 <code>SPContext</code> 立刻在组内 <code>all_reduce</code> 一个小张量,值应该等于 <code>sp_size</code>。这一步花 30 秒,能把上面第 ①、② 条一次性验掉,不用等训练跑起来。</span><span lang="en" class="i18n-en"><strong>Group connectivity.</strong> Right after building <code>SPContext</code>, all-reduce a small tensor within the group; the result should equal <code>sp_size</code>. Thirty seconds of work clears details ① and ② in one shot, long before training starts.</span></li>
+            <li><span lang="zh-CN" class="i18n-zh"><strong>多机一定要单独测。</strong> 第 ② 条在单机上完全不显形,再怎么冒烟都测不出来。最小复现是 2 机 &times; 2 卡、<code>sp=2</code>,打印每个 rank 的 <code>(global_rank, dp_rank, sp_rank)</code>,肉眼就能看出分组对不对。</span><span lang="en" class="i18n-en"><strong>Test multi-node separately.</strong> Detail ② is entirely invisible on one node — no amount of smoke testing will surface it. The minimal reproduction is 2 nodes × 2 cards at <code>sp=2</code>: print each rank's <code>(global_rank, dp_rank, sp_rank)</code> and the partitioning is right or wrong at a glance.</span></li>
           </ul>
 
           <h2><span lang="zh-CN" class="i18n-zh">十、要点</span><span lang="en" class="i18n-en">10 · Takeaways</span></h2>
@@ -669,7 +751,7 @@ if sp_ctx.enabled:
             </div>
             <div class="wsp-take"><div class="n">03</div>
               <h5><span lang="zh-CN" class="i18n-zh">上下文没被切,就别送进 all-to-all</span><span lang="en" class="i18n-en">Don't all-to-all what was never sharded</span></h5>
-              <p><span lang="zh-CN" class="i18n-zh">交叉注意力的 k/v 每卡都完整,直接本地算即可。现有写法把它复制了 sp 遍 —— 数值等价所以不报错,但白占了三分之一的 SP 通信量。<strong>能跑通不代表没浪费。</strong></span><span lang="en" class="i18n-en">Cross-attention's k/v are complete on every card, so compute locally. The current code duplicates them sp times — numerically equivalent, so nothing errors, yet it consumes a third of the SP communication. <strong>Running correctly is not the same as running efficiently.</strong></span></p>
+              <p><span lang="zh-CN" class="i18n-zh">交叉注意力的 k/v 每卡都完整,直接本地算就对。顺手交给 <code>DistributedAttention</code> 会把它复制 sp 遍 —— 数值等价所以不报错,却占掉三分之一的 SP 通信量。<strong>判断标准是「这个张量被切过吗」,不是「它是不是 q/k/v」。</strong></span><span lang="en" class="i18n-en">Cross-attention's k/v are complete on every card, so computing locally is correct. Handing them to <code>DistributedAttention</code> out of habit duplicates them sp times — numerically equivalent, so nothing errors, yet it eats a third of the SP traffic. <strong>The test is "was this tensor ever sharded", not "is it a q/k/v".</strong></span></p>
             </div>
             <div class="wsp-take"><div class="n">04</div>
               <h5><span lang="zh-CN" class="i18n-zh">梯度缩放要放在覆盖全部参数的地方</span><span lang="en" class="i18n-en">Scale gradients where all parameters are covered</span></h5>
@@ -683,10 +765,14 @@ if sp_ctx.enabled:
               <h5><span lang="zh-CN" class="i18n-zh">单机能跑不等于多机能跑</span><span lang="en" class="i18n-en">Working on one node says nothing about many</span></h5>
               <p><span lang="zh-CN" class="i18n-zh"><code>LOCAL_RANK</code> 在单机上恰好等于全局 rank,于是分组的错误被完全掩盖。凡是涉及 rank 到通信域映射的代码,最小验证配置就得是两机。</span><span lang="en" class="i18n-en"><code>LOCAL_RANK</code> happens to equal the global rank on one node, which hides the partitioning error completely. Any code mapping ranks to communication domains needs two nodes as its minimum test configuration.</span></p>
             </div>
+            <div class="wsp-take"><div class="n">07</div>
+              <h5><span lang="zh-CN" class="i18n-zh">选 SP 方案先看拓扑,再看 head 数</span><span lang="en" class="i18n-en">Pick an SP scheme by topology first, head count second</span></h5>
+              <p><span lang="zh-CN" class="i18n-zh">Ulysses 的两条硬约束是「SP 组不跨节点」和「<code>num_heads % sp == 0</code>」。前者决定方案成不成立 —— 每层 8 次全连接通信走 IB 必塌;后者决定 SP 度能开多大。两条都满足,再谈实现细节。</span><span lang="en" class="i18n-en">Ulysses has two hard constraints: an SP group must not span nodes, and <code>num_heads % sp == 0</code>. The first decides whether the scheme is viable at all — eight fully connected collectives per layer over IB will collapse; the second caps how far the SP degree can go. Satisfy both before discussing implementation.</span></p>
+            </div>
           </div>
 
           <blockquote>
-            <span lang="zh-CN" class="i18n-zh">分析基于 msit / eco-contrib 仓库中 Wan2.1 NPU 适配版的 <code>wan/acceleration/parallel_states.py</code>、<code>diffsynth/models/wan_video_dit.py</code> 与 <code>examples/wanvideo/train_wan_i2v.py</code>;模型规格取自同文件的 14B 配置(dim 5120 / 40 heads / 40 层)。通信量与显存均由张量形状推算,<strong>未在 NPU 上实测</strong>;文中四个问题以最小复现脚本核对过逻辑,未在真实集群上验证时序。</span><span lang="en" class="i18n-en">The analysis is based on <code>wan/acceleration/parallel_states.py</code>, <code>diffsynth/models/wan_video_dit.py</code> and <code>examples/wanvideo/train_wan_i2v.py</code> in the Wan2.1 NPU port within msit / eco-contrib; model dimensions come from the 14B config in the same file (dim 5120 / 40 heads / 40 layers). Communication and memory figures are derived from tensor shapes and were <strong>not measured on NPU</strong>; the four problems were checked for logic with a minimal reproduction, not for timing on a real cluster.</span>
+            <span lang="zh-CN" class="i18n-zh">方案对应的代码在 msit / eco-contrib 仓库中 Wan2.1 NPU 适配版的 <code>wan/acceleration/parallel_states.py</code>、<code>diffsynth/models/wan_video_dit.py</code> 与 <code>examples/wanvideo/train_wan_i2v.py</code>;模型规格取自同文件的 14B 配置(dim 5120 / 40 heads / 40 层)。文中通信量与显存均由张量形状推算,<strong>未在 NPU 上实测</strong>;第七节四条工程细节以最小复现脚本核对过逻辑,未在真实集群上验证时序。</span><span lang="en" class="i18n-en">The code behind this write-up lives in the Wan2.1 NPU port inside msit / eco-contrib — <code>wan/acceleration/parallel_states.py</code>, <code>diffsynth/models/wan_video_dit.py</code> and <code>examples/wanvideo/train_wan_i2v.py</code>; model dimensions come from the 14B config in the same file (dim 5120 / 40 heads / 40 layers). Communication and memory figures here are derived from tensor shapes and were <strong>not measured on NPU</strong>; the four engineering details in section 7 were checked for logic with a minimal reproduction, not for timing on a real cluster.</span>
           </blockquote>
         </div>
       </article>
@@ -840,7 +926,7 @@ if sp_ctx.enabled:
                 sub: tr('q / k / v / 输出,共 4 次', 'q / k / v / output — 4 of them') },
               { key: 'cross', c: '#fb7185',
                 nm: tr('交叉注意力 all-to-all', 'Cross-attention all-to-all'),
-                sub: tr('同样 4 次 —— 但 k/v 本来就完整', 'also 4 — yet k/v were already complete') },
+                sub: tr('同样 4 次 —— 但 k/v 本就完整,可省', 'also 4 — but k/v are already complete: skippable') },
               { key: 'gather', c: '#34d399',
                 nm: tr('主干切分 / 恢复', 'Backbone split / gather'),
                 sub: tr('每步 1 次 all-gather', 'one all-gather per step') },
@@ -892,12 +978,13 @@ if sp_ctx.enabled:
             var pct = (cross / total * 100).toFixed(0);
             verdict.className = 'wsp-verdict good';
             verdict.innerHTML = isEn()
-              ? 'One forward pass moves <b>' + fmt(total) + '</b> per card. Cross-attention is <b>' + pct +
-                '%</b> of it — and every byte is avoidable, because its k/v were never sharded. ' +
-                'Dropping it leaves <b>' + fmt(total - cross) + '</b>. With gradient checkpointing a full step is about 3× these figures.'
+              ? 'One forward pass moves <b>' + fmt(total) + '</b> per card. Cross-attention accounts for <b>' + pct +
+                '%</b> of that, and every byte of it is avoidable: its k/v were never sharded, so a local ' +
+                'attention is already correct. Keeping it local brings the bill down to <b>' + fmt(total - cross) +
+                '</b>. With gradient checkpointing a full step is about 3× these figures.'
               : '一次前向每卡搬运 <b>' + fmt(total) + '</b>,其中交叉注意力占 <b>' + pct +
-                '%</b> —— 而这部分一个字节都不必传,因为它的 k/v 根本没被切过。' +
-                '去掉之后是 <b>' + fmt(total - cross) + '</b>。开梯度重计算后,完整一步大约是这些数字的 3 倍。';
+                '%</b>,而这部分完全可以省掉:它的 k/v 根本没被切过,直接本地算就是对的。' +
+                '改成本地注意力之后是 <b>' + fmt(total - cross) + '</b>。开梯度重计算后,完整一步大约是这些数字的 3 倍。';
           }
 
           [rSp, rS, rL].forEach(function (el) { el.addEventListener('input', calc); });
