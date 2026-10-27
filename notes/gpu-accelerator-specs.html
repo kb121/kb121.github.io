@@ -24,7 +24,7 @@
     <title data-zh="AI 加速卡官方参数对比 — 庄宏" data-en="AI Accelerator Specs, Official Figures Only — Hong Zhuang">AI 加速卡官方参数对比 — 庄宏</title>
     <meta
       name="description"
-      content="15 家厂商、30 列 AI 加速卡的参数并排对比,只收白皮书、datasheet、官网规格页与官方博客写明的数:原文没写填「无」,不换算、不由整机反推单卡,稀疏 / 稠密照原文标注。可按厂商勾选对比,附口径说明、无官方参数的卡,以及调研初稿与官方口径对不上的 7 处。"
+      content="16 家厂商、33 列 AI 加速卡的参数并排对比,只收白皮书、datasheet、官网规格页与官方博客写明的数:原文没写填「无」,不换算、不由整机反推单卡,稀疏 / 稠密照原文标注。可按厂商勾选对比,附口径说明、无官方参数的卡,以及调研初稿与官方口径对不上的 7 处。"
     />
     <meta name="theme-color" content="#070817" />
     <link rel="icon" href="../favicon.ico" />
@@ -142,8 +142,8 @@
 
         <div class="prose">
           <p>
-            <span lang="zh-CN" class="i18n-zh">把 15 家厂商、30 列加速卡的参数放进同一张表,规则只有一条:<strong>数字必须出自厂商自己的白皮书、datasheet、官网规格页或官方博客 / 文档</strong>。原文没写的格子一律填「无」,不换算、不由整机或托盘反推单卡,稀疏 / 稠密照原文标注。表格默认勾选 NVIDIA 与 AMD,勾选其他厂商就能并排对比;每列最底下的「来源」行可以直接点开原始文档。来源核对日期 2026-10-26。</span>
-            <span lang="en" class="i18n-en">Thirty accelerator columns from 15 vendors in one table, under a single rule: <strong>every figure must come from the vendor's own whitepaper, datasheet, spec page, or official blog / documentation</strong>. Anything the source doesn't state is marked 无 (none). Nothing is converted, nothing is backed out of a board, tray or rack total, and sparse vs dense is labelled exactly as the source labels it. NVIDIA and AMD are selected by default; tick other vendors to compare them side by side. The Sources row at the bottom of each column links to the original document. Sources checked 2026-10-26.</span>
+            <span lang="zh-CN" class="i18n-zh">把 16 家厂商、33 列加速卡的参数放进同一张表,规则只有一条:<strong>数字必须出自厂商自己的白皮书、datasheet、官网规格页或官方博客 / 文档</strong>。原文没写的格子一律填「无」,不换算、不由整机或托盘反推单卡,稀疏 / 稠密照原文标注。表格默认勾选 NVIDIA 与 AMD,勾选其他厂商就能并排对比;每列最底下的「来源」行可以直接点开原始文档。来源核对日期 2026-10-26;昆仑芯一列核对于 2026-10-27。</span>
+            <span lang="en" class="i18n-en">Thirty-three accelerator columns from 16 vendors in one table, under a single rule: <strong>every figure must come from the vendor's own whitepaper, datasheet, spec page, or official blog / documentation</strong>. Anything the source doesn't state is marked 无 (none). Nothing is converted, nothing is backed out of a board, tray or rack total, and sparse vs dense is labelled exactly as the source labels it. NVIDIA and AMD are selected by default; tick other vendors to compare them side by side. The Sources row at the bottom of each column links to the original document. Sources checked 2026-10-26; the Kunlunxin column 2026-10-27.</span>
           </p>
 
           <h2><span lang="zh-CN" class="i18n-zh">对比表</span><span lang="en" class="i18n-en">Comparison table</span></h2>
@@ -156,7 +156,7 @@
                 <span class="gpu-ctrl-t"><span lang="zh-CN" class="i18n-zh">选择厂商</span><span lang="en" class="i18n-en">Vendors</span></span>
                 <button type="button" class="gpu-btn" data-act="all"><span lang="zh-CN" class="i18n-zh">全选</span><span lang="en" class="i18n-en">Select all</span></button>
                 <button type="button" class="gpu-btn" data-act="none"><span lang="zh-CN" class="i18n-zh">全部取消</span><span lang="en" class="i18n-en">Clear all</span></button>
-                <span class="gpu-count" aria-live="polite"><span lang="zh-CN" class="i18n-zh">已选 2 / 15 家 · 13 列</span><span lang="en" class="i18n-en">2 / 15 vendors · 13 columns</span></span>
+                <span class="gpu-count" aria-live="polite"><span lang="zh-CN" class="i18n-zh">已选 2 / 16 家 · 13 列</span><span lang="en" class="i18n-en">2 / 16 vendors · 13 columns</span></span>
               </div>
               <div class="gpu-vendors" role="group" aria-label="厂商 / Vendors">
                 <label class="gpu-chip on"><input type="checkbox" value="nvidia" data-cards="10" checked /><span>NVIDIA</span><em>10</em></label>
@@ -167,6 +167,7 @@
                 <label class="gpu-chip"><input type="checkbox" value="intel" data-cards="1" /><span>Intel</span><em>1</em></label>
                 <label class="gpu-chip"><input type="checkbox" value="microsoft" data-cards="1" /><span>Microsoft</span><em>1</em></label>
                 <label class="gpu-chip"><input type="checkbox" value="meta" data-cards="1" /><span>Meta</span><em>1</em></label>
+                <label class="gpu-chip"><input type="checkbox" value="kunlunxin" data-cards="3" /><span><span lang="zh-CN" class="i18n-zh">昆仑芯</span><span lang="en" class="i18n-en">Kunlunxin</span></span><em>3</em></label>
                 <label class="gpu-chip"><input type="checkbox" value="cambricon" data-cards="1" /><span><span lang="zh-CN" class="i18n-zh">寒武纪</span><span lang="en" class="i18n-en">Cambricon</span></span><em>1</em></label>
                 <label class="gpu-chip"><input type="checkbox" value="metax" data-cards="1" /><span><span lang="zh-CN" class="i18n-zh">沐曦</span><span lang="en" class="i18n-en">MetaX</span></span><em>1</em></label>
                 <label class="gpu-chip"><input type="checkbox" value="moorethreads" data-cards="1" /><span><span lang="zh-CN" class="i18n-zh">摩尔线程</span><span lang="en" class="i18n-en">Moore Threads</span></span><em>1</em></label>
@@ -204,6 +205,9 @@
                     <th scope="col" data-v="intel" class="vstart" hidden><span class="gpu-vn">Intel</span><span class="gpu-cn">Gaudi 3</span></th>
                     <th scope="col" data-v="microsoft" class="vstart" hidden><span class="gpu-vn">Microsoft</span><span class="gpu-cn">Maia 200</span></th>
                     <th scope="col" data-v="meta" class="vstart" hidden><span class="gpu-vn">Meta</span><span class="gpu-cn">MTIA 400</span></th>
+                    <th scope="col" data-v="kunlunxin" class="vstart" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">昆仑芯</span><span lang="en" class="i18n-en">Kunlunxin</span></span><span class="gpu-cn">P800</span></th>
+                    <th scope="col" data-v="kunlunxin" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">昆仑芯</span><span lang="en" class="i18n-en">Kunlunxin</span></span><span class="gpu-cn">M100</span></th>
+                    <th scope="col" data-v="kunlunxin" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">昆仑芯</span><span lang="en" class="i18n-en">Kunlunxin</span></span><span class="gpu-cn">M300</span></th>
                     <th scope="col" data-v="cambricon" class="vstart" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">寒武纪</span><span lang="en" class="i18n-en">Cambricon</span></span><span class="gpu-cn">思元 690</span></th>
                     <th scope="col" data-v="metax" class="vstart" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">沐曦</span><span lang="en" class="i18n-en">MetaX</span></span><span class="gpu-cn">曦云 C600</span></th>
                     <th scope="col" data-v="moorethreads" class="vstart" hidden><span class="gpu-vn"><span lang="zh-CN" class="i18n-zh">摩尔线程</span><span lang="en" class="i18n-en">Moore Threads</span></span><span class="gpu-cn">MTT S5000</span></th>
@@ -239,6 +243,9 @@
                     <td data-v="intel" class="vstart" hidden>第 5 代异构 AI 加速架构；两颗计算 die 经中介层高带宽互连，共 8 个 MME、64 个 TPC、24 个 200 Gbps RDMA 网口</td>
                     <td data-v="microsoft" class="vstart" hidden>推理加速器，原生 FP8 / FP4 tensor core；内存子系统围绕窄精度数据类型、专用 DMA 引擎、片上 SRAM 与专用 NoC 重新设计；两层 scale-up 网络基于标准以太网；首批部署于 US Central（得梅因附近），US West 3 随后</td>
                     <td data-v="meta" class="vstart" hidden>两个计算 chiplet，支持增强版 MX8 / MX4；72 卡经交换背板组成单一 scale-up 域；官方称较 MTIA 300 FP8 FLOPS 高 400%、HBM 带宽高 51%；规格表 Workload Focus 为 General</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无官方规格：昆仑芯官网「产品信息」只列 R 系列（昆仑芯 2 代、R100、R200、RG800、R480-X8）与 K 系列（昆仑芯 1 代、K100、K200），未发布 P800 的规格页或白皮书 ③；官方新闻确认该型号存在且已规模交付 ①②</td>
+                    <td data-v="kunlunxin" class="na" hidden>无：昆仑芯官网未发布 M100 的规格页或白皮书，站内新闻也未出现该型号；型号与定位（面向大规模推理、计划 2026 年初上市）出自 2025-11-13 百度世界大会的公开发布</td>
+                    <td data-v="kunlunxin" class="na" hidden>无：昆仑芯官网未发布 M300 的规格页或白皮书，站内新闻也未出现该型号；型号与定位（面向超大规模多模态模型训练与推理、计划 2027 年初上市）出自 2025-11-13 百度世界大会的公开发布</td>
                     <td data-v="cambricon" class="vstart na" hidden>无：寒武纪官网产品页仅列至思元 370（MLU370），未发布思元 690 的规格或白皮书</td>
                     <td data-v="metax" class="vstart" hidden>沐曦基于自主知识产权 GPGPU 架构与国产先进工艺研发的新一代通用 GPU，面向智算中心、通用计算与数据分析；配 MXMACA 软件栈（兼容主流 GPU 生态）</td>
                     <td data-v="moorethreads" class="vstart" hidden>搭载新一代 PH100 芯片的全功能 GPU 智算卡，面向大模型训练、推理与高性能计算；第四代 MUSA「平湖」架构，支持 FP8 到 FP64 全精度 ①</td>
@@ -272,6 +279,9 @@
                     <td data-v="intel" class="vstart" hidden>Intel Gaudi 3（MME 矩阵引擎 ×8 + TPC 向量核 ×64）</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart" hidden>自主知识产权 GPGPU 架构（未写代号）</td>
                     <td data-v="moorethreads" class="vstart" hidden>平湖（第四代 MUSA 架构），含 TCE / TME / ACE 三大引擎 ②</td>
@@ -305,6 +315,9 @@
                     <td data-v="intel" class="vstart" hidden>TSMC 5nm；双计算 die，中介层互连</td>
                     <td data-v="microsoft" class="vstart" hidden>TSMC 3nm；1400 亿以上晶体管</td>
                     <td data-v="meta" class="vstart" hidden>两个计算 chiplet</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart" hidden>国产先进工艺（未写节点）</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -338,6 +351,9 @@
                     <td data-v="intel" class="vstart" hidden>OAM（HL-325L，OCP OAM 2.0）；另有 PCIe 卡 HL-338</td>
                     <td data-v="microsoft" class="vstart" hidden>数据中心采用第二代闭环液冷换热单元（Heat Exchanger Unit）</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart" hidden>OAM 2.0 扣卡式模组；风冷 / 液冷</td>
                     <td data-v="moorethreads" class="vstart" hidden>OAM 计算模组，液冷版 / 风冷版 ①</td>
@@ -371,6 +387,9 @@
                     <td data-v="intel" class="vstart" hidden>128 GB（8 颗 HBM2e）</td>
                     <td data-v="microsoft" class="vstart" hidden>216GB</td>
                     <td data-v="meta" class="vstart" hidden>288 GB</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无（官网仅称「超大容量高带宽显存」，支持全链路 ECC）</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -404,6 +423,9 @@
                     <td data-v="intel" class="vstart" hidden>HBM2e</td>
                     <td data-v="microsoft" class="vstart" hidden>HBM3e</td>
                     <td data-v="meta" class="vstart" hidden>HBM（未注明代际）</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -437,6 +459,9 @@
                     <td data-v="intel" class="vstart" hidden>3.7 TB/s</td>
                     <td data-v="microsoft" class="vstart" hidden>7 TB/s</td>
                     <td data-v="meta" class="vstart" hidden>9.2 TB/s</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -470,6 +495,9 @@
                     <td data-v="intel" class="vstart" hidden>96 MB on-die SRAM，读 / 写 12.8 / 6.4 TB/s</td>
                     <td data-v="microsoft" class="vstart" hidden>272MB on-chip SRAM</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -503,6 +531,9 @@
                     <td data-v="intel" class="vstart na" hidden>无</td>
                     <td data-v="microsoft" class="vstart" hidden>超过 10 petaFLOPS</td>
                     <td data-v="meta" class="vstart" hidden>MX4 12 PFLOPs</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -536,6 +567,9 @@
                     <td data-v="intel" class="vstart" hidden>MME 1678 TFLOPS；TPC 向量 57.3 TFLOPS</td>
                     <td data-v="microsoft" class="vstart" hidden>超过 5 petaFLOPS</td>
                     <td data-v="meta" class="vstart" hidden>FP8/MX8 6 PFLOPs</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无（官方只写原生支持 FP8 的 E4M3 / E5M2 格式，未给算力数值）①②</td>
@@ -569,6 +603,9 @@
                     <td data-v="intel" class="vstart" hidden>MME：BF16 1678、FP16 459 TFLOPS；TPC 向量：BF16 28.7、FP16 28.7 TFLOPS</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart" hidden>BF16 3 PFLOPs</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -602,6 +639,9 @@
                     <td data-v="intel" class="vstart" hidden>MME 459 TFLOPS</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -635,6 +675,9 @@
                     <td data-v="intel" class="vstart" hidden>MME 229 TFLOPS；TPC 向量 14.3 TFLOPS</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -668,6 +711,9 @@
                     <td data-v="intel" class="vstart na" hidden>无</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -701,6 +747,9 @@
                     <td data-v="intel" class="vstart na" hidden>无</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -734,6 +783,9 @@
                     <td data-v="intel" class="vstart" hidden>24× 200 GbE RoCE（48 条 112G PAM4 SerDes），网络双向 1200 GB/s；HLB-325 基板上每 OAM 用 21×200GbE 做 OAM 间互连</td>
                     <td data-v="microsoft" class="vstart" hidden>专用 scale-up 带宽 2.8 TB/s（双向）；每托盘 4 卡直连；集合通信可扩展至 6,144 卡</td>
                     <td data-v="meta" class="vstart" hidden>单向 1.2 TB/s；scale-up 域 72 卡</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart" hidden>MetaXLink 互连；MetaXLink-E 接口最高 128 卡超节点</td>
                     <td data-v="moorethreads" class="vstart" hidden>第二代 MTLink，官方称带宽为上一代 7 倍、支持节点内 8 卡全连接（未给绝对值）②</td>
@@ -767,6 +819,9 @@
                     <td data-v="intel" class="vstart" hidden>每 OAM 3×200GbE 用于 scale-out；主机 PCIe Gen5 x16，128 GB/s</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart" hidden>单向 100 GB/s</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -800,6 +855,9 @@
                     <td data-v="intel" class="vstart" hidden>OAM 最高 900W TDP（被动散热与液冷均为 900W）</td>
                     <td data-v="microsoft" class="vstart" hidden>750W SoC TDP</td>
                     <td data-v="meta" class="vstart" hidden>Module TDP 1200 W</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart" hidden>最大功耗 1000W</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -833,6 +891,9 @@
                     <td data-v="intel" class="vstart na" hidden>无</td>
                     <td data-v="microsoft" class="vstart" hidden>2026-01-26（官方博客发布）</td>
                     <td data-v="meta" class="vstart" hidden>2026-03-11（官方博客）</td>
+                    <td data-v="kunlunxin" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -866,6 +927,9 @@
                     <td data-v="intel" class="vstart" hidden>14 个媒体解码引擎</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart na" hidden>无</td>
+                    <td data-v="kunlunxin" class="vstart" hidden>官方新闻口径：P800 单机 8 卡一体机通过中国信通院 DeepSeek-V3/R1 671B 满血版适配支持性测试，精度与 DeepSeek 技术报告对齐、支持长上下文推理，为首个通过该测试的产品 ①；P800 系列与 openEuler 完成兼容性互认证，七项子测试全部通过 ②</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
+                    <td data-v="kunlunxin" class="na" hidden>无</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart na" hidden>无</td>
@@ -899,6 +963,9 @@
                     <td data-v="intel" class="vstart" hidden>白皮书表中算力均为峰值，未标注稀疏 / 稠密</td>
                     <td data-v="microsoft" class="vstart na" hidden>无</td>
                     <td data-v="meta" class="vstart" hidden>规格表是博客内的 SVG 图片；网络带宽为单向（unidirectional）</td>
+                    <td data-v="kunlunxin" class="vstart" hidden>官方新闻只写适配与认证结果，未给出显存、算力、带宽、功耗等任何参数，故本列参数全部为「无」；流传的 96 GB HBM、345 TFLOPS FP16、2.4 TB/s 等数字均出自媒体报道，未见官方文档，不予采信</td>
+                    <td data-v="kunlunxin" hidden>本列无任何官方参数。大会路线图只给定位与上市时间，且未见官方文档原文，故不填入参数行</td>
+                    <td data-v="kunlunxin" hidden>本列无任何官方参数。大会路线图只给定位与上市时间，且未见官方文档原文，故不填入参数行</td>
                     <td data-v="cambricon" class="vstart na" hidden>无</td>
                     <td data-v="metax" class="vstart na" hidden>无</td>
                     <td data-v="moorethreads" class="vstart" hidden>产品页脚注里的 989 TFLOPS / 3.35TB/s 等是对标的「国际旗舰产品」参数，不是 S5000 自身规格 ①</td>
@@ -932,6 +999,9 @@
                     <td data-v="intel" class="vstart" hidden><ol class="gpu-src"><li><a href="https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf" target="_blank" rel="noopener">Intel Gaudi 3 AI Accelerator White Paper（表 1、表 5）</a><span class="k">白皮书</span></li></ol></td>
                     <td data-v="microsoft" class="vstart" hidden><ol class="gpu-src"><li><a href="https://blogs.microsoft.com/blog/2026/01/26/maia-200-the-ai-accelerator-built-for-inference/" target="_blank" rel="noopener">Maia 200: The AI accelerator built for inference（2026-01-26）</a><span class="k">官方博客</span></li></ol></td>
                     <td data-v="meta" class="vstart" hidden><ol class="gpu-src"><li><a href="https://ai.meta.com/blog/meta-mtia-scale-ai-chips-for-billions/" target="_blank" rel="noopener">Four MTIA Chips in Two Years（2026-03-11，规格表为图片）</a><span class="k">官方博客</span></li></ol></td>
+                    <td data-v="kunlunxin" class="vstart" hidden><ol class="gpu-src"><li>①<a href="https://www.kunlunxin.com/news/4471.html" target="_blank" rel="noopener">昆仑芯 · 首个！昆仑芯 P800 单机 8 卡一体机通过中国信通院 DeepSeek 适配测试（2025-04-17）</a><span class="k">官方新闻</span></li><li>②<a href="https://www.kunlunxin.com/news/5195.html" target="_blank" rel="noopener">昆仑芯 · 与 openEuler 完成兼容性互认证（2026-10-23）</a><span class="k">官方新闻</span></li><li>③<a href="https://www.kunlunxin.com/" target="_blank" rel="noopener">昆仑芯官网产品信息（仅列 R / K 系列，无 P800 规格页）</a><span class="k">已核查</span></li></ol></td>
+                    <td data-v="kunlunxin" hidden><ol class="gpu-src"><li><a href="https://www.kunlunxin.com/" target="_blank" rel="noopener">昆仑芯官网产品信息（无 M 系列页面）</a><span class="k">已核查</span></li></ol></td>
+                    <td data-v="kunlunxin" hidden><ol class="gpu-src"><li><a href="https://www.kunlunxin.com/" target="_blank" rel="noopener">昆仑芯官网产品信息（无 M 系列页面）</a><span class="k">已核查</span></li></ol></td>
                     <td data-v="cambricon" class="vstart" hidden><ol class="gpu-src"><li><a href="https://www.cambricon.com/" target="_blank" rel="noopener">寒武纪官网产品中心（无思元 690）</a><span class="k">已核查</span></li></ol></td>
                     <td data-v="metax" class="vstart" hidden><ol class="gpu-src"><li><a href="https://www.metax-tech.com/prod.html?cid=107&amp;id=68" target="_blank" rel="noopener">沐曦 · 曦云C600</a><span class="k">官网产品页</span></li></ol></td>
                     <td data-v="moorethreads" class="vstart" hidden><ol class="gpu-src"><li>①<a href="https://www.mthreads.com/product/S5000" target="_blank" rel="noopener">摩尔线程 · MTT S5000</a><span class="k">官网产品页</span></li><li>②<a href="https://www.mthreads.com/architecture/pinghu" target="_blank" rel="noopener">摩尔线程 ·「平湖」架构</a><span class="k">官网架构页</span></li></ol></td>
@@ -985,6 +1055,14 @@
             <li>
               <span lang="zh-CN" class="i18n-zh"><strong>昇腾 910C 只有系统级数字:</strong>Atlas 900 A3 SuperPoD 最多 384 颗 910C、整系统最高 300 PFLOPS(华为全联接大会 2025 主题演讲);单芯片规格没有公开。</span>
               <span lang="en" class="i18n-en"><strong>Ascend 910C has system-level figures only:</strong> an Atlas 900 A3 SuperPoD holds up to 384 910C chips and reaches up to 300 PFLOPS as a whole (Huawei Connect 2025 keynote). Per-chip specs are not published.</span>
+            </li>
+            <li>
+              <span lang="zh-CN" class="i18n-zh"><strong>昆仑芯 P800 有官方背书,但没有官方参数。</strong>昆仑芯官网「产品信息」只列 R 系列(昆仑芯 2 代、R100、R200、RG800、R480-X8)与 K 系列(昆仑芯 1 代、K100、K200),没有 P800 规格页或白皮书;官方新闻则确认它存在并已规模交付 —— P800 单机 8 卡一体机是首个通过中国信通院 DeepSeek-V3/R1 671B 满血版适配测试的产品,P800 系列也与 openEuler 完成了兼容性互认证。但这些新闻只写适配与认证结果,不含任何显存、算力、带宽、功耗数字,所以这一列的参数行全是「无」。网上流传的 96 GB HBM、345 TFLOPS FP16、2.4 TB/s 都没有官方出处,本表不予采信。</span>
+              <span lang="en" class="i18n-en"><strong>Kunlunxin's P800 is officially acknowledged but has no published specs.</strong> Kunlunxin's product pages list only the R series (Kunlun gen 2, R100, R200, RG800, R480-X8) and K series (Kunlun gen 1, K100, K200) — there is no P800 spec page or whitepaper. Its official news does confirm the part exists and ships at scale: a single-node 8-card P800 system was the first product to pass CAICT's DeepSeek-V3/R1 671B adaptation test, and the P800 series completed compatibility certification with openEuler. But those posts report test and certification outcomes only, with no memory, compute, bandwidth or power figures, so every spec row in that column is 无. The widely quoted 96 GB HBM, 345 TFLOPS FP16 and 2.4 TB/s have no official source and are not used here.</span>
+            </li>
+            <li>
+              <span lang="zh-CN" class="i18n-zh"><strong>昆仑芯 M100 / M300 只是路线图上的名字。</strong>两者在 2025-11-13 的百度世界大会上公布,M100 面向大规模推理、计划 2026 年初上市,M300 面向超大规模多模态模型训练与推理、计划 2027 年初上市。但昆仑芯官网没有 M 系列页面,站内新闻也未出现这两个型号,官方没给过任何参数,所以两列整列为「无」。</span>
+              <span lang="en" class="i18n-en"><strong>Kunlunxin's M100 and M300 are roadmap names only.</strong> Both were announced at Baidu World on 2025-11-13 — the M100 for large-scale inference, planned for early 2026, and the M300 for ultra-large multimodal training and inference, planned for early 2027. Kunlunxin's site has no M-series pages and its news never mentions either part, and no figures have been published, so both columns are 无 throughout.</span>
             </li>
             <li>
               <span lang="zh-CN" class="i18n-zh"><strong>沐曦曦云 C600 与摩尔线程 MTT S5000 只有定性描述。</strong>C600 给了形态(OAM 2.0)和最大功耗 1000W,显存容量与带宽都没写;S5000 产品页脚注里的 989 TFLOPS / 3.35TB/s 是它对标的「国际旗舰产品」的参数,不是 S5000 自己的规格。</span>
