@@ -38,6 +38,20 @@
 
 window.NOTES = [
   {
+    slug: "gpu-accelerator-specs",
+    title: {
+      zh: "AI 加速卡官方参数对比",
+      en: "AI Accelerator Specs, Official Figures Only",
+    },
+    summary: {
+      zh: "15 家厂商、30 列加速卡(NVIDIA、AMD、Google、AWS、华为、Intel、Microsoft、Meta 与国产 GPU、Groq、Cerebras)的参数放进一张表,只收白皮书、datasheet、官网规格页和官方博客写明的数:原文没写填「无」,不换算、不由整机反推单卡,稀疏 / 稠密照原文标注。按厂商勾选并排对比,每列附原始文档链接;另列出没有官方参数的卡,以及调研初稿与官方口径对不上的 7 处(R100 带宽、Gaudi 3 FP8、MTIA 400 MX4 等)。",
+      en: "Thirty accelerator columns from 15 vendors — NVIDIA, AMD, Google, AWS, Huawei, Intel, Microsoft, Meta, Chinese GPU makers, Groq and Cerebras — in one table, using only figures stated in whitepapers, datasheets, spec pages and official blogs. Anything unstated is marked none, nothing is converted or backed out of rack totals, and sparse vs dense follows the source. Tick vendors to compare side by side, with a link to the original document under every column. Also lists the cards with no official specs, and seven places where the first-draft numbers disagreed with official ones (R100 bandwidth, Gaudi 3 FP8, MTIA 400 MX4 and more).",
+    },
+    date: "2026-10-27",
+    tags: ["GPU", "AI Accelerator", "Hardware", "HBM", "Specs"],
+    category: "industry",
+  },
+  {
     slug: "hy4-anatomy",
     title: {
       zh: "混元4 preview 模型结构分析",

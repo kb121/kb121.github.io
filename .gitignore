@@ -25,3 +25,6 @@ desktop.ini
 # Python scratch (one-off calculation scripts)
 __pycache__/
 *.py[cod]
+
+# Notes research build artifacts (keep the .xlsx, drop the build dirs)
+notes/_research/.*
