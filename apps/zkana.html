@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          var fromUrl = p.get('lang');
+          var saved = localStorage.getItem('lang');
+          var lang =
+            fromUrl === 'en' || fromUrl === 'zh' ? fromUrl
+            : saved === 'en' || saved === 'zh' ? saved
+            : 'zh';
+          document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+        } catch (_) {}
+      })();
+    </script>
+
+    <title data-zh="ZKana 隐私政策 — 庄宏" data-en="Privacy Policy for ZKana — Hong Zhuang">Privacy Policy for ZKana — Hong Zhuang</title>
+    <meta
+      name="description"
+      content="Privacy Policy for ZKana. The app keeps your hiragana practice statistics on your device and, if you are signed in to iCloud, in your own iCloud account. It does not create an account, does not run a server, and does not collect, transmit, or sell any data."
+    />
+    <meta name="theme-color" content="#070817" />
+    <link rel="icon" href="../favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <link href="../css/font-awesome/css/all.min.css?ver=2.5.0" rel="stylesheet" />
+    <link href="../css/design.css?ver=2.5.1" rel="stylesheet" />
+    <link href="../css/notes.css?ver=2.5.0" rel="stylesheet" />
+  </head>
+  <body id="top" class="note-page">
+    <div class="aurora" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
+
+    <header class="topnav">
+      <a href="../index.html" class="brand">HZ.</a>
+      <nav role="navigation" aria-label="Primary">
+        <ul>
+          <li><a href="../index.html"><span lang="zh-CN" class="i18n-zh">首页</span><span lang="en" class="i18n-en">Home</span></a></li>
+          <li><a href="../notes.html"><span lang="zh-CN" class="i18n-zh">笔记</span><span lang="en" class="i18n-en">Notes</span></a></li>
+          <li><a href="../apps.html" class="active"><span lang="zh-CN" class="i18n-zh">App</span><span lang="en" class="i18n-en">Apps</span></a></li>
+        </ul>
+      </nav>
+      <div class="right">
+        <button class="lang-toggle" data-lang-toggle aria-label="Switch language / 切换语言">
+          <span class="opt opt-zh" data-lang="zh">中</span>
+          <span class="opt opt-en" data-lang="en">EN</span>
+        </button>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme / 切换主题">
+          <i class="fas fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <article class="note-article">
+        <a href="../apps.html" class="note-back"
+          ><span class="arrow">←</span> <span lang="zh-CN" class="i18n-zh">返回 App</span><span lang="en" class="i18n-en">Back to apps</span></a
+        >
+
+        <header class="note-head">
+          <div class="note-meta">
+            <span>2026-11-05</span>
+            <span class="tags"><span>macOS</span><span>iOS</span><span>watchOS</span><span>Privacy</span></span>
+          </div>
+          <h1>
+            <span lang="zh-CN" class="i18n-zh">ZKana 隐私政策</span>
+            <span lang="en" class="i18n-en">Privacy Policy for ZKana</span>
+          </h1>
+        </header>
+
+        <div class="prose">
+          <p>
+            <span lang="zh-CN" class="i18n-zh">ZKana 是一个平假名记忆练习应用。它只记录你的练习数据:每个假名出现、答对、答错的次数,以及你的练习设置。这些数据保存在你的设备上。</span>
+            <span lang="en" class="i18n-en">ZKana is a hiragana practice app. The only data it keeps is your practice record: how often each kana was shown, answered right or wrong, and your practice settings. This data is stored on your device.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">如果你在设备上登录了 iCloud,这些练习数据会通过 iCloud 键值存储同步到你自己 Apple 账户下的其他设备(Mac、iPad、iPhone、Apple Watch)。同步由 Apple 的 iCloud 完成,数据只存在于你的 iCloud 账户中,我无法访问。你可以在系统设置里关闭本应用的 iCloud 访问,或在应用的“设置”里重置统计,重置会同步清除所有设备上的记录。</span>
+            <span lang="en" class="i18n-en">If you are signed in to iCloud on the device, this practice data is synced through iCloud Key-Value Storage to your other devices under the same Apple account (Mac, iPad, iPhone, Apple Watch). The sync is performed by Apple's iCloud; the data lives only in your own iCloud account and I cannot access it. You can turn off iCloud for the app in System Settings, or reset the statistics in the app's Settings, which clears the record on every device.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">应用不创建账户,不运行服务器,不含广告或第三方 SDK,不收集、传输或出售任何数据。可选的朗读功能使用设备自带的日语语音,在本机完成。</span>
+            <span lang="en" class="i18n-en">The app does not create an account, does not run a server, contains no ads or third-party SDKs, and does not collect, transmit, or sell any data. The optional read-aloud feature uses the Japanese voice built into your device and runs on the device.</span>
+          </p>
+          <p>
+            <span lang="zh-CN" class="i18n-zh">联系:</span>
+            <span lang="en" class="i18n-en">Contact:</span>
+            <a href="mailto:609389480@qq.com">609389480@qq.com</a>
+          </p>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand-big"><span lang="zh-CN" class="i18n-zh">庄&nbsp;宏</span><span lang="en" class="i18n-en">Hong&nbsp;Zhuang</span></div>
+      <div class="meta">
+        &copy; <span id="footer-year">2026</span> Hong Zhuang &middot;
+        <a href="../apps.html"><span lang="zh-CN" class="i18n-zh">返回 App</span><span lang="en" class="i18n-en">Back to apps</span></a>
+      </div>
+    </footer>
+
+    <script src="../scripts/app.js?ver=2.5.0" defer></script>
+  </body>
+</html>
